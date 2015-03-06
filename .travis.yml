@@ -2,6 +2,8 @@ language: cpp
 compiler: gcc
 
 before_script:
+  - sudo apt-get update -qq > /dev/null
+  - sudo apt-get install -qq librtaudio-dev
   - mkdir build
   - cd build
   - cmake ../
