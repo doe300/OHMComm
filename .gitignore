@@ -181,3 +181,12 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+
+# CMake
+/CMakeCache.txt
+/cmake_install.cmake
+/CMakeFiles/
+/Makefile
+
+# Netbeans
+/nbproject
