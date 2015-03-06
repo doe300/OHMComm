@@ -190,3 +190,6 @@ FakesAssemblies/
 
 # Netbeans
 /nbproject
+/RTAudioProbe
+/RTDuplex
+/compile_commands.json
