@@ -11,13 +11,13 @@ project (OHMComm)
 # Example and Testing applications
 ####
 
-option (BUILD_EXAMPLES "Build examples and testing applications" ON)
+set (BUILD_EXAMPLES 1)
 
 # Some example applications from rtaudio-devel
 if (BUILD_EXAMPLES)
-	add_executable (RTAudioProbe test/audioprobe.cpp)
+	add_executable (RTAudioProbe examples/audioprobe.cpp)
 	target_link_libraries(RTAudioProbe rtaudio)
 
-	add_executable (RTDuplex test/duplex.cpp)
+	add_executable (RTDuplex examples/duplex.cpp)
 	target_link_libraries(RTDuplex rtaudio)
 endif (BUILD_EXAMPLES)
