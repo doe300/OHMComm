@@ -16,6 +16,7 @@ RTPWrapper::RTPWrapper(int socket, uint8_t payloadType, int16_t tickInterval)
     currentSequenceNumber = generateSequenceNumber();
     //set all values to NULL
     contributionSources.fill(0);
+    contributionSourcesCount = 0;
 }
 
 RTPWrapper::RTPWrapper(const RTPWrapper& orig)
@@ -24,6 +25,7 @@ RTPWrapper::RTPWrapper(const RTPWrapper& orig)
     currentSequenceNumber = orig.currentSequenceNumber;
     //copies the other wrapper's contribution sources
     contributionSources = orig.contributionSources;
+    contributionSourcesCount = orig.contributionSourcesCount;
 }
 
 ////
@@ -58,13 +60,14 @@ int inout(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, dou
 
 int8_t RTPWrapper::addContributionSource(uint32_t csrc)
 {
-    if(getContributingSourcesCount() < 15)
+    if(getContributionSourcesCount() < 15)
     {
         for(uint8_t i = 0;i < contributionSources.size(); i++)
         {
             if(contributionSources[i] == 0)
             {
                 contributionSources[i] = csrc;
+                contributionSourcesCount++;
                 return 0;
             }
         }
@@ -72,17 +75,9 @@ int8_t RTPWrapper::addContributionSource(uint32_t csrc)
     return -1;
 }
 
-uint8_t RTPWrapper::getContributingSourcesCount()
+uint8_t RTPWrapper::getContributionSourcesCount()
 {
-    uint8_t number = 0;
-    for(uint8_t i = 0; i < contributionSources.size();i++)
-    {
-        if(contributionSources[i] != 0)
-        {
-            number ++;
-        }
-    }
-    return number;
+    return contributionSourcesCount;
 }
 
 uint16_t RTPWrapper::getSequenceNumber()

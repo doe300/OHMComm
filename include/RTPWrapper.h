@@ -142,7 +142,7 @@ public:
     /*!
      * \return the number of registered contributing sources
      */
-    uint8_t getContributingSourcesCount();
+    uint8_t getContributionSourcesCount();
     
     /*!
      * \param the ID of the contribution source
@@ -152,6 +152,7 @@ public:
     
 private:
     
+    uint8_t contributionSourcesCount;
     uint32_t synchronizationSource;
     uint16_t currentSequenceNumber;
     std::array<uint32_t, 15> contributionSources;
