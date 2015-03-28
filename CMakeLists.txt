@@ -14,7 +14,7 @@ LIST( APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wall ${CMAKE_CXX_FLAGS}")
 # Main files
 ####
 #build all from ./src into ./build
-#add_subdirectory(src build)
+add_subdirectory(src build)
 
 
 
