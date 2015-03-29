@@ -152,6 +152,7 @@ public:
     
 private:
     
+    int socket;
     uint8_t contributionSourcesCount;
     uint32_t synchronizationSource;
     uint16_t currentSequenceNumber;

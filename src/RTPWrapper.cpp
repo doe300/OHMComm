@@ -11,6 +11,7 @@
 
 RTPWrapper::RTPWrapper(int socket, uint8_t payloadType, int16_t tickInterval)
 {
+    RTPWrapper::socket = socket;
     //initialize random start values
     synchronizationSource = generateSynchronizationSource();
     currentSequenceNumber = generateSequenceNumber();
@@ -21,11 +22,17 @@ RTPWrapper::RTPWrapper(int socket, uint8_t payloadType, int16_t tickInterval)
 
 RTPWrapper::RTPWrapper(const RTPWrapper& orig)
 {
+    RTPWrapper::socket = orig.socket;
     synchronizationSource = orig.synchronizationSource;
     currentSequenceNumber = orig.currentSequenceNumber;
     //copies the other wrapper's contribution sources
     contributionSources = orig.contributionSources;
     contributionSourcesCount = orig.contributionSourcesCount;
+}
+
+RTPWrapper::~RTPWrapper()
+{
+    //TODO close socket, free resources
 }
 
 ////
