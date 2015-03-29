@@ -17,21 +17,13 @@ LIST( APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wall ${CMAKE_CXX_FLAGS}")
 add_subdirectory(src build)
 
 
-
-
 ####
 # Example and Testing applications
 ####
-
 set (BUILD_EXAMPLES 1)
 
-# Some example applications from rtaudio-devel
+# Some example applications
 if (BUILD_EXAMPLES)
-	add_executable (RTAudioProbe examples/audioprobe.cpp)
-	target_link_libraries(RTAudioProbe rtaudio)
-
-	add_executable (RTDuplex examples/duplex.cpp)
-	target_link_libraries(RTDuplex rtaudio)
-
-	add_executable (Socket examples/socket.cpp)
+	#build all ./examples into ./build/examples
+	add_subdirectory(examples build/examples)
 endif (BUILD_EXAMPLES)
