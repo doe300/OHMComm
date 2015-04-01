@@ -8,6 +8,7 @@
 #ifndef AUDIO_PROCESSOR_H
 #define	AUDIO_PROCESSOR_H
 
+#include "configuration.h"
 #include <RtAudio.h>
 
 /*!
@@ -23,9 +24,8 @@ class AudioProcessor
 public:
     /*!
      * \param underlying the underlying (next link in the process-chain) AudioProcessor
-     * \param settings optional settings for this AudioProcessor, e.g. compression ration or codec
      */
-    AudioProcessor(AudioProcessor *underlying, const void *settings);
+    AudioProcessor(AudioProcessor *underlying);
     
     AudioProcessor(const AudioProcessor& orig);
     
@@ -54,9 +54,9 @@ public:
      */
     int process( void *outputBuffer, void *inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void *userData );
     
-private:
+    
+protected:
     AudioProcessor *underlying;
-    const void *settings;
 };
 
 #endif	/* AUDIO_PROCESSOR_H */

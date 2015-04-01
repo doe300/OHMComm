@@ -11,16 +11,14 @@
  * Dummy implementation of AudioProcessor
  */
 
-AudioProcessor::AudioProcessor(AudioProcessor *underlying, const void *settings)
+AudioProcessor::AudioProcessor(AudioProcessor *underlying)
 {
     AudioProcessor::underlying = underlying;
-    AudioProcessor::settings = settings;
 }
 
 AudioProcessor::AudioProcessor(const AudioProcessor& orig)
 {
     AudioProcessor::underlying = orig.underlying;
-    AudioProcessor::settings = orig.settings;
 }
 
 AudioProcessor::~AudioProcessor()

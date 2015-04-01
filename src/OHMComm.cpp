@@ -11,12 +11,16 @@
 #include <iostream>
 #include <stdio.h>
 #ifdef __linux__
-#include <sys/socket.h> // socket(), connect()
-#include <arpa/inet.h>
-#include <stdexcept> // sockaddr_in
+#include <arpa/inet.h> // sockaddr_in
 #else
 #include <winsock2.h>
 #endif
+
+#include "configuration.h"
+
+//Declare Configurations
+NetworkConfiguration networkConfiguration;
+AudioConfiguration audioConfiguration;
 
 using namespace std;
 
@@ -31,10 +35,9 @@ inline int convertToInt(const std::string& s)
     return x;
 }
 
-inline sockaddr* createAddress(int addressType, std::string ipString, int port)
+inline void createAddress(sockaddr *addr, int addressType, std::string ipString, int port)
 {
-    //we need to create the address on the heap, because it is used outside of its scope
-    sockaddr_in *address = new sockaddr_in;
+    sockaddr_in *address = reinterpret_cast<sockaddr_in*>(addr);
     //IPv4 or IPv6
     address->sin_family = addressType;
     
@@ -50,12 +53,9 @@ inline sockaddr* createAddress(int addressType, std::string ipString, int port)
     }
     //network byte order is big-endian, so we must convert the port-number
     address->sin_port = htons(port);
-    
-    //we must cast sockaddr_in to a sockaddr struct
-    return reinterpret_cast<sockaddr*>(address);
 }
 
-int configureNetwork()
+void configureNetwork()
 {
     string ipString;
     string destPortString, localPortString;
@@ -78,74 +78,27 @@ int configureNetwork()
     //4. parse arguments
     int destPort = convertToInt(destPortString);
     int localPort = convertToInt(localPortString);
-    int socketType, protocol;
     
     if(protocolString == "TCP")
     {
         // SOCK_STREAM - creating a stream-socket
         // IPPROTO_TCP - use TCP/IP protocol
-        socketType = SOCK_STREAM;
-        protocol = IPPROTO_TCP;
+        networkConfiguration.socketType = SOCK_STREAM;
+        networkConfiguration.protocol = IPPROTO_TCP;
     }
     else
     {
         // SOCK_DGRAM - creating a datagram-socket
         // IPPROTO_UDP - use UDP protocol
-        socketType = SOCK_DGRAM;
-        protocol = IPPROTO_UDP;
+        networkConfiguration.socketType = SOCK_DGRAM;
+        networkConfiguration.protocol = IPPROTO_UDP;
     }
     
-    //5. create socket
-    
-    // Starting Winsock for Windows
-    #ifndef __linux__
-    WSADATA w;
-    if(int result = WSAStartup(MAKEWORD(2,2), &w) != 0)
-    {
-        cerr << "Failed to start Winsock 2! Error #" << result << endl;
-        return -1;
-    }
-    #endif
-
-    // AF_INET - creating an IPv4 based socket
-    int Socket = socket(AF_INET, socketType, protocol);
-    if(Socket == -1)
-    {
-        cerr << "Error on creating socket: " << errno << endl;
-        return -1;
-    }
-    else
-    {
-        cout << "Socket created for " << (protocol == IPPROTO_TCP ? "TCP" : "UDP") << endl;
-    }
-    
-    //6. connect
-    
+    //5. create addresses
     //local address
-    sockaddr* local = createAddress(AF_INET, "", localPort);
-    if(bind(Socket, local, sizeof(*local)) == -1)
-    {
-        cerr << "Error binding the socket: " << errno << endl;
-        return -1;
-    }
-    else
-    {
-        cout << "Local port bound: " << localPort << endl;
-    }
-    
+    createAddress(&networkConfiguration.localAddr, AF_INET, "", localPort);
     //remote address
-    sockaddr* remote = createAddress(AF_INET, ipString, destPort);
-    if(connect(Socket,remote,sizeof(*remote)) == -1)
-    {
-        cerr << "Error connection the socket:" << errno << endl;
-        return -1;
-    }
-    else
-    {
-        cout << "Connection established to " << ipString << ":" << destPort << endl;
-    }
-    
-    return Socket;
+    createAddress(&networkConfiguration.remoteAddr, AF_INET, ipString, destPort);
 }
 
 /*
@@ -158,12 +111,7 @@ int main(int argc, char** argv)
     ////
     
     //1. network connection
-    int socket = configureNetwork();
-    if(socket < 0)
-    {
-        cerr << "Error in network configuration: " << errno << endl;
-        return 1;
-    }
+    configureNetwork();
     
     //2. audio devices
     //2.1 audio input
