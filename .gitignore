@@ -197,5 +197,6 @@ FakesAssemblies/
 /compile_commands.json
 /Socket
 
+# rtaudio local builds
 rtaudio_static.lib
 RtAudio.h
