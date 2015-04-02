@@ -196,3 +196,6 @@ FakesAssemblies/
 /RTDuplex
 /compile_commands.json
 /Socket
+
+rtaudio_static.lib
+RtAudio.h
