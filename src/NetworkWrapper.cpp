@@ -52,7 +52,7 @@ int NetworkWrapper::startWinsock()
     WSADATA w;
     if(int result = WSAStartup(MAKEWORD(2,2), &w) != 0)
     {
-        cerr << "Failed to start Winsock 2! Error #" << result << endl;
+        std::cerr << "Failed to start Winsock 2! Error #" << result << std::endl;
         return result;
     }
     #endif
