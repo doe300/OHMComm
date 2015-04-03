@@ -35,7 +35,7 @@ public:
      */
     virtual int initializeNetwork();
 protected:
-    int Socket = -1;
+    int Socket;
     
     /*!
      * Starts Winsock2 for Windows OS

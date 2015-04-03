@@ -9,10 +9,12 @@
 
 NetworkWrapper::NetworkWrapper() : AudioProcessor(NULL)
 {
+    NetworkWrapper::Socket = -1;
 }
 
 NetworkWrapper::NetworkWrapper(const NetworkWrapper& orig) : AudioProcessor(orig)
 {
+    NetworkWrapper::Socket = -1;
 }
 
 NetworkWrapper::~NetworkWrapper()
