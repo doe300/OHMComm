@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <array>
 
+#include "NetworkWrapper.h"
+
 /*
  * Some definitions (extracted from RFC 3550):
  * 
@@ -67,7 +69,7 @@ struct RTPHeader;
 /*!
  * Provides methods to send/receive a RTP package.
  */
-class RTPWrapper
+class RTPWrapper : public NetworkWrapper
 {
 public:
     /*!

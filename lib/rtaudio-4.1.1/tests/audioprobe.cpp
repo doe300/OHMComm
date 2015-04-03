@@ -7,7 +7,7 @@
 */
 /******************************************/
 
-#include "../lib/rtaudio-4.1.1/RtAudio.h"
+#include "RtAudio.h"
 #include <iostream>
 #include <map>
 

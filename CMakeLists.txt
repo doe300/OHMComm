@@ -11,6 +11,12 @@ SET(BUILD_SHARED_LIBS ON)
 LIST( APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wall ${CMAKE_CXX_FLAGS}")
 
 ####
+# Dependencies
+####
+add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
+
+
+####
 # Main files
 ####
 #build all from ./src into ./build
