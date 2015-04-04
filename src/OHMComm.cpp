@@ -61,18 +61,20 @@ void configureNetwork()
     string destPortString, localPortString;
     string protocolString;
     
+    cout << "Network configuration:" << endl;
+    
     //1. remote address
-    cout << "Input destination IP address: ";
+    cout << "1. Input destination IP address: ";
     cin >> ipString;
     
     //2. remote and local ports
-    cout << "Input destination port: ";
+    cout << "2. Input destination port: ";
     cin >> destPortString;
-    cout << "Input local port: ";
+    cout << "3. Input local port: ";
     cin >> localPortString;
     
     //3. protocol
-    cout << "Choose protocol (TCP/UDP) [defaults to UDP]: ";
+    cout << "4. Choose protocol (TCP/UDP) [defaults to UDP]: ";
     cin >> protocolString;
     
     //4. parse arguments
@@ -85,6 +87,7 @@ void configureNetwork()
         // IPPROTO_TCP - use TCP/IP protocol
         networkConfiguration.socketType = SOCK_STREAM;
         networkConfiguration.protocol = IPPROTO_TCP;
+        cout << "-> Using TCP (stream-socket)" << endl;
     }
     else
     {
@@ -92,6 +95,7 @@ void configureNetwork()
         // IPPROTO_UDP - use UDP protocol
         networkConfiguration.socketType = SOCK_DGRAM;
         networkConfiguration.protocol = IPPROTO_UDP;
+        cout << "-> Using UDP (datagram-socket)" << endl;
     }
     
     //5. create addresses
@@ -99,6 +103,9 @@ void configureNetwork()
     createAddress(&networkConfiguration.localAddr, AF_INET, "", localPort);
     //remote address
     createAddress(&networkConfiguration.remoteAddr, AF_INET, ipString, destPort);
+    
+    cout << "Network configured!" << endl;
+    cout << endl;
 }
 
 /*
