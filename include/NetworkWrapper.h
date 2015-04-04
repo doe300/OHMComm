@@ -50,6 +50,13 @@ protected:
      * Returns -1 on error or the socket-descriptor on success
      */
     int createSocket();
+    
+    /*!
+     * \param audioFormat The RtAudioFormat used
+     * 
+     * Returns the number of bytes per frame of the given audioFormat
+     */
+    uint8_t getBytesFromAudioFormat(RtAudioFormat audioFormat);
 };
 
 #endif	/* NETWORKWRAPPER_H */

@@ -89,6 +89,7 @@ int NetworkWrapper::createSocket()
     }
     
     //remote address
+    //for datagram-sockets, just sets default remote address
     if(connect(Socket,&networkConfiguration.remoteAddr,sizeof(networkConfiguration.remoteAddr)) == -1)
     {
         std::cerr << "Error connection the socket:" << errno << std::endl;
@@ -102,5 +103,29 @@ int NetworkWrapper::createSocket()
     return Socket;
 }
 
-
-
+uint8_t NetworkWrapper::getBytesFromAudioFormat(RtAudioFormat audioFormat)
+{
+    switch(audioFormat)
+    {
+        case RTAUDIO_SINT8:
+            //1 byte signed integer
+            return 1;
+        case RTAUDIO_SINT16:
+            //2 byte signed integer
+            return 2;
+        case RTAUDIO_SINT24:
+            //3 byte signed integer
+            return 3;
+        case RTAUDIO_SINT32:
+            //4 byte signed integer
+        case RTAUDIO_FLOAT32:
+            //4 byte float
+            return 4;
+        case RTAUDIO_FLOAT64:
+            //8 byte signed integer
+            return 8;
+    }
+    
+    //TODO error-handling
+    return 1;
+}
