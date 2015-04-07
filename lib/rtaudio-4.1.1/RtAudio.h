@@ -51,6 +51,7 @@
 #include <vector>
 #include <exception>
 #include <iostream>
+#include <algorithm> //Included because of Visual Studio 2013!
 
 /*! \typedef typedef unsigned long RtAudioFormat;
     \brief RtAudio data format type.
