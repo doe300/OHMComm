@@ -11,12 +11,13 @@
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
-#ifdef __linux__
+#ifdef _WIN32
+#include <winsock2.h>
+#include <cstdint>
+#else
 #include <sys/socket.h> // socket(), connect()
 #include <arpa/inet.h> // sockaddr_in
 #include <stdexcept>
-#else
-#include <winsock2.h>
 #endif
 
 #include "AudioProcessor.h"
