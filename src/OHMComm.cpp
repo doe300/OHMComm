@@ -10,10 +10,10 @@
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
-#ifdef __linux__
-#include <arpa/inet.h> // sockaddr_in
-#else
+#ifdef _WIN32
 #include <winsock2.h>
+#else
+#include <arpa/inet.h> // sockaddr_in
 #endif
 
 #include "configuration.h"
