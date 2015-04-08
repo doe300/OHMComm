@@ -33,33 +33,37 @@ int UDPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nFra
     long unsigned int dataSize = nFrames * NetworkWrapper::getBytesFromAudioFormat(audioConfiguration.audioFormat);
     
     //send
-    long int size = sendto(NetworkWrapper::Socket, (char *)inputBuffer, dataSize, 0, &networkConfiguration.remoteAddr, sizeof(networkConfiguration.remoteAddr));
-    if(size == -1)
+    if(inputBuffer != NULL)
     {
-        cerr << "Error while sending UDP message: " << errno << endl;
-        //cancel immediately
-        return 1;
-    }
-    
-    cout << "Sent: " << size << endl;
-    
-    //receive
-    size = recvfrom(NetworkWrapper::Socket, (char *)outputBuffer, dataSize, 0, NULL, 0);
-    if(size == -1)
-    {
-        if(errno == EAGAIN || errno == EWOULDBLOCK)
+        long int size = sendto(NetworkWrapper::Socket, (char *)inputBuffer, dataSize, 0, &networkConfiguration.remoteAddr, sizeof(networkConfiguration.remoteAddr));
+        if(size == -1)
         {
-            cout << "No data available" << endl;
-        }
-        else
-        {
-            cerr << "Error while receiving UDP package: " << errno << endl;
+            cerr << "Error while sending UDP message: " << errno << endl;
             //cancel immediately
             return 1;
         }
+        cout << "Sent: " << size << endl;
     }
     
-    cout << "Received: " << size << endl;
+    //receive
+    if(outputBuffer != NULL)
+    {
+        long int size = recvfrom(NetworkWrapper::Socket, (char *)outputBuffer, dataSize, 0, NULL, 0);
+        if(size == -1)
+        {
+            if(errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                cout << "No data available" << endl;
+            }
+            else
+            {
+                cerr << "Error while receiving UDP package: " << errno << endl;
+                //cancel immediately
+                return 1;
+            }
+        }
+        cout << "Received: " << size << endl;
+    }
     
     //continue function
     return 0;
