@@ -22,10 +22,10 @@ NetworkWrapper::~NetworkWrapper()
     if(Socket != -1)
     {
         //close socket
-         #ifdef __linux__
-        shutdown(NetworkWrapper::Socket, SHUT_RDWR);
-        #else
+         #ifdef _WIN32
         closesocket(NetworkWrapper::Socket);
+        #else
+        shutdown(NetworkWrapper::Socket, SHUT_RDWR);
         #endif
     }
 }
@@ -50,7 +50,7 @@ int NetworkWrapper::initializeNetwork()
 int NetworkWrapper::startWinsock()
 {
     // Starting Winsock for Windows
-    #ifndef __linux__
+    #ifdef _WIN32
     WSADATA w;
     if(int result = WSAStartup(MAKEWORD(2,2), &w) != 0)
     {
