@@ -26,10 +26,3 @@ add_subdirectory(src build)
 ####
 # Example and Testing applications
 ####
-set (BUILD_EXAMPLES 1)
-
-# Some example applications
-if (BUILD_EXAMPLES)
-	#build all ./examples into ./build/examples
-	add_subdirectory(examples build/examples)
-endif (BUILD_EXAMPLES)
