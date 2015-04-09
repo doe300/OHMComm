@@ -5,7 +5,7 @@
  * Created on April 1, 2015, 6:19 PM
  */
 
-#include "NetworkWrapper.h"
+#include "../include/NetworkWrapper.h"
 
 NetworkWrapper::NetworkWrapper() : AudioProcessor(NULL)
 {

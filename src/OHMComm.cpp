@@ -1,6 +1,6 @@
 /* 
  * File:   OHMComm.cpp
- * Author: daniel
+ * Author: daniel, jonas
  *
  * Created on March 29, 2015, 1:49 PM
  */
@@ -16,7 +16,11 @@
 #include <arpa/inet.h> // sockaddr_in
 #endif
 
-#include "configuration.h"
+#include "../include/configuration.h"
+
+//dependencies for rtaudio
+#include "../lib/rtaudio-4.1.1/RtAudio.h"
+#pragma comment(lib, "lib/rtaudio_static.lib") //Automated Linking to rtaudio lib (Todo: relative path for cmake correct?)
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
@@ -108,19 +112,115 @@ void configureNetwork()
     cout << endl;
 }
 
-/*
- * 
- */
+void configureAudioDevices()
+{
+	cout << endl;
+	cout << "+++Audio Device configuration+++" << endl;
+	cout << endl;
+
+	RtAudio AudioDevices;
+	// Determine the number of available Audio Devices 
+	unsigned int availableAudioDevices = AudioDevices.getDeviceCount();
+
+	cout << "Available Audio Devices: " << endl;
+	cout << endl;
+	// printing available Audio Devices
+	RtAudio::DeviceInfo DeviceInfo;
+
+	unsigned int DefaultOutputDeviceID;
+	unsigned int DefaultInputDeviceID;
+
+	for (unsigned int i = 0 ; i < availableAudioDevices ; i++)
+	{
+		DeviceInfo = AudioDevices.getDeviceInfo(i);
+		if (DeviceInfo.probed == true) //Audio Device successfully probed
+		{
+			cout << "Device ID: " << i << endl;
+			cout << "Device Name = " << DeviceInfo.name << endl;
+			cout << "Maximum output channels = " << DeviceInfo.outputChannels << endl;
+			cout << "Maximum input channels = " << DeviceInfo.inputChannels << endl;
+			cout << "Maximum duplex channels = " << DeviceInfo.duplexChannels << endl;
+			cout << "Default output: ";
+			if (DeviceInfo.isDefaultOutput == true)
+			{
+				cout << "Yes" << endl;
+				DefaultOutputDeviceID = i;
+
+			}
+			else
+			{
+				cout << "No" << endl;
+			}
+			cout << "Default input: ";
+			if (DeviceInfo.isDefaultInput == true)
+			{
+				cout << "Yes" << endl;
+				DefaultInputDeviceID = i;
+			}
+			else
+			{
+				cout << "No" << endl;
+			}
+			cout << endl;
+		}
+	}
+
+	unsigned int OutputDeviceID;
+	
+	//Choose output Device
+	cout << "Choose output Device ID [default is " << DefaultOutputDeviceID << " ]: ";
+	cin >> OutputDeviceID;
+
+	RtAudio::DeviceInfo OutputDeviceInfo = AudioDevices.getDeviceInfo(OutputDeviceID);
+
+	//Configure ID of the Output Audio Device
+	audioConfiguration.OutputDeviceID = OutputDeviceID;
+	cout << "-> Using output Device ID: " << audioConfiguration.OutputDeviceID << endl;
+
+	//Configure Name of the Output Audio Device
+	audioConfiguration.OutputDeviceName = OutputDeviceInfo.name;
+	cout << "-> Using output Device Name: " << audioConfiguration.OutputDeviceName << endl;
+
+	//Configure Number of Maximum output Channels
+	audioConfiguration.OutputDeviceChannels = OutputDeviceInfo.outputChannels;
+	cout << "-> Number of maximum output Channels supported from this Device: " << audioConfiguration.OutputDeviceChannels << endl;
+
+	unsigned int InputDeviceID;
+
+	//Choose input Device
+	cout << "Choose input Device ID [default is " << DefaultInputDeviceID << " ]: ";
+	cin >> InputDeviceID;
+
+	RtAudio::DeviceInfo InputDeviceInfo = AudioDevices.getDeviceInfo(InputDeviceID);
+
+	//Configure ID of the Input Audio Device
+	audioConfiguration.InputDeviceID = InputDeviceID;
+	cout << "-> Using input Device ID " << audioConfiguration.InputDeviceID << endl;
+
+	//Configure Name of the Input Audio Device
+	audioConfiguration.InputDeviceName = InputDeviceInfo.name;
+	cout << "-> Using input Device Name: " << audioConfiguration.InputDeviceName << endl;
+
+	//Configure Number of Maximum output Channels
+	audioConfiguration.InputDeviceChannels = InputDeviceInfo.inputChannels;
+	cout << "-> Number of maximum input Channels supported from this Device: " << audioConfiguration.InputDeviceChannels << endl;
+
+	//Todo: configure Sample Rate
+
+}
+
+
 int main(int argc, char** argv)
 {
     ////
     // Configuration
     ////
-    
+
     //1. network connection
     configureNetwork();
     
     //2. audio devices
+	configureAudioDevices();
     //2.1 audio input
     //2.2 audio output
     //2.3 audio configuration (bit rate, ...)

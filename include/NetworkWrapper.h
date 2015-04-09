@@ -21,7 +21,7 @@
 #include <stdexcept>
 #endif
 
-#include "AudioProcessor.h"
+#include "../include/AudioProcessor.h"
 
 class NetworkWrapper : public AudioProcessor
 {

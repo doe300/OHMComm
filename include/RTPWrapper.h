@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <array>
 
-#include "NetworkWrapper.h"
+#include "../include/NetworkWrapper.h"
 
 /*
  * Some definitions (extracted from RFC 3550):

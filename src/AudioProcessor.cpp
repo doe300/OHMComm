@@ -5,7 +5,7 @@
  * Created on March 29, 2015, 1:36 PM
  */
 
-#include "AudioProcessor.h"
+#include "../include/AudioProcessor.h"
 
 /*
  * Dummy implementation of AudioProcessor
