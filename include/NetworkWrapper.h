@@ -14,6 +14,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <cstdint>
+#pragma comment(lib, "Ws2_32.lib")
 #else
 #include <sys/socket.h> // socket(), connect()
 #include <arpa/inet.h> // sockaddr_in
