@@ -39,6 +39,15 @@ inline int convertToInt(const std::string& s)
     return x;
 }
 
+// method for printing vectors used in configureAudioDevices
+void printvector(std::vector<unsigned int> v)
+{
+	for (int i = 0; i<v.size(); i++)
+	{
+		std::cout << v[i] << " ";
+	}
+}
+
 inline void createAddress(sockaddr *addr, int addressType, std::string ipString, int port)
 {
     sockaddr_in *address = reinterpret_cast<sockaddr_in*>(addr);
@@ -161,6 +170,8 @@ void configureAudioDevices()
 			{
 				cout << "No" << endl;
 			}
+			cout << "Supported Sample Rates: ";
+			printvector(DeviceInfo.sampleRates);
 			cout << endl;
 		}
 	}
@@ -185,6 +196,16 @@ void configureAudioDevices()
 	audioConfiguration.OutputDeviceChannels = OutputDeviceInfo.outputChannels;
 	cout << "-> Number of maximum output Channels supported from this Device: " << audioConfiguration.OutputDeviceChannels << endl;
 
+	unsigned int OutputSampleRate;
+
+	//Configure Output Sample Rate
+	cout << "-> Supported Sample Rates from this Device: ";
+	printvector(OutputDeviceInfo.sampleRates);
+	cout << endl << "Choose your Sample Rate: ";
+	cin >> OutputSampleRate;
+	audioConfiguration.OutputSampleRate = OutputSampleRate;
+	cout << "-> Using Sample Rate: " << OutputSampleRate << endl;
+
 	unsigned int InputDeviceID;
 
 	//Choose input Device
@@ -205,8 +226,15 @@ void configureAudioDevices()
 	audioConfiguration.InputDeviceChannels = InputDeviceInfo.inputChannels;
 	cout << "-> Number of maximum input Channels supported from this Device: " << audioConfiguration.InputDeviceChannels << endl;
 
-	//Todo: configure Sample Rate
+	unsigned int InputSampleRate;
 
+	//Configure Input Sample Rate
+	cout << "-> Supported Sample Rates from this Device: ";
+	printvector(InputDeviceInfo.sampleRates);
+	cout << endl << "Choose your Sample Rate: ";
+	cin >> InputSampleRate;
+	audioConfiguration.InputSampleRate = InputSampleRate;
+	cout << "-> Using Sample Rate: " << InputSampleRate << endl;
 }
 
 
@@ -221,9 +249,6 @@ int main(int argc, char** argv)
     
     //2. audio devices
 	configureAudioDevices();
-    //2.1 audio input
-    //2.2 audio output
-    //2.3 audio configuration (bit rate, ...)
     
     //3. processors
     //3.1 filters

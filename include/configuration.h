@@ -67,14 +67,17 @@ struct AudioConfiguration {
 	// The Name of the Input Audio Device
 	std::string InputDeviceName;
 
-	// Number of maximum output Channels supported by Device
+	// Number of maximum output Channels supported by the Output Device
 	unsigned int OutputDeviceChannels;
 
-	// Number of maximum input Channels supported by Device
+	// Number of maximum input Channels supported by the Input Device
 	unsigned int InputDeviceChannels;
 
+	// Sample Rate of the Output Audio Device
+	unsigned int OutputSampleRate;
 
-
+	// Sample Rate of the Input Audio Device
+	unsigned int InputSampleRate;
 
 
 	/*!
