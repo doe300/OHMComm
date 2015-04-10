@@ -30,7 +30,7 @@ int UDPWrapper::initializeNetwork()
 int UDPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void* userData)
 {
     //XXX is cast to char * possible without problems??
-    long unsigned int dataSize = nFrames * NetworkWrapper::getBytesFromAudioFormat(audioConfiguration.audioFormat);
+    long unsigned int dataSize = nFrames * NetworkWrapper::getBytesFromAudioFormat(audioConfiguration.InputAudioFormat);
     
     //send
     if(inputBuffer != NULL)

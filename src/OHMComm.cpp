@@ -173,6 +173,8 @@ void configureAudioDevices()
 			cout << "Supported Sample Rates: ";
 			printvector(DeviceInfo.sampleRates);
 			cout << endl;
+			cout << "Audio Format = " << DeviceInfo.nativeFormats << endl;
+			cout << endl;
 		}
 	}
 
@@ -204,7 +206,11 @@ void configureAudioDevices()
 	cout << endl << "Choose your Sample Rate: ";
 	cin >> OutputSampleRate;
 	audioConfiguration.OutputSampleRate = OutputSampleRate;
-	cout << "-> Using Sample Rate: " << OutputSampleRate << endl;
+	cout << "-> Using Sample Rate: " << audioConfiguration.OutputSampleRate << endl;
+
+	//Configure Output Audio Format
+	audioConfiguration.OutputAudioFormat = OutputDeviceInfo.nativeFormats;
+	cout << "-> Output Audio Format: " << audioConfiguration.OutputAudioFormat << endl;
 
 	unsigned int InputDeviceID;
 
@@ -234,7 +240,11 @@ void configureAudioDevices()
 	cout << endl << "Choose your Sample Rate: ";
 	cin >> InputSampleRate;
 	audioConfiguration.InputSampleRate = InputSampleRate;
-	cout << "-> Using Sample Rate: " << InputSampleRate << endl;
+	cout << "-> Using Sample Rate: " << audioConfiguration.InputSampleRate << endl;
+
+	//Configure Input Audio Format
+	audioConfiguration.InputAudioFormat = InputDeviceInfo.nativeFormats;
+	cout << "-> Input Audio Format: " << audioConfiguration.InputAudioFormat << endl;
 }
 
 

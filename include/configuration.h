@@ -54,7 +54,7 @@ struct NetworkConfiguration {
 };
 
 struct AudioConfiguration {
-    
+
 	// Output Audio Device ID
 	unsigned int OutputDeviceID;
 
@@ -79,14 +79,11 @@ struct AudioConfiguration {
 	// Sample Rate of the Input Audio Device
 	unsigned int InputSampleRate;
 
+	// Output Audio Format
+    unsigned long OutputAudioFormat;
 
-	/*!
-     * The audio format
-     * 
-     * See RtAudioFormat in RtAudio.h for more details
-     */
-    unsigned long audioFormat;
-    
+	// Input Audio Format
+	unsigned long InputAudioFormat;
 };
 
 //Configurations are declared in OhmComm.cpp
