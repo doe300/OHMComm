@@ -12,15 +12,15 @@
 #include <stdio.h>
 #ifdef _WIN32
 #include <winsock2.h>
+#pragma comment(lib, "lib/rtaudio_static.lib") //Automated Linking to rtaudio lib (Todo: relative path for cmake correct?)
 #else
 #include <arpa/inet.h> // sockaddr_in
 #endif
 
-#include "../include/configuration.h"
+#include "configuration.h"
 
 //dependencies for rtaudio
 #include "../lib/rtaudio-4.1.1/RtAudio.h"
-#pragma comment(lib, "lib/rtaudio_static.lib") //Automated Linking to rtaudio lib (Todo: relative path for cmake correct?)
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
@@ -42,7 +42,7 @@ inline int convertToInt(const std::string& s)
 // method for printing vectors used in configureAudioDevices
 void printvector(std::vector<unsigned int> v)
 {
-	for (int i = 0; i<v.size(); i++)
+	for (unsigned int i = 0; i < v.size(); i++)
 	{
 		std::cout << v[i] << " ";
 	}

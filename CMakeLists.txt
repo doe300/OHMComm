@@ -21,8 +21,3 @@ add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
 ####
 #build all from ./src into ./build
 add_subdirectory(src build)
-
-
-####
-# Example and Testing applications
-####

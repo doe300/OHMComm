@@ -55,35 +55,35 @@ struct NetworkConfiguration {
 
 struct AudioConfiguration {
 
-	// Output Audio Device ID
-	unsigned int OutputDeviceID;
+    // Output Audio Device ID
+    unsigned int OutputDeviceID;
 
-	// Input Audio Device ID
-	unsigned int InputDeviceID;
+    // Input Audio Device ID
+    unsigned int InputDeviceID;
 
-	// The Name of the Output Audio Device
-	std::string OutputDeviceName;
-	
-	// The Name of the Input Audio Device
-	std::string InputDeviceName;
+    // The Name of the Output Audio Device
+    std::string OutputDeviceName;
 
-	// Number of maximum output Channels supported by the Output Device
-	unsigned int OutputDeviceChannels;
+    // The Name of the Input Audio Device
+    std::string InputDeviceName;
 
-	// Number of maximum input Channels supported by the Input Device
-	unsigned int InputDeviceChannels;
+    // Number of maximum output Channels supported by the Output Device
+    unsigned int OutputDeviceChannels;
 
-	// Sample Rate of the Output Audio Device
-	unsigned int OutputSampleRate;
+    // Number of maximum input Channels supported by the Input Device
+    unsigned int InputDeviceChannels;
 
-	// Sample Rate of the Input Audio Device
-	unsigned int InputSampleRate;
+    // Sample Rate of the Output Audio Device
+    unsigned int OutputSampleRate;
 
-	// Output Audio Format
+    // Sample Rate of the Input Audio Device
+    unsigned int InputSampleRate;
+
+    // Output Audio Format
     unsigned long OutputAudioFormat;
 
-	// Input Audio Format
-	unsigned long InputAudioFormat;
+    // Input Audio Format
+    unsigned long InputAudioFormat;
 };
 
 //Configurations are declared in OhmComm.cpp
