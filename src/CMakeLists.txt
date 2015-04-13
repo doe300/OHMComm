@@ -9,4 +9,16 @@ file( GLOB SRCS *.cpp )
 
 #Build OHMComm
 add_executable( OHMComm ${SRCS} ${HDRS} )
-target_link_libraries(OHMComm rtaudio)
+
+#Visual Studio specific settings
+if(MSVC)
+	link_directories ("${PROJECT_BINARY_DIR}/build/rtaudio/Debug")
+	link_directories ("${PROJECT_BINARY_DIR}/build/rtaudio/Release")
+	target_link_libraries(OHMComm rtaudio_static)
+	target_link_libraries(OHMComm WS2_32)
+else ()
+	# other compilers
+	target_link_libraries(OHMComm rtaudio)
+endif()
+
+
