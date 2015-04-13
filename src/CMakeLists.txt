@@ -1,27 +1,12 @@
+#Include headers in the project structure
+file( GLOB HDRS "${PROJECT_SOURCE_DIR}/include/*.h" )
 
-#Include all headers from the ./include/ directory
+#Include headers in the project settings (as search-path for header-files)
 include_directories ("${PROJECT_SOURCE_DIR}/include")
 
-####
-# AudioProcessors
-####
-add_library(AudioProcessors AudioProcessor.cpp)
+#Include the source files
+file( GLOB SRCS *.cpp )
 
-####
-# NetworkWrappers
-####
-add_library(Network NetworkWrapper.cpp)
-#RTP protocol
-add_library(RTP RTPWrapper.cpp)
-#UDP Protocol
-add_library(UDP UDPWrapper.cpp)
-target_link_libraries(UDP Network)
-
-####
-# Main Program
-####
-add_executable(OHMComm OHMComm.cpp)
+#Build OHMComm
+add_executable( OHMComm ${SRCS} ${HDRS} )
 target_link_libraries(OHMComm rtaudio)
-target_link_libraries(OHMComm RTP)
-target_link_libraries(OHMComm UDP)
-target_link_libraries(OHMComm AudioProcessors)
