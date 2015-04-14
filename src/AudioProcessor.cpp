@@ -31,3 +31,9 @@ int AudioProcessor::process(void* outputBuffer, void* inputBuffer, unsigned int 
     return underlying->process(outputBuffer, inputBuffer, nFrames, streamTime, status, userData);
 }
 
+void AudioProcessor::configure()
+{
+    //do nothing
+}
+
+

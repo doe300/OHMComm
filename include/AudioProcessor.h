@@ -53,6 +53,12 @@ public:
      */
     int process( void *outputBuffer, void *inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void *userData );
     
+    /*!
+     * Overwrite this method, if this AudioProcessor needs configuration
+     * 
+     * For the style of configuration, see OhmComm.cpp
+     */
+    void configure();
     
 protected:
     AudioProcessor *underlying;

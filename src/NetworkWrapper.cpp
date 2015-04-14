@@ -9,12 +9,12 @@
 
 NetworkWrapper::NetworkWrapper() : AudioProcessor(NULL)
 {
-    NetworkWrapper::Socket = -1;
+    Socket = -1;
 }
 
 NetworkWrapper::NetworkWrapper(const NetworkWrapper& orig) : AudioProcessor(orig)
 {
-    NetworkWrapper::Socket = -1;
+    Socket = -1;
 }
 
 NetworkWrapper::~NetworkWrapper()
@@ -23,9 +23,9 @@ NetworkWrapper::~NetworkWrapper()
     {
         //close socket
          #ifdef _WIN32
-        closesocket(NetworkWrapper::Socket);
+        closesocket(Socket);
         #else
-        shutdown(NetworkWrapper::Socket, SHUT_RDWR);
+        shutdown(Socket, SHUT_RDWR);
         #endif
     }
 }
@@ -33,12 +33,12 @@ NetworkWrapper::~NetworkWrapper()
 int NetworkWrapper::initializeNetwork()
 {
     //dummy implementation, simply initialize socket
-    int result = NetworkWrapper::startWinsock();
+    int result = startWinsock();
     if(result != 0)
     {
         return result;
     }
-    result = NetworkWrapper::createSocket();
+    result = createSocket();
     if(result == -1)
     {
         return result;
@@ -64,7 +64,7 @@ int NetworkWrapper::startWinsock()
 int NetworkWrapper::createSocket()
 {
     // AF_INET - creating an IPv4 based socket
-    NetworkWrapper::Socket = socket(AF_INET, networkConfiguration.socketType, networkConfiguration.protocol);
+    Socket = socket(AF_INET, networkConfiguration.socketType, networkConfiguration.protocol);
     if(Socket == -1)
     {
         std::cerr << "Error on creating socket: " << errno << std::endl;
