@@ -5,7 +5,7 @@
  * Created on April 1, 2015, 6:19 PM
  */
 
-#include "../include/NetworkWrapper.h"
+#include "NetworkWrapper.h"
 
 NetworkWrapper::NetworkWrapper() : AudioProcessor(NULL)
 {
@@ -103,9 +103,9 @@ int NetworkWrapper::createSocket()
     return Socket;
 }
 
-uint8_t NetworkWrapper::getBytesFromAudioFormat(RtAudioFormat audioFormat)
+uint8_t NetworkWrapper::getBytesFromAudioFormat(RtAudioFormat InputAudioFormat)
 {
-    switch(audioFormat)
+	switch (InputAudioFormat)
     {
         case RTAUDIO_SINT8:
             //1 byte signed integer

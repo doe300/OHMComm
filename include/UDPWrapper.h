@@ -8,7 +8,7 @@
 #ifndef UDPWRAPPER_H
 #define	UDPWRAPPER_H
 
-#include "../include/NetworkWrapper.h"
+#include "NetworkWrapper.h"
 
 
 class UDPWrapper: public NetworkWrapper

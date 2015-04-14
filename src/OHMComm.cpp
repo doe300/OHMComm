@@ -10,17 +10,17 @@
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
-#ifdef _WIN32
-#include <winsock2.h>
-//#pragma comment(lib, "lib/rtaudio_static.lib") //Automated Linking to rtaudio lib (Todo: relative path for cmake correct?)
-#else
-#include <arpa/inet.h> // sockaddr_in
-#endif
-
 #include "configuration.h"
 
 //dependencies for rtaudio
 #include "../lib/rtaudio-4.1.1/RtAudio.h"
+
+#ifdef _WIN32
+		#include <winsock2.h>
+#else
+	#include <arpa/inet.h> // sockaddr_in
+#endif
+
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;

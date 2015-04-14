@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 
-#include "../include/RTPWrapper.h"
+#include "RTPWrapper.h"
 
 RTPWrapper::RTPWrapper(int socket, uint8_t payloadType, int16_t tickInterval)
 {

@@ -5,7 +5,7 @@
  * Created on April 1, 2015, 10:37 AM
  */
 
-#include "../include/UDPWrapper.h"
+#include "UDPWrapper.h"
 
 using namespace std;
 
