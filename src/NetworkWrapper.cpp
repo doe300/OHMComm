@@ -103,9 +103,9 @@ int NetworkWrapper::createSocket()
     return Socket;
 }
 
-uint8_t NetworkWrapper::getBytesFromAudioFormat(RtAudioFormat InputAudioFormat)
+uint8_t NetworkWrapper::getBytesFromAudioFormat(RtAudioFormat audioFormat)
 {
-	switch (InputAudioFormat)
+	switch (audioFormat)
     {
         case RTAUDIO_SINT8:
             //1 byte signed integer
