@@ -247,6 +247,29 @@ void configureAudioDevices()
 	cout << "-> Input Audio Format: " << audioConfiguration.InputAudioFormat << endl;
 }
 
+/*!
+ * Returns, whether the default config was loaded
+ */
+int loadDefaultConfig()
+{
+    cout << "Load the default configuration?[Y/N]" << endl;
+    std::string loadAnswer;
+    cin >> loadAnswer;
+    if(loadAnswer == "Y" || loadAnswer== "Yes" || loadAnswer == "y" || loadAnswer == "yes")
+    {
+        //network configuration
+        createAddress(&networkConfiguration.localAddr, AF_INET, "", 54321);
+        createAddress(&networkConfiguration.remoteAddr, AF_INET, "", 54321);
+        networkConfiguration.socketType = SOCK_DGRAM;
+        networkConfiguration.protocol = IPPROTO_UDP;
+        
+        //TODO load default audio configuration
+        
+        cout << "Default config loaded" << endl;
+        return 1;
+    }
+    return 0;
+}
 
 int main(int argc, char** argv)
 {
@@ -254,16 +277,20 @@ int main(int argc, char** argv)
     // Configuration
     ////
 
-    //1. network connection
-    configureNetwork();
-    
-    //2. audio devices
-	configureAudioDevices();
-    
-    //3. processors
-    //3.1 filters
-    //3.2 codecs
-    //3.3 compressors
+    //0. check for default config
+    if(!loadDefaultConfig())
+    {
+        //1. network connection
+        configureNetwork();
+
+        //2. audio devices
+        configureAudioDevices();
+
+        //3. processors
+        //3.1 filters
+        //3.2 codecs
+        //3.3 compressors
+    }
     
     ////
     // Initialize
