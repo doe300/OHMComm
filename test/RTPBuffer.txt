@@ -1,0 +1,16 @@
+RTPHeader *header = (RTPHeader*)malloc(sizeof(RTPHeader));
+header->version = 3;
+header->padding = 1;
+
+RTPPackage *package = new RTPPackage();
+package->header = header;
+package->package = malloc(5);
+
+RTPBuffer *buffer = new RTPBuffer(5, 1000);
+cout << "Add: " << (buffer->addPackage(*package)+0) << endl;
+
+RTPPackage *package2 = (RTPPackage *)malloc(sizeof(RTPPackage));
+cout << "Read: " << (buffer->readPackage(*package2)+0) << endl;
+
+cout << package2->header->version << endl;
+cout << package2->header->padding << endl;
