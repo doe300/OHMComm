@@ -317,7 +317,7 @@ AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *und
 AudioProcessor *selectAudioProcessors()
 {
     AudioProcessor *processor = NULL;
-    uint8_t numberOfProcessors = 1;
+    const uint8_t numberOfProcessors = 1;
     std::string names[] = {std::string("UDPWrapper")};
     uint8_t alreadyAdded[numberOfProcessors] = {0};
     //1. add (ordered) audio-processors
