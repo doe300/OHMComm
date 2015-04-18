@@ -33,6 +33,10 @@ int AudioProcessor::process(void* outputBuffer, void* inputBuffer, unsigned int 
 
 void AudioProcessor::configure()
 {
+    if(underlying != NULL)
+    {
+        underlying->configure();
+    }
     //do nothing
 }
 

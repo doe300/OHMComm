@@ -14,17 +14,19 @@
 
 //dependencies for rtaudio
 #include "../lib/rtaudio-4.1.1/RtAudio.h"
+#include "UDPWrapper.h"
 
 #ifdef _WIN32
-		#include <winsock2.h>
+#include <winsock2.h>
 #else
-	#include <arpa/inet.h> // sockaddr_in
+#include <arpa/inet.h> // sockaddr_in
 #endif
 
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
 AudioConfiguration audioConfiguration;
+AudioProcessor *topOfChain;
 
 using namespace std;
 
@@ -40,12 +42,47 @@ inline int convertToInt(const std::string& s)
 }
 
 // method for printing vectors used in configureAudioDevices
-void printvector(std::vector<unsigned int> v)
+void printVector(std::vector<unsigned int> v)
 {
 	for (unsigned int i = 0; i < v.size(); i++)
 	{
 		std::cout << v[i] << " ";
 	}
+}
+
+/*!
+ * Lets the user choose a supported audio-format
+ */
+RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
+{
+    cout << "Choose audio format" << endl;
+    if((supportedFormats & RTAUDIO_SINT8) == RTAUDIO_SINT8)
+    {
+        cout << RTAUDIO_SINT8+0 << ": 8 bit signed integer" << endl;
+    }
+    if((supportedFormats & RTAUDIO_SINT16) == RTAUDIO_SINT16)
+    {
+        cout << RTAUDIO_SINT16+0 << ": 16 bit signed integer" << endl;
+    }
+    if((supportedFormats & RTAUDIO_SINT24) == RTAUDIO_SINT24)
+    {
+        cout << RTAUDIO_SINT24+0 << ": 24 bit signed integer" << endl;
+    }
+    if((supportedFormats & RTAUDIO_SINT32) == RTAUDIO_SINT32)
+    {
+        cout << RTAUDIO_SINT32+0 << ": 32 bit signed integer" << endl;
+    }
+    if((supportedFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32)
+    {
+        cout << RTAUDIO_FLOAT32+0 << ": 32 bit float (normalized between +/- 1)" << endl;
+    }
+    if((supportedFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64)
+    {
+        cout << RTAUDIO_FLOAT64+0 << ": 64 bit float (normalized between +/- 1)" << endl;
+    }
+    RtAudioFormat format;
+    cin >> format;
+    return format;
 }
 
 inline void createAddress(sockaddr *addr, int addressType, std::string ipString, int port)
@@ -171,7 +208,7 @@ void configureAudioDevices()
 				cout << "No" << endl;
 			}
 			cout << "Supported Sample Rates: ";
-			printvector(DeviceInfo.sampleRates);
+			printVector(DeviceInfo.sampleRates);
 			cout << endl;
 			cout << "Audio Format = " << DeviceInfo.nativeFormats << endl;
 			cout << endl;
@@ -202,14 +239,14 @@ void configureAudioDevices()
 
 	//Configure Output Sample Rate
 	cout << "-> Supported Sample Rates from this Device: ";
-	printvector(OutputDeviceInfo.sampleRates);
+	printVector(OutputDeviceInfo.sampleRates);
 	cout << endl << "Choose your Sample Rate: ";
 	cin >> OutputSampleRate;
 	audioConfiguration.OutputSampleRate = OutputSampleRate;
 	cout << "-> Using Sample Rate: " << audioConfiguration.OutputSampleRate << endl;
 
 	//Configure Output Audio Format
-	audioConfiguration.OutputAudioFormat = OutputDeviceInfo.nativeFormats;
+	audioConfiguration.OutputAudioFormat = selectAudioFormat(OutputDeviceInfo.nativeFormats);
 	cout << "-> Output Audio Format: " << audioConfiguration.OutputAudioFormat << endl;
 
 	unsigned int InputDeviceID;
@@ -236,15 +273,65 @@ void configureAudioDevices()
 
 	//Configure Input Sample Rate
 	cout << "-> Supported Sample Rates from this Device: ";
-	printvector(InputDeviceInfo.sampleRates);
+	printVector(InputDeviceInfo.sampleRates);
 	cout << endl << "Choose your Sample Rate: ";
 	cin >> InputSampleRate;
 	audioConfiguration.InputSampleRate = InputSampleRate;
 	cout << "-> Using Sample Rate: " << audioConfiguration.InputSampleRate << endl;
 
 	//Configure Input Audio Format
-	audioConfiguration.InputAudioFormat = InputDeviceInfo.nativeFormats;
+	audioConfiguration.InputAudioFormat = selectAudioFormat(InputDeviceInfo.nativeFormats);
 	cout << "-> Input Audio Format: " << audioConfiguration.InputAudioFormat << endl;
+}
+
+uint8_t addAudioProcessor(std::string names[], uint8_t numberOfProcessors, uint8_t alreadyAdded[])
+{
+    cout << "Choose an AudioProcessor to add: " << endl;
+    for(uint8_t i= 0; i<numberOfProcessors ; i++)
+    {
+        cout << +i << ": ";
+        cout << names[i];
+        if(alreadyAdded[i] != 0)
+        {
+            cout << " (added)";
+        }
+        cout << endl;
+    }
+    cout << +numberOfProcessors << ": finish" << endl;
+    unsigned int index;
+    cin >> index;
+    return index;
+}
+
+AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *underlying)
+{
+    //TODO map name to processor
+    if(processorName == "UDPWrapper")
+    {
+        return new UDPWrapper();
+    }
+    //fall back to previous processor
+    return underlying;
+}
+
+AudioProcessor *selectAudioProcessors()
+{
+    AudioProcessor *processor = NULL;
+    uint8_t numberOfProcessors = 1;
+    std::string names[] = {std::string("UDPWrapper")};
+    uint8_t alreadyAdded[numberOfProcessors] = {0};
+    //1. add (ordered) audio-processors
+    cout << endl;
+    cout << "Select the AudioProcessors to add, beginning from the bottom of the chain (I/O)" << endl;
+    uint8_t processorIndex;
+    while((processorIndex = addAudioProcessor(names, numberOfProcessors, alreadyAdded)) < numberOfProcessors)
+    {
+        cout << "Adding " << names[processorIndex] << endl;
+        processor = addAudioProcessor(names[processorIndex], processor);
+        alreadyAdded[processorIndex] = 1;
+    }
+    //2. return the top audio processor
+    return processor;
 }
 
 /*!
@@ -257,18 +344,65 @@ int loadDefaultConfig()
     cin >> loadAnswer;
     if(loadAnswer == "Y" || loadAnswer== "Yes" || loadAnswer == "y" || loadAnswer == "yes")
     {
-        //network configuration
+        //network configuration - local port on loopback device
         createAddress(&networkConfiguration.localAddr, AF_INET, "", 54321);
         createAddress(&networkConfiguration.remoteAddr, AF_INET, "", 54321);
         networkConfiguration.socketType = SOCK_DGRAM;
         networkConfiguration.protocol = IPPROTO_UDP;
         
-        //TODO load default audio configuration
+        //audio configuration - use default devices and sample-rate
+        RtAudio audioDevices;
+        unsigned int defaultInputDeviceID = audioDevices.getDefaultInputDevice();
+        unsigned int defaultOutputDeviceID = audioDevices.getDefaultOutputDevice();
+        
+        //input device
+        RtAudio::DeviceInfo inputDeviceInfo = audioDevices.getDeviceInfo(defaultInputDeviceID);
+        audioConfiguration.InputDeviceID = defaultInputDeviceID;
+        audioConfiguration.InputDeviceName = inputDeviceInfo.name;
+        audioConfiguration.InputDeviceChannels = inputDeviceInfo.inputChannels;
+        audioConfiguration.InputSampleRate = 44100; //TODO check device support
+        //choose the most exact audio-format supported by the device
+        audioConfiguration.InputAudioFormat = inputDeviceInfo.nativeFormats & RTAUDIO_FLOAT64 || 
+                inputDeviceInfo.nativeFormats & RTAUDIO_FLOAT32 || inputDeviceInfo.nativeFormats & RTAUDIO_SINT32 ||
+                inputDeviceInfo.nativeFormats & RTAUDIO_SINT24 || inputDeviceInfo.nativeFormats & RTAUDIO_SINT16 ||
+                inputDeviceInfo.nativeFormats & RTAUDIO_SINT8;
+        
+        //output device
+        RtAudio::DeviceInfo outputDeviceInfo = audioDevices.getDeviceInfo(defaultOutputDeviceID);
+        audioConfiguration.OutputDeviceID = defaultOutputDeviceID;
+        audioConfiguration.OutputDeviceName = outputDeviceInfo.name;
+        audioConfiguration.OutputDeviceChannels = outputDeviceInfo.inputChannels;
+        audioConfiguration.OutputSampleRate = 44100; //TODO check device support
+        //choose the most exact audio-format supported by the device
+        audioConfiguration.OutputAudioFormat = outputDeviceInfo.nativeFormats & RTAUDIO_FLOAT64 || 
+                outputDeviceInfo.nativeFormats & RTAUDIO_FLOAT32 || outputDeviceInfo.nativeFormats & RTAUDIO_SINT32 ||
+                outputDeviceInfo.nativeFormats & RTAUDIO_SINT24 || outputDeviceInfo.nativeFormats & RTAUDIO_SINT16 ||
+                outputDeviceInfo.nativeFormats & RTAUDIO_SINT8;
         
         cout << "Default config loaded" << endl;
         return 1;
     }
     return 0;
+}
+
+/*!
+ * RtAudio Error Handler
+ */
+void errorHandler( RtAudioError::Type type, const std::string &errorText )
+{
+    cerr << "An error occurred!" << endl;
+    //TODO type
+    cerr << errorText << endl;
+}
+
+/*!
+ * RtAudio Callback
+ */
+int audioCallback( void *outputBuffer, void *inputBuffer,unsigned int nFrames,double streamTime,
+                                RtAudioStreamStatus status, void *userData )
+{
+    //need to wrap the AudioProcessor, because of the hidden this-parameter of c++ instance methods
+    return topOfChain->process(outputBuffer, inputBuffer, nFrames, streamTime, status, userData);
 }
 
 int main(int argc, char** argv)
@@ -285,12 +419,10 @@ int main(int argc, char** argv)
 
         //2. audio devices
         configureAudioDevices();
-
-        //3. processors
-        //3.1 filters
-        //3.2 codecs
-        //3.3 compressors
     }
+    
+    //3. processors
+    topOfChain= selectAudioProcessors();
     
     ////
     // Initialize
@@ -298,13 +430,37 @@ int main(int argc, char** argv)
     
     //1. RTP
     //2. AudioProcessors
+    topOfChain->configure();
     //3. RTAudio
+    //number of frames buffered - TODO configure
+    unsigned int bufferFrames = 32;
     
+    RtAudio audio;
+    RtAudio::StreamParameters inputParams;
+    inputParams.deviceId = audioConfiguration.InputDeviceID;
+    inputParams.nChannels = audioConfiguration.InputDeviceChannels;
+    RtAudio::StreamParameters outputParams;
+    outputParams.deviceId = audioConfiguration.OutputDeviceID;
+    outputParams.nChannels = audioConfiguration.OutputDeviceChannels;
+    
+    audio.openStream(&outputParams, &inputParams, 
+                     (RtAudioFormat)audioConfiguration.InputAudioFormat, 
+                     audioConfiguration.InputSampleRate, 
+                     &bufferFrames, &audioCallback, NULL,
+                     NULL, &errorHandler);
     ////
     // Running
     ////
     
     //start loop
+    audio.startStream();
+
+    char input;
+    std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << bufferFrames << ").\n";
+    cin >> input;
+
+    // Stop the stream.
+    audio.stopStream();
     
     return 0;
 }
