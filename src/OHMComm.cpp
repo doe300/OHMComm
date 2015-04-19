@@ -391,7 +391,25 @@ int loadDefaultConfig()
 void errorHandler( RtAudioError::Type type, const std::string &errorText )
 {
     cerr << "An error occurred!" << endl;
-    //TODO type
+    switch(type)
+    {
+        case RtAudioError::Type::WARNING:
+        case RtAudioError::Type::DEBUG_WARNING:
+            cerr << "WARNING: ";
+        case RtAudioError::Type::MEMORY_ERROR:
+        case RtAudioError::Type::DRIVER_ERROR:
+        case RtAudioError::Type::SYSTEM_ERROR:
+        case RtAudioError::Type::THREAD_ERROR:
+            cerr << "ERROR: ";
+        case RtAudioError::Type::NO_DEVICES_FOUND:
+        case RtAudioError::Type::INVALID_DEVICE:
+            cerr << "Device Error: ";
+        case RtAudioError::Type::INVALID_PARAMETER:
+        case RtAudioError::Type::INVALID_USE:
+            cerr << "Invalid Function-call: ";
+        case RtAudioError::Type::UNSPECIFIED:
+            cerr << "Unspecified Error: ";
+    }
     cerr << errorText << endl;
 }
 
