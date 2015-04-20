@@ -58,7 +58,7 @@ public:
      * 
      * For the style of configuration, see OhmComm.cpp
      */
-    void configure();
+    virtual void configure();
     
 protected:
     AudioProcessor *underlying;
