@@ -9,7 +9,7 @@
 #define	AUDIO_PROCESSOR_H
 
 #include "configuration.h"
-#include "../lib/rtaudio-4.1.1/RtAudio.h"
+#include "RtAudio.h"
 /*!
  * Abstract supertype for all classes used for intermediate handling of the input/output stream.
  * 
@@ -51,14 +51,14 @@ public:
      * 
      * \param userData A pointer to optional user-data
      */
-    int process( void *outputBuffer, void *inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void *userData );
+    virtual int process( void *outputBuffer, void *inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void *userData );
     
     /*!
      * Overwrite this method, if this AudioProcessor needs configuration
      * 
      * For the style of configuration, see OhmComm.cpp
      */
-    void configure();
+    virtual void configure();
     
 protected:
     AudioProcessor *underlying;

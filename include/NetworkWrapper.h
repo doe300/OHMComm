@@ -20,7 +20,14 @@
 #include <stdexcept>
 #endif
 
-#include "../include/AudioProcessor.h"
+#include "AudioProcessor.h"
+
+//Socket-ID for an invalid socket
+#define INVALID_SOCKET -1
+//define SOCKET_ERROR for non-Windows
+#ifndef SOCKET_ERROR
+#define SOCKET_ERROR -1
+#endif
 
 class NetworkWrapper : public AudioProcessor
 {
@@ -58,6 +65,11 @@ protected:
      * Returns the number of bytes per frame of the given audioFormat
      */
     uint8_t getBytesFromAudioFormat(RtAudioFormat audioFormat);
+    
+    /*!
+    * Returns the last error code - depending on the operating system
+    */
+    int getLastError();
 };
 
 #endif	/* NETWORKWRAPPER_H */
