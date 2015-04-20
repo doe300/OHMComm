@@ -51,7 +51,7 @@ public:
      * 
      * \param userData A pointer to optional user-data
      */
-    int process( void *outputBuffer, void *inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void *userData );
+    virtual int process( void *outputBuffer, void *inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void *userData );
     
     /*!
      * Overwrite this method, if this AudioProcessor needs configuration
