@@ -36,14 +36,15 @@ public:
     NetworkWrapper(const NetworkWrapper& orig);
     virtual ~NetworkWrapper();
     
+protected:
+    int Socket;
+    
     /*!
      * Initializes the network-connection
      * 
      * Returns zero on success and the error-code on error
      */
-    virtual int initializeNetwork();
-protected:
-    int Socket;
+    int initializeNetwork();
     
     /*!
      * Starts Winsock2 for Windows OS

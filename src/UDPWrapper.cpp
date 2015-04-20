@@ -21,9 +21,13 @@ UDPWrapper::~UDPWrapper()
 {
 }
 
-int UDPWrapper::initializeNetwork()
+void UDPWrapper::configure()
 {
-    return NetworkWrapper::initializeNetwork();
+    int errorCode = initializeNetwork();
+    if(errorCode != 0)
+    {
+        std::cerr << "Error on network-initialization: " << errorCode << std::endl;
+    }
 }
 
 

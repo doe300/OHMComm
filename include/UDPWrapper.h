@@ -20,9 +20,7 @@ public:
     
     int process(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void* userData);
     
-    int initializeNetwork();
-
-private:
+    void configure();
 };
 
 #endif	/* UDPWRAPPER_H */
