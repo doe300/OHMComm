@@ -9,21 +9,22 @@
 
 NetworkWrapper::NetworkWrapper() : AudioProcessor(NULL)
 {
-    Socket = -1;
+    Socket = INVALID_SOCKET;
 }
 
 NetworkWrapper::NetworkWrapper(const NetworkWrapper& orig) : AudioProcessor(orig)
 {
-    Socket = -1;
+    Socket = INVALID_SOCKET;
 }
 
 NetworkWrapper::~NetworkWrapper()
 {
-    if(Socket != -1)
+    if(Socket != INVALID_SOCKET)
     {
         //close socket
          #ifdef _WIN32
         closesocket(Socket);
+        WSACleanup();
         #else
         shutdown(Socket, SHUT_RDWR);
         #endif
@@ -39,7 +40,7 @@ int NetworkWrapper::initializeNetwork()
         return result;
     }
     result = createSocket();
-    if(result == -1)
+    if(result == INVALID_SOCKET)
     {
         return result;
     }
@@ -65,10 +66,10 @@ int NetworkWrapper::createSocket()
 {
     // AF_INET - creating an IPv4 based socket
     Socket = socket(AF_INET, networkConfiguration.socketType, networkConfiguration.protocol);
-    if(Socket == -1)
+    if(Socket == INVALID_SOCKET)
     {
-        std::cerr << "Error on creating socket: " << errno << std::endl;
-        return -1;
+        std::cerr << "Error on creating socket: " << getLastError() << std::endl;
+        return INVALID_SOCKET;
     }
     else
     {
@@ -78,10 +79,10 @@ int NetworkWrapper::createSocket()
     //6. connect
     
     //local address
-    if(bind(Socket, &networkConfiguration.localAddr, sizeof(networkConfiguration.localAddr)) == -1)
+    if(bind(Socket, &networkConfiguration.localAddr, sizeof(networkConfiguration.localAddr)) == SOCKET_ERROR)
     {
-        std::cerr << "Error binding the socket: " << errno << std::endl;
-        return -1;
+        std::cerr << "Error binding the socket: " << getLastError() << std::endl;
+        return SOCKET_ERROR;
     }
     else
     {
@@ -90,10 +91,10 @@ int NetworkWrapper::createSocket()
     
     //remote address
     //for datagram-sockets, just sets default remote address
-    if(connect(Socket,&networkConfiguration.remoteAddr,sizeof(networkConfiguration.remoteAddr)) == -1)
+    if(connect(Socket,&networkConfiguration.remoteAddr,sizeof(networkConfiguration.remoteAddr)) == SOCKET_ERROR)
     {
-        std::cerr << "Error connection the socket:" << errno << std::endl;
-        return -1;
+        std::cerr << "Error connection the socket:" << getLastError() << std::endl;
+        return SOCKET_ERROR;
     }
     else
     {
@@ -128,4 +129,16 @@ uint8_t NetworkWrapper::getBytesFromAudioFormat(RtAudioFormat audioFormat)
     
     //TODO error-handling
     return 1;
+}
+
+int NetworkWrapper::getLastError()
+{
+	int error;
+	#ifdef _WIN32
+		error = WSAGetLastError();
+	#else
+		error = errno;
+	#endif
+
+	return error;
 }

@@ -13,7 +13,7 @@
 #include "configuration.h"
 
 //dependencies for rtaudio
-#include "../lib/rtaudio-4.1.1/RtAudio.h"
+#include "RtAudio.h"
 #include "UDPWrapper.h"
 
 #ifdef _WIN32

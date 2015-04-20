@@ -9,7 +9,7 @@
 #define	AUDIO_PROCESSOR_H
 
 #include "configuration.h"
-#include "../lib/rtaudio-4.1.1/RtAudio.h"
+#include "RtAudio.h"
 /*!
  * Abstract supertype for all classes used for intermediate handling of the input/output stream.
  * 
