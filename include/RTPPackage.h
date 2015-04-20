@@ -176,7 +176,7 @@ struct RTPHeader
     unsigned int ssrc: 32;
 
     //list of 32 bit CSRCs
-    uint32_t *csrc_list[];
+    uint32_t csrc_list[15];
     
     RTPHeaderExtension *header_extension;
     
