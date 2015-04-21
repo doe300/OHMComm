@@ -345,8 +345,8 @@ int loadDefaultConfig()
     if(loadAnswer == "Y" || loadAnswer== "Yes" || loadAnswer == "y" || loadAnswer == "yes")
     {
         //network configuration - local port on loopback device
-        createAddress(&networkConfiguration.localAddr, AF_INET, "", 54321);
-        createAddress(&networkConfiguration.remoteAddr, AF_INET, "", 54321);
+        createAddress(&networkConfiguration.localAddr, AF_INET, "127.0.0.1", 54321);
+        createAddress(&networkConfiguration.remoteAddr, AF_INET, "127.0.0.1", 54321);
         networkConfiguration.socketType = SOCK_DGRAM;
         networkConfiguration.protocol = IPPROTO_UDP;
         
@@ -371,7 +371,7 @@ int loadDefaultConfig()
         RtAudio::DeviceInfo outputDeviceInfo = audioDevices.getDeviceInfo(defaultOutputDeviceID);
         audioConfiguration.OutputDeviceID = defaultOutputDeviceID;
         audioConfiguration.OutputDeviceName = outputDeviceInfo.name;
-        audioConfiguration.OutputDeviceChannels = outputDeviceInfo.inputChannels;
+        audioConfiguration.OutputDeviceChannels = outputDeviceInfo.outputChannels;
         audioConfiguration.OutputSampleRate = 44100; //TODO check device support
         //choose the most exact audio-format supported by the device
         audioConfiguration.OutputAudioFormat = outputDeviceInfo.nativeFormats & RTAUDIO_FLOAT64 || 
@@ -425,61 +425,70 @@ int audioCallback( void *outputBuffer, void *inputBuffer,unsigned int nFrames,do
 
 int main(int argc, char** argv)
 {
-    ////
-    // Configuration
-    ////
 
-    //0. check for default config
-    if(!loadDefaultConfig())
-    {
-        //1. network connection
-        configureNetwork();
+	try
+	{
+		////
+		// Configuration
+		////
 
-        //2. audio devices
-        configureAudioDevices();
-    }
-    
-    //3. processors
-    topOfChain= selectAudioProcessors();
-    
-    ////
-    // Initialize
-    ////
-    
-    //1. RTP
-    //2. AudioProcessors
-    topOfChain->configure();
-    //3. RTAudio
-    //number of frames buffered - TODO configure
-    unsigned int bufferFrames = 32;
-    
-    RtAudio audio;
-    RtAudio::StreamParameters inputParams;
-    inputParams.deviceId = audioConfiguration.InputDeviceID;
-    inputParams.nChannels = audioConfiguration.InputDeviceChannels;
-    RtAudio::StreamParameters outputParams;
-    outputParams.deviceId = audioConfiguration.OutputDeviceID;
-    outputParams.nChannels = audioConfiguration.OutputDeviceChannels;
-    
-    audio.openStream(&outputParams, &inputParams, 
-                     (RtAudioFormat)audioConfiguration.InputAudioFormat, 
-                     audioConfiguration.InputSampleRate, 
-                     &bufferFrames, &audioCallback, NULL,
-                     NULL, &errorHandler);
-    ////
-    // Running
-    ////
-    
-    //start loop
-    audio.startStream();
+		//0. check for default config
+		if(!loadDefaultConfig())
+		{
+			//1. network connection
+			configureNetwork();
 
-    char input;
-    std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << bufferFrames << ").\n";
-    cin >> input;
-
-    // Stop the stream.
-    audio.stopStream();
+			//2. audio devices
+			configureAudioDevices();
+		}
     
-    return 0;
+		//3. processors
+		topOfChain= selectAudioProcessors();
+    
+		////
+		// Initialize
+		////
+    
+		//1. RTP
+		//2. AudioProcessors
+		topOfChain->configure();
+		//3. RTAudio
+		//number of frames buffered - TODO configure
+		unsigned int bufferFrames = 32;
+    
+		RtAudio audio;
+		RtAudio::StreamParameters inputParams;
+		inputParams.deviceId = audioConfiguration.InputDeviceID;
+		inputParams.nChannels = audioConfiguration.InputDeviceChannels;
+		RtAudio::StreamParameters outputParams;
+		outputParams.deviceId = audioConfiguration.OutputDeviceID;
+		outputParams.nChannels = audioConfiguration.OutputDeviceChannels;
+    
+		audio.openStream(&outputParams, &inputParams, 
+						 (RtAudioFormat)audioConfiguration.InputAudioFormat, 
+						 audioConfiguration.InputSampleRate, 
+						 &bufferFrames, &audioCallback, NULL,
+						 NULL, &errorHandler);
+		////
+		// Running
+		////
+    
+		//start loop
+		audio.startStream();
+
+		char input;
+		std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << bufferFrames << ").\n";
+		cin >> input;
+
+		// Stop the stream.
+		audio.stopStream();
+    
+		return 0;
+
+	}
+	catch (RtAudioError exception)
+	{
+		cout << "Ausnahme: " << exception.getMessage() << endl;
+	}
 }
 
