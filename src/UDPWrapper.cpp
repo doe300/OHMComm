@@ -33,8 +33,6 @@ void UDPWrapper::configure()
 
 int UDPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void* userData)
 {
-    //XXX is cast to char * possible without problems??
-    
     //send
     if(inputBuffer != NULL)
     {

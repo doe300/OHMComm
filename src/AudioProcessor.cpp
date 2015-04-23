@@ -11,14 +11,14 @@
  * Dummy implementation of AudioProcessor
  */
 
-AudioProcessor::AudioProcessor(AudioProcessor *underlying)
+AudioProcessor::AudioProcessor()
 {
-    AudioProcessor::underlying = underlying;
+    nextInChain = NULL;
 }
 
 AudioProcessor::AudioProcessor(const AudioProcessor& orig)
 {
-    AudioProcessor::underlying = orig.underlying;
+    nextInChain = orig.nextInChain;
 }
 
 AudioProcessor::~AudioProcessor()
@@ -28,16 +28,22 @@ AudioProcessor::~AudioProcessor()
 int AudioProcessor::process(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void* userData)
 {
     //dummy implementation - pass through to underlying processor
-    return underlying->process(outputBuffer, inputBuffer, nFrames, streamTime, status, userData);
+    return nextInChain->process(outputBuffer, inputBuffer, nFrames, streamTime, status, userData);
 }
 
 void AudioProcessor::configure()
 {
-    if(underlying != NULL)
-    {
-        underlying->configure();
-    }
-    //do nothing
+    //dummy implementation - do nothing
+}
+
+void AudioProcessor::setNextInChain(AudioProcessor* nextInChain)
+{
+    this->nextInChain = nextInChain;
+}
+
+AudioProcessor* AudioProcessor::getNextInChain()
+{
+    return nextInChain;
 }
 
 

@@ -21,10 +21,8 @@
 class AudioProcessor
 {
 public:
-    /*!
-     * \param underlying the underlying (next link in the process-chain) AudioProcessor
-     */
-    AudioProcessor(AudioProcessor *underlying);
+    
+    AudioProcessor();
     
     AudioProcessor(const AudioProcessor& orig);
     
@@ -33,7 +31,7 @@ public:
     /*!
      * Intermediate method processing the input/output stream and passing it onto the underlying processor.
      * 
-     * For more information, see RtAudioCallback in RTAudio.h
+     * For more information, see RtAudioCallback in RtAudio.h
      * 
      * \param outputBuffer For input (or duplex) streams,
      *      the outputBuffer of the underlying RtAudioCallback should be read, processed and written into this buffer
@@ -50,8 +48,11 @@ public:
      *      The particular condition can be determined by comparison with the RtAudioStreamStatus flags.
      * 
      * \param userData A pointer to optional user-data
+     * 
+     * This method returns zero to continue normal function. 
+     * It returns a value of one to stop the stream immediately and a value of two to drain the buffer and stop the stream.
      */
-    virtual int process( void *outputBuffer, void *inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void *userData );
+    virtual int process( void *outputBuffer, void *inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void *userData);
     
     /*!
      * Overwrite this method, if this AudioProcessor needs configuration
@@ -60,8 +61,18 @@ public:
      */
     virtual void configure();
     
+    /*!
+     * Sets the AudioProcessor next in chain
+     */
+    void setNextInChain(AudioProcessor *nextInChain);
+    
+    /*!
+     * Gets the AudioProcessor next in chain
+     */
+    AudioProcessor *getNextInChain();
+    
 protected:
-    AudioProcessor *underlying;
+    AudioProcessor *nextInChain;
 };
 
 #endif	/* AUDIO_PROCESSOR_H */

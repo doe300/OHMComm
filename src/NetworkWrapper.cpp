@@ -7,7 +7,7 @@
 
 #include "NetworkWrapper.h"
 
-NetworkWrapper::NetworkWrapper() : AudioProcessor(NULL)
+NetworkWrapper::NetworkWrapper() : AudioProcessor()
 {
     Socket = INVALID_SOCKET;
 }

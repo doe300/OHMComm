@@ -10,6 +10,7 @@
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
+
 #include "configuration.h"
 
 //dependencies for rtaudio
@@ -303,18 +304,26 @@ uint8_t addAudioProcessor(std::string names[], uint8_t numberOfProcessors, uint8
     return index;
 }
 
-AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *underlying)
+AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *previousProcessor)
 {
+    AudioProcessor *processor = NULL;
     //TODO map name to processor
     if(processorName == "UDPWrapper")
     {
-        return new UDPWrapper();
+        processor = new UDPWrapper();
     }
-    //fall back to previous processor
-    return underlying;
+    if(processor == NULL)
+    {
+        //TODO, throw error
+    }
+    if(previousProcessor != NULL)
+    {
+        previousProcessor->setNextInChain(processor);
+    }
+    return processor;
 }
 
-AudioProcessor *selectAudioProcessors()
+void selectAudioProcessors()
 {
     AudioProcessor *processor = NULL;
     const uint8_t numberOfProcessors = 1;
@@ -322,16 +331,19 @@ AudioProcessor *selectAudioProcessors()
     uint8_t alreadyAdded[numberOfProcessors] = {0};
     //1. add (ordered) audio-processors
     cout << endl;
-    cout << "Select the AudioProcessors to add, beginning from the bottom of the chain (I/O)" << endl;
+    cout << "Select the AudioProcessors to add, in the order of their execution" << endl;
     uint8_t processorIndex;
     while((processorIndex = addAudioProcessor(names, numberOfProcessors, alreadyAdded)) < numberOfProcessors)
     {
         cout << "Adding " << names[processorIndex] << endl;
         processor = addAudioProcessor(names[processorIndex], processor);
+        if(topOfChain == NULL)
+        {
+            //assign the first created processor as top-of-chain
+            topOfChain = processor;
+        }
         alreadyAdded[processorIndex] = 1;
     }
-    //2. return the top audio processor
-    return processor;
 }
 
 /*!
@@ -443,7 +455,7 @@ int main(int argc, char** argv)
 		}
     
 		//3. processors
-		topOfChain= selectAudioProcessors();
+		selectAudioProcessors();
     
 		////
 		// Initialize
@@ -451,7 +463,12 @@ int main(int argc, char** argv)
     
 		//1. RTP
 		//2. AudioProcessors
-		topOfChain->configure();
+                AudioProcessor *nextInChain = topOfChain;
+                while(nextInChain != NULL)
+                {
+                    nextInChain->configure();
+                    nextInChain = nextInChain->getNextInChain();
+                }
 		//3. RTAudio
 		//number of frames buffered - TODO configure
 		unsigned int bufferFrames = 32;

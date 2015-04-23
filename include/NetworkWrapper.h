@@ -23,7 +23,9 @@
 #include "AudioProcessor.h"
 
 //Socket-ID for an invalid socket
+#ifndef INVALID_SOCKET
 #define INVALID_SOCKET -1
+#endif
 //define SOCKET_ERROR for non-Windows
 #ifndef SOCKET_ERROR
 #define SOCKET_ERROR -1
