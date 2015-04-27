@@ -16,6 +16,7 @@
 //dependencies for rtaudio
 #include "RtAudio.h"
 #include "UDPWrapper.h"
+#include "FileProcessor.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -312,6 +313,10 @@ AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *pre
     {
         processor = new UDPWrapper();
     }
+	else if (processorName == "FileProcessor")
+	{
+		processor = new FileProcessor("recording.rtaudio", false, true);
+	}
     if(processor == NULL)
     {
         //TODO, throw error
@@ -326,8 +331,8 @@ AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *pre
 void selectAudioProcessors()
 {
     AudioProcessor *processor = NULL;
-    const uint8_t numberOfProcessors = 1;
-    std::string names[] = {std::string("UDPWrapper")};
+    const uint8_t numberOfProcessors = 2;
+    std::string names[] = {std::string("UDPWrapper"), std::string("FileProcessor")};
     uint8_t alreadyAdded[numberOfProcessors] = {0};
     //1. add (ordered) audio-processors
     cout << endl;
@@ -336,12 +341,18 @@ void selectAudioProcessors()
     while((processorIndex = addAudioProcessor(names, numberOfProcessors, alreadyAdded)) < numberOfProcessors)
     {
         cout << "Adding " << names[processorIndex] << endl;
+		AudioProcessor *oldProcessor = processor;
         processor = addAudioProcessor(names[processorIndex], processor);
         if(topOfChain == NULL)
         {
             //assign the first created processor as top-of-chain
             topOfChain = processor;
         }
+		else
+		{
+			oldProcessor->setNextInChain(processor);
+			
+		}
         alreadyAdded[processorIndex] = 1;
     }
 }

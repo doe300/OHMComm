@@ -69,5 +69,9 @@ int UDPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nFra
     }
     
     //continue function
+
+	if (getNextInChain() != NULL)
+		getNextInChain()->process(outputBuffer, inputBuffer, nFrames, streamTime, status, userData);
+
     return 0;
 }
