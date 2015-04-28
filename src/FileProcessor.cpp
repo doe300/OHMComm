@@ -1,5 +1,16 @@
 #include "FileProcessor.h"
 
+FileProcessor::FileProcessor(std::string fileName, bool readOnly, bool overwriteFile)
+{
+	this->fileName = fileName;
+	this->openFile(readOnly, overwriteFile);
+}
+
+FileProcessor::~FileProcessor()
+{
+	closeFile();
+}
+
 void FileProcessor::openFile(bool readOnly, bool overwrite)
 {
 	if (file.is_open() == true)
@@ -29,32 +40,25 @@ void FileProcessor::appendToFile(void *input)
 	file << input;
 }
 
-FileProcessor::FileProcessor(std::string fileName, bool readOnly, bool overwriteFile)
-{
-	this->fileName = fileName;
-	this->openFile(readOnly, overwriteFile);
-}
-
-FileProcessor::~FileProcessor()
-{
-	closeFile();
-}
-
 void FileProcessor::configure()
 {
-
+    //TODO allow for file-name and overwrite-flag to be configured
 }
 
 int FileProcessor::process(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData)
 {
 	unsigned int* buffer = (unsigned int *)(inputBuffer);
 
-	int sizeOfAFrameInBytes = 4; // This needs to be set dynamically
+	int sizeOfAFrameInBytes = 4; // TODO This needs to be set dynamically
 
 	for (size_t i = 0; i < nBufferFrames; i++)
 	{
 		file.write((char *)buffer, sizeOfAFrameInBytes);
 		buffer++;
 	}
+        if(nextInChain != NULL)
+        {
+            return nextInChain->process(outputBuffer,inputBuffer,nBufferFrames,streamTime,status,userData);
+        }
 	return 0;
 }

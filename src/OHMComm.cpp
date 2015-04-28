@@ -341,18 +341,12 @@ void selectAudioProcessors()
     while((processorIndex = addAudioProcessor(names, numberOfProcessors, alreadyAdded)) < numberOfProcessors)
     {
         cout << "Adding " << names[processorIndex] << endl;
-		AudioProcessor *oldProcessor = processor;
         processor = addAudioProcessor(names[processorIndex], processor);
         if(topOfChain == NULL)
         {
             //assign the first created processor as top-of-chain
             topOfChain = processor;
         }
-		else
-		{
-			oldProcessor->setNextInChain(processor);
-			
-		}
         alreadyAdded[processorIndex] = 1;
     }
 }
