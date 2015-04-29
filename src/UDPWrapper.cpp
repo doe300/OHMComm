@@ -28,6 +28,8 @@ void UDPWrapper::configure()
     {
         std::cerr << "Error on network-initialization: " << errorCode << std::endl;
     }
+    outputFrameSize = getBytesFromAudioFormat(audioConfiguration.OutputAudioFormat);
+    inputFrameSize = getBytesFromAudioFormat(audioConfiguration.InputAudioFormat);
 }
 
 
@@ -36,7 +38,7 @@ int UDPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nFra
     //send
     if(inputBuffer != NULL)
     {
-        long unsigned int inputBufferSize = nFrames * getBytesFromAudioFormat(audioConfiguration.InputAudioFormat);
+        long unsigned int inputBufferSize = getBufferSize(nFrames, inputFrameSize);
         long int size = sendto(Socket, (char *)inputBuffer, inputBufferSize, 0, &networkConfiguration.remoteAddr, sizeof(networkConfiguration.remoteAddr));
         if(size == -1)
         {
@@ -50,7 +52,7 @@ int UDPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nFra
     //receive
     if(outputBuffer != NULL)
     {
-        long unsigned int outputBufferSize = nFrames * getBytesFromAudioFormat(audioConfiguration.OutputAudioFormat);
+        long unsigned int outputBufferSize = getBufferSize(nFrames, outputFrameSize);
         long int size = recvfrom(Socket, (char *)outputBuffer, outputBufferSize, 0, NULL, 0);
         if(size == -1)
         {

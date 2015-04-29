@@ -142,3 +142,8 @@ int NetworkWrapper::getLastError()
 
 	return error;
 }
+
+unsigned int NetworkWrapper::getBufferSize(unsigned int numberOfFrames, uint8_t sizeOfFrame)
+{
+    return numberOfFrames * sizeOfFrame;
+}

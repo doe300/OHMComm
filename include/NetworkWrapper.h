@@ -73,6 +73,16 @@ protected:
     * Returns the last error code - depending on the operating system
     */
     int getLastError();
+    
+    /*!
+     * The number of bytes in a input-/output-frame. Use this value to not require to calculate #getBytesFromAudioFormat(format) in every loop-cycle
+     */
+    uint8_t outputFrameSize, inputFrameSize;
+    
+    /*!
+     * Calculates the size of the used buffer-space
+     */
+    unsigned int getBufferSize(unsigned int numberOfFrames, uint8_t sizeOfFrame);
 };
 
 #endif	/* NETWORKWRAPPER_H */
