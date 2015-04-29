@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "configuration.h"
+#include "UserInput.h"
 
 //dependencies for rtaudio
 #include "RtAudio.h"
@@ -32,17 +33,6 @@ AudioProcessor *topOfChain;
 
 using namespace std;
 
-//conversion method
-//returns -1 on error
-inline int convertToInt(const std::string& s)
-{
-    std::istringstream i(s);
-    int x;
-    if (!(i >> x))
-        return -1;
-    return x;
-}
-
 // method for printing vectors used in configureAudioDevices
 void printVector(std::vector<unsigned int> v)
 {
@@ -57,34 +47,74 @@ void printVector(std::vector<unsigned int> v)
  */
 RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
 {
-    cout << "Choose audio format" << endl;
+    vector<string> formatNames;
+    vector<RtAudioFormat> audioFormats;
+    //preallocate vectors
+    formatNames.reserve(8);
+    audioFormats.reserve(8);
+    //fill options
     if((supportedFormats & RTAUDIO_SINT8) == RTAUDIO_SINT8)
     {
-        cout << RTAUDIO_SINT8+0 << ": 8 bit signed integer" << endl;
+        formatNames.push_back("8 bit signed integer");
+        audioFormats.push_back(RTAUDIO_SINT8);
     }
     if((supportedFormats & RTAUDIO_SINT16) == RTAUDIO_SINT16)
     {
-        cout << RTAUDIO_SINT16+0 << ": 16 bit signed integer" << endl;
+        formatNames.push_back("16 bit signed integer");
+        audioFormats.push_back(RTAUDIO_SINT16);
     }
     if((supportedFormats & RTAUDIO_SINT24) == RTAUDIO_SINT24)
     {
-        cout << RTAUDIO_SINT24+0 << ": 24 bit signed integer" << endl;
+        formatNames.push_back("24 bit signed integer");
+        audioFormats.push_back(RTAUDIO_SINT24);
     }
     if((supportedFormats & RTAUDIO_SINT32) == RTAUDIO_SINT32)
     {
-        cout << RTAUDIO_SINT32+0 << ": 32 bit signed integer" << endl;
+        formatNames.push_back("32 bit signed integer");
+        audioFormats.push_back(RTAUDIO_SINT32);
     }
     if((supportedFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32)
     {
-        cout << RTAUDIO_FLOAT32+0 << ": 32 bit float (normalized between +/- 1)" << endl;
+        formatNames.push_back("32 bit float (normalized between +/- 1)");
+        audioFormats.push_back(RTAUDIO_FLOAT32);
     }
     if((supportedFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64)
     {
-        cout << RTAUDIO_FLOAT64+0 << ": 64 bit float (normalized between +/- 1)" << endl;
+        formatNames.push_back("64 bit float (normalized between +/- 1)");
+        audioFormats.push_back(RTAUDIO_FLOAT64);
     }
-    RtAudioFormat format;
-    cin >> format;
-    return format;
+    int formatIndex = selectOptionIndex("Choose audio format", formatNames, 0);
+    //return selected option
+    return audioFormats[formatIndex];
+}
+
+/*!
+ * Automatically selects the best audio format out of the supported formats
+ */
+RtAudioFormat autoSelectAudioFormat(RtAudioFormat supportedFormats)
+{
+    if((supportedFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64)
+    {
+        return RTAUDIO_FLOAT64;
+    }
+    if((supportedFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32)
+    {
+        return RTAUDIO_FLOAT32;
+    }
+    if((supportedFormats & RTAUDIO_SINT32) == RTAUDIO_SINT32)
+    {
+        return RTAUDIO_SINT32;
+    }
+    if((supportedFormats & RTAUDIO_SINT24) == RTAUDIO_SINT24)
+    {
+        return RTAUDIO_SINT24;
+    }
+    if((supportedFormats & RTAUDIO_SINT16) == RTAUDIO_SINT16)
+    {
+        return RTAUDIO_SINT16;
+    }
+    //fall back to worst quality
+    return RTAUDIO_SINT8;
 }
 
 inline void createAddress(sockaddr *addr, int addressType, std::string ipString, int port)
@@ -109,30 +139,24 @@ inline void createAddress(sockaddr *addr, int addressType, std::string ipString,
 
 void configureNetwork()
 {
-    string ipString;
-    string destPortString, localPortString;
     string protocolString;
     
-    cout << "Network configuration:" << endl;
+    cout << "Network configuration" << endl;
     
     //1. remote address
-    cout << "1. Input destination IP address: ";
-    cin >> ipString;
+    string ipString = inputString("1. Input destination IP address");
     
     //2. remote and local ports
-    cout << "2. Input destination port: ";
-    cin >> destPortString;
-    cout << "3. Input local port: ";
-    cin >> localPortString;
+    int destPort = inputNumber("2. Input destination port", false, false);
+    int localPort = inputNumber("3. Input local port", false, false);
     
     //3. protocol
-    cout << "4. Choose protocol (TCP/UDP) [defaults to UDP]: ";
-    cin >> protocolString;
+//    cout << "4. Choose protocol (TCP/UDP) [defaults to UDP]";
+//    cin >> protocolString;
+    vector<string> protocols {"TCP", "UDP"};
+    protocolString = selectOption("4. Choose protocol", protocols, "UDP");
     
     //4. parse arguments
-    int destPort = convertToInt(destPortString);
-    int localPort = convertToInt(localPortString);
-    
     if(protocolString == "TCP")
     {
         // SOCK_STREAM - creating a stream-socket
@@ -286,25 +310,6 @@ void configureAudioDevices()
 	cout << "-> Input Audio Format: " << audioConfiguration.InputAudioFormat << endl;
 }
 
-uint8_t addAudioProcessor(std::string names[], uint8_t numberOfProcessors, uint8_t alreadyAdded[])
-{
-    cout << "Choose an AudioProcessor to add: " << endl;
-    for(uint8_t i= 0; i<numberOfProcessors ; i++)
-    {
-        cout << +i << ": ";
-        cout << names[i];
-        if(alreadyAdded[i] != 0)
-        {
-            cout << " (added)";
-        }
-        cout << endl;
-    }
-    cout << +numberOfProcessors << ": finish" << endl;
-    unsigned int index;
-    cin >> index;
-    return index;
-}
-
 AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *previousProcessor)
 {
     AudioProcessor *processor = NULL;
@@ -332,20 +337,26 @@ void selectAudioProcessors()
 {
     AudioProcessor *processor = NULL;
     const uint8_t numberOfProcessors = 2;
-    std::string names[] = {std::string("UDPWrapper"), std::string("FileProcessor")};
+    //last "processor" is the finish to exit from loop
+    vector<string> names {"UDPWrapper", "FileProcessor", "finish"};
     uint8_t alreadyAdded[numberOfProcessors] = {0};
     //1. add (ordered) audio-processors
     cout << endl;
     cout << "Select the AudioProcessors to add, in the order of their execution" << endl;
     uint8_t processorIndex;
-    while((processorIndex = addAudioProcessor(names, numberOfProcessors, alreadyAdded)) < numberOfProcessors)
+    while((processorIndex = selectOptionIndex("Choose an AudioProcessor to add", names, names.size()-1)) < numberOfProcessors)
     {
-        cout << "Adding " << names[processorIndex] << endl;
+        cout << "Adding: " << names[processorIndex] << endl;
         processor = addAudioProcessor(names[processorIndex], processor);
         if(topOfChain == NULL)
         {
             //assign the first created processor as top-of-chain
             topOfChain = processor;
+        }
+        //add "(added)" mark to processor-name, but only once
+        if(alreadyAdded[processorIndex] == 0)
+        {
+            names[processorIndex] = names[processorIndex] + " (added)";
         }
         alreadyAdded[processorIndex] = 1;
     }
@@ -356,10 +367,7 @@ void selectAudioProcessors()
  */
 int loadDefaultConfig()
 {
-    cout << "Load the default configuration?[Y/N]" << endl;
-    std::string loadAnswer;
-    cin >> loadAnswer;
-    if(loadAnswer == "Y" || loadAnswer== "Yes" || loadAnswer == "y" || loadAnswer == "yes")
+    if(inputBoolean("Load the default configuration?"))
     {
         //network configuration - local port on loopback device
         createAddress(&networkConfiguration.localAddr, AF_INET, "127.0.0.1", 54321);
@@ -379,10 +387,7 @@ int loadDefaultConfig()
         audioConfiguration.InputDeviceChannels = inputDeviceInfo.inputChannels;
         audioConfiguration.InputSampleRate = 44100; //TODO check device support
         //choose the most exact audio-format supported by the device
-        audioConfiguration.InputAudioFormat = inputDeviceInfo.nativeFormats & RTAUDIO_FLOAT64 || 
-                inputDeviceInfo.nativeFormats & RTAUDIO_FLOAT32 || inputDeviceInfo.nativeFormats & RTAUDIO_SINT32 ||
-                inputDeviceInfo.nativeFormats & RTAUDIO_SINT24 || inputDeviceInfo.nativeFormats & RTAUDIO_SINT16 ||
-                inputDeviceInfo.nativeFormats & RTAUDIO_SINT8;
+        audioConfiguration.InputAudioFormat = autoSelectAudioFormat(inputDeviceInfo.nativeFormats);
         
         //output device
         RtAudio::DeviceInfo outputDeviceInfo = audioDevices.getDeviceInfo(defaultOutputDeviceID);
@@ -391,10 +396,7 @@ int loadDefaultConfig()
         audioConfiguration.OutputDeviceChannels = outputDeviceInfo.outputChannels;
         audioConfiguration.OutputSampleRate = 44100; //TODO check device support
         //choose the most exact audio-format supported by the device
-        audioConfiguration.OutputAudioFormat = outputDeviceInfo.nativeFormats & RTAUDIO_FLOAT64 || 
-                outputDeviceInfo.nativeFormats & RTAUDIO_FLOAT32 || outputDeviceInfo.nativeFormats & RTAUDIO_SINT32 ||
-                outputDeviceInfo.nativeFormats & RTAUDIO_SINT24 || outputDeviceInfo.nativeFormats & RTAUDIO_SINT16 ||
-                outputDeviceInfo.nativeFormats & RTAUDIO_SINT8;
+        audioConfiguration.OutputAudioFormat = autoSelectAudioFormat(outputDeviceInfo.nativeFormats);
         
         cout << "Default config loaded" << endl;
         return 1;
