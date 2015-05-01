@@ -478,7 +478,7 @@ int main(int argc, char** argv)
                 }
 		//3. RTAudio
 		//number of frames buffered - TODO configure
-		unsigned int bufferFrames = 32;
+		unsigned int bufferFrames = 256;
     
 		RtAudio audio;
 		RtAudio::StreamParameters inputParams;

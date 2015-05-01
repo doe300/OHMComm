@@ -145,5 +145,6 @@ int NetworkWrapper::getLastError()
 
 unsigned int NetworkWrapper::getBufferSize(unsigned int numberOfFrames, uint8_t sizeOfFrame)
 {
-    return numberOfFrames * sizeOfFrame;
+	int numberOfChannels = 2; // TODO This needs to be set dynamically
+	return numberOfFrames * sizeOfFrame *numberOfChannels;
 }
