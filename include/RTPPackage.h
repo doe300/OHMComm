@@ -9,6 +9,8 @@
 #define	RTPPACKAGE_H
 
 #include <stdint.h>
+#include <stdlib.h>
+//TODO byte-order (network-order)??
 
 /*!
  * A RTP header extension has the following format:
@@ -43,6 +45,28 @@ struct RTPHeaderExtension
     
     //list of 32 bit header extensions
     uint32_t *extensions[];
+    
+    /*!
+     * Copies the data of this HeaderExtension to the front of the buffer.
+     * 
+     * \param buffer The buffer to copy into
+     * 
+     * \param maxBufferSize The maximum size of the buffer to fill
+     * 
+     * Returns the number of bytes copied or -1 if an error occurred
+     */
+    uint16_t copyToBuffer(char *buffer, size_t maxBufferSize);
+    
+    /*!
+     * Reads the data of this HeaderExtension from the buffer.
+     * 
+     * \param buffer The buffer to read from
+     * 
+     * \param maxBufferSize The maximum size of the input-buffer
+     * 
+     * Returns the number of bytes read or -1 if an error occurred
+     */
+    uint16_t readFromBuffer(char *buffer, size_t maxBufferSize);
 };
 
 /*!
@@ -176,16 +200,40 @@ struct RTPHeader
     unsigned int ssrc: 32;
 
     //list of 32 bit CSRCs
-    uint32_t csrc_list[15];
+    uint32_t csrc_list[15] = {0};
     
     RTPHeaderExtension *header_extension;
     
-    RTPHeader()
-    {
-        //version is always 2
-        version = 2;
-    }
+    RTPHeader();
+    
+    /*!
+     * Copies the data of this header to the front of the buffer.
+     * 
+     * \param buffer The buffer to copy into
+     * 
+     * \param maxBufferSize The maximum size of the buffer to fill
+     * 
+     * Returns the number of bytes copied or -1 if an error occurred
+     */
+    uint16_t copyToBuffer(char *buffer, size_t maxBufferSize);
+    
+    /*!
+     * Reads the data of this header from the buffer.
+     * 
+     * \param buffer The buffer to read from
+     * 
+     * \param maxBufferSize The maximum size of the input-buffer
+     * 
+     * Returns the number of bytes read or -1 if an error occurred
+     */
+    uint16_t readFromBuffer(char *buffer, size_t maxBufferSize);
 };
+
+/*!
+ * The maximum size of a RPT-header in bytes
+ * Currently does not include extension!!
+ */
+const uint8_t RTP_HEADER_MAX_SIZE = 72;
 
 /*!
  * List of default mappings for payload-type, as specified in https://www.ietf.org/rfc/rfc3551.txt
@@ -236,9 +284,37 @@ enum PayloadType
 struct RTPPackage
 {
     //the header information
-    RTPHeader* header;
+    RTPHeader header;
     //the package body
     void *package;
+    //the size of the package
+    size_t packageSize;
+    
+    RTPPackage();
+    
+    RTPPackage(RTPHeader header, size_t packageSize, void *packageData);
+    
+    /*!
+     * Copies the data of this RTPPackage to the front of the buffer.
+     * 
+     * \param buffer The buffer to copy into
+     * 
+     * \param maxBufferSize The maximum size of the buffer to fill
+     * 
+     * Returns the number of bytes copied or -1 if an error occurred
+     */
+    uint16_t copyToBuffer(char *buffer, size_t maxBufferSize);
+    
+    /*!
+     * Reads the data of this RTPPackage from the buffer.
+     * 
+     * \param buffer The buffer to read from
+     * 
+     * \param maxBufferSize The maximum size of the input-buffer
+     * 
+     * Returns the number of bytes read or -1 if an error occurred
+     */
+    uint16_t readFromBuffer(char *buffer, size_t maxBufferSize);
 };
 
 #endif	/* RTPPACKAGE_H */

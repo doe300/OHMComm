@@ -84,6 +84,9 @@ struct AudioConfiguration {
 
     // Input Audio Format
     unsigned long InputAudioFormat;
+    
+    // umber of Frames per Input-/Output-Buffer
+    unsigned int bufferFrames;
 };
 
 //Configurations are declared in OhmComm.cpp

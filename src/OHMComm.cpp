@@ -18,6 +18,7 @@
 #include "RtAudio.h"
 #include "UDPWrapper.h"
 #include "FileProcessor.h"
+#include "RTPWrapper.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -308,6 +309,9 @@ void configureAudioDevices()
 	//Configure Input Audio Format
 	audioConfiguration.InputAudioFormat = selectAudioFormat(InputDeviceInfo.nativeFormats);
 	cout << "-> Input Audio Format: " << audioConfiguration.InputAudioFormat << endl;
+        
+        //Buffer size
+        audioConfiguration.bufferFrames = inputNumber("Input the number of frames to buffer (around 128 - 2048)", false, false);
 }
 
 AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *previousProcessor)
@@ -318,10 +322,14 @@ AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *pre
     {
         processor = new UDPWrapper();
     }
-	else if (processorName == "FileProcessor")
-	{
-		processor = new FileProcessor("recording.rtaudio", false, true);
-	}
+    else if (processorName == "FileProcessor")
+    {
+        processor = new FileProcessor("recording.rtaudio", false, true);
+    }
+    else if (processorName == "RTPWrapper")
+    {
+        processor = new RTPWrapper();
+    }
     if(processor == NULL)
     {
         //TODO, throw error
@@ -338,7 +346,7 @@ void selectAudioProcessors()
     AudioProcessor *processor = NULL;
     const uint8_t numberOfProcessors = 2;
     //last "processor" is the finish to exit from loop
-    vector<string> names {"UDPWrapper", "FileProcessor", "finish"};
+    vector<string> names {"UDPWrapper", "RTPWrapper", "FileProcessor", "finish"};
     uint8_t alreadyAdded[numberOfProcessors] = {0};
     //1. add (ordered) audio-processors
     cout << endl;
@@ -397,6 +405,9 @@ int loadDefaultConfig()
         audioConfiguration.OutputSampleRate = 44100; //TODO check device support
         //choose the most exact audio-format supported by the device
         audioConfiguration.OutputAudioFormat = autoSelectAudioFormat(outputDeviceInfo.nativeFormats);
+        
+        //buffer-frames
+        audioConfiguration.bufferFrames = 256;
         
         cout << "Default config loaded" << endl;
         return 1;
@@ -477,8 +488,6 @@ int main(int argc, char** argv)
                     nextInChain = nextInChain->getNextInChain();
                 }
 		//3. RTAudio
-		//number of frames buffered - TODO configure
-		unsigned int bufferFrames = 256;
     
 		RtAudio audio;
 		RtAudio::StreamParameters inputParams;
@@ -491,7 +500,7 @@ int main(int argc, char** argv)
 		audio.openStream(&outputParams, &inputParams, 
 						 (RtAudioFormat)audioConfiguration.InputAudioFormat, 
 						 audioConfiguration.InputSampleRate, 
-						 &bufferFrames, &audioCallback, NULL,
+						 &audioConfiguration.bufferFrames, &audioCallback, NULL,
 						 NULL, &errorHandler);
 		////
 		// Running
@@ -501,7 +510,7 @@ int main(int argc, char** argv)
 		audio.startStream();
 
 		char input;
-		std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << bufferFrames << ").\n";
+		std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << audioConfiguration.bufferFrames << ").\n";
 		cin >> input;
 
 		// Stop the stream.

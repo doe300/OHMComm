@@ -4,12 +4,6 @@
 #include <iostream>
 #include <limits.h>
 
-//TODO for all input-methods:
-//print message
-//(print options)
-//parse input
-//error-handling -> rerun method
-
 using namespace std;
 
 inline void clearInput()

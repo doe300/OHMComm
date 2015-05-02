@@ -12,6 +12,7 @@
 #include <array>
 
 #include "NetworkWrapper.h"
+#include "RTPPackage.h"
 
 /*
  * Some definitions (extracted from RFC 3550):
@@ -72,14 +73,8 @@ struct RTPHeader;
 class RTPWrapper : public NetworkWrapper
 {
 public:
-    /*!
-     * Initializes the RTPWrapper.
-     * Chooses a random 16bit sequence-number and a random 32bit timestamp.
-     * \param socket the descriptor of the underlying socket
-     * \param payloadType the application-defined payload-type
-     * \param tickInterval the tick interval in milliseconds
-     */
-    RTPWrapper(int socket, uint8_t payloadType, int16_t tickInterval);
+    
+    RTPWrapper();
     RTPWrapper(const RTPWrapper& orig);
     virtual ~RTPWrapper();
     
@@ -112,25 +107,15 @@ public:
      * To stop the stream and drain output-buffer, it returns one.
      * To abort immediately, two is returned.
      */
-    int inout( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
+    int process( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
            double streamTime, unsigned int status, void *data );
     
-    //TODO error codes
     /*!
-     * \param buffer is the send-buffer
-     * \param length the number of bytes to send
-     * \return the number of bytes sent
+     * Configures payloadType.
+     * Initializes the socket.
      */
-    //int send(uint8_t *buffer, uint16_t length);
-    
-    /*!
-     * \param buffer the receive buffer
-     * \param maxTimeout the maximum timeout to wait before returning (in milliseconds)
-     * \param RTPHeader the variable to write the received header-information
-     * \return an status-code
-     */
-    //int receive(uint8_t *buffer, uint16_t maxTimeout, RTPHeader header);
-    
+    void configure();
+        
     /*!
      * \return the sequence number for the last packet (a 16 bit integer) sent.
      */
@@ -158,7 +143,13 @@ private:
     uint8_t contributionSourcesCount;
     uint32_t synchronizationSource;
     uint16_t currentSequenceNumber;
-    std::array<uint32_t, 15> contributionSources;
+    uint32_t startTimestamp;
+    PayloadType payloadType;
+    //set all values to 0
+    uint32_t contributionSources[15] = {0};
+    //the buffers to send/receive
+    char *sendBuffer;
+    char *receiveBuffer;
 
     /*!
      * generates a random sequence number as initial value
@@ -179,6 +170,11 @@ private:
      * increments the sequence, taking overflow into account
      */
     uint16_t incrementSequenceNumber();
+    
+    /*!
+     * returns the current timestamp for the given steam-time (in seconds)
+     */
+    uint32_t getTimestamp(double streamTime);
 };
 #endif	/* RTPWRAPPER_H */
 
