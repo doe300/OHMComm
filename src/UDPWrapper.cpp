@@ -38,7 +38,7 @@ int UDPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nFra
     //send
     if(inputBuffer != NULL)
     {
-        long unsigned int inputBufferSize = getBufferSize(nFrames, inputFrameSize);
+        long unsigned int inputBufferSize = getBufferSize(nFrames, inputFrameSize, audioConfiguration.InputDeviceChannels);
         long int size = sendto(Socket, (char *)inputBuffer, inputBufferSize, 0, &networkConfiguration.remoteAddr, sizeof(networkConfiguration.remoteAddr));
         if(size == -1)
         {
@@ -52,7 +52,7 @@ int UDPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nFra
     //receive
     if(outputBuffer != NULL)
     {
-        long unsigned int outputBufferSize = getBufferSize(nFrames, outputFrameSize);
+        long unsigned int outputBufferSize = getBufferSize(nFrames, outputFrameSize, audioConfiguration.OutputDeviceChannels);
         long int size = recvfrom(Socket, (char *)outputBuffer, outputBufferSize, 0, NULL, 0);
         if(size == -1)
         {

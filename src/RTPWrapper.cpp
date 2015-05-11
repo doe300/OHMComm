@@ -52,8 +52,8 @@ void RTPWrapper::configure()
     //TODO configure payload-type
     
     //the maximum size of the buffer is: nFrames * frameSize + maximum size of header (currently only without extension)
-    sendBuffer = (char *)malloc(getBufferSize(audioConfiguration.bufferFrames, inputFrameSize) + RTP_HEADER_MAX_SIZE);
-    receiveBuffer = (char *)malloc(getBufferSize(audioConfiguration.bufferFrames, outputFrameSize) + RTP_HEADER_MAX_SIZE);
+    sendBuffer = (char *)malloc(getBufferSize(audioConfiguration.bufferFrames, inputFrameSize, audioConfiguration.InputDeviceChannels) + RTP_HEADER_MAX_SIZE);
+    receiveBuffer = (char *)malloc(getBufferSize(audioConfiguration.bufferFrames, outputFrameSize, audioConfiguration.OutputDeviceChannels) + RTP_HEADER_MAX_SIZE);
     if(sendBuffer == NULL || receiveBuffer == NULL)
     {
         throw(std::bad_alloc());
@@ -84,7 +84,7 @@ int RTPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nBuf
         header.ssrc = getSynchronizationSource();
         memcpy(header.csrc_list, contributionSources, sizeof(contributionSources));
         //1.2 set body
-        size_t packageSize = getBufferSize(nBufferFrames, inputFrameSize);
+        size_t packageSize = getBufferSize(nBufferFrames, inputFrameSize, audioConfiguration.InputDeviceChannels);
         RTPPackage package(header, packageSize, (uint8_t *)inputBuffer);
         //1.3 write package
         packageSize = package.copyToBuffer(sendBuffer, sizeof(sendBuffer));
@@ -107,7 +107,7 @@ int RTPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nBuf
          * 2. read input into receiveBuffer
          */
         //need to receive whole size of buffer, not just the payload!! (-> add header)
-        long unsigned int outputBufferSize = getBufferSize(nBufferFrames, outputFrameSize) + RTP_HEADER_MAX_SIZE;
+        long unsigned int outputBufferSize = getBufferSize(nBufferFrames, outputFrameSize, audioConfiguration.OutputDeviceChannels) + RTP_HEADER_MAX_SIZE;
         long int size = recvfrom(Socket, receiveBuffer, outputBufferSize, 0, NULL, 0);
         if(size == -1)
         {

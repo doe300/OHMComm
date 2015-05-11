@@ -259,8 +259,9 @@ void configureAudioDevices()
 	cout << "-> Using output Device Name: " << audioConfiguration.OutputDeviceName << endl;
 
 	//Configure Number of Maximum output Channels
-	audioConfiguration.OutputDeviceChannels = OutputDeviceInfo.outputChannels;
-	cout << "-> Number of maximum output Channels supported from this Device: " << audioConfiguration.OutputDeviceChannels << endl;
+        //we operate in duplex, so we need duplex-channels
+	audioConfiguration.OutputDeviceChannels = OutputDeviceInfo.duplexChannels;
+	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.OutputDeviceChannels << endl;
 
 	unsigned int OutputSampleRate;
 
@@ -293,8 +294,9 @@ void configureAudioDevices()
 	cout << "-> Using input Device Name: " << audioConfiguration.InputDeviceName << endl;
 
 	//Configure Number of Maximum output Channels
-	audioConfiguration.InputDeviceChannels = InputDeviceInfo.inputChannels;
-	cout << "-> Number of maximum input Channels supported from this Device: " << audioConfiguration.InputDeviceChannels << endl;
+        //we operate in duplex, so we need duplex-channels
+	audioConfiguration.InputDeviceChannels = InputDeviceInfo.duplexChannels;
+	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.InputDeviceChannels << endl;
 
 	unsigned int InputSampleRate;
 
@@ -311,7 +313,7 @@ void configureAudioDevices()
 	cout << "-> Input Audio Format: " << audioConfiguration.InputAudioFormat << endl;
         
         //Buffer size
-        audioConfiguration.bufferFrames = inputNumber("Input the number of frames to buffer (around 128 - 2048)", false, false);
+        audioConfiguration.bufferFrames = inputNumber("Input the number of frames to buffer (around 128 - 2048, 256 is recommended)", false, false);
 }
 
 AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *previousProcessor)
@@ -392,7 +394,8 @@ int loadDefaultConfig()
         RtAudio::DeviceInfo inputDeviceInfo = audioDevices.getDeviceInfo(defaultInputDeviceID);
         audioConfiguration.InputDeviceID = defaultInputDeviceID;
         audioConfiguration.InputDeviceName = inputDeviceInfo.name;
-        audioConfiguration.InputDeviceChannels = inputDeviceInfo.inputChannels;
+        //we operate in duplex, so we need duplex-channels
+        audioConfiguration.InputDeviceChannels = inputDeviceInfo.duplexChannels;
         audioConfiguration.InputSampleRate = 44100; //TODO check device support
         //choose the most exact audio-format supported by the device
         audioConfiguration.InputAudioFormat = autoSelectAudioFormat(inputDeviceInfo.nativeFormats);
@@ -401,7 +404,8 @@ int loadDefaultConfig()
         RtAudio::DeviceInfo outputDeviceInfo = audioDevices.getDeviceInfo(defaultOutputDeviceID);
         audioConfiguration.OutputDeviceID = defaultOutputDeviceID;
         audioConfiguration.OutputDeviceName = outputDeviceInfo.name;
-        audioConfiguration.OutputDeviceChannels = outputDeviceInfo.outputChannels;
+        //we operate in duplex, so we need duplex-channels
+        audioConfiguration.OutputDeviceChannels = outputDeviceInfo.duplexChannels;
         audioConfiguration.OutputSampleRate = 44100; //TODO check device support
         //choose the most exact audio-format supported by the device
         audioConfiguration.OutputAudioFormat = autoSelectAudioFormat(outputDeviceInfo.nativeFormats);

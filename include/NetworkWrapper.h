@@ -81,8 +81,14 @@ protected:
     
     /*!
      * Calculates the size of the used buffer-space
+     * 
+     * \param numberOfFrames The number of frames, this buffer holds
+     * 
+     * \param sizeOfFrame The size (in bytes) of one audio-frame
+     * 
+     * \param numberOfChannels The number of channels in this stream
      */
-    unsigned int getBufferSize(unsigned int numberOfFrames, uint8_t sizeOfFrame);
+    unsigned int getBufferSize(unsigned int numberOfFrames, uint8_t sizeOfFrame, uint8_t numberOfChannels);
 };
 
 #endif	/* NETWORKWRAPPER_H */
