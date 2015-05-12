@@ -124,11 +124,14 @@ int RTPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nBuf
         }
         std::cout << "Received: " << size << std::endl;
         //2.1 extract package
-        RTPPackage package;// = new RTPPackage();
+        RTPPackage package;
+        //TODO or reuse buffer (allocate to maximum and only use up to size) ??
         package.readFromBuffer(receiveBuffer, size);
         std::cout << "Received sequence number: " << package.header.sequence_number << std::endl;
         //2.3. write body to outputBuffer
         memcpy(outputBuffer, package.package, package.packageSize);
+        //free package buffer!
+        free(package.package);
     }
     return 0;
 }

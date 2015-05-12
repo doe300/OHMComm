@@ -100,7 +100,7 @@ int NetworkWrapper::createSocket()
     {
         std::cout << "Connection established." << std::endl;
     }
-    
+    //TODO set Socket to non-blocking
     return Socket;
 }
 
