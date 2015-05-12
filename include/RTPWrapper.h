@@ -146,7 +146,7 @@ private:
     uint32_t startTimestamp;
     PayloadType payloadType;
     //set all values to 0
-    uint32_t contributionSources[15] = {0};
+    uint32_t contributionSources[15];
     //the buffers to send/receive
     char *sendBuffer;
     char *receiveBuffer;

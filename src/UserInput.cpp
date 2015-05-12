@@ -119,7 +119,7 @@ unsigned int selectOptionIndex(std::string message, std::vector<std::string> opt
     cout << " [" << defaultIndex << "]";
     cout << ": ";
     printVector(options, true);
-    int selectedIndex;
+    unsigned int selectedIndex;
     if(!(cin >> selectedIndex))
     {
         clearInput();
@@ -185,7 +185,7 @@ unsigned int selectOptionIndex(std::string message, std::vector<int> options, un
     cout << " [" << defaultIndex << "]";
     cout << ": ";
     printVector(options, true);
-    int selectedIndex;
+    unsigned int selectedIndex;
     if(!(cin >> selectedIndex))
     {
         clearInput();

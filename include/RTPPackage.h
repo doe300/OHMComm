@@ -200,7 +200,7 @@ struct RTPHeader
     unsigned int ssrc: 32;
 
     //list of 32 bit CSRCs
-    uint32_t csrc_list[15] = {0};
+    uint32_t csrc_list[15];
     
     RTPHeaderExtension *header_extension;
     
@@ -231,7 +231,7 @@ struct RTPHeader
 
 /*!
  * The maximum size of a RPT-header in bytes
- * Currently does not include extension!!
+ * TODO: Currently does not include extension!!
  */
 const uint8_t RTP_HEADER_MAX_SIZE = 72;
 

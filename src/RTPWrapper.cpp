@@ -124,11 +124,11 @@ int RTPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nBuf
         }
         std::cout << "Received: " << size << std::endl;
         //2.1 extract package
-        RTPPackage *package = new RTPPackage();
-        package->readFromBuffer(receiveBuffer, size);
-        std::cout << "Received sequence number: " << package->header.sequence_number << std::endl;
+        RTPPackage package;// = new RTPPackage();
+        package.readFromBuffer(receiveBuffer, size);
+        std::cout << "Received sequence number: " << package.header.sequence_number << std::endl;
         //2.3. write body to outputBuffer
-        memcpy(outputBuffer, package->package, package->packageSize);
+        memcpy(outputBuffer, package.package, package.packageSize);
     }
     return 0;
 }
@@ -201,5 +201,5 @@ uint16_t RTPWrapper::incrementSequenceNumber()
 uint32_t RTPWrapper::getTimestamp(double streamTime)
 {
     //timestamp is in milliseconds
-    return startTimestamp + streamTime * 1000;
+    return startTimestamp + (int) (streamTime * 1000);
 }
