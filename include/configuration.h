@@ -18,80 +18,56 @@
 #include <string>
 
 
+
+
+
 struct NetworkConfiguration {
-    
-    /*!
-     * the remote address
-     */
-    sockaddr remoteAddr;
-    
-    /*!
-     * the local address
-     */
-    sockaddr localAddr;
-    
-    /*!
-     * The type of socket (Stream, Datagram, ...)
-     * 
-     * 
-     */
-    unsigned int socketType;
-    
-    /*!
-     * The protocol used
-     * 
-     * See netinet/in.h (Linux) or winsock2.h (Windows) for available protocols
-     */
-    unsigned int protocol;
-    
-    /*!
-     * the socket-ID.
-     * 
-     * Unlike the other values, this is set by the NetworkWrapper
-     */
-    int socket;
-    
+	enum ConnectionType { TCP = 1, UDP = 2 };
+	std::string addressIncoming;
+	unsigned short portIncoming;
+
+	std::string addressOutgoing;
+	unsigned short portOutgoing;
+
+	unsigned int outputBufferSize;
+	unsigned int inputBufferSize;
+
+	ConnectionType connectionType;
 };
 
 struct AudioConfiguration {
+	// These parameters are needed for the RtAudio::StreamParameter (Struct)
 
-    // Output Audio Device ID
-    unsigned int OutputDeviceID;
+	// Output Audio Device ID
+	unsigned int outputDeviceID;
+	// input audio device ID
+	unsigned int inputDeviceID;
 
-    // Input Audio Device ID
-    unsigned int InputDeviceID;
+	// number of maximum output channels supported by the output device
+	unsigned int outputDeviceChannels;
+	// number of maximum input channels supported by the input device
+	unsigned int inputDeviceChannels;
 
-    // The Name of the Output Audio Device
-    std::string OutputDeviceName;
+	// number of maximum output channels supported by the output device
+	unsigned int outputDeviceFirstChannel;
+	// number of maximum input channels supported by the input device
+	unsigned int inputDeviceFirstChannel;
 
-    // The Name of the Input Audio Device
-    std::string InputDeviceName;
 
-    // Number of maximum output Channels supported by the Output Device
-    unsigned int OutputDeviceChannels;
+	// the name of the output audio device (optional)
+	std::string outputDeviceName;
 
-    // Number of maximum input Channels supported by the Input Device
-    unsigned int InputDeviceChannels;
+	// the name of the output audio device (optional)
+	std::string inputDeviceName;
 
-    // Sample Rate of the Output Audio Device
-    unsigned int OutputSampleRate;
+	// RtAudioformat, which is defined as: typedef unsigned long RtAudioFormat;
+	unsigned long audioFormat;
 
-    // Sample Rate of the Input Audio Device
-    unsigned int InputSampleRate;
+	// sample rate of the audio device
+	unsigned int sampleRate;
 
-    // Output Audio Format
-    unsigned long OutputAudioFormat;
-
-    // Input Audio Format
-    unsigned long InputAudioFormat;
-    
-    // umber of Frames per Input-/Output-Buffer
-    unsigned int bufferFrames;
+	// buffer frames
+	unsigned int bufferFrames;
 };
-
-//Configurations are declared in OhmComm.cpp
-extern NetworkConfiguration networkConfiguration;
-extern AudioConfiguration audioConfiguration;
-
 #endif	/* CONFIGURATION_H */
 

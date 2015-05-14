@@ -1,73 +1,102 @@
-/* 
- * File:   UDPWrapper.cpp
- * Author: daniel
- * 
- * Created on April 1, 2015, 10:37 AM
- */
-
 #include "UDPWrapper.h"
 
-using namespace std;
+UDPWrapper::UDPWrapper(sockaddr_in addressDataIncoming, sockaddr_in addressDataOutgoing, unsigned int outputBufferSize, unsigned int inputBufferSize) :
+addressDataIncoming(addressDataIncoming), addressDataOutgoing(addressDataOutgoing), outputBufferSize(outputBufferSize), inputBufferSize(inputBufferSize)
+{}
 
-UDPWrapper::UDPWrapper() : NetworkWrapper()
+UDPWrapper::UDPWrapper(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing, unsigned int outputBufferSize, unsigned int inputBufferSize) :
+outputBufferSize(outputBufferSize), inputBufferSize(inputBufferSize)
 {
+	InitializeNetworkConfig(addressIncoming, portIncoming, addressOutgoing, portOutgoing);
+	initializeNetwork();
 }
 
-UDPWrapper::UDPWrapper(const UDPWrapper& orig) : NetworkWrapper(orig)
+UDPWrapper::UDPWrapper(struct NetworkConfiguration networkConfig) : 
+UDPWrapper(networkConfig.addressIncoming, networkConfig.portIncoming, networkConfig.addressOutgoing, 
+networkConfig.portOutgoing, networkConfig.outputBufferSize, networkConfig.inputBufferSize) {}
+
+void UDPWrapper::initializeNetwork()
 {
+	startWinsock();
+	createSocket();
 }
 
-UDPWrapper::~UDPWrapper()
+void UDPWrapper::startWinsock()
 {
+	// Starting Winsock for Windows
+	#ifdef _WIN32
+	WSADATA w;
+	if (int result = WSAStartup(MAKEWORD(2, 2), &w) != 0)
+	{
+		std::cerr << "Failed to start Winsock 2! Error #" << result << std::endl;
+	}
+	#endif
 }
 
-void UDPWrapper::configure()
+void UDPWrapper::InitializeNetworkConfig(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing)
 {
-    int errorCode = initializeNetwork();
-    if(errorCode != 0)
-    {
-        std::cerr << "Error on network-initialization: " << errorCode << std::endl;
-    }
-    outputFrameSize = getBytesFromAudioFormat(audioConfiguration.OutputAudioFormat);
-    inputFrameSize = getBytesFromAudioFormat(audioConfiguration.InputAudioFormat);
+	this->addressDataIncoming.sin_family = AF_INET;
+	this->addressDataIncoming.sin_port = htons(portIncoming);
+	unsigned long addr1 = inet_addr(addressIncoming.c_str());
+	memcpy((char *)&this->addressDataIncoming.sin_addr, &addr1, sizeof(addr1));
+
+	this->addressDataOutgoing.sin_family = AF_INET;
+	this->addressDataOutgoing.sin_port = htons(portOutgoing);
+	unsigned long addr2 = inet_addr(addressOutgoing.c_str());
+	memcpy((char *)&this->addressDataOutgoing.sin_addr, &addr2, sizeof(addr2));
 }
 
 
-int UDPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void* userData)
+void UDPWrapper::createSocket()
 {
-    //send
-    if(inputBuffer != NULL)
-    {
-        long unsigned int inputBufferSize = getBufferSize(nFrames, inputFrameSize, audioConfiguration.InputDeviceChannels);
-        long int size = sendto(Socket, (char *)inputBuffer, inputBufferSize, 0, &networkConfiguration.remoteAddr, sizeof(networkConfiguration.remoteAddr));
-        if(size == -1)
-        {
-            cerr << "Error while sending UDP message: " << errno << endl;
-            //cancel immediately
-            return 1;
-        }
-        cout << "Sent: " << size << endl;
-    }
-    
-    //receive
-    if(outputBuffer != NULL)
-    {
-        long unsigned int outputBufferSize = getBufferSize(nFrames, outputFrameSize, audioConfiguration.OutputDeviceChannels);
-        long int size = recvfrom(Socket, (char *)outputBuffer, outputBufferSize, 0, NULL, 0);
-        if(size == -1)
-        {
-            if(errno == EAGAIN || errno == EWOULDBLOCK)
-            {
-                cout << "No data available" << endl;
-            }
-            else
-            {
-                cerr << "Error while receiving UDP package: " << errno << endl;
-                //cancel immediately
-                return 1;
-            }
-        }
-        cout << "Received: " << size << endl;
-    }
-    return 0;
+	// AF_INET - creating an IPv4 based socket
+	this->Socket = socket(AF_INET, SOCK_DGRAM, 0);
+	if (Socket == INVALID_SOCKET)
+	{
+		std::cerr << "Error on creating socket: " << getLastError() << std::endl;
+		return;
+	}
+	else
+	{
+		std::cout << "Socket created." << std::endl;
+	}
+
+
+	if (bind(Socket, (sockaddr*)&this->addressDataIncoming, sizeof(addressDataIncoming)) == SOCKET_ERROR)
+	{
+		std::cerr << "Error binding the socket: " << getLastError() << std::endl;
+		return;
+	}
+	else
+	{
+		std::cout << "Local port bound." << std::endl;
+	}
 }
+
+auto UDPWrapper::getLastError() -> int
+{
+	int error;
+
+	#ifdef _WIN32
+	error = WSAGetLastError();
+	#else
+	error = errno;
+	#endif
+
+	return error;
+}
+
+
+void UDPWrapper::sendDataNetworkWrapper(void *buffer, unsigned int bufferSize)
+{
+	sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->addressDataOutgoing, sizeof(addressDataOutgoing));
+}
+
+void UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
+{
+	int remoteAddrLen = sizeof(addressDataIncoming);
+	int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->addressDataIncoming, &remoteAddrLen);
+	if (result == -1)
+		std::cout << this->getLastError();
+}
+

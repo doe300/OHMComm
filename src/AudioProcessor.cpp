@@ -1,49 +1,19 @@
-/* 
- * File:   AudioProcessor.cpp
- * Author: daniel
- * 
- * Created on March 29, 2015, 1:36 PM
- */
-
 #include "AudioProcessor.h"
 
+
+AudioProcessor::AudioProcessor(std::string name) : name(name) {}
+
 /*
- * Dummy implementation of AudioProcessor
+ * region: getters and setters
  */
-
-AudioProcessor::AudioProcessor()
+auto AudioProcessor::getName() const -> std::string
 {
-    nextInChain = NULL;
+	return name;
 }
 
-AudioProcessor::AudioProcessor(const AudioProcessor& orig)
+void AudioProcessor::setName(std::string name)
 {
-    nextInChain = orig.nextInChain;
-}
-
-AudioProcessor::~AudioProcessor()
-{
-}
-
-int AudioProcessor::process(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double streamTime, RtAudioStreamStatus status, void* userData)
-{
-    //dummy implementation - pass through to underlying processor
-    return nextInChain->process(outputBuffer, inputBuffer, nFrames, streamTime, status, userData);
-}
-
-void AudioProcessor::configure()
-{
-    //dummy implementation - do nothing
-}
-
-void AudioProcessor::setNextInChain(AudioProcessor* nextInChain)
-{
-    this->nextInChain = nextInChain;
-}
-
-AudioProcessor* AudioProcessor::getNextInChain()
-{
-    return nextInChain;
+	this->name = name;
 }
 
 

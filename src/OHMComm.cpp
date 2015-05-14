@@ -11,26 +11,19 @@
 #include <iostream>
 #include <stdio.h>
 
-#include "configuration.h"
+
 #include "UserInput.h"
 
 //dependencies for rtaudio
 #include "RtAudio.h"
-#include "UDPWrapper.h"
-#include "FileProcessor.h"
-#include "RTPWrapper.h"
-
-#ifdef _WIN32
-#include <winsock2.h>
-#else
-#include <arpa/inet.h> // sockaddr_in
-#endif
+#include "RTAudioWrapper.h"
+#include "ProcessorUDP.h"
 
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
 AudioConfiguration audioConfiguration;
-AudioProcessor *topOfChain;
+
 
 using namespace std;
 
@@ -77,7 +70,7 @@ RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
     if((supportedFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32)
     {
         formatNames.push_back("32 bit float (normalized between +/- 1)");
-        audioFormats.push_back(RTAUDIO_FLOAT32);
+		audioFormats.push_back(RTAUDIO_SINT16); //TODO
     }
     if((supportedFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64)
     {
@@ -92,51 +85,9 @@ RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
 /*!
  * Automatically selects the best audio format out of the supported formats
  */
-RtAudioFormat autoSelectAudioFormat(RtAudioFormat supportedFormats)
-{
-    if((supportedFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64)
-    {
-        return RTAUDIO_FLOAT64;
-    }
-    if((supportedFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32)
-    {
-        return RTAUDIO_FLOAT32;
-    }
-    if((supportedFormats & RTAUDIO_SINT32) == RTAUDIO_SINT32)
-    {
-        return RTAUDIO_SINT32;
-    }
-    if((supportedFormats & RTAUDIO_SINT24) == RTAUDIO_SINT24)
-    {
-        return RTAUDIO_SINT24;
-    }
-    if((supportedFormats & RTAUDIO_SINT16) == RTAUDIO_SINT16)
-    {
-        return RTAUDIO_SINT16;
-    }
-    //fall back to worst quality
-    return RTAUDIO_SINT8;
-}
 
-inline void createAddress(sockaddr *addr, int addressType, std::string ipString, int port)
-{
-    sockaddr_in *address = reinterpret_cast<sockaddr_in*>(addr);
-    //IPv4 or IPv6
-    address->sin_family = addressType;
-    
-    if(ipString == "")
-    {
-        //listen on any address
-        address->sin_addr.s_addr = INADDR_ANY;
-    }
-    else
-    {
-        //the remote IP address - inet_addr() is a convenience-method to convert from aaa.bbb.ccc.ddd (octal representation) to a 4-byte unsigned long
-        address->sin_addr.s_addr = inet_addr(ipString.c_str());
-    }
-    //network byte order is big-endian, so we must convert the port-number
-    address->sin_port = htons(port);
-}
+
+
 
 void configureNetwork()
 {
@@ -151,38 +102,21 @@ void configureNetwork()
     int destPort = inputNumber("2. Input destination port", false, false);
     int localPort = inputNumber("3. Input local port", false, false);
     
-    //3. protocol
-//    cout << "4. Choose protocol (TCP/UDP) [defaults to UDP]";
-//    cin >> protocolString;
     vector<string> protocols {"TCP", "UDP"};
     protocolString = selectOption("4. Choose protocol", protocols, "UDP");
     
     //4. parse arguments
     if(protocolString == "TCP")
     {
-        // SOCK_STREAM - creating a stream-socket
-        // IPPROTO_TCP - use TCP/IP protocol
-        networkConfiguration.socketType = SOCK_STREAM;
-        networkConfiguration.protocol = IPPROTO_TCP;
-        cout << "-> Using TCP (stream-socket)" << endl;
+		networkConfiguration.connectionType = networkConfiguration.ConnectionType::TCP;
+        cout << "-> Using TCP" << endl;
     }
     else
     {
-        // SOCK_DGRAM - creating a datagram-socket
-        // IPPROTO_UDP - use UDP protocol
-        networkConfiguration.socketType = SOCK_DGRAM;
-        networkConfiguration.protocol = IPPROTO_UDP;
-        cout << "-> Using UDP (datagram-socket)" << endl;
+		networkConfiguration.connectionType = networkConfiguration.ConnectionType::UDP;
+		cout << "-> Using TCP" << endl;
     }
-    
-    //5. create addresses
-    //local address
-    createAddress(&networkConfiguration.localAddr, AF_INET, "", localPort);
-    //remote address
-    createAddress(&networkConfiguration.remoteAddr, AF_INET, ipString, destPort);
-    
-    cout << "Network configured!" << endl;
-    cout << endl;
+	cout << "Networkconfiguration set." << endl;
 }
 
 void configureAudioDevices()
@@ -251,17 +185,18 @@ void configureAudioDevices()
 	RtAudio::DeviceInfo OutputDeviceInfo = AudioDevices.getDeviceInfo(OutputDeviceID);
 
 	//Configure ID of the Output Audio Device
-	audioConfiguration.OutputDeviceID = OutputDeviceID;
-	cout << "-> Using output Device ID: " << audioConfiguration.OutputDeviceID << endl;
+	audioConfiguration.outputDeviceID = OutputDeviceID;
+	cout << "-> Using output Device ID: " << audioConfiguration.outputDeviceID << endl;
 
 	//Configure Name of the Output Audio Device
-	audioConfiguration.OutputDeviceName = OutputDeviceInfo.name;
-	cout << "-> Using output Device Name: " << audioConfiguration.OutputDeviceName << endl;
+	audioConfiguration.outputDeviceName = OutputDeviceInfo.name;
+	cout << "-> Using output Device Name: " << audioConfiguration.outputDeviceName << endl;
 
 	//Configure Number of Maximum output Channels
-        //we operate in duplex, so we need duplex-channels
-	audioConfiguration.OutputDeviceChannels = OutputDeviceInfo.duplexChannels;
-	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.OutputDeviceChannels << endl;
+    //we operate in duplex, so we need duplex-channels
+
+	audioConfiguration.outputDeviceChannels = 2; //TODO
+	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.outputDeviceChannels << endl;
 
 	unsigned int OutputSampleRate;
 
@@ -270,12 +205,12 @@ void configureAudioDevices()
 	printVector(OutputDeviceInfo.sampleRates);
 	cout << endl << "Choose your Sample Rate: ";
 	cin >> OutputSampleRate;
-	audioConfiguration.OutputSampleRate = OutputSampleRate;
-	cout << "-> Using Sample Rate: " << audioConfiguration.OutputSampleRate << endl;
+	audioConfiguration.sampleRate = OutputSampleRate;
+	cout << "-> Using Sample Rate: " << audioConfiguration.sampleRate << endl;
 
 	//Configure Output Audio Format
-	audioConfiguration.OutputAudioFormat = selectAudioFormat(OutputDeviceInfo.nativeFormats);
-	cout << "-> Output Audio Format: " << audioConfiguration.OutputAudioFormat << endl;
+	audioConfiguration.audioFormat = selectAudioFormat(OutputDeviceInfo.nativeFormats);
+	cout << "-> Output Audio Format: " << audioConfiguration.audioFormat << endl;
 
 	unsigned int InputDeviceID;
 
@@ -286,17 +221,17 @@ void configureAudioDevices()
 	RtAudio::DeviceInfo InputDeviceInfo = AudioDevices.getDeviceInfo(InputDeviceID);
 
 	//Configure ID of the Input Audio Device
-	audioConfiguration.InputDeviceID = InputDeviceID;
-	cout << "-> Using input Device ID " << audioConfiguration.InputDeviceID << endl;
+	audioConfiguration.inputDeviceID = InputDeviceID;
+	cout << "-> Using input Device ID " << audioConfiguration.inputDeviceID << endl;
 
 	//Configure Name of the Input Audio Device
-	audioConfiguration.InputDeviceName = InputDeviceInfo.name;
-	cout << "-> Using input Device Name: " << audioConfiguration.InputDeviceName << endl;
+	audioConfiguration.inputDeviceName = InputDeviceInfo.name;
+	cout << "-> Using input Device Name: " << audioConfiguration.inputDeviceName << endl;
 
 	//Configure Number of Maximum output Channels
-        //we operate in duplex, so we need duplex-channels
-	audioConfiguration.InputDeviceChannels = InputDeviceInfo.duplexChannels;
-	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.InputDeviceChannels << endl;
+    //we operate in duplex, so we need duplex-channels
+	audioConfiguration.inputDeviceChannels = 2; //TODO
+	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.inputDeviceChannels << endl;
 
 	unsigned int InputSampleRate;
 
@@ -305,118 +240,15 @@ void configureAudioDevices()
 	printVector(InputDeviceInfo.sampleRates);
 	cout << endl << "Choose your Sample Rate: ";
 	cin >> InputSampleRate;
-	audioConfiguration.InputSampleRate = InputSampleRate;
-	cout << "-> Using Sample Rate: " << audioConfiguration.InputSampleRate << endl;
+	audioConfiguration.sampleRate = InputSampleRate;
+	cout << "-> Using Sample Rate: " << audioConfiguration.sampleRate << endl;
 
 	//Configure Input Audio Format
-	audioConfiguration.InputAudioFormat = selectAudioFormat(InputDeviceInfo.nativeFormats);
-	cout << "-> Input Audio Format: " << audioConfiguration.InputAudioFormat << endl;
+	audioConfiguration.audioFormat = selectAudioFormat(InputDeviceInfo.nativeFormats);
+	cout << "-> Input Audio Format: " << audioConfiguration.audioFormat << endl;
         
-        //Buffer size
-        audioConfiguration.bufferFrames = inputNumber("Input the number of frames to buffer (around 128 - 2048, 256 is recommended)", false, false);
-}
-
-AudioProcessor *addAudioProcessor(std::string processorName, AudioProcessor *previousProcessor)
-{
-    AudioProcessor *processor = NULL;
-    //TODO map name to processor
-    if(processorName == "UDPWrapper")
-    {
-        processor = new UDPWrapper();
-    }
-    else if (processorName == "FileProcessor")
-    {
-        processor = new FileProcessor("recording.rtaudio", false, true);
-    }
-    else if (processorName == "RTPWrapper")
-    {
-        processor = new RTPWrapper();
-    }
-    if(processor == NULL)
-    {
-        //TODO, throw error
-    }
-    if(previousProcessor != NULL)
-    {
-        previousProcessor->setNextInChain(processor);
-    }
-    return processor;
-}
-
-void selectAudioProcessors()
-{
-    AudioProcessor *processor = NULL;
-    const uint8_t numberOfProcessors = 2;
-    //last "processor" is the finish to exit from loop
-    vector<string> names {"UDPWrapper", "RTPWrapper", "FileProcessor", "finish"};
-    uint8_t alreadyAdded[numberOfProcessors] = {0};
-    //1. add (ordered) audio-processors
-    cout << endl;
-    cout << "Select the AudioProcessors to add, in the order of their execution" << endl;
-    uint8_t processorIndex;
-    while((processorIndex = selectOptionIndex("Choose an AudioProcessor to add", names, names.size()-1)) < numberOfProcessors)
-    {
-        cout << "Adding: " << names[processorIndex] << endl;
-        processor = addAudioProcessor(names[processorIndex], processor);
-        if(topOfChain == NULL)
-        {
-            //assign the first created processor as top-of-chain
-            topOfChain = processor;
-        }
-        //add "(added)" mark to processor-name, but only once
-        if(alreadyAdded[processorIndex] == 0)
-        {
-            names[processorIndex] = names[processorIndex] + " (added)";
-        }
-        alreadyAdded[processorIndex] = 1;
-    }
-}
-
-/*!
- * Returns, whether the default config was loaded
- */
-int loadDefaultConfig()
-{
-    if(inputBoolean("Load the default configuration?"))
-    {
-        //network configuration - local port on loopback device
-        createAddress(&networkConfiguration.localAddr, AF_INET, "127.0.0.1", 54321);
-        createAddress(&networkConfiguration.remoteAddr, AF_INET, "127.0.0.1", 54321);
-        networkConfiguration.socketType = SOCK_DGRAM;
-        networkConfiguration.protocol = IPPROTO_UDP;
-        
-        //audio configuration - use default devices and sample-rate
-        RtAudio audioDevices;
-        unsigned int defaultInputDeviceID = audioDevices.getDefaultInputDevice();
-        unsigned int defaultOutputDeviceID = audioDevices.getDefaultOutputDevice();
-        
-        //input device
-        RtAudio::DeviceInfo inputDeviceInfo = audioDevices.getDeviceInfo(defaultInputDeviceID);
-        audioConfiguration.InputDeviceID = defaultInputDeviceID;
-        audioConfiguration.InputDeviceName = inputDeviceInfo.name;
-        //we operate in duplex, so we need duplex-channels
-        audioConfiguration.InputDeviceChannels = inputDeviceInfo.duplexChannels;
-        audioConfiguration.InputSampleRate = 44100; //TODO check device support
-        //choose the most exact audio-format supported by the device
-        audioConfiguration.InputAudioFormat = autoSelectAudioFormat(inputDeviceInfo.nativeFormats);
-        
-        //output device
-        RtAudio::DeviceInfo outputDeviceInfo = audioDevices.getDeviceInfo(defaultOutputDeviceID);
-        audioConfiguration.OutputDeviceID = defaultOutputDeviceID;
-        audioConfiguration.OutputDeviceName = outputDeviceInfo.name;
-        //we operate in duplex, so we need duplex-channels
-        audioConfiguration.OutputDeviceChannels = outputDeviceInfo.duplexChannels;
-        audioConfiguration.OutputSampleRate = 44100; //TODO check device support
-        //choose the most exact audio-format supported by the device
-        audioConfiguration.OutputAudioFormat = autoSelectAudioFormat(outputDeviceInfo.nativeFormats);
-        
-        //buffer-frames
-        audioConfiguration.bufferFrames = 256;
-        
-        cout << "Default config loaded" << endl;
-        return 1;
-    }
-    return 0;
+    //Buffer size
+    audioConfiguration.bufferFrames = inputNumber("Input the number of frames to buffer (around 128 - 2048, 256 is recommended)", false, false);
 }
 
 /*!
@@ -447,81 +279,63 @@ void errorHandler( RtAudioError::Type type, const std::string &errorText )
     cerr << errorText << endl;
 }
 
-/*!
- * RtAudio Callback
- */
-int audioCallback( void *outputBuffer, void *inputBuffer,unsigned int nFrames,double streamTime,
-                                RtAudioStreamStatus status, void *userData )
-{
-    //need to wrap the AudioProcessor, because of the hidden this-parameter of c++ instance methods
-    return topOfChain->process(outputBuffer, inputBuffer, nFrames, streamTime, status, userData);
-}
+
 
 int main(int argc, char** argv)
 {
-
 	try
 	{
-		////
-		// Configuration
-		////
-
-		//0. check for default config
-		if(!loadDefaultConfig())
-		{
-			//1. network connection
-			configureNetwork();
-
-			//2. audio devices
-			configureAudioDevices();
-		}
-    
-		//3. processors
-		selectAudioProcessors();
-    
-		////
-		// Initialize
-		////
-    
-		//1. RTP
-		//2. AudioProcessors
-                AudioProcessor *nextInChain = topOfChain;
-                while(nextInChain != NULL)
-                {
-                    nextInChain->configure();
-                    nextInChain = nextInChain->getNextInChain();
-                }
-		//3. RTAudio
-    
-		RtAudio audio;
-		RtAudio::StreamParameters inputParams;
-		inputParams.deviceId = audioConfiguration.InputDeviceID;
-		inputParams.nChannels = audioConfiguration.InputDeviceChannels;
-		RtAudio::StreamParameters outputParams;
-		outputParams.deviceId = audioConfiguration.OutputDeviceID;
-		outputParams.nChannels = audioConfiguration.OutputDeviceChannels;
-    
-		audio.openStream(&outputParams, &inputParams, 
-						 (RtAudioFormat)audioConfiguration.InputAudioFormat, 
-						 audioConfiguration.InputSampleRate, 
-						 &audioConfiguration.bufferFrames, &audioCallback, NULL,
-						 NULL, &errorHandler);
-		////
-		// Running
-		////
-    
-		//start loop
-		audio.startStream();
-
+		std::unique_ptr<AudioIO> audioObject;
 		char input;
-		std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << audioConfiguration.bufferFrames << ").\n";
+
+		/* Audio-Config */
+		cout << "Load default audio config? Yes (y), No (n)?" << endl;
 		cin >> input;
 
-		// Stop the stream.
-		audio.stopStream();
-    
-		return 0;
+		if (input == 'N' || input == 'n')
+		{
+			configureAudioDevices();
+			audioObject = RtAudioWrapper::getNewAudioIO(audioConfiguration);
+		}
+		else
+		{
+			audioObject = RtAudioWrapper::getNewAudioIO();
+		}
 
+
+
+		/* Network-Config */
+		ProcessorUDP *udp;
+		cout << "Load default network config? Yes (y), No (n)?" << endl;
+		cin >> input;
+
+		if (input == 'N' || input == 'n')
+		{
+			configureNetwork();
+			
+		}
+		else
+		{
+			networkConfiguration.addressIncoming = "127.0.0.1";
+			networkConfiguration.addressOutgoing = "127.0.0.1";
+			networkConfiguration.connectionType = NetworkConfiguration::ConnectionType::UDP;
+			networkConfiguration.inputBufferSize = 4096;
+			networkConfiguration.outputBufferSize = 4096;
+			networkConfiguration.portIncoming = 123;
+			networkConfiguration.portOutgoing = 123;
+			
+
+			udp = new ProcessorUDP("This is my UDP-Wrapper with an unique Name", networkConfiguration);
+		}
+
+		audioObject->addProcessor((AudioProcessor*)udp);
+
+
+		audioObject->startDuplexMode();
+
+		cin >> input;
+
+		return 0;
 	}
 	catch (RtAudioError exception)
 	{
