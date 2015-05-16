@@ -6,6 +6,7 @@
 #include "AudioIO.h"
 #include "math.h" // ceiling
 #include <memory> // unique_ptr
+#include <string.h> //memcpy
 
 #ifdef _WIN32
 #include <windows.h> // semaphores

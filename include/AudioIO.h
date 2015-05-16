@@ -2,7 +2,7 @@
 #define	AUDIOIO_H
 
 #include "AudioProcessor.h"
-#include "Configuration.h"
+#include "configuration.h"
 #include <vector>
 #include <memory>
 

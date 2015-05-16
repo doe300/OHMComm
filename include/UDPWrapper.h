@@ -4,8 +4,10 @@
 //#include <sstream>
 //#include <iostream>
 //#include <stdio.h>
-#include "Configuration.h"
+#include "configuration.h"
 #include "NetworkWrapper.h"
+#include <string.h> //for memcpy
+#include <unistd.h> //socklen_t
 
 #ifdef _WIN32
 #include <winsock2.h>

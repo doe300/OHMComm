@@ -14,10 +14,12 @@ file( GLOB WIN win/winconfig.h)
 include_directories ("${PROJECT_SOURCE_DIR}/src")
 
 if(WIN32)
-include_directories ("${PROJECT_SOURCE_DIR}/win")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0501")
-add_definitions(-D__WIN32__)
-add_definitions(-DWIN32)
+	include_directories ("${PROJECT_SOURCE_DIR}/win")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0501")
+	add_definitions(-D__WIN32__)
+	add_definitions(-DWIN32)
+else()
+	include_directories ("${PROJECT_SOURCE_DIR}/config")
 endif()
 
 
