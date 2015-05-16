@@ -70,7 +70,7 @@ RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
     if((supportedFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32)
     {
         formatNames.push_back("32 bit float (normalized between +/- 1)");
-		audioFormats.push_back(RTAUDIO_SINT16); //TODO
+		audioFormats.push_back(RTAUDIO_SINT16); //TODO temporary change, dont forget to changeback to RTAUDIO_FLOAT32
     }
     if((supportedFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64)
     {
@@ -89,7 +89,7 @@ RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
 
 
 
-void configureNetwork()
+void configureNetwork() // TODO this function does not set networkConfiguration
 {
     string protocolString;
     
@@ -105,17 +105,9 @@ void configureNetwork()
     vector<string> protocols {"TCP", "UDP"};
     protocolString = selectOption("4. Choose protocol", protocols, "UDP");
     
-    //4. parse arguments
-    if(protocolString == "TCP")
-    {
-		networkConfiguration.connectionType = networkConfiguration.ConnectionType::TCP;
-        cout << "-> Using TCP" << endl;
-    }
-    else
-    {
-		networkConfiguration.connectionType = networkConfiguration.ConnectionType::UDP;
-		cout << "-> Using TCP" << endl;
-    }
+    // Connection type is not relevant for the network configuration
+	// If there is an TCP connection needed, then pass the config to a TCP-Wrapper
+	// otherwise pass the config
 	cout << "Networkconfiguration set." << endl;
 }
 
@@ -312,7 +304,6 @@ int main(int argc, char** argv)
 		if (input == 'N' || input == 'n')
 		{
 			configureNetwork();
-			
 		}
 		else
 		{
@@ -323,18 +314,21 @@ int main(int argc, char** argv)
 			networkConfiguration.outputBufferSize = 4096;
 			networkConfiguration.portIncoming = 123;
 			networkConfiguration.portOutgoing = 123;
-			
-
 			udp = new ProcessorUDP("This is my UDP-Wrapper with an unique Name", networkConfiguration);
 		}
 
+		// add a processor to the process chain
 		audioObject->addProcessor((AudioProcessor*)udp);
 
-
+		// start audio processing
 		audioObject->startDuplexMode();
 
+		// wait for exit
+		cout << "Type Enter to exit" << endl;
 		cin >> input;
 
+
+		audioObject->stop();
 		return 0;
 	}
 	catch (RtAudioError exception)

@@ -57,17 +57,22 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
 	if (BufferAudioOutHasData)
 	{
 		// critical section starts
+		#ifdef _WIN32
 		WaitForSingleObject(semaphore_waitForMainThread, INFINITE);
+		#endif
 
 		char *buffer = (char *)outputBuffer;
 		memcpy(buffer, bufferAudioOutput, outputBufferByteSize);
 		BufferAudioOutHasData = false;
 
+		#ifdef _WIN32
 		ReleaseSemaphore(semaphore_waitForMainThread, 1, NULL);
+		
 		// critical section ends
 
 		// inform that the data has been processed
 		ReleaseSemaphore(semaphore_waitForWorkerThread, 1, NULL);
+		#endif
 	}
 	else 
 	{
@@ -120,8 +125,10 @@ void RtAudioWrapper::suspend()
 {
 	if (this->rtaudio.isStreamRunning())
 	{
+		#ifdef _WIN32
 		CloseHandle(semaphore_waitForMainThread);
 		CloseHandle(semaphore_waitForWorkerThread);
+		#endif
 		this->rtaudio.stopStream();
 	}	
 }
@@ -153,8 +160,9 @@ void RtAudioWrapper::playData(void *playbackData, unsigned int size)
 	for (int i = 0; i < dataLoops; i++)
 	{
 		// critical section starts
+		#ifdef _WIN32
 		WaitForSingleObject(semaphore_waitForMainThread, INFINITE);
-
+		#endif
 		BufferAudioOutHasData = true;
 
 		/* In the last loop, the size of the data may not be as big as bufferByteSize
@@ -174,11 +182,13 @@ void RtAudioWrapper::playData(void *playbackData, unsigned int size)
 		else
 			memcpy(bufferAudioOutput, (buffer + i * outputBufferByteSize), outputBufferByteSize);
 
+		#ifdef _WIN32
 		ReleaseSemaphore(semaphore_waitForMainThread, 1, NULL);
 		// critical section ends
 
 		// wait until the data is processed
 		WaitForSingleObject(semaphore_waitForWorkerThread, INFINITE);
+		#endif
 	}
 }
 

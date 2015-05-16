@@ -11,7 +11,7 @@
 #ifdef _WIN32
 #include <windows.h> // semaphores
 #else
-/* TODO, two linux semaphores needed */
+/* TODO, linux semaphores needed */
 #endif
 
 
