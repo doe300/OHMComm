@@ -11,7 +11,7 @@
 //
 //#include "RTPWrapper.h"
 //
-//RTPWrapper::RTPWrapper() : NetworkWrapper()
+//RTPWrapper::RTPWrapper(uint8_t inputBufferSize, uint8_t outputBufferSize)
 //{
 //    //initialize random start values
 //    synchronizationSource = generateSynchronizationSource();
@@ -19,18 +19,10 @@
 //    startTimestamp = generateTimestamp();
 //    contributionSourcesCount = 0;
 //    payloadType = L16_2;
-//}
 //
-//RTPWrapper::RTPWrapper(const RTPWrapper& orig) : NetworkWrapper(orig)
-//{
-//    RTPWrapper::socket = orig.socket;
-//    synchronizationSource = orig.synchronizationSource;
-//    currentSequenceNumber = orig.currentSequenceNumber;
-//    startTimestamp = orig.startTimestamp;
-//    //copies the other wrapper's contribution sources
-//    memcpy(contributionSources, orig.contributionSources, sizeof(contributionSources));
-//    contributionSourcesCount = orig.contributionSourcesCount;
-//    payloadType = orig.payloadType;
+//	// initalize buffer sizes
+//	sendBuffer = (char *)malloc(inputBufferSize + RTP_HEADER_MAX_SIZE);
+//	receiveBuffer = (char *)malloc(outputBufferSize + RTP_HEADER_MAX_SIZE);
 //}
 //
 //RTPWrapper::~RTPWrapper()
@@ -40,30 +32,18 @@
 //
 //void RTPWrapper::configure()
 //{
-//    //initialize socket
-//    if(initializeNetwork() != 0)
-//    {
-//        std::cerr << "Failed to initialize the socket!" << std::endl;
-//        return;
-//    }
-//    inputFrameSize = getBytesFromAudioFormat(audioConfiguration.InputAudioFormat);
-//    outputFrameSize = getBytesFromAudioFormat(audioConfiguration.OutputAudioFormat);
-//    
 //    //TODO configure payload-type
-//    
-//    //the maximum size of the buffer is: nFrames * frameSize + maximum size of header (currently only without extension)
-//    sendBuffer = (char *)malloc(getBufferSize(audioConfiguration.bufferFrames, inputFrameSize, audioConfiguration.InputDeviceChannels) + RTP_HEADER_MAX_SIZE);
-//    receiveBuffer = (char *)malloc(getBufferSize(audioConfiguration.bufferFrames, outputFrameSize, audioConfiguration.OutputDeviceChannels) + RTP_HEADER_MAX_SIZE);
-//    if(sendBuffer == NULL || receiveBuffer == NULL)
-//    {
-//        throw(std::bad_alloc());
-//    }
 //}
 //
 //
 //////
 //// Send/Receive
 //////
+//
+//RTPPackage* getRTPPackage(void* inputBuffer, unsigned int bufferSize)
+//{
+//
+//}
 //
 //int RTPWrapper::process(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, double streamTime, unsigned int status, void* data)
 //{

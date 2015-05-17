@@ -7,7 +7,7 @@
 #include "configuration.h"
 #include "NetworkWrapper.h"
 #include <string.h> //for memcpy
-#include <unistd.h> //socklen_t
+
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -16,6 +16,7 @@
 #include <sys/socket.h> // socket(), connect()
 #include <arpa/inet.h> // sockaddr_in
 #include <stdexcept>
+#include <unistd.h> //socklen_t
 #endif
 
 //Socket-ID for an invalid socket

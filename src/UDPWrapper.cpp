@@ -94,7 +94,11 @@ void UDPWrapper::sendDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 
 void UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 {
+	#ifdef _WIN32
+	int remoteAddrLen = sizeof(addressDataIncoming);
+	#else
 	socklen_t remoteAddrLen = sizeof(addressDataIncoming);
+	#endif
 	int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->addressDataIncoming, &remoteAddrLen);
 	if (result == -1)
 		std::cout << this->getLastError();
