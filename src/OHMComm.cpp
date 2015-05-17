@@ -18,7 +18,7 @@
 #include "RtAudio.h"
 #include "RTAudioWrapper.h"
 #include "ProcessorUDP.h"
-#include "RTPPackage.h"
+#include "ProcessorRTP.h"
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
@@ -294,8 +294,6 @@ int main(int argc, char** argv)
 			audioObject = RtAudioWrapper::getNewAudioIO();
 		}
 
-
-
 		/* Network-Config */
 		ProcessorUDP *udp;
 		cout << "Load default network config? Yes (y), No (n)?" << endl;
@@ -318,7 +316,8 @@ int main(int argc, char** argv)
 		}
 
 		// add a processor to the process chain
-		audioObject->addProcessor((AudioProcessor*)udp);
+		ProcessorRTP rtp("RTP-Processor", (NetworkWrapper*)udp);
+		audioObject->addProcessor((AudioProcessor*)&rtp);
 
 		// start audio processing
 		audioObject->startDuplexMode();

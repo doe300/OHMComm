@@ -234,15 +234,22 @@ public:
 	auto getNewRTPPackage(void* data)->void*;
 	auto getDataFromRTPPackage(void *rtpPackage) -> void*;
 	auto getHeaderFromRTPPackage(void *rtpPackage) -> void*;
+	auto getDataFromRTPPackage() -> void*;
+	auto getHeaderFromRTPPackage() -> void*;
+	auto getPacketSizeRTPPackage() -> unsigned int;
+	auto getRecvBuffer() -> void*;
 private:
-	// when a new RTP-Package is created, it will be written in this buffer
-	void *rtpPackageBuffer;
+	// When a new RTP-Package is created, it will be written in this buffer
+	void *newRTPPackage_Buffer;
+
+	// A buffer that can store a whole RTP-Package
+	void *rtpPackageRecv_Buffer;
 
 	// When data from RTP-Package is read, audio data will be saved in this buffer
-	void *rtpReadDataBuffer;
-
+	void *readAudioDataFromRTPPackage_Buffer;
+	
 	// When data from RTP-Package is read, header will be saved in this buffer
-	void *rtpReadHeaderBuffer;
+	void *readRTPHeaderFromRTPPackage_Buffer;
 
 	unsigned int getRandomNumber();
 	unsigned int getTimestamp();

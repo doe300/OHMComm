@@ -23,19 +23,20 @@ auto RTPPackage::getNewRTPPackage(void* data) -> void*
 
 	// write into buffer
 
-	memcpy((char*)rtpPackageBuffer, &rtpheader, rtp_header_size);
-	memcpy((char*)(rtpPackageBuffer) + rtp_header_size, data, dataSize);
+	memcpy((char*)newRTPPackage_Buffer, &rtpheader, rtp_header_size);
+	memcpy((char*)(newRTPPackage_Buffer)+rtp_header_size, data, dataSize);
 
-	return rtpPackageBuffer;
+	return newRTPPackage_Buffer;
 }
 
 RTPPackage::RTPPackage(unsigned int dataSize, unsigned int rtp_header_size)
 {
 	this->dataSize = dataSize;
 	this->rtp_header_size = rtp_header_size;
-	rtpPackageBuffer = new char[dataSize + rtp_header_size];
-	rtpReadDataBuffer = new char[dataSize];
-	rtpReadHeaderBuffer = new char[rtp_header_size];
+	newRTPPackage_Buffer = new char[dataSize + rtp_header_size];
+	rtpPackageRecv_Buffer = new char[dataSize + rtp_header_size];
+	readAudioDataFromRTPPackage_Buffer = new char[dataSize];
+	readRTPHeaderFromRTPPackage_Buffer = new char[rtp_header_size];
 
 
 	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -52,14 +53,26 @@ RTPPackage::RTPPackage(unsigned int dataSize, unsigned int rtp_header_size)
 
 auto RTPPackage::getDataFromRTPPackage(void *rtpPackage) -> void*
 {
-	memcpy((char*)(rtpReadDataBuffer), (char*)rtpPackage + rtp_header_size, dataSize);
-	return rtpReadDataBuffer;
+	memcpy((char*)(readAudioDataFromRTPPackage_Buffer), (char*)rtpPackage + rtp_header_size, dataSize);
+	return readAudioDataFromRTPPackage_Buffer;
 }
 
 auto RTPPackage::getHeaderFromRTPPackage(void *rtpPackage) -> void*
 {
-	memcpy(rtpReadHeaderBuffer, rtpPackage, dataSize);
-	return rtpReadHeaderBuffer;
+	memcpy(readRTPHeaderFromRTPPackage_Buffer, rtpPackage, dataSize);
+	return readRTPHeaderFromRTPPackage_Buffer;
+}
+
+auto RTPPackage::getDataFromRTPPackage() -> void*
+{
+	memcpy((char*)(readAudioDataFromRTPPackage_Buffer), (char*)rtpPackageRecv_Buffer + rtp_header_size, dataSize);
+	return readAudioDataFromRTPPackage_Buffer;
+}
+
+auto RTPPackage::getHeaderFromRTPPackage() -> void*
+{
+	memcpy(readRTPHeaderFromRTPPackage_Buffer, rtpPackageRecv_Buffer, dataSize);
+	return readRTPHeaderFromRTPPackage_Buffer;
 }
 
 unsigned int RTPPackage::getRandomNumber()
@@ -77,4 +90,14 @@ unsigned int RTPPackage::getTimestamp()
 unsigned int RTPPackage::getAudioSourceId()
 {
 	return 5;
+}
+
+auto RTPPackage::getPacketSizeRTPPackage() -> unsigned int
+{
+	return this->dataSize + this->rtp_header_size;
+}
+
+auto RTPPackage::getRecvBuffer() -> void*
+{
+	return this->rtpPackageRecv_Buffer;
 }
