@@ -25,3 +25,4 @@ endif()
 
 
 add_library(CppTest STATIC ${SRCS} ${WIN})
+add_library(cpptest ${SRCS})

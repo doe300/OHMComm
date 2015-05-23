@@ -202,3 +202,9 @@ rtaudio_static.lib
 /documents/object_structure.dia
 /documents/class_structure.dia
 /recording.rtaudio
+/lib/cpptest-1.1.2/Makefile
+/lib/cpptest-1.1.2/config.status
+/lib/cpptest-1.1.2/libtool
+/lib/cpptest-1.1.2/config/config.h
+/lib/cpptest-1.1.2/config/stamp-h
+/lib/cpptest-1.1.2/config/stamp-h1
