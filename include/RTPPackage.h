@@ -8,8 +8,13 @@
 #ifndef RTPPACKAGE_H
 #define	RTPPACKAGE_H
 
-#include <stdint.h>
-#include <stdlib.h>
+#include <iostream>
+#include <random> // random generator objects
+#include <chrono> // clock, tick
+
+const unsigned int RTP_HEADER_MIN_SIZE = 12; // Size in bytes
+const unsigned int RTP_HEADER_MAX_SIZE = 76; // Size in bytes
+
 //TODO byte-order (network-order)??
 
 /*!
@@ -42,31 +47,6 @@ struct RTPHeaderExtension
     
     //16 bit length field
     unsigned int length: 16;
-    
-    //list of 32 bit header extensions
-    uint32_t *extensions[];
-    
-    /*!
-     * Copies the data of this HeaderExtension to the front of the buffer.
-     * 
-     * \param buffer The buffer to copy into
-     * 
-     * \param maxBufferSize The maximum size of the buffer to fill
-     * 
-     * Returns the number of bytes copied or -1 if an error occurred
-     */
-    uint16_t copyToBuffer(char *buffer, size_t maxBufferSize);
-    
-    /*!
-     * Reads the data of this HeaderExtension from the buffer.
-     * 
-     * \param buffer The buffer to read from
-     * 
-     * \param maxBufferSize The maximum size of the input-buffer
-     * 
-     * Returns the number of bytes read or -1 if an error occurred
-     */
-    uint16_t readFromBuffer(char *buffer, size_t maxBufferSize);
 };
 
 /*!
@@ -198,42 +178,8 @@ struct RTPHeader
     
     //32 bit SSRC field
     unsigned int ssrc: 32;
-
-    //list of 32 bit CSRCs
-    uint32_t csrc_list[15];
-    
-    RTPHeaderExtension *header_extension;
-    
-    RTPHeader();
-    
-    /*!
-     * Copies the data of this header to the front of the buffer.
-     * 
-     * \param buffer The buffer to copy into
-     * 
-     * \param maxBufferSize The maximum size of the buffer to fill
-     * 
-     * Returns the number of bytes copied or -1 if an error occurred
-     */
-    uint16_t copyToBuffer(char *buffer, size_t maxBufferSize);
-    
-    /*!
-     * Reads the data of this header from the buffer.
-     * 
-     * \param buffer The buffer to read from
-     * 
-     * \param maxBufferSize The maximum size of the input-buffer
-     * 
-     * Returns the number of bytes read or -1 if an error occurred
-     */
-    uint16_t readFromBuffer(char *buffer, size_t maxBufferSize);
 };
 
-/*!
- * The maximum size of a RPT-header in bytes
- * TODO: Currently does not include extension!!
- */
-const uint8_t RTP_HEADER_MAX_SIZE = 72;
 
 /*!
  * List of default mappings for payload-type, as specified in https://www.ietf.org/rfc/rfc3551.txt
@@ -281,40 +227,42 @@ enum PayloadType
     
 };
 
-struct RTPPackage
+class RTPPackage
 {
-    //the header information
-    RTPHeader header;
-    //the package body
-    void *package;
-    //the size of the package
-    size_t packageSize;
-    
-    RTPPackage();
-    
-    RTPPackage(RTPHeader header, size_t packageSize, void *packageData);
-    
-    /*!
-     * Copies the data of this RTPPackage to the front of the buffer.
-     * 
-     * \param buffer The buffer to copy into
-     * 
-     * \param maxBufferSize The maximum size of the buffer to fill
-     * 
-     * Returns the number of bytes copied or -1 if an error occurred
-     */
-    uint16_t copyToBuffer(char *buffer, size_t maxBufferSize);
-    
-    /*!
-     * Reads the data of this RTPPackage from the buffer.
-     * 
-     * \param buffer The buffer to read from
-     * 
-     * \param maxBufferSize The maximum size of the input-buffer
-     * 
-     * Returns the number of bytes read or -1 if an error occurred
-     */
-    uint16_t readFromBuffer(char *buffer, size_t maxBufferSize);
+public:
+	RTPPackage(unsigned int dataSize, unsigned int rtp_header_size = RTP_HEADER_MIN_SIZE);
+	auto getNewRTPPackage(void* data)->void*;
+	auto getDataFromRTPPackage(void *rtpPackage) -> void*;
+	auto getHeaderFromRTPPackage(void *rtpPackage) -> void*;
+	auto getDataFromRTPPackage() -> void*;
+	auto getHeaderFromRTPPackage() -> void*;
+	auto getPacketSizeRTPPackage() -> unsigned int;
+	auto getRecvBuffer() -> void*;
+private:
+	// When a new RTP-Package is created, it will be written in this buffer
+	void *newRTPPackage_Buffer;
+
+	// A buffer that can store a whole RTP-Package
+	void *rtpPackageRecv_Buffer;
+
+	// When data from RTP-Package is read, audio data will be saved in this buffer
+	void *readAudioDataFromRTPPackage_Buffer;
+	
+	// When data from RTP-Package is read, header will be saved in this buffer
+	void *readRTPHeaderFromRTPPackage_Buffer;
+
+	unsigned int getRandomNumber();
+	unsigned int getTimestamp();
+	unsigned int getAudioSourceId();
+
+	std::mt19937 randomGenerator;
+	RTPHeader rtpheader;
+	unsigned int sequenceNr;
+	unsigned int timestamp;
+	unsigned int ssrc;
+	unsigned int payloadType;
+	unsigned int rtp_header_size;
+	unsigned int dataSize;
 };
 
 #endif	/* RTPPACKAGE_H */
