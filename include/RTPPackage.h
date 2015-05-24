@@ -13,8 +13,15 @@
 #include <chrono> // clock, tick
 #include <string.h> //memcpy
 
-const unsigned int RTP_HEADER_MIN_SIZE = 12; // Size in bytes
-const unsigned int RTP_HEADER_MAX_SIZE = 76; // Size in bytes
+/*!
+ * Minimum size of a RTP-Header in bytes, without any CSRCs set
+ */
+const unsigned int RTP_HEADER_MIN_SIZE = 12;
+/*!
+ * Maximum size of a RTP-Header with all CSRCs set.
+ * TODO currently doesn't account for any header-extension
+ */
+const unsigned int RTP_HEADER_MAX_SIZE = 72;
 
 //TODO byte-order (network-order)??
 
@@ -48,6 +55,9 @@ struct RTPHeaderExtension
     
     //16 bit length field
     unsigned int length: 16;
+    
+    //list of 32 bit header extensions
+    uint32_t *extensions[];
 };
 
 /*!
@@ -179,6 +189,10 @@ struct RTPHeader
     
     //32 bit SSRC field
     unsigned int ssrc: 32;
+    
+    //list of 32 bit CSRCs
+    //TODO adding this requires correct handling of RTPHeader (depending on the csrc_count, like it was before)
+    //uint32_t csrc_list[15];
 };
 
 
