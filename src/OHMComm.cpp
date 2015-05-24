@@ -184,10 +184,8 @@ void configureAudioDevices()
 	audioConfiguration.outputDeviceName = OutputDeviceInfo.name;
 	cout << "-> Using output Device Name: " << audioConfiguration.outputDeviceName << endl;
 
-	//Configure Number of Maximum output Channels
-    //we operate in duplex, so we need duplex-channels
-
-	audioConfiguration.outputDeviceChannels = 2; //TODO
+	//Configure Number of Maximum output Channels (we always use stereo)
+	audioConfiguration.outputDeviceChannels = 2;
 	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.outputDeviceChannels << endl;
 
 	unsigned int OutputSampleRate;
@@ -220,9 +218,8 @@ void configureAudioDevices()
 	audioConfiguration.inputDeviceName = InputDeviceInfo.name;
 	cout << "-> Using input Device Name: " << audioConfiguration.inputDeviceName << endl;
 
-	//Configure Number of Maximum output Channels
-    //we operate in duplex, so we need duplex-channels
-	audioConfiguration.inputDeviceChannels = 2; //TODO
+	//Configure Number of Maximum output Channels (we always use stereo)
+	audioConfiguration.inputDeviceChannels = 2;
 	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.inputDeviceChannels << endl;
 
 	unsigned int InputSampleRate;
