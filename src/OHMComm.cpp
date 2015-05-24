@@ -310,8 +310,9 @@ int main(int argc, char** argv)
 			networkConfiguration.connectionType = NetworkConfiguration::ConnectionType::UDP;
 			networkConfiguration.inputBufferSize = 4096;
 			networkConfiguration.outputBufferSize = 4096;
-			networkConfiguration.portIncoming = 123;
-			networkConfiguration.portOutgoing = 123;
+                        //the port should be a number greater than 1024
+			networkConfiguration.portIncoming = 12345;
+			networkConfiguration.portOutgoing = 12345;
 			udp = new ProcessorUDP("This is my UDP-Wrapper with an unique Name", networkConfiguration);
 		}
 

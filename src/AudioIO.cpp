@@ -17,7 +17,7 @@ void AudioIO::addProcessor(AudioProcessor *audioProcessor)
 
 void AudioIO::removeAudioProcessor(AudioProcessor *audioProcessor)
 {
-	for (auto i = 0; i < audioProcessors.size(); i++)
+	for (size_t i = 0; i < audioProcessors.size(); i++)
 	{
 		if ( (audioProcessors.at(i))->getName() == audioProcessor->getName() )
 			audioProcessors.erase(audioProcessors.begin() + i);
@@ -26,7 +26,7 @@ void AudioIO::removeAudioProcessor(AudioProcessor *audioProcessor)
 
 void AudioIO::removeAudioProcessor(std::string nameOfAudioProcessor)
 {
-	for (auto i = 0; i < audioProcessors.size(); i++)
+	for (size_t i = 0; i < audioProcessors.size(); i++)
 	{
 		if (audioProcessors.at(i)->getName() == nameOfAudioProcessor)
 			audioProcessors.erase(audioProcessors.begin() + i);

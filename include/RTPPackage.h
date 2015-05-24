@@ -11,6 +11,7 @@
 #include <iostream>
 #include <random> // random generator objects
 #include <chrono> // clock, tick
+#include <string.h> //memcpy
 
 const unsigned int RTP_HEADER_MIN_SIZE = 12; // Size in bytes
 const unsigned int RTP_HEADER_MAX_SIZE = 76; // Size in bytes

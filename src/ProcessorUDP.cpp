@@ -1,6 +1,6 @@
 #include "ProcessorUDP.h"
 
-ProcessorUDP::ProcessorUDP(std::string name, struct NetworkConfiguration networkConfig) : AudioProcessor(name), UDPWrapper(networkConfig) {}
+ProcessorUDP::ProcessorUDP(std::string name, struct NetworkConfiguration networkConfig) : UDPWrapper(networkConfig), AudioProcessor(name) {}
 
 void ProcessorUDP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, void *userData)
 {

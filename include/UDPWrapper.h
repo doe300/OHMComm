@@ -51,9 +51,9 @@ public:
 	void recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
 protected:
 	int Socket;
-	unsigned int outputBufferSize{ 0 }, inputBufferSize{ 0 };
-	sockaddr_in addressDataIncoming;
+        sockaddr_in addressDataIncoming;
 	sockaddr_in addressDataOutgoing;
+	unsigned int outputBufferSize{ 0 }, inputBufferSize{ 0 };
 };
 
 
