@@ -69,5 +69,10 @@ struct AudioConfiguration {
 	// buffer frames
 	unsigned int bufferFrames;
 };
+
+//Configurations are declared in OhmComm.cpp
+//this two lines are required for all files to find the configurations
+extern NetworkConfiguration networkConfiguration;
+extern AudioConfiguration audioConfiguration;
 #endif	/* CONFIGURATION_H */
 

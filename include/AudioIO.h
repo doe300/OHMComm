@@ -27,6 +27,11 @@ public:
 	void removeAudioProcessor(AudioProcessor *audioProcessor);
 	void removeAudioProcessor(std::string nameOfAudioProcessor);
 	void clearAudioProcessors();
+        
+        /*!
+         * Calls AudioProcessor#configure() for all registered processors
+         */
+        void configureAudioProcessors();
 
 protected:
 	std::vector<AudioProcessor*> audioProcessors;

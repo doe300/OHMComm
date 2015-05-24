@@ -1,4 +1,5 @@
 #include "AudioProcessor.h"
+#include "configuration.h"
 
 
 AudioProcessor::AudioProcessor(std::string name) : name(name) {}
@@ -16,4 +17,8 @@ void AudioProcessor::setName(std::string name)
 	this->name = name;
 }
 
+void AudioProcessor::configure()
+{
+    //dummy implementation, does nothing
+}
 

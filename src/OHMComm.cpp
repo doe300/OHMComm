@@ -317,6 +317,9 @@ int main(int argc, char** argv)
 		ProcessorRTP rtp("RTP-Processor", (NetworkWrapper*)udp);
 		audioObject->addProcessor((AudioProcessor*)&rtp);
 
+                //configure all processors
+                audioObject->configureAudioProcessors();
+                
 		// start audio processing
 		audioObject->startDuplexMode();
 

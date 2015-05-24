@@ -38,6 +38,14 @@ void AudioIO::clearAudioProcessors()
 	audioProcessors.clear();
 }
 
+void AudioIO::configureAudioProcessors()
+{
+    for (AudioProcessor *processor : audioProcessors)
+    {
+        processor->configure();
+    }
+}
+
 auto AudioIO::hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool
 {
 	for (const auto processor : audioProcessors)
