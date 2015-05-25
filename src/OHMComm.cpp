@@ -82,13 +82,6 @@ RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
     return audioFormats[formatIndex];
 }
 
-/*!
- * Automatically selects the best audio format out of the supported formats
- */
-
-
-
-
 void configureNetwork() // TODO this function does not set networkConfiguration
 {
     string protocolString;
@@ -224,6 +217,7 @@ void configureAudioDevices()
 
 	unsigned int InputSampleRate;
 
+        //TODO sampleRate and audioFormat are overridden!
 	//Configure Input Sample Rate
 	cout << "-> Supported Sample Rates from this Device: ";
 	printVector(InputDeviceInfo.sampleRates);

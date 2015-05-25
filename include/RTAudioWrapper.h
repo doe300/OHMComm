@@ -86,7 +86,9 @@ private:
 	/* returns the actual input framesize in bytes */
 	auto getInputFrameSize() -> int;
 
-	/* returns the best supported rtaudioformat*/
+	/*!
+         * Automatically selects the best audio format out of the supported formats
+         */
 	auto autoSelectAudioFormat(RtAudioFormat supportedFormats) -> RtAudioFormat;
 
 };

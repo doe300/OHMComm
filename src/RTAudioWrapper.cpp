@@ -201,8 +201,8 @@ void RtAudioWrapper::initRtAudioStreamParameters()
 		this->loadDefaultAudioConfig();
 
 	// calculate the input- and outputbuffer sizes
-	this->outputBufferByteSize = audioConfiguration.bufferFrames*audioConfiguration.outputDeviceChannels*audioConfiguration.audioFormat;
-	this->inputBufferByteSize = audioConfiguration.bufferFrames*audioConfiguration.inputDeviceChannels*audioConfiguration.audioFormat;
+	this->outputBufferByteSize = audioConfiguration.bufferFrames * audioConfiguration.outputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormat);
+	this->inputBufferByteSize = audioConfiguration.bufferFrames * audioConfiguration.inputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormat);
 
 	/* internal buffer for playback data */
 	this->bufferAudioOutput = new char[this->outputBufferByteSize];
@@ -253,14 +253,14 @@ auto RtAudioWrapper::getAudioFormatByteSize(RtAudioFormat rtaudioFormat) -> int
 auto RtAudioWrapper::getOutputFrameSize() -> int
 {
 	if (this->isAudioConfigSet)
-		return this->audioConfiguration.audioFormat * this->audioConfiguration.outputDeviceChannels;
+		return getAudioFormatByteSize(this->audioConfiguration.audioFormat) * this->audioConfiguration.outputDeviceChannels;
 	return 0;
 }
 
 auto RtAudioWrapper::getInputFrameSize() -> int
 {
 	if (this->isAudioConfigSet)
-		return this->audioConfiguration.audioFormat * this->audioConfiguration.inputDeviceChannels;
+		return getAudioFormatByteSize(this->audioConfiguration.audioFormat) * this->audioConfiguration.inputDeviceChannels;
 	return 0;
 }
 
