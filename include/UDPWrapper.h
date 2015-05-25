@@ -19,15 +19,6 @@
 #include <unistd.h> //socklen_t
 #endif
 
-//Socket-ID for an invalid socket
-#ifndef INVALID_SOCKET
-#define INVALID_SOCKET -1
-#endif
-//define SOCKET_ERROR for non-Windows
-#ifndef SOCKET_ERROR
-#define SOCKET_ERROR -1
-#endif
-
 class UDPWrapper : public NetworkWrapper
 {
 public:
@@ -42,8 +33,6 @@ public:
 	void startWinsock();
 
 	void createSocket();
-
-	auto getLastError() -> int;
 
 	void InitializeNetworkConfig(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing);
 

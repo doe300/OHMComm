@@ -19,7 +19,7 @@ auto RTPPackage::getNewRTPPackage(void* data) -> void*
 	rtpheader.payload_type = this->payloadType;
 	rtpheader.sequence_number = this->sequenceNr++;
 	rtpheader.timestamp = timestamp++; // TODO, get current timestamp
-	rtpheader.ssrc = 0;
+	rtpheader.ssrc = 0; //TODO random ssrc
 
 	// write into buffer
 

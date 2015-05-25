@@ -245,6 +245,7 @@ enum PayloadType
 class RTPPackage
 {
 public:
+    //TODO this is wrong, header could have different size
 	RTPPackage(unsigned int dataSize, unsigned int rtp_header_size = RTP_HEADER_MIN_SIZE);
 	auto getNewRTPPackage(void* data)->void*;
 	auto getDataFromRTPPackage(void *rtpPackage) -> void*;

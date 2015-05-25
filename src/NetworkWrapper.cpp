@@ -1,14 +1,27 @@
-#ifndef NETWORKWRAPPER_H
-#define	NETWORKWRAPPER_H
+#include <sys/socket.h>
+#include <unistd.h>
 
-#include <iostream>
-#include <string>
+#include "NetworkWrapper.h"
 
-class NetworkWrapper
+int NetworkWrapper::getLastError()
 {
-public:
-	virtual void sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = NULL) = 0;
-	virtual void recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = NULL) = 0;
-};
+	int error;
 
-#endif
+	#ifdef _WIN32
+	error = WSAGetLastError();
+	#else
+	error = errno;
+	#endif
+
+	return error;
+}
+
+void NetworkWrapper::closeSocket(int fd)
+{
+    shutdown(fd, SHUT_RDWR);
+    #ifdef _WIN32
+    closesocket(fd);
+    #else
+    close(fd);
+    #endif
+}

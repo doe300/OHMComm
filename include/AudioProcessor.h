@@ -25,7 +25,6 @@ public:
          * 
          * For the style of configuration, see OhmComm.cpp
          */
-        //TODO needs to be called for every processor
         void configure();
         
 	/*

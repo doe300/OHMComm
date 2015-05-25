@@ -73,20 +73,6 @@ void UDPWrapper::createSocket()
 	}
 }
 
-auto UDPWrapper::getLastError() -> int
-{
-	int error;
-
-	#ifdef _WIN32
-	error = WSAGetLastError();
-	#else
-	error = errno;
-	#endif
-
-	return error;
-}
-
-
 void UDPWrapper::sendDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 {
 	sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->addressDataOutgoing, sizeof(addressDataOutgoing));
