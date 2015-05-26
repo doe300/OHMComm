@@ -18,11 +18,15 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0501")
 	add_definitions(-D__WIN32__)
 	add_definitions(-DWIN32)
+	
+	add_library(CppTest STATIC ${SRCS} ${WIN})
 else()
 	include_directories ("${PROJECT_SOURCE_DIR}/config")
+	
+	add_library(cpptest ${SRCS})
 endif()
 
 
 
-add_library(CppTest STATIC ${SRCS} ${WIN})
-add_library(cpptest ${SRCS})
+
+
