@@ -1,0 +1,90 @@
+Sofern nicht anders angegeben sind alle Größenangaben in Bytes, da diese auf sämtlichten Systemen gleich ist.
+
+1. RTPPackage-Klasse
+RTPPackage ist eine Klasse, welche die Aufgabe hat sämtliches Handling mit RTP-Paketen zu ermöglichen. Die Klasse soll ein unabhängiges Modul sein. Konkret heißt dies
+	- Objekte lassen sich überall einfach instanzieren
+	- Jede Instanz arbeitet unabhängig von anderen Instanzen
+Unter Handling mit RTP-Paketen versteht man hauptsächlich
+	- Pakete erstellen
+		- Header ausfüllen
+		- Nutzdaten (Audiodaten) ausfüllen
+	- Pakete auspacken
+		- Header auslesen
+		- Nutzdaten (Audiodaten) auslesen
+Die Klasse hat ein paar (für die Projektstruktur) besondere Schnittstellen, die im ersten Moment vielleicht unpassend wirken, jedoch Ihre Daseinsberechtigung haben. Im Laufe dieses Abschnittes werden diese erläutert.
+
+Variablen:
+	Folgende Variablen stellen das absolute Minimum für das Ausfüllen eines RTPHeaders dar.
+		RTPHeader rtpheader;
+		unsigned int sequenceNr;
+		unsigned int timestamp;
+		unsigned int ssrc;
+		unsigned int payloadType;
+		
+	Folgende Variablen sind ebenfalls verwaltungsinterne Variablen.
+		unsigned int rtp_header_size;
+		unsigned int dataSize;
+		std::mt19937 randomGenerator;
+		
+		void *newRTPPackage_Buffer; (siehe Methode: getNewRTPPackage )
+		void *rtpPackageRecv_Buffer;
+		void *readAudioDataFromRTPPackage_Buffer; (siehe Methode: getDataFromRTPPackage)
+		void *readRTPHeaderFromRTPPackage_Buffer; (siehe Methode: getHeaderFromRTPPackage)
+		
+	Die Aufgabe der Buffer wird im Laufe dieses Abschnittes deutlich.
+
+Konstruktor:
+	RTPPackage(unsigned int dataSize, unsigned int rtp_header_size = RTP_HEADER_MIN_SIZE);
+
+		Jedes RTP-Paket besteht aus zwei Teilen. Die eigentlichen Nutzlatzen (Audiodaten) und den vorangestellten Header. Falls der Nutzer keine Größe für den Header angibt, gehen wir von der Minimum-Headergröße aus. Außerdem nehmen wir an, dass für eine stabile Verbindung die Headergröße und Nutzdatengröße fest sind, daher diese sich nicht mehr ändern. Falls doch Änderungen eintreten muss eine neuen Instanz von RTPPackage erstellt werden (Ausnahmefall). Die übergebenen Parameter im Konstruktor werden in den Variablen 'rtp_header_size' und 'dataSize' gespeichert.
+		
+		Jedes RTPPackage benötigt einen Speicherbereich in dem der Header und die Nutzdaten hineinpassen. Da diese Größe fest ist, wird im Konstruktor der Speicherplatz für diesen Buffer im Heap reserviert:
+
+		newRTPPackage_Buffer = new char[dataSize + rtp_header_size];
+
+		Außerdem werden einige Variablen für RTPPackage initialisiert wie z.B. sequenceNr, timestamp, ssrc und paylordtype.
+	
+Methoden:
+	auto getNewRTPPackage(void* data)->void*;
+	
+		Diese Methode erstellt eines neues RTPPackage. Die Nutzdaten werden per void*-Parameter übergeben. 
+		
+		Optionale Informationen: 
+		Die Größe der Nutzdaten wurde bereits im Konstruktor definiert. Es wird ein neuer RTPHeader erstellt und im Buffer 'newRTPPackage_Buffer' geschrieben. Zur Erinnerung in 'newRTPPackage_Buffer' passen genau ein RTP-Header und die Nutzdaten. Nach den RTPHeader werden die Nutzdaten (void* data) ebenfalls im selben Buffer kopiert. Nach Ausführung der Funktion steht im Buffer genau ein vollständiges RTP-Paket. Die Adresse dieses Buffers wird als void*-Pointer an den Aufrufer zurückgegeben. 
+		
+		Jetzt könnte man sich fragen, warum wird ein interner-Buffer verwendet? Da bei der Ausführungen sehr häufig neue Pakete erstellt werden, möchte man wegen der Performanz nicht ständig neuen Speicherplatz reservieren und anschließend wieder freigeben. Deswegen steht genau ein Buffer ('newRTPPackage_Buffer') zur Verfügung. Jedes Mal wenn ein neues RTPPackage erstellt wird, wird das vorherige RTPPackage überschrieben. Es gilt zu beachten, dass diese Methode nicht threadsafe ist (falls mehrere Threads die gleiche Instanz benutzen und ein neues RTPPaket anfordern)!
+	
+	auto getDataFromRTPPackage(void *rtpPackage) -> void*;
+		
+		Diese Methode erwartet einen RTPPackage als Parameter. Es wird ein Pointer auf die Nutzdaten zurückgegeben. 
+		
+		Optionale Informationen:
+		Die Größe des Headers und Nutzdaten sind bereits im Konstruktor definiert. Die Nutzdaten werden in den Buffer 'readAudioDataFromRTPPackage_Buffer' kopiert. Durch das Umkopieren, kann sichergestellt werden, dass man bei absichtlicher/versehentlicher Bereichsüberschreitung des Buffers eine Exception bekommt. In den Buffer passen genau die Nutzdaten.
+		
+	auto getHeaderFromRTPPackage(void *rtpPackage) -> void*;
+		
+		Diese Methode erwartet einen RTPPackage als Parameter. Es wird ein Pointer auf den RTPHeader zurückgegeben. 
+		
+		Optionale Informationen:
+		Die Größe des Headers und Nutzdaten sind bereits im Konstruktor definiert. Die Headerdaten werden in den Buffer 'readRTPHeaderFromRTPPackage_Buffer' kopiert. Durch das Umkopieren, kann sichergestellt werden, dass man bei absichtlicher/versehentlicher Bereichsüberschreitung des Buffers eine Exception bekommt. In den Buffer passen genau die Daten eines RTPHeaders. Zur besseren Verarbeitung der Daten kann der Pointer in ein struct vom Typ RTPHeader gecastet werden.
+		
+	auto getDataFromRTPPackage() -> void*;
+		Es wird ein Pointer auf den Nutzdaten zurückgegeben. Die Datenquelle aus der das RTPPaket gelesen wird ist der intern verwendete Buffer 'rtpPackageRecv_Buffer;', welcher ebenfalls genau ein RTP-Paket aufnehmen kann (identische Größe wie 'newRTPPackage_Buffer').
+		
+		Optionale Informationen:
+		Diese Methode macht eigenltich nicht so viel Sinn. Wir hatten bereits zuvor schon alles was wir brauchen. Trotzdem ist diese Methode in unserem Kontext sinnvoll, da wir später irgendwann Daten empfangen werden per TCP/UDP und diese als Parameter einen Buffer warten wo die empfangenen Daten hingeschrieben werden sollen, warum sollte man da nicht dafür eine Schnittstelle dafür erschaffen? 'newRTPPackage_Buffer' wird ebenfalls im Konstruktor initialisiert.
+		
+	auto getHeaderFromRTPPackage() -> void*;
+		Es wird ein Pointer auf den RTPHeader zurückgegeben. Die Datenquelle aus der das RTPPaket gelesen wird ist der intern verwendete Buffer 'rtpPackageRecv_Buffer;', welcher ebenfalls genau ein RTP-Paket aufnehmen kann (identische Größe wie 'newRTPPackage_Buffer').
+		
+		Optionale Informationen:
+		Siehe optionale Informationen bei getDataFromRTPPackage.
+		
+	auto getRecvBuffer() -> void*;
+		Gibt die Adresse des 'rtpPackageRecv_Buffer' Buffers zurück. 
+		
+		Optionale Informationen:
+		Dieser Buffer kann genau ein RTP-Paket aufnehmen. Kann für die Netzwerkkommunikation als Recv-Buffer verwendet werden. 
+		
+	auto getPacketSizeRTPPackage() -> unsigned int;
+		Gibt einfach die aktuell konfigurierte Größe eines RTPPakets in Bytes zurück (RTPHeaderSize + Nutzendatengröße - Diese Parameter wurden bereits im Konstruktor verwendet).
