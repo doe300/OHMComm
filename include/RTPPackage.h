@@ -252,6 +252,9 @@ public:
 	auto getHeaderFromRTPPackage(void *rtpPackage) -> void*;
 	auto getDataFromRTPPackage() -> void*;
 	auto getHeaderFromRTPPackage() -> void*;
+        /*!
+         * Gets the total size for the RTP package (header + body)
+         */
 	auto getPacketSizeRTPPackage() -> unsigned int;
 	auto getRecvBuffer() -> void*;
 private:
