@@ -2,9 +2,11 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
+#define SHUTDOWN_BOTH SD_BOTH   // 2
 #else
 #include <sys/socket.h> // close()
 #include <unistd.h>
+#define SHUTDOWN_BOTH SHUT_RDWR // 2
 #endif
 
 int NetworkWrapper::getLastError()
@@ -22,7 +24,7 @@ int NetworkWrapper::getLastError()
 
 void NetworkWrapper::closeSocket(int fd)
 {
-    shutdown(fd, SHUT_RDWR);
+    shutdown(fd, SHUTDOWN_BOTH);
     #ifdef _WIN32
     closesocket(fd);
     #else
