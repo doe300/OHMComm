@@ -9,6 +9,7 @@ before_script:
   - sudo apt-get update -qq > /dev/null
   - sudo apt-get install -y -q cmake libasound2-dev
   - cd lib/cpp*
+  - chmod +x ./configure
   - ./configure
   - cd ../../
   - mkdir build
