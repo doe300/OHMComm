@@ -47,7 +47,7 @@ void RTPListener::runThread()
     while(receiveSocket >= 0 && threadRunning)
     {
         //1. wait for package and store into RTPPackage
-        int receivedSize = recv(receiveSocket, receivedPackage->getRecvBuffer(), receivedPackage->getPacketSizeRTPPackage(), 0);
+        int receivedSize = recv(receiveSocket, (char *)receivedPackage->getRecvBuffer(), receivedPackage->getPacketSizeRTPPackage(), 0);
         if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
         {
             //just continue to next loop iteration, checking if thread should continue running
