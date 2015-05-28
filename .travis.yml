@@ -10,7 +10,7 @@ before_script:
   - sudo apt-get install -y -q cmake libasound2-dev
   - cd lib/cpp*
   - configure
-  cd ../../
+  - cd ../../
   - mkdir build
   - cd build
   - cmake ../
