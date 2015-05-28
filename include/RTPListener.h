@@ -9,8 +9,15 @@
 #define	RTPLISTENER_H
 
 #include <thread>
-#include <sys/socket.h>
 #include <malloc.h>
+
+#ifdef _WIN32
+#include <winsock2.h>
+//#include <cstdint>
+#else
+#include <sys/socket.h> // socket(), connect()
+#include <unistd.h> //socklen_t
+#endif
 
 #include "RTPBuffer.h"
 
@@ -20,7 +27,7 @@
 class RTPListener
 {
 public:
-    RTPListener(const sockaddr *receiveAddress, const RTPBuffer *buffer);
+    RTPListener(const sockaddr *receiveAddress, RTPBuffer *buffer, unsigned int receiveBufferSize);
     RTPListener(const RTPListener& orig);
     virtual ~RTPListener();
     
@@ -38,11 +45,11 @@ private:
      * The socket to listen on
      */
     int receiveSocket;
-    const RTPBuffer *buffer;
+    RTPBuffer *buffer;
+    RTPPackage *receivedPackage;
     const sockaddr *receiveAddress;
     std::thread receiveThread;
     bool threadRunning = false;
-    char *receiveBuffer;
     
     /*!
      * Method called in the parallel thread, receiving packages and writing them into RTPBuffer

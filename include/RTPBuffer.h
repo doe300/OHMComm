@@ -37,17 +37,18 @@ public:
     
     /*!
      * Adds a new package to the buffer
-     * \param The package to add, must be allocated on the HEAP
+     * 
+     * \param package The package to add, must be allocated on the HEAP
+     * 
+     * \param contentSize The size in bytes of the package-content
      * 
      * Returns zero on success or one of the RTPBufferStatus-codes listed in RTPBuffer.h
      */
-    RTPBufferStatus addPackage(const RTPPackage &package);
+    RTPBufferStatus addPackage(RTPPackage &package, unsigned int contentSize);
     
     /*!
      * Reads the oldest package in the buffer and writes it into the package-variable
      * \param A placeholder for the package to read, must be allocated on the HEAP
-     * 
-     * Note: Space can be allocated with: RTPPackage *package = (RTPPackage *)malloc(sizeof(RTPPackage));
      * 
      * Returns zero on success or one if the RTPBufferStatus-codes listed in RTPBuffer.h
      */
@@ -59,9 +60,28 @@ public:
     uint16_t getSize();
 private:
     /*!
+     * Internal data structure to buffer RTP packages
+     */
+    struct RTPBufferPackage
+    {
+        /*!
+         * The RTPHeader
+         */
+        RTPHeader header;
+        /*!
+         * The package size in bytes (size of the content)
+         */
+        unsigned int contentSize;
+        /*!
+         * The package data
+         */
+        void *packageContent;
+    };
+    
+    /*!
      * The ring-buffer containing the packages
      */
-    RTPPackage *ringBuffer;
+    RTPBuffer::RTPBufferPackage *ringBuffer;
     /*!
      * The maximum entries in the buffer, size of the array
      */
@@ -88,6 +108,17 @@ private:
      * Increments the index in the ring
      */
     uint16_t incrementIndex(uint16_t index);
+    
+    /*!
+     * The minimum Sequence number still in buffer.
+     * This should be the last sequence-number read from the buffer +1
+     */
+    uint16_t minSequenceNumber;
+    
+    /*!
+     * Calculates the new index in the buffer
+     */
+    uint16_t calculateIndex(uint16_t index, uint16_t offset);
 };
 
 #endif	/* RTPBUFFER_H */

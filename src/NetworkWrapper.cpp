@@ -1,7 +1,11 @@
-#include <sys/socket.h>
-#include <unistd.h>
-
 #include "NetworkWrapper.h"
+
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <sys/socket.h> // close()
+#include <unistd.h>
+#endif
 
 int NetworkWrapper::getLastError()
 {
