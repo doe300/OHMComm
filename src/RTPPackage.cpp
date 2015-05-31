@@ -7,29 +7,7 @@
 
 #include "RTPPackage.h"
 
-
-auto RTPPackage::getNewRTPPackage(void* data) -> void*
-{
-	// make the header ready
-	rtpheader.version = 2;
-	rtpheader.padding = 0;
-	rtpheader.extension = 0;
-	rtpheader.csrc_count = 0;
-	rtpheader.marker = 0;
-	rtpheader.payload_type = this->payloadType;
-	rtpheader.sequence_number = this->sequenceNr++;
-	rtpheader.timestamp = timestamp++; // TODO, get current timestamp
-	rtpheader.ssrc = 0; //TODO random ssrc
-
-	// write into buffer
-
-	memcpy((char*)newRTPPackage_Buffer, &rtpheader, rtp_header_size);
-	memcpy((char*)(newRTPPackage_Buffer)+rtp_header_size, data, dataSize);
-
-	return newRTPPackage_Buffer;
-}
-
-RTPPackage::RTPPackage(unsigned int dataSize, unsigned int rtp_header_size)
+RTPPackage::RTPPackage(unsigned int dataSize, unsigned int rtp_header_size, PayloadType payloadType)
 {
 	this->dataSize = dataSize;
 	this->rtp_header_size = rtp_header_size;
@@ -47,8 +25,28 @@ RTPPackage::RTPPackage(unsigned int dataSize, unsigned int rtp_header_size)
 	sequenceNr = getRandomNumber();
 	timestamp = getTimestamp();
 	ssrc = getAudioSourceId();
-	// TODO, payloadType not correct
-	payloadType = PayloadType::L16_2;
+	this->payloadType = payloadType;
+}
+
+auto RTPPackage::getNewRTPPackage(void* data) -> void*
+{
+	// make the header ready
+	rtpheader.version = 2;
+	rtpheader.padding = 0;
+	rtpheader.extension = 0;
+	rtpheader.csrc_count = 0;
+	rtpheader.marker = 0;
+	rtpheader.payload_type = this->payloadType;
+	rtpheader.sequence_number = this->sequenceNr++;
+	rtpheader.timestamp = timestamp++; // TODO, need to make sure, timestamp is incremented time linear and precise enough
+	rtpheader.ssrc = this->ssrc;
+
+	// write into buffer
+
+	memcpy((char*)newRTPPackage_Buffer, &rtpheader, rtp_header_size);
+	memcpy((char*)(newRTPPackage_Buffer)+rtp_header_size, data, dataSize);
+
+	return newRTPPackage_Buffer;
 }
 
 auto RTPPackage::getDataFromRTPPackage(void *rtpPackage) -> void*
@@ -80,16 +78,16 @@ unsigned int RTPPackage::getRandomNumber()
 	return this->randomGenerator();
 }
 
-//TODO Implementation incomplete
 unsigned int RTPPackage::getTimestamp()
 {
-	return 5; 
+    //start timestamp should be a random number
+    return this->randomGenerator(); 
 }
 
-//TODO Implementation incomplete
 unsigned int RTPPackage::getAudioSourceId()
 {
-	return 5;
+    //SSRC should be a random number
+    return this->randomGenerator();
 }
 
 auto RTPPackage::getPacketSizeRTPPackage() -> unsigned int

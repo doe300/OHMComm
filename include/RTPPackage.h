@@ -245,43 +245,77 @@ enum PayloadType
 class RTPPackage
 {
 public:
-    //TODO this is wrong, header could have different size
-	RTPPackage(unsigned int dataSize, unsigned int rtp_header_size = RTP_HEADER_MIN_SIZE);
-	auto getNewRTPPackage(void* data)->void*;
-	auto getDataFromRTPPackage(void *rtpPackage) -> void*;
-	auto getHeaderFromRTPPackage(void *rtpPackage) -> void*;
-	auto getDataFromRTPPackage() -> void*;
-	auto getHeaderFromRTPPackage() -> void*;
-        /*!
-         * Gets the total size for the RTP package (header + body)
-         */
-	auto getPacketSizeRTPPackage() -> unsigned int;
-	auto getRecvBuffer() -> void*;
+    /*!
+     * Constructs a new RTPPackage-object
+     * 
+     * \param dataSize The maximum size in bytes of the payload
+     * 
+     * \param rtp_header_size The size in bytes of the RTPHeader, defaults to RTP_HEADER_MIN_SIZE
+     * 
+     * \param payloadType The PayloadType, defaults to L16_2
+     */
+    RTPPackage(unsigned int dataSize, unsigned int rtp_header_size = RTP_HEADER_MIN_SIZE, PayloadType payloadType = L16_2);
+    /*!
+     * Generates a new RTP-package by generating the header and copying the payload-data
+     * 
+     * \param data The payload for the new RTP-package
+     * 
+     * Returns the pointer to the internal buffer storing the new package
+     */
+    auto getNewRTPPackage(void* data)->void*;
+    /*!
+     * \param rtpPackage The complete RTP-package (header + payload)to read from
+     * 
+     * Returns the pointer to the payload of the RTP-package
+     */
+    auto getDataFromRTPPackage(void *rtpPackage) -> void*;
+    /*!
+     * \param rtpPackage The complete RTP-package (header + payload)to read from
+     * 
+     * Returns the pointer to the header of the RTP-package
+     */
+    auto getHeaderFromRTPPackage(void *rtpPackage) -> void*;
+    /*!
+     * Returns the pointer to the payload of the internal receive-buffer (see getRecvBuffer())
+     */
+    auto getDataFromRTPPackage() -> void*;
+    /*!
+     * Returns the pointer to the header of the internal receive-buffer (see getRecvBuffer())
+     */
+    auto getHeaderFromRTPPackage() -> void*;
+    /*!
+     * Gets the total size for the RTP package (header + body)
+     */
+    auto getPacketSizeRTPPackage() -> unsigned int;
+    /*!
+     * Returns the internal buffer to be written into on receiving packages
+     */
+    auto getRecvBuffer() -> void*;
 private:
-	// When a new RTP-Package is created, it will be written in this buffer
-	void *newRTPPackage_Buffer;
+    // When a new RTP-Package is created, it will be written in this buffer
+    void *newRTPPackage_Buffer;
 
-	// A buffer that can store a whole RTP-Package
-	void *rtpPackageRecv_Buffer;
+    // A buffer that can store a whole RTP-Package
+    void *rtpPackageRecv_Buffer;
 
-	// When data from RTP-Package is read, audio data will be saved in this buffer
-	void *readAudioDataFromRTPPackage_Buffer;
-	
-	// When data from RTP-Package is read, header will be saved in this buffer
-	void *readRTPHeaderFromRTPPackage_Buffer;
+    // When data from RTP-Package is read, audio data will be saved in this buffer
+    void *readAudioDataFromRTPPackage_Buffer;
 
-	unsigned int getRandomNumber();
-	unsigned int getTimestamp();
-	unsigned int getAudioSourceId();
+    // When data from RTP-Package is read, header will be saved in this buffer
+    void *readRTPHeaderFromRTPPackage_Buffer;
 
-	std::mt19937 randomGenerator;
-	RTPHeader rtpheader;
-	unsigned int sequenceNr;
-	unsigned int timestamp;
-	unsigned int ssrc;
-	unsigned int payloadType;
-	unsigned int rtp_header_size;
-	unsigned int dataSize;
+    unsigned int getRandomNumber();
+    unsigned int getTimestamp();
+    unsigned int getAudioSourceId();
+
+    std::mt19937 randomGenerator;
+    RTPHeader rtpheader;
+    unsigned int sequenceNr;
+    unsigned int timestamp;
+    unsigned int ssrc;
+    unsigned int payloadType;
+    unsigned int rtp_header_size;
+    unsigned int dataSize;
 };
 
 #endif	/* RTPPACKAGE_H */
