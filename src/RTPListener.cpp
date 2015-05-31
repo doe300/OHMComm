@@ -52,8 +52,15 @@ void RTPListener::runThread()
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
-        //2. write package to buffer
-        //buffer->addPackage(*receivedPackage, receivedSize - RTP_HEADER_MIN_SIZE);
+        else
+        {
+            //2. write package to buffer
+            if(buffer->addPackage(*receivedPackage, receivedSize - RTP_HEADER_MIN_SIZE) == RTP_BUFFER_INPUT_OVERFLOW)
+            {
+                //TODO some handling or simply discard?
+                std::cerr << "Input Buffer overflow" << std::endl;
+            }
+        }
     }
 }
 

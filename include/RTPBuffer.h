@@ -10,6 +10,8 @@
 
 #include "RTPPackage.h"
 
+#include <mutex>
+
 typedef uint8_t RTPBufferStatus;
 static const RTPBufferStatus RTP_BUFFER_ALL_OKAY = 0;
 /*!
@@ -59,11 +61,21 @@ public:
      */
     uint16_t getSize();
 private:
+    
+    /*!
+     * Mutex guarding all access to ringBuffer, nextReadIndex, size and minSequenceNumber
+     */
+    std::mutex bufferMutex;
+    
     /*!
      * Internal data structure to buffer RTP packages
      */
     struct RTPBufferPackage
     {
+        /*!
+         * The valid-state of the buffer entry
+         */
+        bool isValid;
         /*!
          * The RTPHeader
          */
@@ -75,7 +87,7 @@ private:
         /*!
          * The package data
          */
-        void *packageContent;
+        void *packageContent = NULL;
     };
     
     /*!
@@ -85,19 +97,15 @@ private:
     /*!
      * The maximum entries in the buffer, size of the array
      */
-    uint16_t capacity;
+    const uint16_t capacity;
     /*!
      * The maximum delay (in milliseconds) before dropping a package
      */
-    uint16_t maxDelay;
-    /*!
-     * The index to write the next package to
-     */
-    uint16_t writeIndex;
+    const uint16_t maxDelay;
     /*!
      * The index to read the next package from, the last position in the buffer
      */
-    uint16_t readIndex;
+    uint16_t nextReadIndex;
     
     /*!
      * The number of buffered elements
@@ -110,7 +118,7 @@ private:
     uint16_t incrementIndex(uint16_t index);
     
     /*!
-     * The minimum Sequence number still in buffer.
+     * The minimum sequence number still in buffer.
      * This should be the last sequence-number read from the buffer +1
      */
     uint16_t minSequenceNumber;
