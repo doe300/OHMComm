@@ -11,6 +11,8 @@ RtAudioWrapper::RtAudioWrapper()
 	#else
 		/* TODO, two linux semaphores needed */
 	#endif
+
+        streamData = new StreamData();
 }
 
 RtAudioWrapper::RtAudioWrapper(const AudioConfiguration &audioConfig) : RtAudioWrapper()
@@ -53,6 +55,9 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
 		std::cout << "Underflow\n";
 	}
 
+        streamData->nBufferFrames = nBufferFrames;
+        //streamTime is the number of seconds since start of stream, so we convert to number of microseconds
+        streamData->streamTime = lround(streamTime * 1000000);
 
 	if (BufferAudioOutHasData)
 	{
@@ -83,10 +88,10 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
 	}
 
 	if (inputBuffer != NULL)
-		this->processAudioInput(inputBuffer, inputBufferByteSize);
+		this->processAudioInput(inputBuffer, inputBufferByteSize, streamData);
 
 	if (outputBuffer != NULL)
-		this->processAudioOutput(outputBuffer, outputBufferByteSize);
+		this->processAudioOutput(outputBuffer, outputBufferByteSize, streamData);
 
 	return 0;
 }

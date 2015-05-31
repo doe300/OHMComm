@@ -260,9 +260,11 @@ public:
      * 
      * \param data The payload for the new RTP-package
      * 
+     * \param timestamp The timestamp, the new package is at
+     * 
      * Returns the pointer to the internal buffer storing the new package
      */
-    auto getNewRTPPackage(void* data)->void*;
+    auto getNewRTPPackage(void* data, unsigned int timestamp)->void*;
     /*!
      * \param rtpPackage The complete RTP-package (header + payload)to read from
      * 

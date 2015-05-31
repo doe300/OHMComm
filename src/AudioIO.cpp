@@ -66,18 +66,18 @@ auto AudioIO::hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool
 	return false;
 }
 
-void AudioIO::processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, void *userData1, void *userData2)
+void AudioIO::processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData)
 {
 	for (auto i = audioProcessors.size(); i > 0; i--)
 	{
-		audioProcessors.at(i-1)->processOutputData(outputBuffer, outputBufferByteSize);
+		audioProcessors.at(i-1)->processOutputData(outputBuffer, outputBufferByteSize, streamData);
 	}
 }
 
-void AudioIO::processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, void *userData1, void *userData2)
+void AudioIO::processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, StreamData *streamData)
 {
 	for (auto processor : audioProcessors)
 	{
-		processor->processInputData(inputBuffer, inputBufferByteSize);
+		processor->processInputData(inputBuffer, inputBufferByteSize, streamData);
 	}
 }

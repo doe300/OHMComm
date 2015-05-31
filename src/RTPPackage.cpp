@@ -28,7 +28,7 @@ RTPPackage::RTPPackage(unsigned int dataSize, unsigned int rtp_header_size, Payl
 	this->payloadType = payloadType;
 }
 
-auto RTPPackage::getNewRTPPackage(void* data) -> void*
+auto RTPPackage::getNewRTPPackage(void* data, unsigned int timestamp) -> void*
 {
 	// make the header ready
 	rtpheader.version = 2;
@@ -38,7 +38,7 @@ auto RTPPackage::getNewRTPPackage(void* data) -> void*
 	rtpheader.marker = 0;
 	rtpheader.payload_type = this->payloadType;
 	rtpheader.sequence_number = this->sequenceNr++;
-	rtpheader.timestamp = timestamp++; // TODO, need to make sure, timestamp is incremented time linear and precise enough
+	rtpheader.timestamp = timestamp;
 	rtpheader.ssrc = this->ssrc;
 
 	// write into buffer

@@ -5,6 +5,23 @@
 #include <string>
 
 /*!
+ * Information about the stream to be passed to the process-methods of AudioProcessor.
+ * Details of the values are specified by the used AudioIO
+ */
+struct StreamData
+{
+    /*!
+     * The number of frames in the buffer
+     */
+    unsigned int nBufferFrames;
+    
+    /*!
+     * The current time in the stream (i.e. elasped microseconds)
+     */
+    unsigned int streamTime;
+};
+
+/*!
  * Abstract supertype for all classes used for intermediate handling of the input/output stream.
  * 
  * An implementation of this class may be used to encode/decode, filter or compress/decompress the input- and output-streams.
@@ -31,8 +48,8 @@ public:
 	 * The actual processing methods. processInputData is the counterpart of processInputData 
 	 * (and also the other way around).
 	 */
-	virtual void processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, void *userData = NULL) = 0;
-	virtual void processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, void *userData = NULL) = 0;
+	virtual void processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData) = 0;
+	virtual void processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) = 0;
 private:
 	std::string name;
 };

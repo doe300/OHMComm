@@ -69,7 +69,8 @@ private:
 	bool isAudioConfigSet = false;
 	unsigned int outputBufferByteSize = {0};
 	unsigned int inputBufferByteSize = {0};
-
+        
+        StreamData *streamData;
 
 	/* preparing for a openstream call */
 	void initRtAudioStreamParameters(); 

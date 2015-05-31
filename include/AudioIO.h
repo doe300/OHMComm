@@ -37,8 +37,8 @@ protected:
 	std::vector<AudioProcessor*> audioProcessors;
 	auto hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool;
 	auto hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool;
-	void processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, void *userData1 = NULL, void *userData2 = NULL);
-	void processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, void *userData1 = NULL, void *userData2 = NULL);
+	void processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData);
+	void processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, StreamData *streamData);
 };
 
 #endif

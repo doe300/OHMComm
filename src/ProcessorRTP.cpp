@@ -5,18 +5,18 @@ ProcessorRTP::ProcessorRTP(std::string name, NetworkWrapper *networkwrapper) : A
 	this->networkObject = networkwrapper;
 }
 
-void ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, void *userData)
+void ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
 	// pack data into a rtp-package
 	if (rtpPackage == NULL)
 	{
 		rtpPackage = new RTPPackage(inputBufferByteSize);
 	}
-	void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer);
+	void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer, userData->streamTime);
 	this->networkObject->sendDataNetworkWrapper(newRTPPackage, rtpPackage->getPacketSizeRTPPackage());
 }
 
-void ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, void *userData)
+void ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
 	// unpack data from a rtp-package
 	if (rtpPackage == NULL)
