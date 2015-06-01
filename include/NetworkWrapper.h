@@ -15,18 +15,33 @@
 class NetworkWrapper
 {
 public:
-	virtual void sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0) = 0;
-	virtual void recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0) = 0;
-        
-        /*!
-         * Static method for retrieving the last error code
-         */
-        static int getLastError();
-        
-        /*!
-         * Static method for closing socket platform independent
-         */
-        static void closeSocket(int fd);
+    /*!
+     * \param buffer The buffer to send
+     * 
+     * \param bufferSize The number of bytes to send
+     * 
+     * Returns the number of bytes sent
+     */
+    virtual int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0) = 0;
+    
+    /*!
+     * \param buffer The buffer to receive into
+     * 
+     * \param bufferSize The maximum number of bytes to receive
+     * 
+     * Returns the number of bytes received
+     */
+    virtual int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0) = 0;
+
+    /*!
+     * Returns the last error code
+     */
+    int getLastError();
+
+    /*!
+     * Closes the underlying socket
+     */
+    void closeSocket(int fd);
 };
 
 #endif

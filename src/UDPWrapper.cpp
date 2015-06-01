@@ -73,12 +73,12 @@ void UDPWrapper::createSocket()
 	}
 }
 
-void UDPWrapper::sendDataNetworkWrapper(void *buffer, unsigned int bufferSize)
+int UDPWrapper::sendDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 {
-	sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->addressDataOutgoing, sizeof(addressDataOutgoing));
+	return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->addressDataOutgoing, sizeof(addressDataOutgoing));
 }
 
-void UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
+int UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 {
 	#ifdef _WIN32
 	int remoteAddrLen = sizeof(addressDataIncoming);
@@ -87,6 +87,7 @@ void UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 	#endif
 	int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->addressDataIncoming, &remoteAddrLen);
 	if (result == -1)
-		std::cout << this->getLastError();
+		std::cerr << this->getLastError();
+        return result;
 }
 

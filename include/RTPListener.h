@@ -27,7 +27,7 @@
 class RTPListener
 {
 public:
-    RTPListener(const sockaddr *receiveAddress, RTPBuffer *buffer, unsigned int receiveBufferSize);
+    RTPListener(NetworkWrapper *wrapper, RTPBuffer *buffer, unsigned int receiveBufferSize);
     RTPListener(const RTPListener& orig);
     virtual ~RTPListener();
     
@@ -41,13 +41,9 @@ public:
      */
     void startUp();
 private:
-    /*!
-     * The socket to listen on
-     */
-    int receiveSocket;
+    NetworkWrapper *wrapper;
     RTPBuffer *buffer;
     RTPPackage *receivedPackage;
-    const sockaddr *receiveAddress;
     std::thread receiveThread;
     bool threadRunning = false;
     

@@ -7,16 +7,16 @@
 
 #include "RTPListener.h"
 
-RTPListener::RTPListener(const sockaddr *receiveAddress, RTPBuffer *buffer, unsigned int receiveBufferSize)
+RTPListener::RTPListener(NetworkWrapper *wrapper, RTPBuffer *buffer, unsigned int receiveBufferSize)
 {
-    this->receiveAddress = receiveAddress;
+    this->wrapper = wrapper;
     this->buffer = buffer;
     receivedPackage = new RTPPackage(receiveBufferSize);
 }
 
 RTPListener::RTPListener(const RTPListener& orig)
 {
-    this->receiveAddress = orig.receiveAddress;
+    this->wrapper = orig.wrapper;
     this->buffer = orig.buffer;
 }
 
@@ -29,25 +29,14 @@ void RTPListener::startUp()
 {
     threadRunning = true;
     receiveThread = std::thread(&RTPListener::runThread, this);
-    int connectionType = networkConfiguration.connectionType == NetworkConfiguration::ConnectionType::TCP ? SOCK_STREAM : SOCK_DGRAM;
-    receiveSocket = socket(AF_INET, connectionType, 0);
-    if (bind(receiveSocket, receiveAddress, sizeof(receiveAddress)) == SOCKET_ERROR)
-    {
-            std::cerr << "Error binding the socket: " << NetworkWrapper::getLastError() << std::endl;
-            return;
-    }
-    else
-    {
-            std::cout << "Local port bound." << std::endl;
-    }
 }
 
 void RTPListener::runThread()
 {
-    while(receiveSocket >= 0 && threadRunning)
+    while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
-        int receivedSize = recv(receiveSocket, (char *)receivedPackage->getRecvBuffer(), receivedPackage->getPacketSizeRTPPackage(), 0);
+        int receivedSize = this->wrapper->recvDataNetworkWrapper(receivedPackage->getRecvBuffer(), receivedPackage->getPacketSizeRTPPackage());
         if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
         {
             //just continue to next loop iteration, checking if thread should continue running
@@ -68,7 +57,5 @@ void RTPListener::shutdown()
 {
     //notify the thread to stop
     threadRunning = false;
-    NetworkWrapper::closeSocket(receiveSocket);
-    receiveSocket = INVALID_SOCKET;
 }
 

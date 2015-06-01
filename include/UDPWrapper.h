@@ -36,8 +36,8 @@ public:
 
 	void InitializeNetworkConfig(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing);
 
-	void sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
-	void recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
+	int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
+	int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
 protected:
 	int Socket;
     sockaddr_in addressDataIncoming;
