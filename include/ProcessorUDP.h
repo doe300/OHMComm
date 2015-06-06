@@ -5,7 +5,7 @@
 #include "AudioProcessor.h"
 #include "UDPWrapper.h"
 
-class ProcessorUDP : UDPWrapper, AudioProcessor
+class ProcessorUDP : public UDPWrapper, AudioProcessor
 {
 public:
 	ProcessorUDP(std::string name, struct NetworkConfiguration networkConfig);

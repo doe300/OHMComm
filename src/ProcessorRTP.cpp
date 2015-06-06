@@ -1,8 +1,9 @@
 #include "ProcessorRTP.h"
 
-ProcessorRTP::ProcessorRTP(std::string name, NetworkWrapper *networkwrapper) : AudioProcessor(name) 
+ProcessorRTP::ProcessorRTP(std::string name, NetworkWrapper *networkwrapper, std::unique_ptr<RTPBuffer> *buffer) : AudioProcessor(name) 
 {
 	this->networkObject = networkwrapper;
+        this->rtpBuffer = buffer;
 }
 
 void ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
@@ -23,7 +24,9 @@ void ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outp
 	{
 		rtpPackage = new RTPPackage(outputBufferByteSize);
 	}
-	this->networkObject->recvDataNetworkWrapper(rtpPackage->getRecvBuffer(), rtpPackage->getPacketSizeRTPPackage());
-	void* recvAudioData = rtpPackage->getDataFromRTPPackage();
-	memcpy(outputBuffer, recvAudioData, outputBufferByteSize);
+//	this->networkObject->recvDataNetworkWrapper(rtpPackage->getRecvBuffer(), rtpPackage->getPacketSizeRTPPackage());
+        //read package from buffer
+        (*rtpBuffer)->readPackage(*rtpPackage);
+        void* recvAudioData = rtpPackage->getDataFromRTPPackage();
+        memcpy(outputBuffer, recvAudioData, outputBufferByteSize);
 }

@@ -37,7 +37,7 @@ auto RTPPackage::getNewRTPPackage(void* data, unsigned int timestamp) -> void*
 	rtpheader.csrc_count = 0;
 	rtpheader.marker = 0;
 	rtpheader.payload_type = this->payloadType;
-	rtpheader.sequence_number = this->sequenceNr++;
+	rtpheader.sequence_number = (this->sequenceNr++) % UINT16_MAX;
 	rtpheader.timestamp = timestamp;
 	rtpheader.ssrc = this->ssrc;
 

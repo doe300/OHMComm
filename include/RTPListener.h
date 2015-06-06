@@ -27,7 +27,7 @@
 class RTPListener
 {
 public:
-    RTPListener(NetworkWrapper *wrapper, RTPBuffer *buffer, unsigned int receiveBufferSize);
+    RTPListener(NetworkWrapper *wrapper, std::unique_ptr<RTPBuffer> *buffer, unsigned int receiveBufferSize);
     RTPListener(const RTPListener& orig);
     virtual ~RTPListener();
     
@@ -42,7 +42,7 @@ public:
     void startUp();
 private:
     NetworkWrapper *wrapper;
-    RTPBuffer *buffer;
+    std::unique_ptr<RTPBuffer> *buffer;
     RTPPackage *receivedPackage;
     std::thread receiveThread;
     bool threadRunning = false;
