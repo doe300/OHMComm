@@ -87,7 +87,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
     {
         //buffer is empty
         //write placeholder package
-        void *packageBuffer = package.getRecvBuffer();
+        char *packageBuffer = (char *)package.getRecvBuffer();
         memcpy(packageBuffer, &(silencePackage.header), sizeof(silencePackage.header));
         memcpy(packageBuffer + sizeof(silencePackage.header), silencePackage.packageContent, silencePackage.contentSize);
         bufferMutex.unlock();
@@ -112,7 +112,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
         bufferMutex.unlock();
         return RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
-    void *packageBuffer = package.getRecvBuffer();
+    char *packageBuffer = (char *)package.getRecvBuffer();
     memcpy(packageBuffer, &(bufferPack->header), sizeof(bufferPack->header));
     memcpy(packageBuffer + sizeof(bufferPack->header), bufferPack->packageContent, bufferPack->contentSize);
     //Invalidate buffer-entry
