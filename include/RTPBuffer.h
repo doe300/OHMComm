@@ -10,7 +10,12 @@
 
 #include "RTPPackage.h"
 
-#include <mutex>
+#ifdef _WIN32
+#include <windows.h>    //mutex
+#else
+#include <mutex>    //std::mutex
+#endif
+
 #include <memory> //for std::unique_ptr<RTPBuffer>
 
 typedef uint8_t RTPBufferStatus;
@@ -66,7 +71,11 @@ private:
     /*!
      * Mutex guarding all access to ringBuffer, nextReadIndex, size and minSequenceNumber
      */
+    #ifdef _WIN32
+    HANDLE bufferMutex;
+    #else
     std::mutex bufferMutex;
+    #endif
     
     /*!
      * Internal data structure to buffer RTP packages
@@ -139,6 +148,10 @@ private:
      * \param package The RTPPackage to write the silence into
      */
     void generateSilencePackage();
+    
+    void lockMutex();
+    
+    void unlockMutex();
 };
 
 #endif	/* RTPBUFFER_H */

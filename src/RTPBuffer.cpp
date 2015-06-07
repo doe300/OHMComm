@@ -21,6 +21,9 @@ RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay): capacity(maxCapac
     minSequenceNumber = 0;
     //initialize silence package
     generateSilencePackage();
+    #ifdef _WIN32
+    bufferMutex = CreateMutex(NULL, false, "BufferMutex");
+    #endif
 }
 
 RTPBuffer::RTPBuffer(const RTPBuffer& orig): capacity(orig.capacity), maxDelay(orig.maxDelay)
@@ -38,7 +41,7 @@ RTPBuffer::~RTPBuffer()
 
 RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentSize)
 {
-    bufferMutex.lock();
+    lockMutex();
     RTPHeader *receivedHeader = (RTPHeader *)package.getHeaderFromRTPPackage();
     if(minSequenceNumber == 0)
     {
@@ -48,19 +51,19 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentS
     if(receivedHeader->sequence_number < minSequenceNumber)
     {
         //discard package, because it is older than the minimum sequence number to hold
-        bufferMutex.unlock();
+        unlockMutex();
         return RTP_BUFFER_ALL_OKAY;
     }
     if(size == capacity)
     {
         //buffer is full
-        bufferMutex.unlock();
+        unlockMutex();
         return RTP_BUFFER_INPUT_OVERFLOW;
     }
     if(receivedHeader->sequence_number - minSequenceNumber >= capacity)
     {
         //package is far too new -> we have now choice but to discard it without getting into an undetermined state
-        bufferMutex.unlock();
+        unlockMutex();
         return RTP_BUFFER_INPUT_OVERFLOW;
     }
     uint16_t newWriteIndex = calculateIndex(nextReadIndex, receivedHeader->sequence_number-minSequenceNumber);
@@ -76,13 +79,13 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentS
     memcpy(ringBuffer[newWriteIndex].packageContent, package.getDataFromRTPPackage(), contentSize);
     //update size
     size++;
-    bufferMutex.unlock();
+    unlockMutex();
     return RTP_BUFFER_ALL_OKAY;
 }
 
 RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
 {
-    bufferMutex.lock();
+    lockMutex();
     if(size <= 0)
     {
         //buffer is empty
@@ -90,7 +93,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
         char *packageBuffer = (char *)package.getRecvBuffer();
         memcpy(packageBuffer, &(silencePackage.header), sizeof(silencePackage.header));
         memcpy(packageBuffer + sizeof(silencePackage.header), silencePackage.packageContent, silencePackage.contentSize);
-        bufferMutex.unlock();
+        unlockMutex();
         return RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
     //need to search for oldest valid package, newer than minSequenceNumber
@@ -109,7 +112,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
     if(bufferPack->isValid == false)
     {
         //no valid packages found -> should never occur, because size was > 0
-        bufferMutex.unlock();
+        unlockMutex();
         return RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
     char *packageBuffer = (char *)package.getRecvBuffer();
@@ -122,7 +125,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
     size--;
     //only accept newer packages (at least one sequence number more than last read package)
     minSequenceNumber = (bufferPack->header.sequence_number + 1) % UINT16_MAX;
-    bufferMutex.unlock();
+    unlockMutex();
     return RTP_BUFFER_ALL_OKAY;
 }
 
@@ -163,3 +166,22 @@ void RTPBuffer::generateSilencePackage()
     //fill payload with zero
     memset(silencePackage.packageContent, 0, silencePackage.contentSize);
 }
+
+void RTPBuffer::lockMutex()
+{
+    #ifdef _WIN32
+    WaitForSingleObject(bufferMutex, INFINITE);
+    #else
+    bufferMutex.lock();
+    #endif
+}
+
+void RTPBuffer::unlockMutex()
+{
+    #ifdef _WIN32
+    ReleaseMutex(bufferMutex);
+    #else
+    bufferMutex.unlock();
+    #endif
+}
+
