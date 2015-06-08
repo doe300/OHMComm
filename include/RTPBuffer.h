@@ -124,6 +124,7 @@ private:
     
     /*!
      * The number of buffered elements
+	 * TODO: rename the variable to countOfBufferedPackages?
      */
     uint16_t size;
 
