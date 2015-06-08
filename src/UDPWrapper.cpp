@@ -91,3 +91,28 @@ int UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
         return result;
 }
 
+
+// TODO, check the follwing function
+int UDPWrapper::getLastError()
+{
+	int error;
+
+#ifdef _WIN32
+	error = WSAGetLastError();
+#else
+	error = errno;
+#endif
+
+	return error;
+}
+
+// TODO, check the follwing function
+void UDPWrapper::closeSocket(int fd)
+{
+	shutdown(fd, SHUTDOWN_BOTH);
+#ifdef _WIN32
+	closesocket(fd);
+#else
+	close(fd);
+#endif
+}

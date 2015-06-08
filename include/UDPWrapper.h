@@ -11,13 +11,19 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
-//#include <cstdint>
+
+// TODO, is the following line really needed?
+#define SHUTDOWN_BOTH SD_BOTH   // 2
 #else
 #include <sys/socket.h> // socket(), connect()
 #include <arpa/inet.h> // sockaddr_in
 #include <stdexcept>
 #include <unistd.h> //socklen_t
+
+// TODO, is the following line really needed?
+#define SHUTDOWN_BOTH SHUT_RDWR // 2
 #endif
+
 
 class UDPWrapper : public NetworkWrapper
 {
@@ -38,6 +44,9 @@ public:
 
 	int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
 	int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
+
+	void closeSocket(int fd);
+	int getLastError();
 protected:
 	int Socket;
     sockaddr_in addressDataIncoming;

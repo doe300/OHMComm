@@ -36,12 +36,12 @@ public:
     /*!
      * Returns the last error code
      */
-    int getLastError();
+	virtual int getLastError() = 0;
 
     /*!
      * Closes the underlying socket
      */
-    void closeSocket(int fd);
+	virtual void closeSocket(int fd) = 0;
 };
 
 #endif

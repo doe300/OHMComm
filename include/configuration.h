@@ -8,13 +8,6 @@
 #ifndef CONFIGURATION_H
 #define	CONFIGURATION_H
 
-#ifdef __WIN32
-#include <winsock2.h>
-#else
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#endif
-
 #include <string>
 
 

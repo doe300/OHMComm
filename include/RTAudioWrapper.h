@@ -9,6 +9,7 @@
 #include <string.h> //memcpy
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h> // semaphores
 #else
 /* TODO, linux semaphores needed */
