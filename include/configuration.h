@@ -8,21 +8,7 @@
 #ifndef CONFIGURATION_H
 #define	CONFIGURATION_H
 
-<<<<<<< HEAD
-=======
-#ifdef _WIN32
-#include <winsock2.h>
-#else
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#endif
-
->>>>>>> origin/master
 #include <string>
-
-
-
-
 
 struct NetworkConfiguration {
 	enum ConnectionType { TCP = 1, UDP = 2 };
