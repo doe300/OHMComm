@@ -9,7 +9,6 @@
 #include "configuration.h"
 
 #include <iostream>
-#include <malloc.h>
 
 //TODO implement maxDelay (problem: RTP-timestamp is not guaranteed to be in ms or ns or s, ...)
 
@@ -37,6 +36,7 @@ RTPBuffer::RTPBuffer(const RTPBuffer& orig): capacity(orig.capacity), maxDelay(o
 
 RTPBuffer::~RTPBuffer()
 {
+    delete [] ringBuffer;
 }
 
 RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentSize)

@@ -23,6 +23,7 @@ RTPListener::RTPListener(const RTPListener& orig)
 RTPListener::~RTPListener()
 {
     shutdown();
+    delete receivedPackage;
 }
 
 void RTPListener::startUp()

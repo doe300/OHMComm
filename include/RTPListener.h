@@ -9,15 +9,6 @@
 #define	RTPLISTENER_H
 
 #include <thread>
-#include <malloc.h>
-
-#ifdef _WIN32
-#include <winsock2.h>
-//#include <cstdint>
-#else
-#include <sys/socket.h> // socket(), connect()
-#include <unistd.h> //socklen_t
-#endif
 
 #include "RTPBuffer.h"
 

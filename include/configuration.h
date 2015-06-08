@@ -8,11 +8,11 @@
 #ifndef CONFIGURATION_H
 #define	CONFIGURATION_H
 
-#ifdef __linux__
+#ifdef __WIN32
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#else
-#include <winsock2.h>
 #endif
 
 #include <string>
