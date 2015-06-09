@@ -25,16 +25,6 @@ RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay): capacity(maxCapac
     #endif
 }
 
-// TODO, this copy constructor seems to needless (same behaviour like the normal copy constructor)
-RTPBuffer::RTPBuffer(const RTPBuffer& orig): capacity(orig.capacity), maxDelay(orig.maxDelay)
-{
-    nextReadIndex = orig.nextReadIndex;
-    ringBuffer = orig.ringBuffer;
-    size = orig.size;
-    minSequenceNumber = orig.minSequenceNumber;
-    silencePackage = orig.silencePackage;
-}
-
 RTPBuffer::~RTPBuffer()
 {
     delete [] ringBuffer;
@@ -50,14 +40,15 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentS
         minSequenceNumber = receivedHeader->sequence_number;
     }
 
-	// TODO: What happens if the sequence nummer begins @maxSizeOfSequenceNumber? Then the number begins from zero...
-    if(receivedHeader->sequence_number < minSequenceNumber)
+    //we need to check for upper limit of range, because at some point a wrap around UINT16_MAX is expected behavior
+    // -> if minSequenceNumber is larger than (UINT16_MAX - capacity), sequence_number around zero have to be allowed for
+    if(minSequenceNumber < (UINT16_MAX - capacity) && receivedHeader->sequence_number < minSequenceNumber)
     {
         //discard package, because it is older than the minimum sequence number to hold
         unlockMutex();
         return RTP_BUFFER_ALL_OKAY;
     }
-
+    
     if(size == capacity)
     {
         //buffer is full
@@ -66,10 +57,11 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentS
     }
     if(receivedHeader->sequence_number - minSequenceNumber >= capacity)
     {
-		// TODO: I dont think its smart to discard a new packages. This is only the case when the processing is slow or
-		// previous package were lost while transmitting. And if that is the case when the buffer should not wait 
-		// for old packages and discard all new ones. Instead it should the move the buffer ahead. In order to enable a smooth
-		// processing for the further packages that are comin
+        // TODO: Its not smart to discard new packages. This is only the case when the processing is slow or
+        // previous package were lost while transmitting. And if that is the case when the buffer should not wait 
+        // for old packages and discard all new ones. Instead it should the move the buffer ahead. In order to enable a smooth
+        // processing for the further packages that are coming
+        // -> need to correctly implement maxDelay
 
         //package is far too new -> we have now choice but to discard it without getting into an undetermined state
         unlockMutex();
@@ -79,20 +71,12 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentS
     //write package-data into buffer
     ringBuffer[newWriteIndex].isValid = true;
 
-	// TODO: this is a pointer to the heap, is it smart to use a pointer here instead of copying the values?
-	// What happens if the values on the heap get changed?
     ringBuffer[newWriteIndex].header = *receivedHeader;
 
-	// TODO: How to get this value? Is that same for all packages?
     ringBuffer[newWriteIndex].contentSize = contentSize;
 
-	// TODO: I would do the following in the constructor...if possible
     if(ringBuffer[newWriteIndex].packageContent == NULL)
     {
-        //if first time writing to this buffer-cell, allocate space
-		// TODO: Consider the case:
-		// First Package: contentSize = 211 Bytes -> packageContent allocates 211 Bytes
-		// Second Package: contentSize = 244 Bytes -> 244 Bytes are written in a buffer of size of 211 Bytes
         ringBuffer[newWriteIndex].packageContent = new char[contentSize];
     }
     memcpy(ringBuffer[newWriteIndex].packageContent, package.getDataFromRTPPackage(), contentSize);
@@ -111,8 +95,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
         //write placeholder package
         char *packageBuffer = (char *)package.getRecvBuffer();
 
-		// TODO: Are the following functions part of the RTPPackage-Class arent they? 
-		// How about code reuse? Maybe refactor RTPPackage-Class
+        // TODO: move to RTPPackage? need to use correct buffer!
         memcpy(packageBuffer, &(silencePackage.header), sizeof(silencePackage.header));
         memcpy(packageBuffer + sizeof(silencePackage.header), silencePackage.packageContent, silencePackage.contentSize);
         unlockMutex();
@@ -138,7 +121,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
         return RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
 
-	// TODO: Code reuse possible?
+    // TODO: move to RTPPackage? need to use correct buffer!
     char *packageBuffer = (char *)package.getRecvBuffer();
     memcpy(packageBuffer, &(bufferPack->header), sizeof(bufferPack->header));
     memcpy(packageBuffer + sizeof(bufferPack->header), bufferPack->packageContent, bufferPack->contentSize);
@@ -161,14 +144,11 @@ uint16_t RTPBuffer::getSize()
 
 uint16_t RTPBuffer::calculateIndex(uint16_t index, uint16_t offset)
 {
-	// TODO: capacity is number of the power of two? 
-	// If yes, what about a bit-shift solution? 
     return (index + offset) % capacity;
 }
 
 uint16_t RTPBuffer::incrementIndex(uint16_t index)
 {
-	// TODO: call calculateIndex(index, 1)
     return (index+1) % capacity;
 }
 
@@ -181,7 +161,6 @@ void RTPBuffer::generateSilencePackage()
     dummyHeader.csrc_count = 0;
     dummyHeader.marker = 0;
     // TODO: how to get to those values?
-	// TODO: are these values even needed? these are control information... just the playback data is relevant?
     dummyHeader.payload_type = L16_2;
     dummyHeader.sequence_number = 0;
     dummyHeader.timestamp = 0;

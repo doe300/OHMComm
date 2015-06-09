@@ -41,7 +41,6 @@ public:
      * \param maxDelay The maximum delay in milliseconds before dropping packages
      */
     RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay);
-    RTPBuffer(const RTPBuffer& orig);
     virtual ~RTPBuffer();
     
     /*!
@@ -124,7 +123,6 @@ private:
     
     /*!
      * The number of buffered elements
-	 * TODO: rename the variable to countOfBufferedPackages?
      */
     uint16_t size;
 
