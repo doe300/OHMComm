@@ -17,7 +17,7 @@
 //dependencies for rtaudio
 #include "RtAudio.h"
 #include "RTAudioWrapper.h"
-#include "ProcessorUDP.h"
+#include "UDPWrapper.h"
 #include "ProcessorRTP.h"
 #include "RTPListener.h"
 
@@ -300,7 +300,7 @@ int main(int argc, char** argv)
                         //XXX make the buffers configurable??
                         networkConfiguration.inputBufferSize = 4096;
 			networkConfiguration.outputBufferSize = 4096;
-                        network = new ProcessorUDP("This is my UDP-Wrapper with an unique Name", networkConfiguration);
+                        network = new UDPWrapper(networkConfiguration);
 		}
 		else
 		{
@@ -312,7 +312,7 @@ int main(int argc, char** argv)
                         //the port should be a number greater than 1024
 			networkConfiguration.portIncoming = 12345;
 			networkConfiguration.portOutgoing = 12345;
-			network = new ProcessorUDP("This is my UDP-Wrapper with an unique Name", networkConfiguration);
+			network = new UDPWrapper(networkConfiguration);
 		}
                 
                 //initialize RTPBuffer and -Listener
