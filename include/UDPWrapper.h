@@ -12,7 +12,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 
-// TODO, is the following line really needed?
+// Defines OS-independant flag to close socket
 #define SHUTDOWN_BOTH SD_BOTH   // 2
 #else
 #include <sys/socket.h> // socket(), connect()
@@ -20,39 +20,41 @@
 #include <stdexcept>
 #include <unistd.h> //socklen_t
 
-// TODO, is the following line really needed?
+// Defines OS-independant flag to close socket
 #define SHUTDOWN_BOTH SHUT_RDWR // 2
 #endif
 
-
+/*!
+ * NetworkWrapper implementation using the UDP protocol
+ */
 class UDPWrapper : public NetworkWrapper
 {
 public:
-	UDPWrapper(sockaddr_in addressDataIncoming, sockaddr_in addressDataOutgoing, unsigned int outputBufferSize, unsigned int inputBufferSize);
+    UDPWrapper(sockaddr_in localAddress, sockaddr_in remoteAddress, unsigned int outputBufferSize, unsigned int inputBufferSize);
 
-	UDPWrapper(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing, unsigned int outputBufferSize, unsigned int inputBufferSize);
+    UDPWrapper(std::string localIPAddress, unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing, unsigned int outputBufferSize, unsigned int inputBufferSize);
 
-	UDPWrapper(struct NetworkConfiguration networkConfig);
+    UDPWrapper(struct NetworkConfiguration networkConfig);
 
-	void initializeNetwork();
+    void initializeNetwork();
 
-	void startWinsock();
+    void startWinsock();
 
-	void createSocket();
+    void createSocket();
 
-	void InitializeNetworkConfig(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing);
+    void InitializeNetworkConfig(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing);
 
-	int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
-	int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
+    int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
+    int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
 
-	void closeSocket(int fd);
-	int getLastError();
+    void closeSocket(int fd);
+    int getLastError();
 protected:
-	int Socket;
-    sockaddr_in addressDataIncoming;
-	sockaddr_in addressDataOutgoing;
-	unsigned int outputBufferSize = 0;
-	unsigned int inputBufferSize = 0;
+    int Socket;
+    sockaddr_in localAddress;
+    sockaddr_in remoteAddress;
+    unsigned int outputBufferSize = 0;
+    unsigned int inputBufferSize = 0;
 };
 
 

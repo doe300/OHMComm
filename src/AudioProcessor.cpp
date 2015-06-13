@@ -7,7 +7,7 @@ AudioProcessor::AudioProcessor(std::string name) : name(name) {}
 /*
  * region: getters and setters
  */
-auto AudioProcessor::getName() const -> std::string
+const std::string AudioProcessor::getName()
 {
 	return name;
 }

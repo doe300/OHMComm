@@ -8,6 +8,11 @@
 
 typedef std::unique_ptr<AudioProcessor> ptrAudioProcessor;
 
+/*!
+ * Base class for Audio framework.
+ * 
+ * Implementations of this class wrap a specific audio library
+ */
 class AudioIO
 {
 public:

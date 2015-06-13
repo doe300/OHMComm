@@ -6,7 +6,7 @@
 
 /*!
  * Information about the stream to be passed to the process-methods of AudioProcessor.
- * Details of the values are specified by the used AudioIO
+ * Details of the values are specified by the used AudioIO-implementation
  */
 struct StreamData
 {
@@ -34,13 +34,13 @@ class AudioProcessor
 public:
 	AudioProcessor(std::string name);
 
-	auto getName() const -> std::string;
+	const std::string getName();
 	void setName(std::string name);
 
         /*!
          * Overwrite this method, if this AudioProcessor needs configuration
          * 
-         * For the style of configuration, see OhmComm.cpp
+         * Any implementation of this method can use the methods from UserInput.h
          */
         void configure();
         

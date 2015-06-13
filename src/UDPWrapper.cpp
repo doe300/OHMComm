@@ -1,13 +1,13 @@
 #include "UDPWrapper.h"
 
-UDPWrapper::UDPWrapper(sockaddr_in addressDataIncoming, sockaddr_in addressDataOutgoing, unsigned int outputBufferSize, unsigned int inputBufferSize) :
-addressDataIncoming(addressDataIncoming), addressDataOutgoing(addressDataOutgoing), outputBufferSize(outputBufferSize), inputBufferSize(inputBufferSize)
+UDPWrapper::UDPWrapper(sockaddr_in localAddress, sockaddr_in remoteAddress, unsigned int outputBufferSize, unsigned int inputBufferSize) :
+localAddress(localAddress), remoteAddress(remoteAddress), outputBufferSize(outputBufferSize), inputBufferSize(inputBufferSize)
 {}
 
-UDPWrapper::UDPWrapper(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing, unsigned int outputBufferSize, unsigned int inputBufferSize) :
+UDPWrapper::UDPWrapper(std::string localIPAddress, unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing, unsigned int outputBufferSize, unsigned int inputBufferSize) :
 outputBufferSize(outputBufferSize), inputBufferSize(inputBufferSize)
 {
-	InitializeNetworkConfig(addressIncoming, portIncoming, addressOutgoing, portOutgoing);
+	InitializeNetworkConfig(localIPAddress, portIncoming, remoteIPAddress, portOutgoing);
 	initializeNetwork();
 }
 
@@ -35,15 +35,15 @@ void UDPWrapper::startWinsock()
 
 void UDPWrapper::InitializeNetworkConfig(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing)
 {
-	this->addressDataIncoming.sin_family = AF_INET;
-	this->addressDataIncoming.sin_port = htons(portIncoming);
+	this->localAddress.sin_family = AF_INET;
+	this->localAddress.sin_port = htons(portIncoming);
 	unsigned long addr1 = inet_addr(addressIncoming.c_str());
-	memcpy((char *)&this->addressDataIncoming.sin_addr, &addr1, sizeof(addr1));
+	memcpy((char *)&this->localAddress.sin_addr, &addr1, sizeof(addr1));
 
-	this->addressDataOutgoing.sin_family = AF_INET;
-	this->addressDataOutgoing.sin_port = htons(portOutgoing);
+	this->remoteAddress.sin_family = AF_INET;
+	this->remoteAddress.sin_port = htons(portOutgoing);
 	unsigned long addr2 = inet_addr(addressOutgoing.c_str());
-	memcpy((char *)&this->addressDataOutgoing.sin_addr, &addr2, sizeof(addr2));
+	memcpy((char *)&this->remoteAddress.sin_addr, &addr2, sizeof(addr2));
 }
 
 
@@ -62,7 +62,7 @@ void UDPWrapper::createSocket()
 	}
 
 
-	if (bind(Socket, (sockaddr*)&this->addressDataIncoming, sizeof(addressDataIncoming)) == SOCKET_ERROR)
+	if (bind(Socket, (sockaddr*)&this->localAddress, sizeof(localAddress)) == SOCKET_ERROR)
 	{
 		std::cerr << "Error binding the socket: " << getLastError() << std::endl;
 		return;
@@ -75,44 +75,40 @@ void UDPWrapper::createSocket()
 
 int UDPWrapper::sendDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 {
-	return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->addressDataOutgoing, sizeof(addressDataOutgoing));
+	return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->remoteAddress, sizeof(remoteAddress));
 }
 
 int UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 {
 	#ifdef _WIN32
-	int remoteAddrLen = sizeof(addressDataIncoming);
+	int localAddrLen = sizeof(localAddress);
 	#else
-	socklen_t remoteAddrLen = sizeof(addressDataIncoming);
+	socklen_t localAddrLen = sizeof(localAddress);
 	#endif
-	int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->addressDataIncoming, &remoteAddrLen);
+	int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&this->localAddress, &localAddrLen);
 	if (result == -1)
 		std::cerr << this->getLastError();
         return result;
 }
 
 
-// TODO, check the follwing function
 int UDPWrapper::getLastError()
 {
-	int error;
-
-#ifdef _WIN32
-	error = WSAGetLastError();
-#else
-	error = errno;
-#endif
-
-	return error;
+    int error;
+    #ifdef _WIN32
+    error = WSAGetLastError();
+    #else
+    error = errno;
+    #endif
+    return error;
 }
 
-// TODO, check the follwing function
 void UDPWrapper::closeSocket(int fd)
 {
-	shutdown(fd, SHUTDOWN_BOTH);
-#ifdef _WIN32
-	closesocket(fd);
-#else
-	close(fd);
-#endif
+    shutdown(fd, SHUTDOWN_BOTH);
+    #ifdef _WIN32
+    closesocket(fd);
+    #else
+    close(fd);
+    #endif
 }

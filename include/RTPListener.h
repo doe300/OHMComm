@@ -15,9 +15,23 @@
 #include "NetworkWrapper.h"
 #include "configuration.h"
 
+/*!
+ * Listening-thread for incoming RTP-packages
+ * 
+ * This class starts a new thread which writes all received RTP-packages to the RTPBuffer
+ */
 class RTPListener
 {
 public:
+    /*!
+     * Constructs a new RTPListener
+     * 
+     * \param wrapper The NetworkWrapper to use for receiving packages
+     * 
+     * \param buffer The RTPBuffer to write into
+     * 
+     * \param receiveBufferSize The maximum size (in bytes) a RTP-package can fill, according to the configuration
+     */
     RTPListener(NetworkWrapper *wrapper, std::unique_ptr<RTPBuffer> *buffer, unsigned int receiveBufferSize);
     RTPListener(const RTPListener& orig);
     virtual ~RTPListener();

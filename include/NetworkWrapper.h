@@ -12,6 +12,12 @@
 #define SOCKET_ERROR -1
 #endif
 
+/*!
+ * Superclass for all networking-protocols.
+ * 
+ * Implementations of this class provide methods to send/receive audio-data to/from the network.
+ * 
+ */
 class NetworkWrapper
 {
 public:
@@ -36,12 +42,12 @@ public:
     /*!
      * Returns the last error code
      */
-	virtual int getLastError() = 0;
+    virtual int getLastError() = 0;
 
     /*!
      * Closes the underlying socket
      */
-	virtual void closeSocket(int fd) = 0;
+    virtual void closeSocket(int fd) = 0;
 };
 
 #endif

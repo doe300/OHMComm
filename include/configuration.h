@@ -12,10 +12,14 @@
 
 struct NetworkConfiguration {
 	enum ConnectionType { TCP = 1, UDP = 2 };
+        //Local IP address
 	std::string addressIncoming;
+        //Local port
 	unsigned short portIncoming;
 
+        //Remote IP address
 	std::string addressOutgoing;
+        //Remote port
 	unsigned short portOutgoing;
 
 	unsigned int outputBufferSize;
