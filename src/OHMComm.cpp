@@ -290,7 +290,7 @@ int main(int argc, char** argv)
 		}
 
 		/* Network-Config */
-		ProcessorUDP *udp;
+		NetworkWrapper *network;
 		cout << "Load default network config? Yes (y), No (n)?" << endl;
 		cin >> input;
 
@@ -300,7 +300,7 @@ int main(int argc, char** argv)
                         //XXX make the buffers configurable??
                         networkConfiguration.inputBufferSize = 4096;
 			networkConfiguration.outputBufferSize = 4096;
-                        udp = new ProcessorUDP("This is my UDP-Wrapper with an unique Name", networkConfiguration);
+                        network = new ProcessorUDP("This is my UDP-Wrapper with an unique Name", networkConfiguration);
 		}
 		else
 		{
@@ -312,14 +312,14 @@ int main(int argc, char** argv)
                         //the port should be a number greater than 1024
 			networkConfiguration.portIncoming = 12345;
 			networkConfiguration.portOutgoing = 12345;
-			udp = new ProcessorUDP("This is my UDP-Wrapper with an unique Name", networkConfiguration);
+			network = new ProcessorUDP("This is my UDP-Wrapper with an unique Name", networkConfiguration);
 		}
                 
                 //initialize RTPBuffer and -Listener
                 std::unique_ptr<RTPBuffer> *rtpBuffer = new std::unique_ptr<RTPBuffer>(new RTPBuffer(256, 1000));
-                RTPListener listener(udp, rtpBuffer, networkConfiguration.inputBufferSize);
+                RTPListener listener(network, rtpBuffer, networkConfiguration.inputBufferSize);
 		// add a processor to the process chain
-		ProcessorRTP rtp("RTP-Processor", udp, rtpBuffer);
+		ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
 		audioObject->addProcessor((AudioProcessor*)&rtp);
 
                 //configure all processors
