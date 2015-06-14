@@ -40,8 +40,11 @@ public:
     void stop();
     /* stop() and resets audioConfiguration */
     void reset();
+	/* sets default audio config */
+	void setDefaultAudioConfig();
     /* This is a blocking function, do NOT call this function within the RtAudio callback */
     void playData(void *playbackData, unsigned int size);
+	
 
     /* Callbacks */
     auto callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData) -> int;
@@ -62,8 +65,7 @@ private:
 
     RtAudio rtaudio;
     RtAudio::StreamParameters input, output;
-    AudioConfiguration audioConfiguration;
-    bool isAudioConfigSet = false;
+    
     unsigned int outputBufferByteSize = {0};
     unsigned int inputBufferByteSize = {0};
 
@@ -71,9 +73,6 @@ private:
 
     /* preparing for a openstream call */
     void initRtAudioStreamParameters();
-
-    /* will load the default-config */
-    void loadDefaultAudioConfig();
 
     /* returns the size of a frame in bytes */
     auto getAudioFormatByteSize(RtAudioFormat rtaudioFormat) -> int;
@@ -89,6 +88,7 @@ private:
      */
     auto autoSelectAudioFormat(RtAudioFormat supportedFormats) -> RtAudioFormat;
 
+	void playbackFileData(void *outputBuffer);
 };
 
 #endif

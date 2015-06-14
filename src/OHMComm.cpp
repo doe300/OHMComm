@@ -20,6 +20,7 @@
 #include "UDPWrapper.h"
 #include "ProcessorRTP.h"
 #include "RTPListener.h"
+#include "Tests.h"
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
@@ -270,6 +271,9 @@ void errorHandler( RtAudioError::Type type, const std::string &errorText )
 
 int main(int argc, char** argv)
 {
+	Test::TextOutput output(Test::TextOutput::Verbose);
+	TestAudioIO testaudio;
+	testaudio.run(output);
 	try
 	{
 		std::unique_ptr<AudioHandler> audioObject;

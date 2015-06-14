@@ -79,6 +79,11 @@ auto AudioHandler::hasAudioProcessor(std::string nameOfAudioProcessor) const -> 
 	return false;
 }
 
+auto AudioHandler::getAudioConfiguration()->AudioConfiguration
+{
+	return this->audioConfiguration;
+}
+
 void AudioHandler::processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData)
 {
 	for (auto i = audioProcessors.size(); i > 0; i--)

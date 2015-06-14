@@ -2,10 +2,10 @@
 #define	OHMCOMMTESTS
 
 #include "cpptest.h"
-#include "AudioHandler.h"
+#include "AudioHandlerFactory.h"
 
 class TestAudioIO : public Test::Suite {
-	void testGetAudioIOInstances(); // getNewAudioIO(..)
+	void testAudioHandlerInstances(); // getNewAudioIO(..)
 	void testAudioProcessorInterface(); // add, remove, reset
 public:
 	TestAudioIO();

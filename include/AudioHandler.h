@@ -26,6 +26,7 @@ public:
 	virtual void stop() = 0; // close the whole communication process
 	virtual void reset() = 0; // stop and reset audioConfiguration
 	virtual void playData(void *playbackData, unsigned int size) = 0;
+	virtual void setDefaultAudioConfig() = 0; // will load the default-config
 
 	void printAudioProcessorOrder(std::ostream& outputStream = std::cout) const;
 	auto addProcessor(AudioProcessor *audioProcessor) -> bool;
@@ -37,11 +38,15 @@ public:
      * Calls AudioProcessor#configure() for all registered processors
      */
     bool configureAudioProcessors();
+	bool isAudioConfigSet = false;
+	auto hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool;
+	auto hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool;
+	auto getAudioConfiguration() -> AudioConfiguration;
+
 
 protected:
 	std::vector<AudioProcessor*> audioProcessors;
-	auto hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool;
-	auto hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool;
+	AudioConfiguration audioConfiguration;	
 	void processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData);
 	void processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, StreamData *streamData);
 };
