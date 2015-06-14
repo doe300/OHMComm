@@ -1,11 +1,11 @@
 #include "Tests.h"
 
-myTest::myTest() {
-	TEST_ADD(myTest::function1_to_test_some_code);
-	TEST_ADD(myTest::function2_to_test_some_code);
+TestAudioIO::TestAudioIO() {
+	TEST_ADD(TestAudioIO::testGetAudioIOInstances);
+	TEST_ADD(TestAudioIO::testAudioProcessorInterface);
 }
 
-void myTest::function1_to_test_some_code()
+void TestAudioIO::testGetAudioIOInstances()
 {
 	// Will succeed since the expression evaluates to true
 	TEST_ASSERT(1 + 1 == 2)
@@ -15,7 +15,7 @@ void myTest::function1_to_test_some_code()
 
 }
 
-void myTest::function2_to_test_some_code()
+void TestAudioIO::testAudioProcessorInterface()
 {
 
 }

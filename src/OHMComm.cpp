@@ -16,7 +16,7 @@
 
 //dependencies for rtaudio
 #include "RtAudio.h"
-#include "RTAudioWrapper.h"
+#include "AudioHandlerFactory.h"
 #include "UDPWrapper.h"
 #include "ProcessorRTP.h"
 #include "RTPListener.h"
@@ -272,7 +272,7 @@ int main(int argc, char** argv)
 {
 	try
 	{
-		std::unique_ptr<AudioIO> audioObject;
+		std::unique_ptr<AudioHandler> audioObject;
 		char input;
 
 		/* Audio-Config */
@@ -282,11 +282,11 @@ int main(int argc, char** argv)
 		if (input == 'N' || input == 'n')
 		{
 			configureAudioDevices();
-			audioObject = RtAudioWrapper::getNewAudioIO(audioConfiguration);
+			audioObject = AudioHandlerFactory::getAudioHandler("RTAudioWrapper", audioConfiguration);
 		}
 		else
 		{
-			audioObject = RtAudioWrapper::getNewAudioIO();
+			audioObject = AudioHandlerFactory::getAudioHandler("RTAudioWrapper");
 		}
 
 		/* Network-Config */

@@ -21,18 +21,6 @@ RtAudioWrapper::RtAudioWrapper(const AudioConfiguration &audioConfig) : RtAudioW
 	this->isAudioConfigSet = true;
 }
 
-auto RtAudioWrapper::getNewAudioIO() -> std::unique_ptr<AudioIO>
-{
-	std::unique_ptr<RtAudioWrapper> rtaudiowrapper(new RtAudioWrapper);
-	return std::move(rtaudiowrapper);
-}
-
-auto RtAudioWrapper::getNewAudioIO(const AudioConfiguration &audioConfig) -> std::unique_ptr<AudioIO>
-{
-	std::unique_ptr<RtAudioWrapper> rtaudiowrapper(new RtAudioWrapper(audioConfig));
-	return std::move(rtaudiowrapper);
-}
-
 
 // Region: callbacks
 auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int

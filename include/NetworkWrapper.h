@@ -3,14 +3,13 @@
 
 #include <iostream>
 
-//Socket-ID for an invalid socket
-#ifndef INVALID_SOCKET
+//defines for non-Windows
+#ifndef _WIN32
 #define INVALID_SOCKET -1
-#endif
-//define SOCKET_ERROR for non-Windows
-#ifndef SOCKET_ERROR
 #define SOCKET_ERROR -1
 #endif
+
+
 
 /*!
  * Superclass for all networking-protocols.

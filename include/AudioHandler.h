@@ -13,7 +13,7 @@ typedef std::unique_ptr<AudioProcessor> ptrAudioProcessor;
  * 
  * Implementations of this class wrap a specific audio library
  */
-class AudioIO
+class AudioHandler
 {
 public:
 	virtual void startRecordingMode() = 0;
@@ -27,16 +27,16 @@ public:
 	virtual void reset() = 0; // stop and reset audioConfiguration
 	virtual void playData(void *playbackData, unsigned int size) = 0;
 
-	void printAudioProcessorOrder() const;
-	void addProcessor(AudioProcessor *audioProcessor);
-	void removeAudioProcessor(AudioProcessor *audioProcessor);
-	void removeAudioProcessor(std::string nameOfAudioProcessor);
-	void clearAudioProcessors();
+	void printAudioProcessorOrder(std::ostream& outputStream = std::cout) const;
+	auto addProcessor(AudioProcessor *audioProcessor) -> bool;
+	auto removeAudioProcessor(AudioProcessor *audioProcessor) -> bool;
+	auto removeAudioProcessor(std::string nameOfAudioProcessor) -> bool;
+	auto clearAudioProcessors() -> bool;
         
-        /*!
-         * Calls AudioProcessor#configure() for all registered processors
-         */
-        void configureAudioProcessors();
+    /*!
+     * Calls AudioProcessor#configure() for all registered processors
+     */
+    bool configureAudioProcessors();
 
 protected:
 	std::vector<AudioProcessor*> audioProcessors;

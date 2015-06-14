@@ -1,8 +1,14 @@
-#include "cpptest.h"
+#ifndef OHMCOMMTESTS
+#define	OHMCOMMTESTS
 
-class myTest : public Test::Suite {
-	void function1_to_test_some_code();
-	void function2_to_test_some_code();
+#include "cpptest.h"
+#include "AudioHandler.h"
+
+class TestAudioIO : public Test::Suite {
+	void testGetAudioIOInstances(); // getNewAudioIO(..)
+	void testAudioProcessorInterface(); // add, remove, reset
 public:
-	myTest();
+	TestAudioIO();
 };
+
+#endif

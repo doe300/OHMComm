@@ -37,12 +37,12 @@ public:
 	const std::string getName();
 	void setName(std::string name);
 
-        /*!
-         * Overwrite this method, if this AudioProcessor needs configuration
-         * 
-         * Any implementation of this method can use the methods from UserInput.h
-         */
-        void configure();
+    /*!
+    * Overwrite this method, if this AudioProcessor needs configuration
+    * 
+    * Any implementation of this method can use the methods from UserInput.h
+    */
+    bool configure();
         
 	/*
 	 * The actual processing methods. processInputData is the counterpart of processInputData 

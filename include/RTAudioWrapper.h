@@ -3,7 +3,7 @@
 #define	RTAUDIOWRAPPER_H
 
 #include "RtAudio.h"
-#include "AudioIO.h"
+#include "AudioHandler.h"
 #include "math.h" // ceiling
 #include <memory> // unique_ptr
 #include <string.h> //memcpy
@@ -18,12 +18,11 @@
 /*!
  * Implementation of AudioIO wrapping the RtAudio-library
  */
-class RtAudioWrapper : public AudioIO
+class RtAudioWrapper : public AudioHandler
 {
 public:
-    /* object generator methods (equals constructor) */
-    static auto getNewAudioIO()->std::unique_ptr<AudioIO>;
-    static auto getNewAudioIO(const AudioConfiguration &audioConfig)->std::unique_ptr<AudioIO>;
+	RtAudioWrapper();
+	RtAudioWrapper(const AudioConfiguration &audioConfig);
 
     /* deny copies with the copy constructor */
     RtAudioWrapper(const RtAudioWrapper & copy) = delete;
@@ -49,10 +48,6 @@ public:
     static auto callbackHelper(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int;
 
 private:
-    /* private Constructors */
-    RtAudioWrapper();
-    RtAudioWrapper(const AudioConfiguration &audioConfig);
-
     /* variables for the "void playData(...)" function
      * to enable synchronizing between rtaudio- and main-thread */
     #ifdef _WIN32
