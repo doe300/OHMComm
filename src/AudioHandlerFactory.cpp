@@ -21,3 +21,16 @@ auto AudioHandlerFactory::getAudioHandler(std::string name) ->std::unique_ptr<Au
 		return std::move(rtaudiowrapper);
 	}
 }
+
+auto AudioHandlerFactory::stringToUpperCase(const std::string& s) -> std::string
+{
+	std::string result;
+
+	std::locale loc;
+	for (unsigned int i = 0; i < s.length(); ++i)
+	{
+		result += std::toupper(s.at(i), loc);
+	}
+
+	return result;
+}
