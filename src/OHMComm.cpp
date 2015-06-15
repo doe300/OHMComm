@@ -271,13 +271,20 @@ void errorHandler( RtAudioError::Type type, const std::string &errorText )
 
 int main(int argc, char** argv)
 {
-	Test::TextOutput output(Test::TextOutput::Verbose);
+    char input;
+    
+    /* Run Tests */
+    cout << "Run test cases? Yes (y), No (n)?" << endl;
+    cin >> input;
+    if(input == 'Y' || input == 'y')
+    {
+        Test::TextOutput output(Test::TextOutput::Verbose);
 	TestAudioIO testaudio;
 	testaudio.run(output);
+    }
 	try
 	{
 		std::unique_ptr<AudioHandler> audioObject;
-		char input;
 
 		/* Audio-Config */
 		cout << "Load default audio config? Yes (y), No (n)?" << endl;
