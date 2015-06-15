@@ -13,7 +13,7 @@ typedef std::unique_ptr<AudioProcessor> ptrAudioProcessor;
  * 
  * Implementations of this class wrap a specific audio library
  */
-class AudioIO
+class AudioHandler
 {
 public:
 	virtual void startRecordingMode() = 0;
@@ -26,22 +26,27 @@ public:
 	virtual void stop() = 0; // close the whole communication process
 	virtual void reset() = 0; // stop and reset audioConfiguration
 	virtual void playData(void *playbackData, unsigned int size) = 0;
+	virtual void setDefaultAudioConfig() = 0; // will load the default-config
 
-	void printAudioProcessorOrder() const;
-	void addProcessor(AudioProcessor *audioProcessor);
-	void removeAudioProcessor(AudioProcessor *audioProcessor);
-	void removeAudioProcessor(std::string nameOfAudioProcessor);
-	void clearAudioProcessors();
+	void printAudioProcessorOrder(std::ostream& outputStream = std::cout) const;
+	auto addProcessor(AudioProcessor *audioProcessor) -> bool;
+	auto removeAudioProcessor(AudioProcessor *audioProcessor) -> bool;
+	auto removeAudioProcessor(std::string nameOfAudioProcessor) -> bool;
+	auto clearAudioProcessors() -> bool;
         
-        /*!
-         * Calls AudioProcessor#configure() for all registered processors
-         */
-        void configureAudioProcessors();
+    /*!
+     * Calls AudioProcessor#configure() for all registered processors
+     */
+    bool configureAudioProcessors();
+	bool isAudioConfigSet = false;
+	auto hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool;
+	auto hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool;
+	auto getAudioConfiguration() -> AudioConfiguration;
+
 
 protected:
 	std::vector<AudioProcessor*> audioProcessors;
-	auto hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool;
-	auto hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool;
+	AudioConfiguration audioConfiguration;	
 	void processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData);
 	void processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, StreamData *streamData);
 };

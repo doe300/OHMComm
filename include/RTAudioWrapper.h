@@ -3,7 +3,7 @@
 #define	RTAUDIOWRAPPER_H
 
 #include "RtAudio.h"
-#include "AudioIO.h"
+#include "AudioHandler.h"
 #include "math.h" // ceiling
 #include <memory> // unique_ptr
 #include <string.h> //memcpy
@@ -18,12 +18,11 @@
 /*!
  * Implementation of AudioIO wrapping the RtAudio-library
  */
-class RtAudioWrapper : public AudioIO
+class RtAudioWrapper : public AudioHandler
 {
 public:
-    /* object generator methods (equals constructor) */
-    static auto getNewAudioIO()->std::unique_ptr<AudioIO>;
-    static auto getNewAudioIO(const AudioConfiguration &audioConfig)->std::unique_ptr<AudioIO>;
+	RtAudioWrapper();
+	RtAudioWrapper(const AudioConfiguration &audioConfig);
 
     /* deny copies with the copy constructor */
     RtAudioWrapper(const RtAudioWrapper & copy) = delete;
@@ -41,18 +40,17 @@ public:
     void stop();
     /* stop() and resets audioConfiguration */
     void reset();
+	/* sets default audio config */
+	void setDefaultAudioConfig();
     /* This is a blocking function, do NOT call this function within the RtAudio callback */
     void playData(void *playbackData, unsigned int size);
+	
 
     /* Callbacks */
     auto callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData) -> int;
     static auto callbackHelper(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int;
 
 private:
-    /* private Constructors */
-    RtAudioWrapper();
-    RtAudioWrapper(const AudioConfiguration &audioConfig);
-
     /* variables for the "void playData(...)" function
      * to enable synchronizing between rtaudio- and main-thread */
     #ifdef _WIN32
@@ -67,8 +65,7 @@ private:
 
     RtAudio rtaudio;
     RtAudio::StreamParameters input, output;
-    AudioConfiguration audioConfiguration;
-    bool isAudioConfigSet = false;
+    
     unsigned int outputBufferByteSize = {0};
     unsigned int inputBufferByteSize = {0};
 
@@ -76,9 +73,6 @@ private:
 
     /* preparing for a openstream call */
     void initRtAudioStreamParameters();
-
-    /* will load the default-config */
-    void loadDefaultAudioConfig();
 
     /* returns the size of a frame in bytes */
     auto getAudioFormatByteSize(RtAudioFormat rtaudioFormat) -> int;
@@ -94,6 +88,7 @@ private:
      */
     auto autoSelectAudioFormat(RtAudioFormat supportedFormats) -> RtAudioFormat;
 
+	void playbackFileData(void *outputBuffer);
 };
 
 #endif

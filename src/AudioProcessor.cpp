@@ -17,8 +17,9 @@ void AudioProcessor::setName(std::string name)
 	this->name = name;
 }
 
-void AudioProcessor::configure()
+bool AudioProcessor::configure()
 {
     //dummy implementation, does nothing
+	return true;
 }
 

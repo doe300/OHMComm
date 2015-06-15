@@ -1,21 +1,35 @@
 #include "Tests.h"
 
-myTest::myTest() {
-	TEST_ADD(myTest::function1_to_test_some_code);
-	TEST_ADD(myTest::function2_to_test_some_code);
+TestAudioIO::TestAudioIO() {
+	TEST_ADD(TestAudioIO::testAudioHandlerInstances);
+	TEST_ADD(TestAudioIO::testAudioProcessorInterface);
 }
 
-void myTest::function1_to_test_some_code()
+void TestAudioIO::testAudioHandlerInstances()
 {
-	// Will succeed since the expression evaluates to true
-	TEST_ASSERT(1 + 1 == 2)
+	auto audioHandler1 = AudioHandlerFactory::getAudioHandler("rtaudioWRaPPeR");
+	TEST_ASSERT_MSG(audioHandler1->isAudioConfigSet == false, "AudioConfig has been set. 01");
+	
+	AudioConfiguration audioConfig = {0};
+	audioHandler1->setConfiguration(audioConfig);
+	TEST_ASSERT_MSG(audioHandler1->isAudioConfigSet == true, "AudioConfig has not been set. 02");
 
-	// Will fail since the expression evaluates to false
-	TEST_ASSERT_MSG(0 == 1, "Omg 0 ist nicht 1");
+	auto audioHandler2 = AudioHandlerFactory::getAudioHandler("rtaudiowrapper", audioConfig);
+	TEST_ASSERT_MSG(audioHandler2->isAudioConfigSet == true, "AudioConfig has not been set. 03");
 
+	TEST_ASSERT_MSG(audioHandler2->getAudioConfiguration() == audioConfig, "AudioConfigs were not equal. 04");
+	TEST_ASSERT_MSG(audioHandler1->getAudioConfiguration() == audioConfig, "AudioConfigs were not equal. 05");
+
+	audioHandler2->reset();
+	TEST_ASSERT_MSG(audioHandler2->isAudioConfigSet == false, "AudioConfig has been set. 06");
+
+	audioHandler2->setDefaultAudioConfig();
+	TEST_ASSERT_MSG(audioHandler2->isAudioConfigSet == true, "AudioConfig has not been set. 07");
+
+	TEST_ASSERT_MSG((audioHandler2->getAudioConfiguration() == audioConfig) == false, "AudioConfigs were equal. 08");
 }
 
-void myTest::function2_to_test_some_code()
+void TestAudioIO::testAudioProcessorInterface()
 {
 
 }

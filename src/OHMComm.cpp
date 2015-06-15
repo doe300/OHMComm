@@ -16,10 +16,11 @@
 
 //dependencies for rtaudio
 #include "RtAudio.h"
-#include "RTAudioWrapper.h"
+#include "AudioHandlerFactory.h"
 #include "UDPWrapper.h"
 #include "ProcessorRTP.h"
 #include "RTPListener.h"
+#include "Tests.h"
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
@@ -270,9 +271,12 @@ void errorHandler( RtAudioError::Type type, const std::string &errorText )
 
 int main(int argc, char** argv)
 {
+	Test::TextOutput output(Test::TextOutput::Verbose);
+	TestAudioIO testaudio;
+	testaudio.run(output);
 	try
 	{
-		std::unique_ptr<AudioIO> audioObject;
+		std::unique_ptr<AudioHandler> audioObject;
 		char input;
 
 		/* Audio-Config */
@@ -282,11 +286,11 @@ int main(int argc, char** argv)
 		if (input == 'N' || input == 'n')
 		{
 			configureAudioDevices();
-			audioObject = RtAudioWrapper::getNewAudioIO(audioConfiguration);
+			audioObject = AudioHandlerFactory::getAudioHandler("RTAudioWrapper", audioConfiguration);
 		}
 		else
 		{
-			audioObject = RtAudioWrapper::getNewAudioIO();
+			audioObject = AudioHandlerFactory::getAudioHandler("RTAudioWrapper");
 		}
 
 		/* Network-Config */

@@ -61,6 +61,34 @@ struct AudioConfiguration {
 
 	// buffer frames
 	unsigned int bufferFrames;
+
+	friend bool operator==(const AudioConfiguration& lhs, const AudioConfiguration& rhs)
+	{
+		if (lhs.outputDeviceID != rhs.outputDeviceID)
+			return false;
+		if (lhs.inputDeviceID != rhs.inputDeviceID)
+			return false;
+		if (lhs.outputDeviceChannels != rhs.outputDeviceChannels)
+			return false;
+		if (lhs.inputDeviceChannels != rhs.inputDeviceChannels)
+			return false;
+		if (lhs.outputDeviceFirstChannel != rhs.outputDeviceFirstChannel)
+			return false;
+		if (lhs.inputDeviceFirstChannel != rhs.inputDeviceFirstChannel)
+			return false;
+		if (lhs.outputDeviceName != rhs.outputDeviceName)
+			return false;
+		if (lhs.inputDeviceName != rhs.inputDeviceName)
+			return false;
+		if (lhs.audioFormat != rhs.audioFormat)
+			return false;
+		if (lhs.sampleRate != rhs.sampleRate)
+			return false;
+		if (lhs.bufferFrames != rhs.bufferFrames)
+			return false;
+
+		return true;
+	}
 };
 
 //Configurations are declared in OhmComm.cpp

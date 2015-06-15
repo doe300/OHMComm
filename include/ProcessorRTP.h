@@ -14,7 +14,7 @@
  * This was implemented to avoid blocking the audio-loop while waiting for packages.
  * The received RTPPackages are buffered in an RTPBuffer
  */
-class ProcessorRTP : AudioProcessor
+class ProcessorRTP : public AudioProcessor
 {
 public:
     /*!
