@@ -34,3 +34,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/lib/cpptest-1.1.2/src")
 ####
 #build all from ./src into ./build
 add_subdirectory(src build)
+
+#if (BUILD_TESTING)
+    add_subdirectory(test build/test)
+#endif (BUILD_TESTING)

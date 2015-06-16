@@ -17,16 +17,19 @@ endif()
 
 #Build OHMComm
 add_executable( OHMComm ${SRCS} ${HDRS} )
-
-target_link_libraries(OHMComm cpptest)
+#Build OHMCommLib for usage with Tests
+add_library( OHMCommLib ${SRCS} ${HDRS} )
 
 if(MSVC) 
 # Visual Studio Compiler
 	target_link_libraries(OHMComm rtaudio_static)
 	target_link_libraries(OHMComm WS2_32)
+	target_link_libraries(OHMCommLib rtaudio_static)
+	target_link_libraries(OHMCommLib WS2_32)
 else ()
 	# other compilers
 	target_link_libraries(OHMComm rtaudio)
+	target_link_libraries(OHMCommLib rtaudio)
 endif()
 
 

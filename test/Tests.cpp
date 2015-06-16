@@ -31,5 +31,15 @@ void TestAudioIO::testAudioHandlerInstances()
 
 void TestAudioIO::testAudioProcessorInterface()
 {
+    
+}
 
+int main(int argc, char** argv)
+{
+    Test::TextOutput output(Test::TextOutput::Verbose);
+    TestAudioIO testaudio;
+    testaudio.run(output);
+    
+    TestRTP testRTP;
+    testRTP.run(output);
 }

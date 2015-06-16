@@ -3,6 +3,7 @@
 
 #include "cpptest.h"
 #include "AudioHandlerFactory.h"
+#include "TestRTP.h"
 
 class TestAudioIO : public Test::Suite {
 	void testAudioHandlerInstances(); // getNewAudioIO(..)
