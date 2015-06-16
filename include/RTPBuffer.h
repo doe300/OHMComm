@@ -100,7 +100,7 @@ private:
         /*!
          * The package data
          */
-        void *packageContent = NULL;
+        void *packageContent = nullptr;
     };
     
     /*!

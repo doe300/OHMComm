@@ -7,8 +7,8 @@ RtAudioWrapper::RtAudioWrapper()
 	streamData = new StreamData();
 
 	#ifdef _WIN32
-	semaphore_waitForMainThread = CreateSemaphore(NULL, 1, 1, "semaphore_waitForMainThread");
-	semaphore_waitForWorkerThread = CreateSemaphore(NULL, 0, 1, "semaphore_waitForWorkerThread");
+	semaphore_waitForMainThread = CreateSemaphore(nullptr, 1, 1, "semaphore_waitForMainThread");
+	semaphore_waitForWorkerThread = CreateSemaphore(nullptr, 0, 1, "semaphore_waitForWorkerThread");
 	#else
 		/* TODO, two linux semaphores needed */
 	#endif
@@ -25,7 +25,7 @@ RtAudioWrapper::RtAudioWrapper(const AudioConfiguration &audioConfig) : RtAudioW
 auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int
 {
 	RtAudioWrapper *rtAudioWrapper = static_cast <RtAudioWrapper*> (rtAudioWrapperObject);
-	return rtAudioWrapper->callback(outputBuffer, inputBuffer, nBufferFrames, streamTime, status, NULL);
+	return rtAudioWrapper->callback(outputBuffer, inputBuffer, nBufferFrames, streamTime, status, nullptr);
 }
 
 // callback of the object
@@ -50,10 +50,10 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
 	//streamTime is the number of seconds since start of stream, so we convert to number of microseconds
 	this->streamData->streamTime = lround(streamTime * 1000000);
 
-	if (inputBuffer != NULL)
+	if (inputBuffer != nullptr)
 		this->processAudioInput(inputBuffer, inputBufferByteSize, streamData);
 
-	if (outputBuffer != NULL)
+	if (outputBuffer != nullptr)
 		this->processAudioOutput(outputBuffer, outputBufferByteSize, streamData);
 
 	return 0;
@@ -73,12 +73,12 @@ void RtAudioWrapper::playbackFileData(void *outputBuffer)
 		this->BufferAudioOutHasData = false;
 
 		#ifdef _WIN32
-		ReleaseSemaphore(semaphore_waitForMainThread, 1, NULL);
+		ReleaseSemaphore(semaphore_waitForMainThread, 1, nullptr);
 
 		// critical section ends
 
 		// inform that the data has been processed
-		ReleaseSemaphore(semaphore_waitForWorkerThread, 1, NULL);
+		ReleaseSemaphore(semaphore_waitForWorkerThread, 1, nullptr);
 		#endif
 	}
 	else
@@ -95,14 +95,14 @@ void RtAudioWrapper::playbackFileData(void *outputBuffer)
 void RtAudioWrapper::startRecordingMode()
 {
 	this->initRtAudioStreamParameters();
-	this->rtaudio.openStream(NULL, &input, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
+	this->rtaudio.openStream(nullptr, &input, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
 	this->rtaudio.startStream();
 }
 
 void RtAudioWrapper::startPlaybackMode()
 {
 	this->initRtAudioStreamParameters();
-	this->rtaudio.openStream(&output, NULL, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
+	this->rtaudio.openStream(&output, nullptr, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
 	this->rtaudio.startStream();
 }
 
@@ -182,7 +182,7 @@ void RtAudioWrapper::playData(void *playbackData, unsigned int size)
 			memcpy(bufferAudioOutput, (buffer + i * outputBufferByteSize), outputBufferByteSize);
 
 		#ifdef _WIN32
-		ReleaseSemaphore(semaphore_waitForMainThread, 1, NULL);
+		ReleaseSemaphore(semaphore_waitForMainThread, 1, nullptr);
 		// critical section ends
 
 		// wait until the data is processed

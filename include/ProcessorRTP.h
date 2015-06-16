@@ -32,7 +32,7 @@ public:
     void processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
 private:
     NetworkWrapper *networkObject;
-    RTPPackage *rtpPackage = NULL;
+    RTPPackage *rtpPackage = nullptr;
     std::unique_ptr<RTPBuffer> *rtpBuffer;
 };
 #endif

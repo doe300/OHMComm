@@ -9,7 +9,7 @@ ProcessorRTP::ProcessorRTP(std::string name, NetworkWrapper *networkwrapper, std
 void ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
 	// pack data into a rtp-package
-	if (rtpPackage == NULL)
+	if (rtpPackage == nullptr)
 	{
 		rtpPackage = new RTPPackage(inputBufferByteSize);
 	}
@@ -20,7 +20,7 @@ void ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputB
 void ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
 	// unpack data from a rtp-package
-	if (rtpPackage == NULL)
+	if (rtpPackage == nullptr)
 	{
 		rtpPackage = new RTPPackage(outputBufferByteSize);
 	}

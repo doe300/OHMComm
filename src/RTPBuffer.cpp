@@ -21,7 +21,7 @@ RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay): capacity(maxCapac
     //initialize silence package
     generateSilencePackage();
     #ifdef _WIN32
-    bufferMutex = CreateMutex(NULL, false, "BufferMutex");
+    bufferMutex = CreateMutex(nullptr, false, "BufferMutex");
     #endif
 }
 
@@ -75,7 +75,7 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentS
 
     ringBuffer[newWriteIndex].contentSize = contentSize;
 
-    if(ringBuffer[newWriteIndex].packageContent == NULL)
+    if(ringBuffer[newWriteIndex].packageContent == nullptr)
     {
         ringBuffer[newWriteIndex].packageContent = new char[contentSize];
     }
