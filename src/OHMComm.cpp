@@ -20,7 +20,6 @@
 #include "UDPWrapper.h"
 #include "ProcessorRTP.h"
 #include "RTPListener.h"
-#include "Tests.h"
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
@@ -271,86 +270,111 @@ void errorHandler( RtAudioError::Type type, const std::string &errorText )
 
 int main(int argc, char** argv)
 {
+    //Vectors for storing available AudioHandlers, and -Processors
+    const std::vector<std::string> audioHandlers = {"RTAudioWrapper"};
+    const std::vector<std::string> audioProcessors = {};
+    
     char input;
     
     /* Run Tests */
-    cout << "Run test cases? Yes (y), No (n)?" << endl;
-    cin >> input;
-    if(input == 'Y' || input == 'y')
+    try
     {
-        Test::TextOutput output(Test::TextOutput::Verbose);
-	TestAudioIO testaudio;
-	testaudio.run(output);
+        std::unique_ptr<AudioHandler> audioObject;
+
+        ////
+        //Audio-Config
+        ////
+
+        cout << "Load default audio config? Yes (y), No (n)?" << endl;
+        cin >> input;
+
+        if (input == 'N' || input == 'n')
+        {
+            //manually configure audio-handler, so manually select it
+            std::string selectedAudioHander;
+            if(audioHandlers.size() > 1)
+            {
+                //only let user choose if there is more than 1 audio-handler
+                selectedAudioHander = selectOption("Select audio handler", audioHandlers, "RTAudioWrapper");
+            }
+            else 
+            {
+                selectedAudioHander = *audioHandlers.begin();
+            }
+            std::cout << "Using AudioHandler: " << selectedAudioHander << std::endl;
+            configureAudioDevices();
+            audioObject = AudioHandlerFactory::getAudioHandler(selectedAudioHander, audioConfiguration);
+        }
+        else
+        {
+            //use RTAudioWrapper as default implementation
+            audioObject = AudioHandlerFactory::getAudioHandler("RTAudioWrapper");
+        }
+
+        ////
+        // Network-Config
+        ////
+
+        NetworkWrapper *network;
+        cout << "Load default network config? Yes (y), No (n)?" << endl;
+        cin >> input;
+
+        if (input == 'N' || input == 'n')
+        {
+                configureNetwork();
+                //XXX make the buffers configurable??
+                networkConfiguration.inputBufferSize = 4096;
+                networkConfiguration.outputBufferSize = 4096;
+                network = new UDPWrapper(networkConfiguration);
+        }
+        else
+        {
+                networkConfiguration.addressIncoming = "127.0.0.1";
+                networkConfiguration.addressOutgoing = "127.0.0.1";
+                networkConfiguration.connectionType = NetworkConfiguration::ConnectionType::UDP;
+                networkConfiguration.inputBufferSize = 4096;
+                networkConfiguration.outputBufferSize = 4096;
+                //the port should be a number greater than 1024
+                networkConfiguration.portIncoming = 12345;
+                networkConfiguration.portOutgoing = 12345;
+                network = new UDPWrapper(networkConfiguration);
+        }
+
+        ////
+        // AudioProcessors
+        ////
+
+        //TODO select and add processors
+
+        ////
+        // Startup
+        ////
+
+        //initialize RTPBuffer and -Listener
+        std::unique_ptr<RTPBuffer> *rtpBuffer = new std::unique_ptr<RTPBuffer>(new RTPBuffer(256, 1000));
+        RTPListener listener(network, rtpBuffer, networkConfiguration.inputBufferSize);
+        // add a processor to the process chain
+        ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
+        audioObject->addProcessor(&rtp);
+
+        //configure all processors
+        audioObject->configureAudioProcessors();
+
+        // start audio processing
+        listener.startUp();
+        audioObject->startDuplexMode();
+
+        // wait for exit
+        cout << "Type Enter to exit" << endl;
+        cin >> input;
+
+
+        audioObject->stop();
+        return 0;
     }
-	try
-	{
-		std::unique_ptr<AudioHandler> audioObject;
-
-		/* Audio-Config */
-		cout << "Load default audio config? Yes (y), No (n)?" << endl;
-		cin >> input;
-
-		if (input == 'N' || input == 'n')
-		{
-			configureAudioDevices();
-			audioObject = AudioHandlerFactory::getAudioHandler("RTAudioWrapper", audioConfiguration);
-		}
-		else
-		{
-			audioObject = AudioHandlerFactory::getAudioHandler("RTAudioWrapper");
-		}
-
-		/* Network-Config */
-		NetworkWrapper *network;
-		cout << "Load default network config? Yes (y), No (n)?" << endl;
-		cin >> input;
-
-		if (input == 'N' || input == 'n')
-		{
-			configureNetwork();
-                        //XXX make the buffers configurable??
-                        networkConfiguration.inputBufferSize = 4096;
-			networkConfiguration.outputBufferSize = 4096;
-                        network = new UDPWrapper(networkConfiguration);
-		}
-		else
-		{
-			networkConfiguration.addressIncoming = "127.0.0.1";
-			networkConfiguration.addressOutgoing = "127.0.0.1";
-			networkConfiguration.connectionType = NetworkConfiguration::ConnectionType::UDP;
-			networkConfiguration.inputBufferSize = 4096;
-			networkConfiguration.outputBufferSize = 4096;
-                        //the port should be a number greater than 1024
-			networkConfiguration.portIncoming = 12345;
-			networkConfiguration.portOutgoing = 12345;
-			network = new UDPWrapper(networkConfiguration);
-		}
-                
-                //initialize RTPBuffer and -Listener
-                std::unique_ptr<RTPBuffer> *rtpBuffer = new std::unique_ptr<RTPBuffer>(new RTPBuffer(256, 1000));
-                RTPListener listener(network, rtpBuffer, networkConfiguration.inputBufferSize);
-		// add a processor to the process chain
-		ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
-		audioObject->addProcessor((AudioProcessor*)&rtp);
-
-                //configure all processors
-                audioObject->configureAudioProcessors();
-                
-		// start audio processing
-                listener.startUp();
-		audioObject->startDuplexMode();
-
-		// wait for exit
-		cout << "Type Enter to exit" << endl;
-		cin >> input;
-
-
-		audioObject->stop();
-		return 0;
-	}
-	catch (RtAudioError exception)
-	{
-		cout << "Ausnahme: " << exception.getMessage() << endl;
-	}
+    catch (RtAudioError exception)
+    {
+        cout << "Exception: " << exception.getMessage() << endl;
+    }
 }
 
