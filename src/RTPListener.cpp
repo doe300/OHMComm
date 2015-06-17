@@ -11,7 +11,7 @@ RTPListener::RTPListener(NetworkWrapper *wrapper, std::unique_ptr<RTPBuffer> *bu
 {
     this->wrapper = wrapper;
     this->buffer = buffer;
-    receivedPackage = new RTPPackage(receiveBufferSize);
+	receivedPackage = new RTPPackageHandler(receiveBufferSize);
 }
 
 RTPListener::RTPListener(const RTPListener& orig)
@@ -38,7 +38,7 @@ void RTPListener::runThread()
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
-        int receivedSize = this->wrapper->recvDataNetworkWrapper(receivedPackage->getRecvBuffer(), receivedPackage->getPacketSizeRTPPackage());
+        int receivedSize = this->wrapper->recvDataNetworkWrapper(receivedPackage->getWorkBuffer(), receivedPackage->getSize());
         if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
         {
             //just continue to next loop iteration, checking if thread should continue running

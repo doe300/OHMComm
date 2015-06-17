@@ -30,10 +30,10 @@ RTPBuffer::~RTPBuffer()
     delete [] ringBuffer;
 }
 
-RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentSize)
+RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int contentSize)
 {
     lockMutex();
-    RTPHeader *receivedHeader = (RTPHeader *)package.getHeaderFromRTPPackage();
+    RTPHeader *receivedHeader = package.getRTPPackageHeader();
     if(minSequenceNumber == 0)
     {
         //if we receive our first package, we need to set minSequenceNumber
@@ -79,21 +79,21 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentS
     {
         ringBuffer[newWriteIndex].packageContent = new char[contentSize];
     }
-    memcpy(ringBuffer[newWriteIndex].packageContent, package.getDataFromRTPPackage(), contentSize);
+    memcpy(ringBuffer[newWriteIndex].packageContent, package.getRTPPackageData(), contentSize);
     //update size
     size++;
     unlockMutex();
     return RTP_BUFFER_ALL_OKAY;
 }
 
-RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
+RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
 {
     lockMutex();
     if(size < minBufferPackages)
     {
         //buffer is empty
         //write placeholder package
-        char *packageBuffer = (char *)package.getRecvBuffer();
+        char *packageBuffer = (char *)package.getWorkBuffer();
 
         // TODO: move to RTPPackage? need to use correct buffer!
         memcpy(packageBuffer, &(silencePackage.header), sizeof(silencePackage.header));
@@ -122,7 +122,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
     }
 
     // TODO: move to RTPPackage? need to use correct buffer!
-    char *packageBuffer = (char *)package.getRecvBuffer();
+    char *packageBuffer = (char *)package.getWorkBuffer();
     memcpy(packageBuffer, &(bufferPack->header), sizeof(bufferPack->header));
     memcpy(packageBuffer + sizeof(bufferPack->header), bufferPack->packageContent, bufferPack->contentSize);
 

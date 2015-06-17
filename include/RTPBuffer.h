@@ -8,7 +8,7 @@
 #ifndef RTPBUFFER_H
 #define	RTPBUFFER_H
 
-#include "RTPPackage.h"
+#include "RTPPackageHandler.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -56,7 +56,7 @@ public:
      * 
      * Returns zero on success or one of the RTPBufferStatus-codes listed in RTPBuffer.h
      */
-    RTPBufferStatus addPackage(RTPPackage &package, unsigned int contentSize);
+    RTPBufferStatus addPackage(RTPPackageHandler &package, unsigned int contentSize);
     
     /*!
      * Reads the oldest package in the buffer and writes it into the package-variable
@@ -64,7 +64,7 @@ public:
      * 
      * Returns zero on success or one if the RTPBufferStatus-codes listed in RTPBuffer.h
      */
-    RTPBufferStatus readPackage(RTPPackage &package);
+	RTPBufferStatus readPackage(RTPPackageHandler &package);
     
     /*!
      * Returns the size of the buffer, the number of stored elements

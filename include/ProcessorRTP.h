@@ -3,7 +3,7 @@
 #define	PROCESSORRTP_H
 #include <string>
 #include "AudioProcessor.h"
-#include "RTPPackage.h"
+#include "RTPPackageHandler.h"
 #include "NetworkWrapper.h"
 #include "RTPBuffer.h"
 
@@ -32,7 +32,7 @@ public:
     void processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
 private:
     NetworkWrapper *networkObject;
-    RTPPackage *rtpPackage = nullptr;
+	RTPPackageHandler *rtpPackage = nullptr;
     std::unique_ptr<RTPBuffer> *rtpBuffer;
 };
 #endif

@@ -11,10 +11,10 @@ void ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputB
 	// pack data into a rtp-package
 	if (rtpPackage == nullptr)
 	{
-		rtpPackage = new RTPPackage(inputBufferByteSize);
+		rtpPackage = new RTPPackageHandler(inputBufferByteSize);
 	}
 	void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer, userData->streamTime);
-	this->networkObject->sendDataNetworkWrapper(newRTPPackage, rtpPackage->getPacketSizeRTPPackage());
+	this->networkObject->sendDataNetworkWrapper(newRTPPackage, rtpPackage->getSize());
 }
 
 void ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
@@ -22,11 +22,11 @@ void ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outp
 	// unpack data from a rtp-package
 	if (rtpPackage == nullptr)
 	{
-		rtpPackage = new RTPPackage(outputBufferByteSize);
+		rtpPackage = new RTPPackageHandler(outputBufferByteSize);
 	}
 //	this->networkObject->recvDataNetworkWrapper(rtpPackage->getRecvBuffer(), rtpPackage->getPacketSizeRTPPackage());
         //read package from buffer
         (*rtpBuffer)->readPackage(*rtpPackage);
-        void* recvAudioData = rtpPackage->getDataFromRTPPackage();
+        void* recvAudioData = rtpPackage->getRTPPackageData();
         memcpy(outputBuffer, recvAudioData, outputBufferByteSize);
 }
