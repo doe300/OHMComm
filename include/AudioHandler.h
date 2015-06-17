@@ -27,6 +27,8 @@ public:
 	virtual void reset() = 0; // stop and reset audioConfiguration
 	virtual void playData(void *playbackData, unsigned int size) = 0;
 	virtual void setDefaultAudioConfig() = 0; // will load the default-config
+	virtual auto prepare() -> bool = 0; // prepare everything for execution (allocates memory if needed, configure audioprocessors)
+	virtual auto getBufferSize() -> unsigned int = 0;
 
 	void printAudioProcessorOrder(std::ostream& outputStream = std::cout) const;
 	auto addProcessor(AudioProcessor *audioProcessor) -> bool;
@@ -34,21 +36,27 @@ public:
 	auto removeAudioProcessor(std::string nameOfAudioProcessor) -> bool;
 	auto clearAudioProcessors() -> bool;
         
-    /*!
-     * Calls AudioProcessor#configure() for all registered processors
-     */
-    bool configureAudioProcessors();
-	bool isAudioConfigSet = false;
 	auto hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool;
 	auto hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool;
 	auto getAudioConfiguration() -> AudioConfiguration;
 
+	auto IsAudioConfigSet() const -> bool;
+	auto IsPrepared() const -> bool;
 
 protected:
+	bool isAudioConfigSet = false;
+	bool isPrepared = false;
+
+
 	std::vector<AudioProcessor*> audioProcessors;
 	AudioConfiguration audioConfiguration;	
 	void processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData);
 	void processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, StreamData *streamData);
+
+	/*!
+	* Calls AudioProcessor#configure() for all registered processors
+	*/
+	auto configureAudioProcessors() -> bool;
 };
 
 #endif

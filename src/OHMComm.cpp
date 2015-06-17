@@ -96,15 +96,7 @@ void configureNetwork()
     int destPort = inputNumber("2. Input destination port", false, false);
     int localPort = inputNumber("3. Input local port", false, false);
     networkConfiguration.portOutgoing = destPort;
-    networkConfiguration.portIncoming = localPort;
-    
-    vector<string> protocols {"TCP", "UDP"};
-    string protocolString = selectOption("4. Choose protocol", protocols, "UDP");
-    networkConfiguration.connectionType = protocolString == "TCP" ? NetworkConfiguration::ConnectionType::TCP : NetworkConfiguration::ConnectionType::UDP;
-    
-    // Connection type is not relevant for the network configuration
-    // If there is an TCP connection needed, then pass the config to a TCP-Wrapper
-    // otherwise pass the config
+
     cout << "Networkconfiguration set." << endl;
 }
 
@@ -322,29 +314,17 @@ int main(int argc, char** argv)
         if (input == 'N' || input == 'n')
         {
                 configureNetwork();
-                //XXX make the buffers configurable??
-                networkConfiguration.inputBufferSize = 4096;
-                networkConfiguration.outputBufferSize = 4096;
                 network = new UDPWrapper(networkConfiguration);
         }
         else
         {
                 networkConfiguration.addressIncoming = "127.0.0.1";
                 networkConfiguration.addressOutgoing = "127.0.0.1";
-                networkConfiguration.connectionType = NetworkConfiguration::ConnectionType::UDP;
-                networkConfiguration.inputBufferSize = 4096;
-                networkConfiguration.outputBufferSize = 4096;
                 //the port should be a number greater than 1024
                 networkConfiguration.portIncoming = 12345;
                 networkConfiguration.portOutgoing = 12345;
                 network = new UDPWrapper(networkConfiguration);
-        }
-
-        ////
-        // AudioProcessors
-        ////
-
-        //TODO select and add processors
+        }     
 
         ////
         // Startup
@@ -352,14 +332,15 @@ int main(int argc, char** argv)
 
         //initialize RTPBuffer and -Listener
         std::unique_ptr<RTPBuffer> *rtpBuffer = new std::unique_ptr<RTPBuffer>(new RTPBuffer(256, 1000));
-        RTPListener listener(network, rtpBuffer, networkConfiguration.inputBufferSize);
+        
         // add a processor to the process chain
         ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
         audioObject->addProcessor(&rtp);
 
         //configure all processors
-        audioObject->configureAudioProcessors();
+        audioObject->prepare();
 
+		RTPListener listener(network, rtpBuffer, audioObject->getBufferSize());
         // start audio processing
         listener.startUp();
         audioObject->startDuplexMode();

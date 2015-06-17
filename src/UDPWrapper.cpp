@@ -1,11 +1,9 @@
 #include "UDPWrapper.h"
 
-UDPWrapper::UDPWrapper(sockaddr_in localAddress, sockaddr_in remoteAddress, unsigned int outputBufferSize, unsigned int inputBufferSize) :
-localAddress(localAddress), remoteAddress(remoteAddress), outputBufferSize(outputBufferSize), inputBufferSize(inputBufferSize)
+UDPWrapper::UDPWrapper(sockaddr_in localAddress, sockaddr_in remoteAddress) : localAddress(localAddress), remoteAddress(remoteAddress)
 {}
 
-UDPWrapper::UDPWrapper(std::string localIPAddress, unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing, unsigned int outputBufferSize, unsigned int inputBufferSize) :
-outputBufferSize(outputBufferSize), inputBufferSize(inputBufferSize)
+UDPWrapper::UDPWrapper(std::string localIPAddress, unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing)
 {
 	InitializeNetworkConfig(localIPAddress, portIncoming, remoteIPAddress, portOutgoing);
 	initializeNetwork();
@@ -13,7 +11,7 @@ outputBufferSize(outputBufferSize), inputBufferSize(inputBufferSize)
 
 UDPWrapper::UDPWrapper(struct NetworkConfiguration networkConfig) : 
 UDPWrapper(networkConfig.addressIncoming, networkConfig.portIncoming, networkConfig.addressOutgoing, 
-networkConfig.portOutgoing, networkConfig.outputBufferSize, networkConfig.inputBufferSize) {}
+networkConfig.portOutgoing) {}
 
 void UDPWrapper::initializeNetwork()
 {

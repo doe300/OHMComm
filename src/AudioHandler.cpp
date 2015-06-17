@@ -99,3 +99,13 @@ void AudioHandler::processAudioInput(void *inputBuffer, const unsigned int &inpu
 		processor->processInputData(inputBuffer, inputBufferByteSize, streamData);
 	}
 }
+
+auto AudioHandler::IsAudioConfigSet() const -> bool
+{
+	return isAudioConfigSet;
+}
+
+auto AudioHandler::IsPrepared() const -> bool
+{
+	return isPrepared;
+}

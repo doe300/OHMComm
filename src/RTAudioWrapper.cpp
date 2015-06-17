@@ -94,23 +94,35 @@ void RtAudioWrapper::playbackFileData(void *outputBuffer)
 // Region: AudioWrapper methods
 void RtAudioWrapper::startRecordingMode()
 {
-	this->initRtAudioStreamParameters();
-	this->rtaudio.openStream(nullptr, &input, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
-	this->rtaudio.startStream();
+	if (this->isPrepared)
+	{
+		this->rtaudio.openStream(nullptr, &input, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
+		this->rtaudio.startStream();
+	}
+	else
+		std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
 }
 
 void RtAudioWrapper::startPlaybackMode()
 {
-	this->initRtAudioStreamParameters();
-	this->rtaudio.openStream(&output, nullptr, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
-	this->rtaudio.startStream();
+	if (this->isPrepared)
+	{
+		this->rtaudio.openStream(&output, nullptr, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
+		this->rtaudio.startStream();
+	}
+	else
+		std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
 }
 
 void RtAudioWrapper::startDuplexMode()
 {
-	this->initRtAudioStreamParameters();
-	this->rtaudio.openStream(&output, &input, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
-	this->rtaudio.startStream();
+	if (this->isPrepared)
+	{
+		this->rtaudio.openStream(&output, &input, audioConfiguration.audioFormat, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
+		this->rtaudio.startStream();
+	}
+	else
+		std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
 }
 
 
@@ -149,6 +161,7 @@ void RtAudioWrapper::reset()
 	this->stop();
 	this->audioConfiguration = { 0 };
 	this->isAudioConfigSet = false;
+	this->isPrepared = false;
 }
 
 void RtAudioWrapper::playData(void *playbackData, unsigned int size)
@@ -193,7 +206,7 @@ void RtAudioWrapper::playData(void *playbackData, unsigned int size)
 
 
 // Region: private functions
-void RtAudioWrapper::initRtAudioStreamParameters()
+auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
 {
 	/* If there is no config set, then load the default */
 	if (this->isAudioConfigSet == false)
@@ -213,6 +226,8 @@ void RtAudioWrapper::initRtAudioStreamParameters()
 	this->output.nChannels = audioConfiguration.outputDeviceChannels;
 	this->input.firstChannel = audioConfiguration.inputDeviceFirstChannel;
 	this->output.firstChannel = audioConfiguration.outputDeviceFirstChannel;
+
+	return true;
 }
 
 void RtAudioWrapper::setDefaultAudioConfig()
@@ -289,4 +304,22 @@ auto RtAudioWrapper::autoSelectAudioFormat(RtAudioFormat supportedFormats) -> Rt
 	}
 	//fall back to worst quality
 	return RTAUDIO_SINT8;
+}
+
+bool RtAudioWrapper::prepare()
+{
+	bool resultA = this->configureAudioProcessors();
+	bool resultB = this->initRtAudioStreamParameters();
+
+	if (resultA && resultB) {
+		this->isPrepared = true;
+		return true;
+	}
+		
+	return false;
+}
+
+auto RtAudioWrapper::getBufferSize() -> unsigned int
+{
+	return outputBufferByteSize;
 }

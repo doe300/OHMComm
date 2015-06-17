@@ -44,7 +44,8 @@ public:
 	void setDefaultAudioConfig();
     /* This is a blocking function, do NOT call this function within the RtAudio callback */
     void playData(void *playbackData, unsigned int size);
-	
+	auto prepare() -> bool;
+	auto getBufferSize() -> unsigned int;
 
     /* Callbacks */
     auto callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData) -> int;
@@ -66,13 +67,13 @@ private:
     RtAudio rtaudio;
     RtAudio::StreamParameters input, output;
     
-    unsigned int outputBufferByteSize = {0};
-    unsigned int inputBufferByteSize = {0};
+    unsigned int outputBufferByteSize = 0;
+    unsigned int inputBufferByteSize = 0;
 
     StreamData *streamData;
 
     /* preparing for a openstream call */
-    void initRtAudioStreamParameters();
+    auto initRtAudioStreamParameters() -> bool;
 
     /* returns the size of a frame in bytes */
     auto getAudioFormatByteSize(RtAudioFormat rtaudioFormat) -> int;

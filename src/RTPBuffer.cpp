@@ -57,10 +57,9 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int c
     }
     if(receivedHeader->sequence_number - minSequenceNumber >= capacity)
     {
-        // TODO: Its not smart to discard new packages. This is only the case when the processing is slow or
-        // previous package were lost while transmitting. And if that is the case when the buffer should not wait 
-        // for old packages and discard all new ones. Instead it should the move the buffer ahead. In order to enable a smooth
-        // processing for the further packages that are coming
+        // TODO: Its not smart to discard new packages. This is only the case if packages were lost while transmitting. 
+		// And if that is the case then the buffer should not wait for old packages and discard all further (new) packages. 
+		// Instead it should the move the current pointer in the buffer ahead. 
         // -> need to correctly implement maxDelay
 
         //package is far too new -> we have now choice but to discard it without getting into an undetermined state
@@ -169,7 +168,7 @@ void RTPBuffer::generateSilencePackage()
     //copy dummy header
     silencePackage.header = dummyHeader;
     silencePackage.isValid = true;
-    silencePackage.contentSize = networkConfiguration.outputBufferSize;
+    silencePackage.contentSize = 2060; // TODO how to set this one correctly?
     silencePackage.packageContent = new char[silencePackage.contentSize];
     //fill payload with zero
     memset(silencePackage.packageContent, 0, silencePackage.contentSize);
