@@ -36,15 +36,15 @@ void TestRTP::testRTPPackage()
 {
     std::string payload("This is a dummy payload");
     uint16_t testTimestamp = 500;
-    RTPPackage pack(100, RTP_HEADER_MIN_SIZE, PayloadType::GSM);
+	RTPPackageHandler pack(100, PayloadType::GSM, RTP_HEADER_MIN_SIZE);
     
     void *packageBuffer = pack.getNewRTPPackage((char *)payload.c_str(), testTimestamp);
     
-    void *headerBuffer = pack.getHeaderFromRTPPackage(packageBuffer);
+    void *headerBuffer = pack.getRTPPackageHeader(packageBuffer);
     RTPHeader *header = (RTPHeader *)headerBuffer;
     TEST_ASSERT_EQUALS_MSG(header->payload_type, PayloadType::GSM, "Payload types don't match! 01");
     TEST_ASSERT_EQUALS_MSG(header->timestamp, testTimestamp, "Timestamps don't match! 02");
     
-    void *contentBuffer = pack.getDataFromRTPPackage(packageBuffer);
+    void *contentBuffer = pack.getRTPPackageData(packageBuffer);
     TEST_ASSERT_EQUALS_MSG(memcmp(payload.c_str(), contentBuffer, payload.size()), 0, "Payloads don't match! 03");
 }

@@ -10,7 +10,7 @@
 
 #include "cpptest.h"
 #include "RTCPPackageHandler.h"
-#include "RTPPackage.h"
+#include "RTPPackageHandler.h"
 
 class TestRTP: public Test::Suite
 {
