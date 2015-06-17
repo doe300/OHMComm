@@ -1,5 +1,5 @@
 /* 
- * File:   RTCPPackage.cpp
+ * File:   RTCPPackageHandler.cpp
  * Author: daniel
  * 
  * Created on June 16, 2015, 5:47 PM
@@ -8,9 +8,9 @@
 #include <malloc.h>
 #include <string.h>
 
-#include "RTCPPackage.h"
+#include "RTCPPackageHandler.h"
 
-RTCPPackage::RTCPPackage()
+RTCPPackageHandler::RTCPPackageHandler()
 {
     //maximal SR size: 8 (header) + 20 (sender-info) + 31 (5 bit RC count) * 128 (reception report)
     senderReportBuffer = new char[8 + 20 + 31 * 128];
@@ -20,7 +20,7 @@ RTCPPackage::RTCPPackage()
     byeBuffer = new char[8 + 1 + 255];
 }
 
-RTCPPackage::~RTCPPackage()
+RTCPPackageHandler::~RTCPPackageHandler()
 {
     free(senderReportBuffer);
     free(receiverReportBuffer);
@@ -28,22 +28,22 @@ RTCPPackage::~RTCPPackage()
 }
 
 
-void* RTCPPackage::createSenderReportPackage(RTCPHeader& header, SenderInformation& senderInfo, std::vector<ReceptionReport> reports)
+void* RTCPPackageHandler::createSenderReportPackage(RTCPHeader& header, SenderInformation& senderInfo, std::vector<ReceptionReport> reports)
 {
     header.packageType = RTCP_PACKAGE_SENDER_REPORT;
     header.receptionReportOrSourceCount = reports.size();
     memcpy(senderReportBuffer, &header, RTCP_HEADER_SIZE);
     memcpy(senderReportBuffer + RTCP_HEADER_SIZE, &senderInfo, RTCP_SENDER_INFO_SIZE);
     //TODO reports
-	return nullptr;
+    return nullptr;
 }
 
-void* RTCPPackage::createReceiverReportPackage(RTCPHeader& header, std::vector<ReceptionReport> reports)
+void* RTCPPackageHandler::createReceiverReportPackage(RTCPHeader& header, std::vector<ReceptionReport> reports)
 {
-	return nullptr;
+    return nullptr;
 }
 
-void* RTCPPackage::createByePackage(RTCPHeader& header, std::string byeMessage)
+void* RTCPPackageHandler::createByePackage(RTCPHeader& header, std::string byeMessage)
 {
     header.packageType = RTCP_PACKAGE_GOODBYE;
     uint8_t length = byeMessage.size();
@@ -53,19 +53,19 @@ void* RTCPPackage::createByePackage(RTCPHeader& header, std::string byeMessage)
     return byeBuffer;
 }
 
-std::vector<ReceptionReport> RTCPPackage::readSenderReport(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header, SenderInformation& senderInfo)
+std::vector<ReceptionReport> RTCPPackageHandler::readSenderReport(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header, SenderInformation& senderInfo)
 {
-	std::vector<ReceptionReport> a;
-	return a;
+    std::vector<ReceptionReport> a;
+    return a;
 }
 
-std::vector<ReceptionReport> RTCPPackage::readReceiverReport(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header)
+std::vector<ReceptionReport> RTCPPackageHandler::readReceiverReport(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header)
 {
-	std::vector<ReceptionReport> a;
-	return a;
+    std::vector<ReceptionReport> a;
+    return a;
 }
 
-std::string RTCPPackage::readByeMessage(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header)
+std::string RTCPPackageHandler::readByeMessage(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header)
 {
     memcpy(byeBuffer, senderReportPackage, packageLength);
     RTCPHeader *readHeader = (RTCPHeader *)byeBuffer;

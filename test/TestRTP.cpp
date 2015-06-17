@@ -10,15 +10,41 @@
 TestRTP::TestRTP()
 {
     TEST_ADD(TestRTP::testRTCPByeMessage);
+    TEST_ADD(TestRTP::testRTPPackage);
 }
 
 void TestRTP::testRTCPByeMessage()
 {
-    RTCPHeader *byeHeader = new RTCPHeader(RTCP_PACKAGE_APPLICATION_DEFINED, 0, 500);
-    RTCPPackage p;
+    std::string testMessage("Test massage");
     
-    void *byePointer = p.createByePackage(*byeHeader, std::string("Test massage"));
+    RTCPHeader *byeHeader = new RTCPHeader(RTCP_PACKAGE_APPLICATION_DEFINED, 0, 500);
+    RTCPPackageHandler p;
+    void *byePointer = p.createByePackage(*byeHeader, testMessage);
+    //package-type should be adjusted
+    TEST_ASSERT_EQUALS_MSG(RTCP_PACKAGE_GOODBYE, byeHeader->packageType, "Package-type of GOODBYE expected! 01");
+    
+    //modify package-type again
     byeHeader->packageType = RTCP_PACKAGE_RECEIVER_REPORT;
+    
     std::string byeMessage = p.readByeMessage(byePointer, 21, *byeHeader);
-    std::cout << byeMessage << ": " << (byeHeader->packageType+0) << std::endl;
+    //package-type should be adjusted again
+    TEST_ASSERT_EQUALS_MSG(RTCP_PACKAGE_GOODBYE, byeHeader->packageType, "Package-type of GOODBYE expected! 02");
+    TEST_ASSERT_EQUALS_MSG(testMessage, byeMessage, "Messages don't match! 03")
+}
+
+void TestRTP::testRTPPackage()
+{
+    std::string payload("This is a dummy payload");
+    uint16_t testTimestamp = 500;
+    RTPPackage pack(100, RTP_HEADER_MIN_SIZE, PayloadType::GSM);
+    
+    void *packageBuffer = pack.getNewRTPPackage((char *)payload.c_str(), testTimestamp);
+    
+    void *headerBuffer = pack.getHeaderFromRTPPackage(packageBuffer);
+    RTPHeader *header = (RTPHeader *)headerBuffer;
+    TEST_ASSERT_EQUALS_MSG(header->payload_type, PayloadType::GSM, "Payload types don't match! 01");
+    TEST_ASSERT_EQUALS_MSG(header->timestamp, testTimestamp, "Timestamps don't match! 02");
+    
+    void *contentBuffer = pack.getDataFromRTPPackage(packageBuffer);
+    TEST_ASSERT_EQUALS_MSG(memcmp(payload.c_str(), contentBuffer, payload.size()), 0, "Payloads don't match! 03");
 }

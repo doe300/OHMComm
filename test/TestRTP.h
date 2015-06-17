@@ -9,7 +9,8 @@
 #define	TESTRTP_H
 
 #include "cpptest.h"
-#include "RTCPPackage.h"
+#include "RTCPPackageHandler.h"
+#include "RTPPackage.h"
 
 class TestRTP: public Test::Suite
 {
@@ -17,6 +18,8 @@ public:
     TestRTP();
     
     void testRTCPByeMessage();
+    
+    void testRTPPackage();
 };
 
 #endif	/* TESTRTP_H */

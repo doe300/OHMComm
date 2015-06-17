@@ -1,12 +1,12 @@
 /* 
- * File:   RTCPPackage.h
+ * File:   RTCPPackageHandler.h
  * Author: daniel
  *
  * Created on June 16, 2015, 5:47 PM
  */
 
-#ifndef RTCPPACKAGE_H
-#define	RTCPPACKAGE_H
+#ifndef RTCPPACKAGEHANDLER_H
+#define	RTCPPACKAGEHANDLER_H
 
 #include <stdint.h>
 #include <vector>
@@ -149,7 +149,7 @@ struct RTCPHeader
 struct SenderInformation
 {
     //64 bit NTP timestamp field
-    //unsigned long NTPTimestamp: 64;
+    //TODO unsigned long NTPTimestamp: 64;
     
     //32 bit RTP timestamp field
     unsigned int RTPTimestamp: 32;
@@ -270,13 +270,13 @@ struct ReceptionReport
  * 
  * NOTE: This class is not thread safe!
  */
-class RTCPPackage
+class RTCPPackageHandler
 {
 public:
     
-    RTCPPackage();
+    RTCPPackageHandler();
     
-    virtual ~RTCPPackage();
+    virtual ~RTCPPackageHandler();
 
     
     void *createSenderReportPackage(RTCPHeader &header, SenderInformation &senderInfo, std::vector<ReceptionReport> reports);
@@ -298,5 +298,5 @@ private:
     char *byeBuffer;
 };
 
-#endif	/* RTCPPACKAGE_H */
+#endif	/* RTCPPACKAGEHANDLER_H */
 
