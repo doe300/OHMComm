@@ -24,5 +24,6 @@ before_script:
 script: make
 
 after_script:
-  - chmod +x build/test/Tests
-  - sh build/test/Tests
+  - pwd
+  - chmod +x test/Tests
+  - sh test/Tests
