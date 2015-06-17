@@ -149,7 +149,7 @@ struct RTCPHeader
 struct SenderInformation
 {
     //64 bit NTP timestamp field
-    unsigned long NTPTimestamp: 64;
+    //unsigned long NTPTimestamp: 64;
     
     //32 bit RTP timestamp field
     unsigned int RTPTimestamp: 32;
@@ -164,7 +164,7 @@ struct SenderInformation
         RTPTimestamp(rtpTimestamp), packetCount(packageCount), octetCount(octetCount)
     {
         //default NTP timestamp
-        NTPTimestamp = 0;
+        //NTPTimestamp = 0;
     }
 };
 

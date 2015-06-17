@@ -35,11 +35,12 @@ void* RTCPPackage::createSenderReportPackage(RTCPHeader& header, SenderInformati
     memcpy(senderReportBuffer, &header, RTCP_HEADER_SIZE);
     memcpy(senderReportBuffer + RTCP_HEADER_SIZE, &senderInfo, RTCP_SENDER_INFO_SIZE);
     //TODO reports
+	return nullptr;
 }
 
 void* RTCPPackage::createReceiverReportPackage(RTCPHeader& header, std::vector<ReceptionReport> reports)
 {
-
+	return nullptr;
 }
 
 void* RTCPPackage::createByePackage(RTCPHeader& header, std::string byeMessage)
@@ -54,12 +55,14 @@ void* RTCPPackage::createByePackage(RTCPHeader& header, std::string byeMessage)
 
 std::vector<ReceptionReport> RTCPPackage::readSenderReport(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header, SenderInformation& senderInfo)
 {
-
+	std::vector<ReceptionReport> a;
+	return a;
 }
 
 std::vector<ReceptionReport> RTCPPackage::readReceiverReport(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header)
 {
-
+	std::vector<ReceptionReport> a;
+	return a;
 }
 
 std::string RTCPPackage::readByeMessage(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header)

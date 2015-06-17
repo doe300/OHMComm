@@ -57,7 +57,7 @@ auto RTPPackage::getDataFromRTPPackage(void *rtpPackage) -> void*
 
 auto RTPPackage::getHeaderFromRTPPackage(void *rtpPackage) -> void*
 {
-	memcpy(readRTPHeaderFromRTPPackage_Buffer, rtpPackage, dataSize);
+	memcpy(readRTPHeaderFromRTPPackage_Buffer, rtpPackage, rtp_header_size);
 	return readRTPHeaderFromRTPPackage_Buffer;
 }
 
@@ -69,7 +69,7 @@ auto RTPPackage::getDataFromRTPPackage() -> void*
 
 auto RTPPackage::getHeaderFromRTPPackage() -> void*
 {
-	memcpy(readRTPHeaderFromRTPPackage_Buffer, rtpPackageRecv_Buffer, dataSize);
+	memcpy(readRTPHeaderFromRTPPackage_Buffer, rtpPackageRecv_Buffer, rtp_header_size);
 	return readRTPHeaderFromRTPPackage_Buffer;
 }
 
