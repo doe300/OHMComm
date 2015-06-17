@@ -12,7 +12,7 @@
 
 //TODO implement maxDelay (problem: RTP-timestamp is not guaranteed to be in ms or ns or s, ...)
 
-RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay): capacity(maxCapacity), maxDelay(maxDelay)
+RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages): capacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages)
 {
     nextReadIndex = 0;
     ringBuffer = new RTPBufferPackage[maxCapacity];
@@ -89,7 +89,7 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackage &package, unsigned int contentS
 RTPBufferStatus RTPBuffer::readPackage(RTPPackage &package)
 {
     lockMutex();
-    if(size <= 0)
+    if(size < minBufferPackages)
     {
         //buffer is empty
         //write placeholder package

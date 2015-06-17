@@ -42,8 +42,9 @@ public:
     /*!
      * \param maxCapacity The maximum number of packages to buffer
      * \param maxDelay The maximum delay in milliseconds before dropping packages
+     * \param minBufferPackages The minimum of packages to buffer before returning valid audio-data
      */
-    RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay);
+    RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages = 1);
     virtual ~RTPBuffer();
     
     /*!
@@ -119,6 +120,11 @@ private:
      * The maximum delay (in milliseconds) before dropping a package
      */
     const uint16_t maxDelay;
+    /*!
+     * The minimum number of packages this buffer must contain before packages are read.
+     * Until this lower limit is reached, silence-packages are returned.
+     */
+    const uint16_t minBufferPackages;
     /*!
      * The index to read the next package from, the last position in the buffer
      */
