@@ -5,8 +5,8 @@
  * Created on March 28, 2015, 12:30 PM
  */
 
-#ifndef RTPPACKAGE_H
-#define	RTPPACKAGE_H
+#ifndef RTPPACKAGEHANDLER_H
+#define	RTPPACKAGEHANDLER_H
 
 #include <iostream>
 #include <random> // random generator objects
@@ -242,83 +242,90 @@ enum PayloadType
     
 };
 
-class RTPPackage
+class RTPPackageHandler
 {
 public:
     /*!
      * Constructs a new RTPPackage-object
      * 
-     * \param dataSize The maximum size in bytes of the payload
+     * \param sizeOfAudioData The maximum size in bytes of the payload (body)
+	 *
+	 * \param payloadType The PayloadType, defaults to L16_2
      * 
-     * \param rtp_header_size The size in bytes of the RTPHeader, defaults to RTP_HEADER_MIN_SIZE
-     * 
-     * \param payloadType The PayloadType, defaults to L16_2
+     * \param sizeOfRTPHeader The size in bytes of the RTPHeader, defaults to RTP_HEADER_MIN_SIZE  
      */
-    RTPPackage(unsigned int dataSize, unsigned int rtp_header_size = RTP_HEADER_MIN_SIZE, PayloadType payloadType = L16_2);
+	 RTPPackageHandler(unsigned int sizeOfAudioData, PayloadType payloadType = L16_2, unsigned int sizeOfRTPHeader = RTP_HEADER_MIN_SIZE);
+
     /*!
-     * Generates a new RTP-package by generating the header and copying the payload-data
+     * Generates a new RTP-package by generating the header and copying the payload-data (audio data)
      * 
-     * \param data The payload for the new RTP-package
+     * \param audioData The payload for the new RTP-package
      * 
      * \param timestamp The timestamp, the new package is at
      * 
-     * Returns the pointer to the internal buffer storing the new package
+     * Returns a pointer to the internal buffer storing the new package
      */
-    auto getNewRTPPackage(void* data, unsigned int timestamp)->void*;
+	 /// TODO Why timestamp is passed as parameter? Why not generate it within the method?
+    auto getNewRTPPackage(void* audioData, unsigned int timestamp)->void*;
+
     /*!
-     * \param rtpPackage The complete RTP-package (header + payload)to read from
+     * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from,  defaults nullptr
+	 *   
+     * Returns a pointer to the payload of rtpPackage. When rtpPackage is not set (defaults nullptr) 
+	 * the internal 'workBuffer' will be used as source.
+     */
+	auto getRTPPackageData(void *rtpPackage = nullptr) -> void*;
+
+    /*!
+     * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from, defaults nullptr
      * 
-     * Returns the pointer to the payload of the RTP-package
+     * Returns a RTPHeader pointer of the rtpPackage. When rtpPackage is not set (defaults nullptr) 
+	 * the internal 'workBuffer' will be used as source.
      */
-    auto getDataFromRTPPackage(void *rtpPackage) -> void*;
-    /*!
-     * \param rtpPackage The complete RTP-package (header + payload)to read from
-     * 
-     * Returns the pointer to the header of the RTP-package
-     */
-    auto getHeaderFromRTPPackage(void *rtpPackage) -> void*;
-    /*!
-     * Returns the pointer to the payload of the internal receive-buffer (see getRecvBuffer())
-     */
-    auto getDataFromRTPPackage() -> void*;
-    /*!
-     * Returns the pointer to the header of the internal receive-buffer (see getRecvBuffer())
-     */
-    auto getHeaderFromRTPPackage() -> void*;
+	auto getRTPPackageHeader(void *rtpPackage = nullptr) -> RTPHeader*;
+
     /*!
      * Gets the total size for the RTP package (header + body)
      */
-    auto getPacketSizeRTPPackage() -> unsigned int;
+    auto getSize() -> unsigned int const;
+
+	/*!
+	* Gets the RTPHeader size
+	*/
+	auto getSizeOfRTPHeader() -> unsigned int const;
+
+	/*!
+	* Gets the payload size
+	*/
+	auto getSizeOfAudioData() -> unsigned int const;
+
     /*!
-     * Returns the internal buffer to be written into on receiving packages
+     * Returns the internal buffer, which could be used as receive buffer
      */
-    auto getRecvBuffer() -> void*;
+    auto getWorkBuffer() -> void*;
 private:
     // When a new RTP-Package is created, it will be written in this buffer
-    void *newRTPPackage_Buffer;
+    void *newRTPPackageBuffer;
 
     // A buffer that can store a whole RTP-Package
-    void *rtpPackageRecv_Buffer;
-
-    // When data from RTP-Package is read, audio data will be saved in this buffer
-    void *readAudioDataFromRTPPackage_Buffer;
-
-    // When data from RTP-Package is read, header will be saved in this buffer
-    void *readRTPHeaderFromRTPPackage_Buffer;
+    void *workBuffer;
 
     unsigned int getRandomNumber();
     unsigned int getTimestamp();
     unsigned int getAudioSourceId();
 
     std::mt19937 randomGenerator;
-    RTPHeader rtpheader;
+
+
     unsigned int sequenceNr;
     unsigned int timestamp;
     unsigned int ssrc;
     unsigned int payloadType;
-    unsigned int rtp_header_size;
-    unsigned int dataSize;
+
+	unsigned int sizeOfRTPHeader;
+	unsigned int sizeOfAudioData;
+	unsigned int size;
 };
 
-#endif	/* RTPPACKAGE_H */
+#endif	/* RTPPACKAGEHANDLER_H */
 
