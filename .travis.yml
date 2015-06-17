@@ -22,3 +22,8 @@ before_script:
   - cmake ../
   
 script: make
+
+after_script:
+  - pwd
+  - chmod +x test/Tests
+  - sh test/Tests
