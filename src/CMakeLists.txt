@@ -20,7 +20,7 @@ endif()
 #Build OHMComm
 add_executable( OHMComm ${SRCS} ${HDRS} )
 #Build OHMCommLib for usage with Tests
-add_library( OHMCommLib ${SRCS} ${HDRS} )
+add_library( OHMCommLib STATIC ${SRCS} ${HDRS} )
 
 if(MSVC) 
 # Visual Studio Compiler
