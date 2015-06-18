@@ -31,6 +31,11 @@ void TestRTP::testRTCPByeMessage()
     //package-type should be adjusted again
     TEST_ASSERT_EQUALS_MSG(RTCP_PACKAGE_GOODBYE, byeHeader->packageType, "Package-type of GOODBYE expected! 02");
     TEST_ASSERT_EQUALS_MSG(testMessage, byeMessage, "Messages don't match! 03")
+    
+    //test empty message
+    byePointer = p.createByePackage(*byeHeader, std::string());
+    byeMessage = p.readByeMessage(byePointer, 21, *byeHeader);
+    TEST_ASSERT_EQUALS_MSG(std::string(), byeMessage, "Empty message does not match! 04");
 }
 
 void TestRTP::testRTPPackage()

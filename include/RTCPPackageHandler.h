@@ -20,8 +20,19 @@ static const RTCPPackageType RTCP_PACKAGE_SOURCE_DESCRIPTION = 202;
 static const RTCPPackageType RTCP_PACKAGE_GOODBYE = 203;
 static const RTCPPackageType RTCP_PACKAGE_APPLICATION_DEFINED = 204;
 
+typedef uint8_t RTCPSourceDescriptionType;
+
+static const RTCPSourceDescriptionType RTCP_SOURCE_CNAME = 1;
+static const RTCPSourceDescriptionType RTCP_SOURCE_NAME = 2;
+static const RTCPSourceDescriptionType RTCP_SOURCE_EMAIL = 3;
+static const RTCPSourceDescriptionType RTCP_SOURCE_PHONE = 4;
+static const RTCPSourceDescriptionType RTCP_SOURCE_LOC = 5;
+static const RTCPSourceDescriptionType RTCP_SOURCE_TOOL = 6;
+static const RTCPSourceDescriptionType RTCP_SOURCE_NOTE = 7;
+
 static const uint8_t RTCP_HEADER_SIZE = 8;
 static const uint8_t RTCP_SENDER_INFO_SIZE = 20;
+static const uint8_t RTCP_RECEPTION_REPORT_SIZE = 24;
 
 /*!
  * The RTCP header has the following format:
@@ -149,7 +160,7 @@ struct RTCPHeader
 struct SenderInformation
 {
     //64 bit NTP timestamp field
-    //TODO unsigned long NTPTimestamp: 64;
+    uint64_t NTPTimestamp: 64;
 
     //32 bit RTP timestamp field
     unsigned int RTPTimestamp : 32;
@@ -164,7 +175,7 @@ struct SenderInformation
     RTPTimestamp(rtpTimestamp), packetCount(packageCount), octetCount(octetCount)
     {
         //default NTP timestamp
-        //NTPTimestamp = 0;
+        NTPTimestamp = 0;
     }
 };
 
@@ -266,9 +277,23 @@ struct ReceptionReport
 };
 
 /*!
+ * The Source Description (SDES) has following format:
+ * 
+ *  0                   1                   2                   3
+ *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |     TYPE      |     length    | user and domain name         ...
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * 
+ * NOTE: Currently only source-descriptions for a single source are supported.
+ */
+
+/*!
  * Utility-class to create/read RTCP packages
  * 
  * NOTE: This class is not thread safe!
+ * 
+ * NOTE: All methods in this class modify some of their parameter!
  */
 class RTCPPackageHandler
 {
@@ -278,24 +303,121 @@ public:
 
     virtual ~RTCPPackageHandler();
 
-
+    /*!
+     * Creates a new sender report (SR) package
+     * 
+     * \param header The package-header
+     * 
+     * \param senderInfo The SenderInformation
+     * 
+     * \param reports A (possible empty) list of reception reports
+     * 
+     * \return A pointer to the created package
+     */
     void *createSenderReportPackage(RTCPHeader &header, SenderInformation &senderInfo, std::vector<ReceptionReport> reports);
 
+    /*!
+     * Creates a new receiver report (RR) package
+     * 
+     * \param header The package-header
+     * 
+     * \param reports A (possible empty) list of reception reports
+     * 
+     * \return A pointer to the created package
+     */
     void *createReceiverReportPackage(RTCPHeader &header, std::vector<ReceptionReport> reports);
 
-    //void *createSourceDescriptionPackage(RTCPHeader &header, )
+    /*!
+     * Creates a new source description (DES) package
+     * 
+     * \param header The header of this package
+     * 
+     * \param descriptionTypes The RTCPSourceDescriptionTypes
+     * 
+     * \param descriptionValues The corresponding values
+     * 
+     * \return A pointer to the created package
+     */
+    void *createSourceDescriptionPackage(RTCPHeader &header, std::vector<RTCPSourceDescriptionType> descriptionTypes, std::vector<std::string> descriptionValues);
 
+    /*!
+     * Creates a new BYE package
+     * 
+     * \param header The header
+     * 
+     * \param byeMessage The message to send with this package (possible empty)
+     * 
+     * \return A pointer to the created package
+     */
     void *createByePackage(RTCPHeader &header, std::string byeMessage);
 
+    /*!
+     * Reads a sender report (SR) package
+     * 
+     * \param senderReportPackage The buffer to read the package from
+     * 
+     * \param packageLength The number of bytes to read
+     * 
+     * \param header The RTCPHeader to store the read header into
+     * 
+     * \param senderInfo The SenderInformation to store the read sender-info into
+     * 
+     * \return a list of read reception-reports, may be empty
+     */
     std::vector<ReceptionReport> readSenderReport(void *senderReportPackage, uint16_t packageLength, RTCPHeader &header, SenderInformation &senderInfo);
 
-    std::vector<ReceptionReport> readReceiverReport(void *senderReportPackage, uint16_t packageLength, RTCPHeader &header);
+    /*!
+     * Reads a receiver report (RR) package
+     * 
+     * \param receiverReportPackage The buffer to read the package from
+     * 
+     * \param packageLength The number of bytes to read
+     * 
+     * \param header The RTCPHeader to store the read header into
+     * 
+     * \return a list of read reception-reports, may be empty
+     */
+    std::vector<ReceptionReport> readReceiverReport(void *receiverReportPackage, uint16_t packageLength, RTCPHeader &header);
+    
+    /*!
+     * Reads a source description (SDES) package
+     * 
+     * \param sourceDescriptionPackage The buffer to read the package from
+     * 
+     * \param packageLength The number of bytes to read
+     * 
+     * \param header The RTCPHeader to store the read header into
+     * 
+     * \param descriptionTypes The vector to store the read description-types into
+     * 
+     * \return the read description-values corresponding to the types
+     */
+    std::vector<std::string> readSourceDescription(void *sourceDescriptionPackage, uint16_t packageLength, RTCPHeader &header, std::vector<RTCPSourceDescriptionType> descriptionTypes);
 
-    std::string readByeMessage(void *senderReportPackage, uint16_t packageLength, RTCPHeader &header);
+    /*!
+     * Reads a BYE package
+     * 
+     * \param byePackage The buffer to read the package from
+     * 
+     * \param packageLength The number of bytes to read
+     * 
+     * \param header The RTCPHeader to store the read header into
+     * 
+     * \return the bye-message attached to the package, may be empty
+     */
+    std::string readByeMessage(void *byePackage, uint16_t packageLength, RTCPHeader &header);
 private:
     char *senderReportBuffer;
     char *receiverReportBuffer;
+    char *sourceDescriptionBuffer;
     char *byeBuffer;
+    
+    /*!
+     * Calculates the length-field from the given length in bytes
+     * 
+     * Specification: "The length of this RTCP packet in 32-bit words minus one, including the header and any padding"
+     */
+    uint8_t calculateLengthField(uint16_t length);
 };
 
 #endif	/* RTCPPACKAGEHANDLER_H */
