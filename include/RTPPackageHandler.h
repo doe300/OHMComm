@@ -51,11 +51,11 @@ const unsigned int RTP_HEADER_MAX_SIZE = 72;
 struct RTPHeaderExtension
 {
     //16 bit defined by profile
-    unsigned int profile_field: 16;
-    
+    unsigned int profile_field : 16;
+
     //16 bit length field
-    unsigned int length: 16;
-    
+    unsigned int length : 16;
+
     //list of 32 bit header extensions
     uint32_t *extensions[];
 };
@@ -164,37 +164,36 @@ struct RTPHeaderExtension
 struct RTPHeader
 {
     //2 bit version field
-    unsigned int version: 2;
-    
+    unsigned int version : 2;
+
     //1 bit padding flag
-    unsigned int padding: 1;
-    
+    unsigned int padding : 1;
+
     //1 bit extension flag
-    unsigned int extension: 1;
-    
+    unsigned int extension : 1;
+
     //4 bit CSRC count field
-    unsigned int csrc_count: 4;
-    
+    unsigned int csrc_count : 4;
+
     //1 bit marker flag
-    unsigned int marker: 1;
-    
+    unsigned int marker : 1;
+
     //7 bit payload type field
-    unsigned int payload_type: 7;
-    
+    unsigned int payload_type : 7;
+
     //16 bit sequence number field
-    unsigned int sequence_number: 16;
-    
+    unsigned int sequence_number : 16;
+
     //32 bit timestamp field
-    unsigned int timestamp: 32;
-    
+    unsigned int timestamp : 32;
+
     //32 bit SSRC field
-    unsigned int ssrc: 32;
-    
+    unsigned int ssrc : 32;
+
     //list of 32 bit CSRCs
     //TODO adding this requires correct handling of RTPHeader (depending on the csrc_count, like it was before)
     //uint32_t csrc_list[15];
 };
-
 
 /*!
  * List of default mappings for payload-type, as specified in https://www.ietf.org/rfc/rfc3551.txt
@@ -239,7 +238,7 @@ enum PayloadType
     DVI4_88 = 17,
     //ITU-T G.729(a) - https://en.wikipedia.org/wiki/G.729
     G729 = 18,
-    
+
 };
 
 class RTPPackageHandler
@@ -249,12 +248,12 @@ public:
      * Constructs a new RTPPackage-object
      * 
      * \param sizeOfAudioData The maximum size in bytes of the payload (body)
-	 *
-	 * \param payloadType The PayloadType, defaults to L16_2
+     *
+     * \param payloadType The PayloadType, defaults to L16_2
      * 
      * \param sizeOfRTPHeader The size in bytes of the RTPHeader, defaults to RTP_HEADER_MIN_SIZE  
      */
-	 RTPPackageHandler(unsigned int sizeOfAudioData, PayloadType payloadType = L16_2, unsigned int sizeOfRTPHeader = RTP_HEADER_MIN_SIZE);
+    RTPPackageHandler(unsigned int sizeOfAudioData, PayloadType payloadType = L16_2, unsigned int sizeOfRTPHeader = RTP_HEADER_MIN_SIZE);
 
     /*!
      * Generates a new RTP-package by generating the header and copying the payload-data (audio data)
@@ -265,39 +264,39 @@ public:
      * 
      * Returns a pointer to the internal buffer storing the new package
      */
-	 /// TODO Why timestamp is passed as parameter? Why not generate it within the method?
+    /// TODO Why timestamp is passed as parameter? Why not generate it within the method?
     auto getNewRTPPackage(void* audioData, unsigned int timestamp)->void*;
 
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from,  defaults nullptr
-	 *   
+     *   
      * Returns a pointer to the payload of rtpPackage. When rtpPackage is not set (defaults nullptr) 
-	 * the internal 'workBuffer' will be used as source.
+     * the internal 'workBuffer' will be used as source.
      */
-	auto getRTPPackageData(void *rtpPackage = nullptr) -> void*;
+    auto getRTPPackageData(void *rtpPackage = nullptr) -> void*;
 
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from, defaults nullptr
      * 
      * Returns a RTPHeader pointer of the rtpPackage. When rtpPackage is not set (defaults nullptr) 
-	 * the internal 'workBuffer' will be used as source.
+     * the internal 'workBuffer' will be used as source.
      */
-	auto getRTPPackageHeader(void *rtpPackage = nullptr) -> RTPHeader*;
+    auto getRTPPackageHeader(void *rtpPackage = nullptr) -> RTPHeader*;
 
     /*!
      * Gets the total size for the RTP package (header + body)
      */
     auto getSize() -> unsigned int const;
 
-	/*!
-	* Gets the RTPHeader size
-	*/
-	auto getSizeOfRTPHeader() -> unsigned int const;
+    /*!
+     * Gets the RTPHeader size
+     */
+    auto getSizeOfRTPHeader() -> unsigned int const;
 
-	/*!
-	* Gets the payload size
-	*/
-	auto getSizeOfAudioData() -> unsigned int const;
+    /*!
+     * Gets the payload size
+     */
+    auto getSizeOfAudioData() -> unsigned int const;
 
     /*!
      * Returns the internal buffer, which could be used as receive buffer
@@ -322,9 +321,9 @@ private:
     unsigned int ssrc;
     unsigned int payloadType;
 
-	unsigned int sizeOfRTPHeader;
-	unsigned int sizeOfAudioData;
-	unsigned int size;
+    unsigned int sizeOfRTPHeader;
+    unsigned int sizeOfAudioData;
+    unsigned int size;
 };
 
 #endif	/* RTPPACKAGEHANDLER_H */

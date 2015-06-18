@@ -9,8 +9,6 @@
 #define SOCKET_ERROR -1
 #endif
 
-
-
 /*!
  * Superclass for all networking-protocols.
  * 
@@ -28,7 +26,7 @@ public:
      * Returns the number of bytes sent
      */
     virtual int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0) = 0;
-    
+
     /*!
      * \param buffer The buffer to receive into
      * 

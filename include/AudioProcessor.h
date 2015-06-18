@@ -14,7 +14,7 @@ struct StreamData
      * The number of frames in the buffer
      */
     unsigned int nBufferFrames;
-    
+
     /*!
      * The current time in the stream (i.e. elasped microseconds)
      */
@@ -32,26 +32,26 @@ struct StreamData
 class AudioProcessor
 {
 public:
-	AudioProcessor(std::string name);
+    AudioProcessor(std::string name);
 
-	const std::string getName();
-	void setName(std::string name);
+    const std::string getName();
+    void setName(std::string name);
 
     /*!
-    * Overwrite this method, if this AudioProcessor needs configuration
-    * 
-    * Any implementation of this method can use the methods from UserInput.h
-    */
+     * Overwrite this method, if this AudioProcessor needs configuration
+     * 
+     * Any implementation of this method can use the methods from UserInput.h
+     */
     bool configure();
-        
-	/*
-	 * The actual processing methods. processInputData is the counterpart of processInputData 
-	 * (and also the other way around).
-	 */
-	virtual void processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData) = 0;
-	virtual void processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) = 0;
+
+    /*
+     * The actual processing methods. processInputData is the counterpart of processInputData 
+     * (and also the other way around).
+     */
+    virtual void processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData) = 0;
+    virtual void processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) = 0;
 private:
-	std::string name;
+    std::string name;
 };
 
 

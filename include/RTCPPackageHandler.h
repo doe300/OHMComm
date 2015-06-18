@@ -67,25 +67,25 @@ static const uint8_t RTCP_SENDER_INFO_SIZE = 20;
 struct RTCPHeader
 {
     //2 bit version field
-    unsigned int version: 2;
-    
+    unsigned int version : 2;
+
     //1 bit padding flag
-    unsigned int padding: 1;
-    
+    unsigned int padding : 1;
+
     //5 bit reception report count (RC) or source count (SC) field
-    unsigned int receptionReportOrSourceCount: 5;
-    
+    unsigned int receptionReportOrSourceCount : 5;
+
     //8 bit package-type field
     RTCPPackageType packageType;
-    
+
     //16 bit length field
-    unsigned int length: 16;
-    
+    unsigned int length : 16;
+
     //32 bit ssrc field
-    unsigned int ssrc: 32;
-    
-    RTCPHeader(RTCPPackageType packageType, uint16_t packageLength, uint32_t ssrc) : 
-        packageType(packageType), length(packageLength), ssrc(ssrc)
+    unsigned int ssrc : 32;
+
+    RTCPHeader(RTCPPackageType packageType, uint16_t packageLength, uint32_t ssrc) :
+    packageType(packageType), length(packageLength), ssrc(ssrc)
     {
         //version is always 2 per specification
         version = 2;
@@ -150,18 +150,18 @@ struct SenderInformation
 {
     //64 bit NTP timestamp field
     //TODO unsigned long NTPTimestamp: 64;
-    
+
     //32 bit RTP timestamp field
-    unsigned int RTPTimestamp: 32;
-    
+    unsigned int RTPTimestamp : 32;
+
     //32 bit sender's package count field
-    unsigned int packetCount: 32;
-    
+    unsigned int packetCount : 32;
+
     //32 bit sender's octet count field
-    unsigned int octetCount: 32;
-    
-    SenderInformation(uint32_t rtpTimestamp, uint32_t packageCount, uint32_t octetCount) : 
-        RTPTimestamp(rtpTimestamp), packetCount(packageCount), octetCount(octetCount)
+    unsigned int octetCount : 32;
+
+    SenderInformation(uint32_t rtpTimestamp, uint32_t packageCount, uint32_t octetCount) :
+    RTPTimestamp(rtpTimestamp), packetCount(packageCount), octetCount(octetCount)
     {
         //default NTP timestamp
         //NTPTimestamp = 0;
@@ -244,25 +244,25 @@ struct SenderInformation
 struct ReceptionReport
 {
     //32 bit SSRC field
-    unsigned int ssrc: 32;
-    
+    unsigned int ssrc : 32;
+
     //8 bit fraction lost field
-    unsigned int fraction_lost: 8;
-    
+    unsigned int fraction_lost : 8;
+
     //24 bit cumulative number of packages lost field
-    unsigned int cumulativePackageLoss: 24;
-    
+    unsigned int cumulativePackageLoss : 24;
+
     //32 bit extended highest sequence number received field
-    unsigned int extendedHighestSequenceNumberReceived: 32;
-    
+    unsigned int extendedHighestSequenceNumberReceived : 32;
+
     //32 bit interarrival jitter field
-    unsigned int interarrivalJitter: 32;
-    
+    unsigned int interarrivalJitter : 32;
+
     //32 bit last SR timestamp field
-    unsigned int lastSRTimestamp: 32;
-    
+    unsigned int lastSRTimestamp : 32;
+
     //32 bit delay since last SR field
-    unsigned int delaySinceLastSR: 32;
+    unsigned int delaySinceLastSR : 32;
 };
 
 /*!
@@ -273,24 +273,24 @@ struct ReceptionReport
 class RTCPPackageHandler
 {
 public:
-    
+
     RTCPPackageHandler();
-    
+
     virtual ~RTCPPackageHandler();
 
-    
+
     void *createSenderReportPackage(RTCPHeader &header, SenderInformation &senderInfo, std::vector<ReceptionReport> reports);
-    
+
     void *createReceiverReportPackage(RTCPHeader &header, std::vector<ReceptionReport> reports);
-    
+
     //void *createSourceDescriptionPackage(RTCPHeader &header, )
-    
+
     void *createByePackage(RTCPHeader &header, std::string byeMessage);
-    
+
     std::vector<ReceptionReport> readSenderReport(void *senderReportPackage, uint16_t packageLength, RTCPHeader &header, SenderInformation &senderInfo);
-    
+
     std::vector<ReceptionReport> readReceiverReport(void *senderReportPackage, uint16_t packageLength, RTCPHeader &header);
-    
+
     std::string readByeMessage(void *senderReportPackage, uint16_t packageLength, RTCPHeader &header);
 private:
     char *senderReportBuffer;

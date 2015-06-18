@@ -11,11 +11,10 @@
 #include "AudioProcessor.h"
 #include "NetworkWrapper.h"
 
-
 /*!
  * AudioProcessor which simply forwards the packages to the underlying NetworkWrapper
  */
-class NetworkWrappingProcessor: public AudioProcessor
+class NetworkWrappingProcessor : public AudioProcessor
 {
 public:
     /*!
@@ -23,7 +22,7 @@ public:
      */
     NetworkWrappingProcessor(std::string name, NetworkWrapper *wrapper);
     virtual ~NetworkWrappingProcessor();
-    
+
     virtual void processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
     virtual void processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
 

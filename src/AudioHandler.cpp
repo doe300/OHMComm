@@ -100,12 +100,12 @@ void AudioHandler::processAudioInput(void *inputBuffer, const unsigned int &inpu
 	}
 }
 
-auto AudioHandler::IsAudioConfigSet() const -> bool
+auto AudioHandler::isAudioConfigSet() const -> bool
 {
 	return isAudioConfigSet;
 }
 
-auto AudioHandler::IsPrepared() const -> bool
+auto AudioHandler::isPrepared() const -> bool
 {
 	return isPrepared;
 }

@@ -21,8 +21,8 @@
 class RtAudioWrapper : public AudioHandler
 {
 public:
-	RtAudioWrapper();
-	RtAudioWrapper(const AudioConfiguration &audioConfig);
+    RtAudioWrapper();
+    RtAudioWrapper(const AudioConfiguration &audioConfig);
 
     /* deny copies with the copy constructor */
     RtAudioWrapper(const RtAudioWrapper & copy) = delete;
@@ -40,12 +40,12 @@ public:
     void stop();
     /* stop() and resets audioConfiguration */
     void reset();
-	/* sets default audio config */
-	void setDefaultAudioConfig();
+    /* sets default audio config */
+    void setDefaultAudioConfig();
     /* This is a blocking function, do NOT call this function within the RtAudio callback */
     void playData(void *playbackData, unsigned int size);
-	auto prepare() -> bool;
-	auto getBufferSize() -> unsigned int;
+    auto prepare() -> bool;
+    auto getBufferSize() -> unsigned int;
 
     /* Callbacks */
     auto callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData) -> int;
@@ -54,19 +54,19 @@ public:
 private:
     /* variables for the "void playData(...)" function
      * to enable synchronizing between rtaudio- and main-thread */
-    #ifdef _WIN32
+#ifdef _WIN32
     HANDLE semaphore_waitForMainThread;
     HANDLE semaphore_waitForWorkerThread;
-    #else
+#else
     /* TODO, two linux semaphores needed */
-    #endif
+#endif
     void *bufferAudioOutput;
     bool BufferAudioOutHasData = false;
 
 
     RtAudio rtaudio;
     RtAudio::StreamParameters input, output;
-    
+
     unsigned int outputBufferByteSize = 0;
     unsigned int inputBufferByteSize = 0;
 
@@ -89,7 +89,7 @@ private:
      */
     auto autoSelectAudioFormat(RtAudioFormat supportedFormats) -> RtAudioFormat;
 
-	void playbackFileData(void *outputBuffer);
+    void playbackFileData(void *outputBuffer);
 };
 
 #endif

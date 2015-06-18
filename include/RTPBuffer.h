@@ -46,7 +46,7 @@ public:
      */
     RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages = 1);
     virtual ~RTPBuffer();
-    
+
     /*!
      * Adds a new package to the buffer
      * 
@@ -57,30 +57,30 @@ public:
      * Returns zero on success or one of the RTPBufferStatus-codes listed in RTPBuffer.h
      */
     RTPBufferStatus addPackage(RTPPackageHandler &package, unsigned int contentSize);
-    
+
     /*!
      * Reads the oldest package in the buffer and writes it into the package-variable
      * \param A placeholder for the package to read, must be allocated on the HEAP
      * 
      * Returns zero on success or one if the RTPBufferStatus-codes listed in RTPBuffer.h
      */
-	RTPBufferStatus readPackage(RTPPackageHandler &package);
-    
+    RTPBufferStatus readPackage(RTPPackageHandler &package);
+
     /*!
      * Returns the size of the buffer, the number of stored elements
      */
     uint16_t getSize();
 private:
-    
+
     /*!
      * Mutex guarding all access to ringBuffer, nextReadIndex, size and minSequenceNumber
      */
-    #ifdef _WIN32
+#ifdef _WIN32
     HANDLE bufferMutex;
-    #else
+#else
     std::mutex bufferMutex;
-    #endif
-    
+#endif
+
     /*!
      * Internal data structure to buffer RTP packages
      */
@@ -103,7 +103,7 @@ private:
          */
         void *packageContent = nullptr;
     };
-    
+
     /*!
      * The ring-buffer containing the packages
      */
@@ -129,7 +129,7 @@ private:
      * The index to read the next package from, the last position in the buffer
      */
     uint16_t nextReadIndex;
-    
+
     /*!
      * The number of buffered elements
      */
@@ -139,27 +139,27 @@ private:
      * Increments the index in the ring
      */
     uint16_t incrementIndex(uint16_t index);
-    
+
     /*!
      * The minimum sequence number still in buffer.
      * This should be the last sequence-number read from the buffer +1
      */
     uint16_t minSequenceNumber;
-    
+
     /*!
      * Calculates the new index in the buffer
      */
     uint16_t calculateIndex(uint16_t index, uint16_t offset);
-    
+
     /*!
      * Generates a placeholder (silence) package writing it into the parameter
      * 
      * \param package The RTPPackage to write the silence into
      */
     void generateSilencePackage();
-    
+
     void lockMutex();
-    
+
     void unlockMutex();
 };
 

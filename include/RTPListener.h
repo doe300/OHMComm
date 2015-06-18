@@ -35,12 +35,12 @@ public:
     RTPListener(NetworkWrapper *wrapper, std::unique_ptr<RTPBuffer> *buffer, unsigned int receiveBufferSize);
     RTPListener(const RTPListener& orig);
     virtual ~RTPListener();
-    
+
     /*!
      * Shuts down the receive-thread
      */
     void shutdown();
-    
+
     /*!
      * Starts the receive-thread
      */
@@ -51,7 +51,7 @@ private:
     RTPPackageHandler *receivedPackage;
     std::thread receiveThread;
     bool threadRunning = false;
-    
+
     /*!
      * Method called in the parallel thread, receiving packages and writing them into RTPBuffer
      */
