@@ -17,6 +17,10 @@ before_script:
   - chmod +x ./configure
   - ./configure
   - cd ../../
+  - cd lib/opus*
+  - chmod +x ./configure
+  - ./configure
+  - cd ../../
   - mkdir build
   - cd build
   - cmake ../
