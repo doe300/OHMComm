@@ -13,6 +13,8 @@ if(MSVC)
 	link_directories ("${PROJECT_BINARY_DIR}/build/rtaudio/Release")
 	link_directories ("${PROJECT_BINARY_DIR}/build/cpptest/Debug")
 	link_directories ("${PROJECT_BINARY_DIR}/build/cpptest/Release")
+	link_directories ("${PROJECT_BINARY_DIR}/build/opus/Debug")
+	link_directories ("${PROJECT_BINARY_DIR}/build/opus/Release")
 endif()
 
 #Build OHMComm
@@ -24,12 +26,19 @@ if(MSVC)
 # Visual Studio Compiler
 	target_link_libraries(OHMComm rtaudio_static)
 	target_link_libraries(OHMComm WS2_32)
+	target_link_libraries(OHMComm opus)
 	target_link_libraries(OHMCommLib rtaudio_static)
 	target_link_libraries(OHMCommLib WS2_32)
+	target_link_libraries(OHMCommLib opus)
+	
+	
+	
 else ()
 	# other compilers
 	target_link_libraries(OHMComm rtaudio)
+	target_link_libraries(OHMComm opus)
 	target_link_libraries(OHMCommLib rtaudio)
+	target_link_libraries(OHMCommLib opus)
 endif()
 
 
