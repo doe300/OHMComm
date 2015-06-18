@@ -11,7 +11,7 @@ RTPListener::RTPListener(NetworkWrapper *wrapper, std::unique_ptr<RTPBuffer> *bu
 {
     this->wrapper = wrapper;
     this->buffer = buffer;
-	receivedPackage = new RTPPackageHandler(receiveBufferSize);
+    receivedPackage = new RTPPackageHandler(receiveBufferSize);
 }
 
 RTPListener::RTPListener(const RTPListener& orig)

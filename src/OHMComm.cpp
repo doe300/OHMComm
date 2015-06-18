@@ -340,7 +340,7 @@ int main(int argc, char** argv)
         //configure all processors
         audioObject->prepare();
 
-		RTPListener listener(network, rtpBuffer, audioObject->getBufferSize());
+        RTPListener listener(network, rtpBuffer, audioObject->getBufferSize());
         // start audio processing
         listener.startUp();
         audioObject->startDuplexMode();
@@ -351,6 +351,8 @@ int main(int argc, char** argv)
 
 
         audioObject->stop();
+        listener.shutdown();
+        //TODO fix error on shutdown
         return 0;
     }
     catch (RtAudioError exception)
