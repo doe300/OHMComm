@@ -18,9 +18,7 @@ before_script:
   - ./configure
   - cd ../../
   - cd lib/opus*
-  - chmod +x ./autogen.sh
   - chmod +x ./configure
-  - ./autogen.sh
   - ./configure
   - cd ../../
   - mkdir build
