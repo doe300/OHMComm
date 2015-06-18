@@ -96,6 +96,7 @@ void configureNetwork()
     int destPort = inputNumber("2. Input destination port", false, false);
     int localPort = inputNumber("3. Input local port", false, false);
     networkConfiguration.portOutgoing = destPort;
+	networkConfiguration.portIncoming = localPort;
 
     cout << "Networkconfiguration set." << endl;
 }
@@ -324,7 +325,9 @@ int main(int argc, char** argv)
                 networkConfiguration.portIncoming = 12345;
                 networkConfiguration.portOutgoing = 12345;
                 network = new UDPWrapper(networkConfiguration);
-        }     
+        }
+
+		// TODO select and add processors
 
         ////
         // Startup
