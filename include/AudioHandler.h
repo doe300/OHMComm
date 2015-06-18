@@ -49,8 +49,8 @@ public:
     auto isPrepared() const -> bool;
 
 protected:
-    bool isAudioConfigSet = false;
-    bool isPrepared = false;
+    bool flagAudioConfigSet = false;
+    bool flagPrepared = false;
 
 
     std::vector<AudioProcessor*> audioProcessors;
