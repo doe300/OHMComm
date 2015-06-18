@@ -10,6 +10,8 @@ if(MSVC)
 	link_directories ("${PROJECT_BINARY_DIR}/build/rtaudio/Release")
 	link_directories ("${PROJECT_BINARY_DIR}/build/cpptest/Debug")
 	link_directories ("${PROJECT_BINARY_DIR}/build/cpptest/Release")
+	link_directories ("${PROJECT_BINARY_DIR}/build/opus/Debug")
+	link_directories ("${PROJECT_BINARY_DIR}/build/opus/Release")
 endif()
 
 add_executable(Tests ${SRCS})
