@@ -208,3 +208,6 @@ rtaudio_static.lib
 /lib/cpptest-1.1.2/config/config.h
 /lib/cpptest-1.1.2/config/stamp-h
 /lib/cpptest-1.1.2/config/stamp-h1
+
+# whitelist opus directory
+!/lib/opus-1.1/**
