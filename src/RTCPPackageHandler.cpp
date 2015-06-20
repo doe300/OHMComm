@@ -62,25 +62,24 @@ void* RTCPPackageHandler::createReceiverReportPackage(RTCPHeader& header, std::v
     return receiverReportBuffer;
 }
 
-void* RTCPPackageHandler::createSourceDescriptionPackage(RTCPHeader& header, std::vector<RTCPSourceDescriptionType> descriptionTypes, std::vector<std::string> descriptionValues)
+void* RTCPPackageHandler::createSourceDescriptionPackage(RTCPHeader& header, std::vector<SourceDescription> descriptions)
 {
     //adjust header
     header.packageType = RTCP_PACKAGE_SOURCE_DESCRIPTION;
-    header.receptionReportOrSourceCount = descriptionTypes.size();
+    header.receptionReportOrSourceCount = descriptions.size();
 
     uint16_t offset = RTCP_HEADER_SIZE;
-    for(unsigned int i = 0; i < descriptionTypes.size(); i++)
+    for(unsigned int i = 0; i < descriptions.size(); i++)
     {
         //set type
-        memcpy(sourceDescriptionBuffer + offset, &descriptionTypes[i], 1);
+        memcpy(sourceDescriptionBuffer + offset, &descriptions[i].type, 1);
         offset++;
         //set length
-        std::string val = descriptionValues[i];
-        uint8_t size = val.size();
+        uint8_t size = descriptions[i].value.size();
         memcpy(sourceDescriptionBuffer + offset, &size, 1);
         offset++;
         //set value
-        memcpy(sourceDescriptionBuffer + offset, val.c_str(), size);
+        memcpy(sourceDescriptionBuffer + offset, descriptions[i].value.c_str(), size);
         offset+=size;
     }
     //now offset is the same as the payload length
@@ -161,7 +160,7 @@ std::vector<ReceptionReport> RTCPPackageHandler::readReceiverReport(void* receiv
     return reports;
 }
 
-std::vector<std::string> RTCPPackageHandler::readSourceDescription(void* sourceDescriptionPackage, uint16_t packageLength, RTCPHeader& header, std::vector<RTCPSourceDescriptionType> descriptionTypes)
+std::vector<SourceDescription> RTCPPackageHandler::readSourceDescription(void* sourceDescriptionPackage, uint16_t packageLength, RTCPHeader& header)
 {
     memcpy(sourceDescriptionBuffer, sourceDescriptionPackage, packageLength);
     
@@ -169,7 +168,7 @@ std::vector<std::string> RTCPPackageHandler::readSourceDescription(void* sourceD
     //copy header to out-parameter
     header = *readHeader;
     
-    std::vector<std::string> values(header.receptionReportOrSourceCount);
+    std::vector<SourceDescription> descriptions(header.receptionReportOrSourceCount);
     uint16_t offset = RTCP_HEADER_SIZE;
     for(uint8_t i = 0; i < header.receptionReportOrSourceCount; i++)
     {
@@ -178,11 +177,11 @@ std::vector<std::string> RTCPPackageHandler::readSourceDescription(void* sourceD
         uint8_t *valueLength = (uint8_t *)senderReportBuffer + offset;
         offset++;
         char *value = sourceDescriptionBuffer + offset;
-        descriptionTypes[i] = *type;
-        values[i] = std::string(value, *valueLength);
+        descriptions[i].type = *type;
+        descriptions[i].value = std::string(value, *valueLength);
         offset += *valueLength;
     }
-    return values;
+    return descriptions;
 }
 
 

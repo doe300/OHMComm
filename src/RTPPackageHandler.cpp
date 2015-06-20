@@ -22,7 +22,7 @@ RTPPackageHandler::RTPPackageHandler(unsigned int sizeOfAudioData, PayloadType p
 	this->randomGenerator = tmp;
 
 	sequenceNr = getRandomNumber();
-	timestamp = getTimestamp();
+	timestamp = createStartingTimestamp();
 	ssrc = getAudioSourceId();
 }
 
@@ -76,7 +76,7 @@ unsigned int RTPPackageHandler::getRandomNumber()
 	return this->randomGenerator();
 }
 
-unsigned int RTPPackageHandler::getTimestamp()
+unsigned int RTPPackageHandler::createStartingTimestamp()
 {
     //start timestamp should be a random number
     return this->randomGenerator(); 

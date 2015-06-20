@@ -95,8 +95,12 @@ struct RTCPHeader
     //32 bit ssrc field
     unsigned int ssrc : 32;
 
-    RTCPHeader(RTCPPackageType packageType, uint16_t packageLength, uint32_t ssrc) :
-    packageType(packageType), length(packageLength), ssrc(ssrc)
+    /*!
+     * Creates a new RTCPHeader
+     * 
+     * \param ssrc The SSRC, the only parameter not written by the create*Package-methods
+     */
+    RTCPHeader(uint32_t ssrc) : ssrc(ssrc)
     {
         //version is always 2 per specification
         version = 2;
@@ -288,6 +292,14 @@ struct ReceptionReport
  * 
  * NOTE: Currently only source-descriptions for a single source are supported.
  */
+struct SourceDescription
+{
+    //8 bit type field
+    RTCPSourceDescriptionType type;
+    
+    //variable length value
+    std::string value;
+};
 
 /*!
  * Utility-class to create/read RTCP packages
@@ -333,13 +345,11 @@ public:
      * 
      * \param header The header of this package
      * 
-     * \param descriptionTypes The RTCPSourceDescriptionTypes
-     * 
-     * \param descriptionValues The corresponding values
+     * \param descriptions The vector of SourceDescription
      * 
      * \return A pointer to the created package
      */
-    void *createSourceDescriptionPackage(RTCPHeader &header, std::vector<RTCPSourceDescriptionType> descriptionTypes, std::vector<std::string> descriptionValues);
+    void *createSourceDescriptionPackage(RTCPHeader &header, std::vector<SourceDescription> descriptions);
 
     /*!
      * Creates a new BYE package
@@ -389,11 +399,9 @@ public:
      * 
      * \param header The RTCPHeader to store the read header into
      * 
-     * \param descriptionTypes The vector to store the read description-types into
-     * 
-     * \return the read description-values corresponding to the types
+     * \return the read descriptions
      */
-    std::vector<std::string> readSourceDescription(void *sourceDescriptionPackage, uint16_t packageLength, RTCPHeader &header, std::vector<RTCPSourceDescriptionType> descriptionTypes);
+    std::vector<SourceDescription> readSourceDescription(void *sourceDescriptionPackage, uint16_t packageLength, RTCPHeader &header);
 
     /*!
      * Reads a BYE package

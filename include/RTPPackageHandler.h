@@ -308,7 +308,7 @@ private:
     void *workBuffer;
 
     unsigned int getRandomNumber();
-    unsigned int getTimestamp();
+    unsigned int createStartingTimestamp();
     unsigned int getAudioSourceId();
 
     std::mt19937 randomGenerator;
