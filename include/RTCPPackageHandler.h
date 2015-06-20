@@ -8,10 +8,15 @@
 #ifndef RTCPPACKAGEHANDLER_H
 #define	RTCPPACKAGEHANDLER_H
 
+#include <malloc.h>
+#include <string.h>
 #include <stdint.h>
 #include <vector>
 #include <string>
 
+/*!
+ * RTCP package type
+ */
 typedef uint8_t RTCPPackageType;
 
 static const RTCPPackageType RTCP_PACKAGE_SENDER_REPORT = 200;
@@ -20,6 +25,9 @@ static const RTCPPackageType RTCP_PACKAGE_SOURCE_DESCRIPTION = 202;
 static const RTCPPackageType RTCP_PACKAGE_GOODBYE = 203;
 static const RTCPPackageType RTCP_PACKAGE_APPLICATION_DEFINED = 204;
 
+/*!
+ * RTCP Source description (SDES) payload type
+ */
 typedef uint8_t RTCPSourceDescriptionType;
 
 static const RTCPSourceDescriptionType RTCP_SOURCE_CNAME = 1;
@@ -251,10 +259,12 @@ struct SenderInformation
  *  receiver's clock at the time of arrival, measured in the same units.
  * 
  * last SR timestamp (LSR): 32 bits
- *  The middle 32 bits out of 64 in the NTP timestamp (as explained in Section 4) received as part of the most recent RTCP sender report (SR) packet from source SSRC_n. If no SR has been received yet, the field is set to zero.
+ *  The middle 32 bits out of 64 in the NTP timestamp (as explained in Section 4) received as part of the most recent 
+ *  RTCP sender report (SR) packet from source SSRC_n. If no SR has been received yet, the field is set to zero.
  * 
  * delay since last SR (DLSR): 32 bits
- *  The delay, expressed in units of 1/65536 seconds, between receiving the last SR packet from source SSRC_n and sending this reception report block. If no SR packet has been received yet from SSRC_n, the DLSR field is set to zero.
+ *  The delay, expressed in units of 1/65536 seconds, between receiving the last SR packet from source SSRC_n and 
+ *  sending this reception report block. If no SR packet has been received yet from SSRC_n, the DLSR field is set to zero.
  * 
  */
 struct ReceptionReport
@@ -299,6 +309,64 @@ struct SourceDescription
     
     //variable length value
     std::string value;
+};
+
+/*!
+ * The application defined (APP) has following format:
+ * 
+ *  0                   1                   2                   3
+ *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                          name (ASCII)                         |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                   application-dependent data                 ...
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * 
+ * The APP packet is intended for experimental use as new applications and new features are developed, 
+ * without requiring packet type value registration. APP packets with unrecognized names should be ignored. 
+ * After testing and if wider use is justified, it is recommended that each APP packet be redefined without 
+ * the subtype and name fields and registered with the Internet Assigned Numbers Authority using an RTCP packet type.
+ * 
+ * version (V), padding (P), length:
+ *  As described for the SR packet (see Section 6.3.1).
+ * 
+ * subtype: 5 bits
+ *  May be used as a subtype to allow a set of APP packets to be defined under one unique name, 
+ *  or for any application-dependent data.
+ * 
+ * packet type (PT): 8 bits
+ *  Contains the constant 204 to identify this as an RTCP APP packet.
+ * 
+ * name: 4 octets
+ *  A name chosen by the person defining the set of APP packets to be unique with respect to other APP packets 
+ *  this application might receive. The application creator might choose to use the application name, and then 
+ *  coordinate the allocation of subtype values to others who want to define new packet types for the application. 
+ *  Alternatively, it is recommended that others choose a name based on the entity they represent, then coordinate 
+ *  the use of the name within that entity. The name is interpreted as a sequence of four ASCII characters, 
+ *  with uppercase and lowercase characters treated as distinct.
+ * 
+ * application-dependent data: variable length
+ *  Application-dependent data may or may not appear in an APP packet. 
+ *  It is interpreted by the application and not RTP itself. It must be a multiple of 32 bits long. 
+ */
+struct ApplicationDefined
+{
+    //4 byte name field
+    char name[4];
+    
+    //length for application specific data
+    uint16_t dataLength;
+    
+    //variable length application specific data
+    char *data;
+    
+    //5 bit application defined sub-type -> is stored in RTCPHeader.receptionReportOrSourceCount
+    unsigned int subType : 5;
+    
+    ApplicationDefined(char name[4], uint16_t dataLength, char *data, uint8_t subType) : dataLength(dataLength), data(data), subType(subType)
+    {
+        memcpy(this->name, name, 4);
+    }
 };
 
 /*!
@@ -361,6 +429,17 @@ public:
      * \return A pointer to the created package
      */
     void *createByePackage(RTCPHeader &header, std::string byeMessage);
+    
+    /*!
+     * Creates a new APP package
+     * 
+     * \param header The header
+     * 
+     * \param appData The application specific data
+     * 
+     * \return A pointer to the created package
+     */
+    void *createApplicationDefinedPackage(RTCPHeader &header, ApplicationDefined &appDefined);
 
     /*!
      * Reads a sender report (SR) package
@@ -415,11 +494,22 @@ public:
      * \return the bye-message attached to the package, may be empty
      */
     std::string readByeMessage(void *byePackage, uint16_t packageLength, RTCPHeader &header);
+    
+    /*!
+     * Reads a APP package
+     * 
+     * \param appDefinedPackage The buffer to read from
+     * 
+     * \param packageLength The number of bytes to read
+     * 
+     * \param header The RTCPHEader to store the read header into
+     * 
+     * \return the read ApplicationDefined data
+     */
+    ApplicationDefined readApplicationDefinedMessage(void *appDefinedPackage, uint16_t packageLength, RTCPHeader &header);
+    
 private:
-    char *senderReportBuffer;
-    char *receiverReportBuffer;
-    char *sourceDescriptionBuffer;
-    char *byeBuffer;
+    char *rtcpPackageBuffer;
     
     /*!
      * Calculates the length-field from the given length in bytes
