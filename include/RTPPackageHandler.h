@@ -143,6 +143,7 @@ struct RTPHeaderExtension
  *  Applications transmitting stored data rather than data sampled in real time typically use a virtual presentation
  *  timeline derived from wallclock time to determine when the next frame or other unit of each medium
  *  in the stored data should be presented.
+ *  NOTE: in our implementation, the RT(C)P timestamp is always in milliseconds precision
  * 
  * SSRC: 32 bits
  *  The SSRC field identifies the synchronization source. This identifier SHOULD be chosen randomly,
@@ -260,12 +261,9 @@ public:
      * 
      * \param audioData The payload for the new RTP-package
      * 
-     * \param timestamp The timestamp, the new package is at
-     * 
      * Returns a pointer to the internal buffer storing the new package
      */
-    /// TODO Why timestamp is passed as parameter? Why not generate it within the method?
-    auto getNewRTPPackage(void* audioData, unsigned int timestamp)->void*;
+    auto getNewRTPPackage(void* audioData)->void*;
 
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from,  defaults nullptr

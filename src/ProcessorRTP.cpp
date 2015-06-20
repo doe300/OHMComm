@@ -13,7 +13,7 @@ void ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputB
 	{
 		rtpPackage = new RTPPackageHandler(inputBufferByteSize);
 	}
-	void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer, userData->streamTime);
+	void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer);
 	this->networkObject->sendDataNetworkWrapper(newRTPPackage, rtpPackage->getSize());
 }
 

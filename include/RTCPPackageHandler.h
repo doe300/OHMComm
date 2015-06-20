@@ -146,6 +146,7 @@ struct RTCPHeader
  *  any adjacent data packet. Rather, it is calculated from the corresponding NTP timestamp using the relationship 
  *  between the RTP timestamp counter and real time as maintained by periodically checking the wallclock time 
  *  at a sampling instant.
+ *  NOTE: in our implementation, the RT(C)P timestamp is always in milliseconds precision
  * 
  * sender's packet count: 32 bits
  *  The total number of RTP data packets transmitted by the sender since starting transmission up until the time 

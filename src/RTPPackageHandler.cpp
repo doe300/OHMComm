@@ -26,7 +26,7 @@ RTPPackageHandler::RTPPackageHandler(unsigned int sizeOfAudioData, PayloadType p
 	ssrc = getAudioSourceId();
 }
 
-auto RTPPackageHandler::getNewRTPPackage(void* audioData, unsigned int timestamp) -> void*
+auto RTPPackageHandler::getNewRTPPackage(void* audioData) -> void*
 {
 	RTPHeader RTPHeaderObject;
 
@@ -37,7 +37,9 @@ auto RTPPackageHandler::getNewRTPPackage(void* audioData, unsigned int timestamp
 	RTPHeaderObject.marker = 0;
 	RTPHeaderObject.payload_type = this->payloadType;
 	RTPHeaderObject.sequence_number = (this->sequenceNr++) % UINT16_MAX;
-	RTPHeaderObject.timestamp = timestamp;
+        //we need steady clock so it will always change monotonically (etc. no change to/from daylight savings time)
+        //additionally, we need to count with milliseconds precision
+	RTPHeaderObject.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 	RTPHeaderObject.ssrc = this->ssrc;
 
 	// Copy RTPHeader and Audiodata in the buffer
