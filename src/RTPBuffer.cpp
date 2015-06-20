@@ -96,7 +96,9 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
 
         // TODO: move to RTPPackage? need to use correct buffer!
         memcpy(packageBuffer, &(silencePackage.header), sizeof(silencePackage.header));
-        memcpy(packageBuffer + sizeof(silencePackage.header), silencePackage.packageContent, silencePackage.contentSize);
+
+		// TODO package.getSize() is not best solution, Implement get-silence-packages as a part of RTPPackageHandler
+        memcpy(packageBuffer + sizeof(silencePackage.header), silencePackage.packageContent, package.getSize());
         unlockMutex();
         return RTP_BUFFER_OUTPUT_UNDERFLOW;
     }

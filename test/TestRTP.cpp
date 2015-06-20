@@ -67,7 +67,7 @@ void TestRTP::testRTPBuffer()
     memcpy(receiveBuffer, packageBuffer, p.getSize());
     
     //write package to buffer
-    TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, payload.size()), "Error adding to buffer. 01");
+    TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, p.getSize()), "Error adding to buffer. 01");
     
     //assert size is 1
     TEST_ASSERT_EQUALS_MSG(1, buffer.getSize(), "Buffer-size does not match! 02");
@@ -79,19 +79,19 @@ void TestRTP::testRTPBuffer()
     TEST_ASSERT_EQUALS_MSG(0, buffer.getSize(), "Buffer-size does not match! 04");
     
     //assert package header
-    RTPHeader *readHeader = (RTPHeader *)p.getWorkBuffer();
-    TEST_ASSERT_EQUALS_MSG(2, readHeader->version, "Timestamps do not match! 05");
+    RTPHeader *readHeader = p.getRTPPackageHeader();
+    TEST_ASSERT_EQUALS_MSG(2, readHeader->version, "RTPPackage-Version does not match! 05");
     
     //some error assertions
     TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_OUTPUT_UNDERFLOW, buffer.readPackage(p), "Output did not underflow! 06");
     
-    //fill buffer
-    for(int i = 0; i< 5; i++)
-    {
-        readHeader->sequence_number += 1;
-        TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, payload.size()), "Error adding to buffer. 07");
-    }
-    //TODO doesn't work yet!
-    readHeader->sequence_number += 1;
-    TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_INPUT_OVERFLOW, buffer.addPackage(p, payload.size()), "Input did not overflow. 08");
+	//fill buffer
+	for (int i = 0; i< 5; i++)
+	{
+		readHeader->sequence_number += 1;
+		TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, p.getSize()), "Error adding to buffer. 07");
+	}
+	//TODO doesn't work yet!
+	readHeader->sequence_number += 1;
+	TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_INPUT_OVERFLOW, buffer.addPackage(p, p.getSize()), "Input did not overflow. 08");
 }
