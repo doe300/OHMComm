@@ -20,6 +20,7 @@
 #include "UDPWrapper.h"
 #include "ProcessorRTP.h"
 #include "RTPListener.h"
+#include "ProcessorOpus.h"
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
