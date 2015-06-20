@@ -39,7 +39,8 @@ auto RTPPackageHandler::getNewRTPPackage(void* audioData) -> void*
 	RTPHeaderObject.sequence_number = (this->sequenceNr++) % UINT16_MAX;
         //we need steady clock so it will always change monotonically (etc. no change to/from daylight savings time)
         //additionally, we need to count with milliseconds precision
-	RTPHeaderObject.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+        //we add the random starting timestamp to meet the condition specified in the RTP standard
+	RTPHeaderObject.timestamp = this->timestamp + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 	RTPHeaderObject.ssrc = this->ssrc;
 
 	// Copy RTPHeader and Audiodata in the buffer
