@@ -13,6 +13,7 @@
 struct NetworkConfiguration
 {
     //Local IP address
+    //TODO not used, we listen on any address for this device
     std::string addressIncoming;
     //Local port
     unsigned short portIncoming;

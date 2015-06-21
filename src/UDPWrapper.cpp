@@ -3,15 +3,15 @@
 UDPWrapper::UDPWrapper(sockaddr_in localAddress, sockaddr_in remoteAddress) : localAddress(localAddress), remoteAddress(remoteAddress)
 {}
 
-UDPWrapper::UDPWrapper(std::string localIPAddress, unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing)
+UDPWrapper::UDPWrapper(unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing)
 {
-	InitializeNetworkConfig(localIPAddress, portIncoming, remoteIPAddress, portOutgoing);
+	InitializeNetworkConfig(portIncoming, remoteIPAddress, portOutgoing);
 	initializeNetwork();
 }
 
 UDPWrapper::UDPWrapper(struct NetworkConfiguration networkConfig) : 
-UDPWrapper(networkConfig.addressIncoming, networkConfig.portIncoming, networkConfig.addressOutgoing, 
-networkConfig.portOutgoing) {}
+    UDPWrapper(networkConfig.portIncoming, networkConfig.addressOutgoing, networkConfig.portOutgoing) 
+{}
 
 void UDPWrapper::initializeNetwork()
 {
@@ -31,16 +31,16 @@ void UDPWrapper::startWinsock()
 	#endif
 }
 
-void UDPWrapper::InitializeNetworkConfig(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing)
+void UDPWrapper::InitializeNetworkConfig(unsigned short localPort, std::string remoteAddress, unsigned short remotePort)
 {
 	this->localAddress.sin_family = AF_INET;
-	this->localAddress.sin_port = htons(portIncoming);
-	unsigned long addr1 = inet_addr(addressIncoming.c_str());
-	memcpy((char *)&this->localAddress.sin_addr, &addr1, sizeof(addr1));
+	this->localAddress.sin_port = htons(localPort);
+        //listen on any address of this computer (localhost, local IP, ...)
+        this->localAddress.sin_addr.s_addr = INADDR_ANY;
 
 	this->remoteAddress.sin_family = AF_INET;
-	this->remoteAddress.sin_port = htons(portOutgoing);
-	unsigned long addr2 = inet_addr(addressOutgoing.c_str());
+	this->remoteAddress.sin_port = htons(remotePort);
+	unsigned long addr2 = inet_addr(remoteAddress.c_str());
 	memcpy((char *)&this->remoteAddress.sin_addr, &addr2, sizeof(addr2));
 }
 

@@ -32,7 +32,7 @@ class UDPWrapper : public NetworkWrapper
 public:
     UDPWrapper(sockaddr_in localAddress, sockaddr_in remoteAddress);
 
-    UDPWrapper(std::string localIPAddress, unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing);
+    UDPWrapper(unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing);
 
     UDPWrapper(struct NetworkConfiguration networkConfig);
 
@@ -42,7 +42,7 @@ public:
 
     void createSocket();
 
-    void InitializeNetworkConfig(std::string addressIncoming, unsigned short portIncoming, std::string addressOutgoing, unsigned short portOutgoing);
+    void InitializeNetworkConfig(unsigned short localPort, std::string remoteAddress, unsigned short remotePort);
 
     int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
     int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
