@@ -72,7 +72,7 @@ RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
     if((supportedFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32)
     {
         formatNames.push_back("32 bit float (normalized between +/- 1)");
-		audioFormats.push_back(RTAUDIO_SINT16); //TODO temporary change, dont forget to changeback to RTAUDIO_FLOAT32
+        audioFormats.push_back(RTAUDIO_FLOAT32);
     }
     if((supportedFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64)
     {

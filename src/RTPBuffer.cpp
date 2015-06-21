@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-//TODO implement maxDelay (problem: RTP-timestamp is not guaranteed to be in ms or ns or s, ...)
+//TODO implement maxDelay
 
 RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages): capacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages)
 {
@@ -18,8 +18,6 @@ RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBuffer
     ringBuffer = new RTPBufferPackage[maxCapacity];
     size = 0;
     minSequenceNumber = 0;
-    //initialize silence package
-    generateSilencePackage();
     #ifdef _WIN32
     bufferMutex = CreateMutex(nullptr, false, "BufferMutex");
     #endif
@@ -91,14 +89,8 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     if(size < minBufferPackages)
     {
         //buffer is empty
-        //write placeholder package
-        char *packageBuffer = (char *)package.getWorkBuffer();
-
-        // TODO: move to RTPPackage? need to use correct buffer!
-        memcpy(packageBuffer, &(silencePackage.header), sizeof(silencePackage.header));
-
-		// TODO package.getSize() is not best solution, Implement get-silence-packages as a part of RTPPackageHandler
-        memcpy(packageBuffer + sizeof(silencePackage.header), silencePackage.packageContent, package.getSize());
+        //write placeholder package into buffer
+        package.createSilencePackage();
         unlockMutex();
         return RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
@@ -151,29 +143,6 @@ uint16_t RTPBuffer::calculateIndex(uint16_t index, uint16_t offset)
 uint16_t RTPBuffer::incrementIndex(uint16_t index)
 {
     return (index+1) % capacity;
-}
-
-void RTPBuffer::generateSilencePackage()
-{
-    RTPHeader dummyHeader;
-    dummyHeader.version = 2;
-    dummyHeader.padding = 0;
-    dummyHeader.extension = 0;
-    dummyHeader.csrc_count = 0;
-    dummyHeader.marker = 0;
-    // TODO: how to get to those values?
-    dummyHeader.payload_type = L16_2;
-    dummyHeader.sequence_number = 0;
-    dummyHeader.timestamp = 0;
-    dummyHeader.ssrc = 0;
-    
-    //copy dummy header
-    silencePackage.header = dummyHeader;
-    silencePackage.isValid = true;
-    silencePackage.contentSize = 2060; // TODO how to set this one correctly?
-    silencePackage.packageContent = new char[silencePackage.contentSize];
-    //fill payload with zero
-    memset(silencePackage.packageContent, 0, silencePackage.contentSize);
 }
 
 void RTPBuffer::lockMutex()

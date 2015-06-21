@@ -268,7 +268,7 @@ public:
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from,  defaults nullptr
      *   
-     * Returns a pointer to the payload of rtpPackage. When rtpPackage is not set (defaults nullptr) 
+     * Returns a pointer to the payload of rtpPackage. When rtpPackage is not set (defaults to nullptr) 
      * the internal 'workBuffer' will be used as source.
      */
     auto getRTPPackageData(void *rtpPackage = nullptr) -> void*;
@@ -276,7 +276,7 @@ public:
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from, defaults nullptr
      * 
-     * Returns a RTPHeader pointer of the rtpPackage. When rtpPackage is not set (defaults nullptr) 
+     * Returns a RTPHeader pointer of the rtpPackage. When rtpPackage is not set (defaults to nullptr) 
      * the internal 'workBuffer' will be used as source.
      */
     auto getRTPPackageHeader(void *rtpPackage = nullptr) -> RTPHeader*;
@@ -300,6 +300,14 @@ public:
      * Returns the internal buffer, which could be used as receive buffer
      */
     auto getWorkBuffer() -> void*;
+    
+    /*!
+     * Creates a silence-package in the internal work-buffer.
+     * 
+     * A silence-package is a RTP-package with a dummy header and zeroed out payload resulting in silence on playback.
+     */
+    void createSilencePackage();
+    
 private:
     // When a new RTP-Package is created, it will be written in this buffer
     void *newRTPPackageBuffer;

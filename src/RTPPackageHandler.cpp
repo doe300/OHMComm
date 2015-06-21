@@ -107,3 +107,10 @@ auto RTPPackageHandler::getWorkBuffer() -> void*
 {
 	return this->workBuffer;
 }
+
+void RTPPackageHandler::createSilencePackage()
+{
+    RTPHeader silenceHeader;
+    memcpy(workBuffer, &silenceHeader, sizeOfRTPHeader);
+    memset((char *)(workBuffer) + sizeOfRTPHeader, 0, sizeOfAudioData);
+}

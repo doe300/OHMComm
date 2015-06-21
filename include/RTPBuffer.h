@@ -109,10 +109,6 @@ private:
      */
     RTPBuffer::RTPBufferPackage *ringBuffer;
     /*!
-     * The dummy-package for silence
-     */
-    RTPBuffer::RTPBufferPackage silencePackage;
-    /*!
      * The maximum entries in the buffer, size of the array
      */
     const uint16_t capacity;
@@ -150,13 +146,6 @@ private:
      * Calculates the new index in the buffer
      */
     uint16_t calculateIndex(uint16_t index, uint16_t offset);
-
-    /*!
-     * Generates a placeholder (silence) package writing it into the parameter
-     * 
-     * \param package The RTPPackage to write the silence into
-     */
-    void generateSilencePackage();
 
     void lockMutex();
 

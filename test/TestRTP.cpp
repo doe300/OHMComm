@@ -85,13 +85,13 @@ void TestRTP::testRTPBuffer()
     //some error assertions
     TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_OUTPUT_UNDERFLOW, buffer.readPackage(p), "Output did not underflow! 06");
     
-	//fill buffer
-	for (int i = 0; i< 5; i++)
-	{
-		readHeader->sequence_number += 1;
-		TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, p.getSize()), "Error adding to buffer. 07");
-	}
-	//TODO doesn't work yet!
-	readHeader->sequence_number += 1;
-	TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_INPUT_OVERFLOW, buffer.addPackage(p, p.getSize()), "Input did not overflow. 08");
+    //fill buffer
+    for (int i = 0; i< 5; i++)
+    {
+            readHeader->sequence_number += 1;
+            TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, p.getSize()), "Error adding to buffer. 07");
+    }
+    //TODO doesn't work yet!
+    readHeader->sequence_number += 1;
+    TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_INPUT_OVERFLOW, buffer.addPackage(p, p.getSize()), "Input did not overflow. 08");
 }
