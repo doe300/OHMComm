@@ -100,9 +100,9 @@ void* RTCPPackageHandler::createByePackage(RTCPHeader& header, std::string byeMe
     header.padding = padding != 0;
     
     memcpy(rtcpPackageBuffer, &header, RTCP_HEADER_SIZE);
+    memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE, &length, 1);
     if(length > 0)
     {
-        memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE, &length, 1);
         memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE + 1, byeMessage.c_str(), length);
     }
     if(padding != 0)
