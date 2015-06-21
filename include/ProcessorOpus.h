@@ -1,6 +1,6 @@
 #include "AudioProcessor.h"
-#include "AudioHandler.h"
 #include "opus.h"
+#include "configuration.h"
 
 class ProcessorOpus : public AudioProcessor
 {
@@ -10,6 +10,8 @@ public:
 
 protected:
 
+	//TODO: discuss better methods to access audioConfiguration parameters, perhaps over AudioProcessor?
+	AudioConfiguration audioConfiguration;
 	opus_int32 sampleRate;
 	int channels;
 
