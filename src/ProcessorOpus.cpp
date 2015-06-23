@@ -53,6 +53,7 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
 	fileout.close();
 	*/
 	lengthEncodedPacketInBytes = opus_encode(OpusEncoderObject, (opus_int16 *)inputBuffer, userData->nBufferFrames, (unsigned char *)EncodedPacketPointer, userData->maxBufferSize);
+	//lengthEncodedPacketInBytes = opus_encode(OpusEncoderObject, (opus_int16 *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
 	/*
 	std::ofstream fileout2("InputBuffer-after-encoding.raw", std::ios::out | std::ios::binary);
 	fileout2.write((char *)EncodedPacketPointer, lengthEncodedPacketInBytes);
@@ -83,6 +84,7 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
 	*/
 	//outputBufferByteSize should be in samples
 	numberOfDecodedSamples = opus_decode(OpusDecoderObject, (unsigned char *)EncodedPacketPointer, lengthEncodedPacketWorkaround, (opus_int16 *)outputBuffer, userData->maxBufferSize, 0);
+	//numberOfDecodedSamples = opus_decode(OpusDecoderObject, (unsigned char *)outputBuffer, userData->nBufferFrames, (opus_int16 *)outputBuffer, userData->maxBufferSize, 0);
 
 	std::cout << numberOfDecodedSamples << " [processOutput]numberOfDecodedSamples should be 960" << std::endl;
 	return numberOfDecodedSamples;
