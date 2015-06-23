@@ -14,7 +14,7 @@
 
 #include "UserInput.h"
 
-//dependencies for rtaudio
+//dependencies
 #include "RtAudio.h"
 #include "AudioHandlerFactory.h"
 #include "UDPWrapper.h"
