@@ -9,7 +9,6 @@
 
 NetworkWrappingProcessor::NetworkWrappingProcessor(std::string name, NetworkWrapper *wrapper): AudioProcessor(name), wrapper(wrapper)
 {
-    
 }
 
 NetworkWrappingProcessor::~NetworkWrappingProcessor()
@@ -17,13 +16,29 @@ NetworkWrappingProcessor::~NetworkWrappingProcessor()
     delete wrapper;
 }
 
-void NetworkWrappingProcessor::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
+unsigned int NetworkWrappingProcessor::getSupportedAudioFormats()
 {
-    wrapper->sendDataNetworkWrapper(inputBuffer, inputBufferByteSize); 
+    return AudioConfiguration::AUDIO_FORMAT_ALL;
 }
 
-void NetworkWrappingProcessor::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
+unsigned int NetworkWrappingProcessor::getSupportedSampleRates()
+{
+    return AudioConfiguration::SAMPLE_RATE_ALL;
+}
+
+unsigned int NetworkWrappingProcessor::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
+{
+    wrapper->sendDataNetworkWrapper(inputBuffer, inputBufferByteSize); 
+    
+    //no changes in buffer-size
+    return inputBufferByteSize;
+}
+
+unsigned int NetworkWrappingProcessor::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
 {
     wrapper->recvDataNetworkWrapper(outputBuffer, outputBufferByteSize);
+    
+    //no changes in buffer-size
+    return outputBufferByteSize;
 }
 

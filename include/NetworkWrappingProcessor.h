@@ -22,9 +22,13 @@ public:
      */
     NetworkWrappingProcessor(std::string name, NetworkWrapper *wrapper);
     virtual ~NetworkWrappingProcessor();
+    
+    unsigned int getSupportedAudioFormats();
+    unsigned int getSupportedSampleRates();
 
-    virtual void processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
-    virtual void processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
+
+    unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
+    unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
 
 private:
     NetworkWrapper *wrapper;

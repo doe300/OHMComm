@@ -24,7 +24,6 @@
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
-AudioConfiguration audioConfiguration;
 
 
 using namespace std;
@@ -102,134 +101,137 @@ void configureNetwork()
     cout << "Networkconfiguration set." << endl;
 }
 
-void configureAudioDevices()
+AudioConfiguration configureAudioDevices()
 {
-	cout << endl;
-	cout << "+++Audio Device configuration+++" << endl;
-	cout << endl;
+    AudioConfiguration audioConfiguration;
+    cout << endl;
+    cout << "+++Audio Device configuration+++" << endl;
+    cout << endl;
 
-	RtAudio AudioDevices;
-	// Determine the number of available Audio Devices 
-	unsigned int availableAudioDevices = AudioDevices.getDeviceCount();
+    RtAudio AudioDevices;
+    // Determine the number of available Audio Devices 
+    unsigned int availableAudioDevices = AudioDevices.getDeviceCount();
 
-	cout << "Available Audio Devices: " << endl;
-	cout << endl;
-	// printing available Audio Devices
-	RtAudio::DeviceInfo DeviceInfo;
+    cout << "Available Audio Devices: " << endl;
+    cout << endl;
+    // printing available Audio Devices
+    RtAudio::DeviceInfo DeviceInfo;
 
-	unsigned int DefaultOutputDeviceID;
-	unsigned int DefaultInputDeviceID;
+    unsigned int DefaultOutputDeviceID;
+    unsigned int DefaultInputDeviceID;
 
-	for (unsigned int i = 0 ; i < availableAudioDevices ; i++)
-	{
-		DeviceInfo = AudioDevices.getDeviceInfo(i);
-		if (DeviceInfo.probed == true) //Audio Device successfully probed
-		{
-			cout << "Device ID: " << i << endl;
-			cout << "Device Name = " << DeviceInfo.name << endl;
-			cout << "Maximum output channels = " << DeviceInfo.outputChannels << endl;
-			cout << "Maximum input channels = " << DeviceInfo.inputChannels << endl;
-			cout << "Maximum duplex channels = " << DeviceInfo.duplexChannels << endl;
-			cout << "Default output: ";
-			if (DeviceInfo.isDefaultOutput == true)
-			{
-				cout << "Yes" << endl;
-				DefaultOutputDeviceID = i;
+    for (unsigned int i = 0 ; i < availableAudioDevices ; i++)
+    {
+            DeviceInfo = AudioDevices.getDeviceInfo(i);
+            if (DeviceInfo.probed == true) //Audio Device successfully probed
+            {
+                    cout << "Device ID: " << i << endl;
+                    cout << "Device Name = " << DeviceInfo.name << endl;
+                    cout << "Maximum output channels = " << DeviceInfo.outputChannels << endl;
+                    cout << "Maximum input channels = " << DeviceInfo.inputChannels << endl;
+                    cout << "Maximum duplex channels = " << DeviceInfo.duplexChannels << endl;
+                    cout << "Default output: ";
+                    if (DeviceInfo.isDefaultOutput == true)
+                    {
+                            cout << "Yes" << endl;
+                            DefaultOutputDeviceID = i;
 
-			}
-			else
-			{
-				cout << "No" << endl;
-			}
-			cout << "Default input: ";
-			if (DeviceInfo.isDefaultInput == true)
-			{
-				cout << "Yes" << endl;
-				DefaultInputDeviceID = i;
-			}
-			else
-			{
-				cout << "No" << endl;
-			}
-			cout << "Supported Sample Rates: ";
-			printVector(DeviceInfo.sampleRates);
-			cout << endl;
-			cout << "Audio Format = " << DeviceInfo.nativeFormats << endl;
-			cout << endl;
-		}
-	}
+                    }
+                    else
+                    {
+                            cout << "No" << endl;
+                    }
+                    cout << "Default input: ";
+                    if (DeviceInfo.isDefaultInput == true)
+                    {
+                            cout << "Yes" << endl;
+                            DefaultInputDeviceID = i;
+                    }
+                    else
+                    {
+                            cout << "No" << endl;
+                    }
+                    cout << "Supported Sample Rates: ";
+                    printVector(DeviceInfo.sampleRates);
+                    cout << endl;
+                    cout << "Audio Format = " << DeviceInfo.nativeFormats << endl;
+                    cout << endl;
+            }
+    }
 
-	unsigned int OutputDeviceID;
-	
-	//Choose output Device
-	cout << "Choose output Device ID [default is " << DefaultOutputDeviceID << " ]: ";
-	cin >> OutputDeviceID;
+    unsigned int OutputDeviceID;
 
-	RtAudio::DeviceInfo OutputDeviceInfo = AudioDevices.getDeviceInfo(OutputDeviceID);
+    //Choose output Device
+    cout << "Choose output Device ID [default is " << DefaultOutputDeviceID << " ]: ";
+    cin >> OutputDeviceID;
 
-	//Configure ID of the Output Audio Device
-	audioConfiguration.outputDeviceID = OutputDeviceID;
-	cout << "-> Using output Device ID: " << audioConfiguration.outputDeviceID << endl;
+    RtAudio::DeviceInfo OutputDeviceInfo = AudioDevices.getDeviceInfo(OutputDeviceID);
 
-	//Configure Name of the Output Audio Device
-	audioConfiguration.outputDeviceName = OutputDeviceInfo.name;
-	cout << "-> Using output Device Name: " << audioConfiguration.outputDeviceName << endl;
+    //Configure ID of the Output Audio Device
+    audioConfiguration.outputDeviceID = OutputDeviceID;
+    cout << "-> Using output Device ID: " << audioConfiguration.outputDeviceID << endl;
 
-	//Configure Number of Maximum output Channels (we always use stereo)
-	audioConfiguration.outputDeviceChannels = 2;
-	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.outputDeviceChannels << endl;
+    //Configure Name of the Output Audio Device
+    audioConfiguration.outputDeviceName = OutputDeviceInfo.name;
+    cout << "-> Using output Device Name: " << audioConfiguration.outputDeviceName << endl;
 
-	unsigned int OutputSampleRate;
+    //Configure Number of Maximum output Channels (we always use stereo)
+    audioConfiguration.outputDeviceChannels = 2;
+    cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.outputDeviceChannels << endl;
 
-	//Configure Output Sample Rate
-	cout << "-> Supported Sample Rates from this Device: ";
-	printVector(OutputDeviceInfo.sampleRates);
-	cout << endl << "Choose your Sample Rate: ";
-	cin >> OutputSampleRate;
-	audioConfiguration.sampleRate = OutputSampleRate;
-	cout << "-> Using Sample Rate: " << audioConfiguration.sampleRate << endl;
+    unsigned int OutputSampleRate;
 
-	//Configure Output Audio Format
-	audioConfiguration.audioFormat = selectAudioFormat(OutputDeviceInfo.nativeFormats);
-	cout << "-> Output Audio Format: " << audioConfiguration.audioFormat << endl;
+    //Configure Output Sample Rate
+    cout << "-> Supported Sample Rates from this Device: ";
+    printVector(OutputDeviceInfo.sampleRates);
+    cout << endl << "Choose your Sample Rate: ";
+    cin >> OutputSampleRate;
+    audioConfiguration.sampleRate = OutputSampleRate;
+    cout << "-> Using Sample Rate: " << audioConfiguration.sampleRate << endl;
 
-	unsigned int InputDeviceID;
+    //Configure Output Audio Format
+    audioConfiguration.audioFormat = selectAudioFormat(OutputDeviceInfo.nativeFormats);
+    cout << "-> Output Audio Format: " << audioConfiguration.audioFormat << endl;
 
-	//Choose input Device
-	cout << "Choose input Device ID [default is " << DefaultInputDeviceID << " ]: ";
-	cin >> InputDeviceID;
+    unsigned int InputDeviceID;
 
-	RtAudio::DeviceInfo InputDeviceInfo = AudioDevices.getDeviceInfo(InputDeviceID);
+    //Choose input Device
+    cout << "Choose input Device ID [default is " << DefaultInputDeviceID << " ]: ";
+    cin >> InputDeviceID;
 
-	//Configure ID of the Input Audio Device
-	audioConfiguration.inputDeviceID = InputDeviceID;
-	cout << "-> Using input Device ID " << audioConfiguration.inputDeviceID << endl;
+    RtAudio::DeviceInfo InputDeviceInfo = AudioDevices.getDeviceInfo(InputDeviceID);
 
-	//Configure Name of the Input Audio Device
-	audioConfiguration.inputDeviceName = InputDeviceInfo.name;
-	cout << "-> Using input Device Name: " << audioConfiguration.inputDeviceName << endl;
+    //Configure ID of the Input Audio Device
+    audioConfiguration.inputDeviceID = InputDeviceID;
+    cout << "-> Using input Device ID " << audioConfiguration.inputDeviceID << endl;
 
-	//Configure Number of Maximum output Channels (we always use stereo)
-	audioConfiguration.inputDeviceChannels = 2;
-	cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.inputDeviceChannels << endl;
+    //Configure Name of the Input Audio Device
+    audioConfiguration.inputDeviceName = InputDeviceInfo.name;
+    cout << "-> Using input Device Name: " << audioConfiguration.inputDeviceName << endl;
 
-	unsigned int InputSampleRate;
+    //Configure Number of Maximum output Channels (we always use stereo)
+    audioConfiguration.inputDeviceChannels = 2;
+    cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.inputDeviceChannels << endl;
 
-        //TODO sampleRate and audioFormat are overridden!
-	//Configure Input Sample Rate
-	cout << "-> Supported Sample Rates from this Device: ";
-	printVector(InputDeviceInfo.sampleRates);
-	cout << endl << "Choose your Sample Rate: ";
-	cin >> InputSampleRate;
-	audioConfiguration.sampleRate = InputSampleRate;
-	cout << "-> Using Sample Rate: " << audioConfiguration.sampleRate << endl;
+    unsigned int InputSampleRate;
 
-	//Configure Input Audio Format
-	audioConfiguration.audioFormat = selectAudioFormat(InputDeviceInfo.nativeFormats);
-	cout << "-> Input Audio Format: " << audioConfiguration.audioFormat << endl;
+    //TODO sampleRate and audioFormat are overridden!
+    //Configure Input Sample Rate
+    cout << "-> Supported Sample Rates from this Device: ";
+    printVector(InputDeviceInfo.sampleRates);
+    cout << endl << "Choose your Sample Rate: ";
+    cin >> InputSampleRate;
+    audioConfiguration.sampleRate = InputSampleRate;
+    cout << "-> Using Sample Rate: " << audioConfiguration.sampleRate << endl;
+
+    //Configure Input Audio Format
+    audioConfiguration.audioFormat = selectAudioFormat(InputDeviceInfo.nativeFormats);
+    cout << "-> Input Audio Format: " << audioConfiguration.audioFormat << endl;
         
     //Buffer size
     audioConfiguration.bufferFrames = inputNumber("Input the number of frames to buffer (around 128 - 2048, 256 is recommended)", false, false);
+    
+    return audioConfiguration;
 }
 
 /*!
@@ -296,7 +298,7 @@ int main(int argc, char** argv)
                 selectedAudioHander = *audioHandlers.begin();
             }
             std::cout << "Using AudioHandler: " << selectedAudioHander << std::endl;
-            configureAudioDevices();
+            AudioConfiguration audioConfiguration = configureAudioDevices();
             audioObject = AudioHandlerFactory::getAudioHandler(selectedAudioHander, audioConfiguration);
         }
         else

@@ -4,22 +4,19 @@
 
 AudioProcessor::AudioProcessor(std::string name) : name(name) {}
 
-/*
- * region: getters and setters
- */
 const std::string AudioProcessor::getName()
 {
-	return name;
+    return name;
 }
 
 void AudioProcessor::setName(std::string name)
 {
-	this->name = name;
+    this->name = name;
 }
 
-bool AudioProcessor::configure()
+bool AudioProcessor::configure(AudioConfiguration config)
 {
     //dummy implementation, does nothing
-	return true;
+    return true;
 }
 
