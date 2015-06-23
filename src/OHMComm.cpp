@@ -343,10 +343,16 @@ int main(int argc, char** argv)
         ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
         audioObject->addProcessor(&rtp);
 
+		int opusError = 0;
+		ProcessorOpus opus("Opus-Processor", OPUS_APPLICATION_VOIP, opusError);
+		audioObject->addProcessor(&opus);
+
         //configure all processors
         audioObject->prepare();
 
         RTPListener listener(network, rtpBuffer, audioObject->getBufferSize());
+		
+
         // start audio processing
         listener.startUp();
         audioObject->startDuplexMode();
