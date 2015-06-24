@@ -47,3 +47,4 @@ ${opusIncludes}
 )
 
 ADD_LIBRARY( silk_float STATIC ${SILK_FLOAT_HEADERS} ${SILK_FLOAT_SRCS})
+target_link_libraries(silk_float silk_common)

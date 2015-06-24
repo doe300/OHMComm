@@ -188,7 +188,7 @@ FakesAssemblies/
 /CMakeCache.txt
 /cmake_install.cmake
 /CMakeFiles/
-/Makefile
+Makefile
 
 # Netbeans
 /nbproject
@@ -211,3 +211,12 @@ rtaudio_static.lib
 
 # whitelist opus directory
 !/lib/opus-1.1/**
+#blacklist certain files
+/lib/opus-1.1/Makefile
+/lib/opus-1.1/config.log
+/lib/opus-1.1/config.status
+/lib/opus-1.1/libtool
+/lib/opus-1.1/config.h
+/lib/opus-1.1/stamp-h
+/lib/opus-1.1/stamp-h1
+/lib/opus-1.1/doc/
