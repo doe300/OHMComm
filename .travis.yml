@@ -30,4 +30,4 @@ script: make
 after_script:
   - cd build
   - chmod +x test/Tests
-  - sh test/Tests
+  - test/Tests
