@@ -28,6 +28,6 @@ before_script:
 script: make
 
 after_script:
-  - pwd
+  - cd build
   - chmod +x test/Tests
-  - sh test/Tests
+  - test/Tests

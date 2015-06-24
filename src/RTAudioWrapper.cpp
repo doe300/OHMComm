@@ -212,10 +212,6 @@ void RtAudioWrapper::playData(void *playbackData, unsigned int size)
 // Region: private functions
 auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
 {
-    /* If there is no config set, then load the default */
-    if (this->flagAudioConfigSet == false)
-        this->setDefaultAudioConfig();
-
     // calculate the input- and outputbuffer sizes
     this->outputBufferByteSize = audioConfiguration.bufferFrames * audioConfiguration.outputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormat);
     this->inputBufferByteSize = audioConfiguration.bufferFrames * audioConfiguration.inputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormat);
@@ -309,10 +305,60 @@ auto RtAudioWrapper::autoSelectAudioFormat(RtAudioFormat supportedFormats) -> Rt
     return RTAUDIO_SINT8;
 }
 
+unsigned int RtAudioWrapper::autoSelectSampleRate(unsigned int supportedRatesFlag)
+{
+    if((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_192000) == AudioConfiguration::SAMPLE_RATE_192000)
+    {
+        return 192000;
+    }
+    if((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_96000) == AudioConfiguration::SAMPLE_RATE_96000)
+    {
+        return 96000;
+    }
+    if((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_48000) == AudioConfiguration::SAMPLE_RATE_48000)
+    {
+        return 48000;
+    }
+    if((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_44100) == AudioConfiguration::SAMPLE_RATE_44100)
+    {
+        return 44100;
+    }
+    if((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_32000) == AudioConfiguration::SAMPLE_RATE_32000)
+    {
+        return 32000;
+    }
+    if((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_24000) == AudioConfiguration::SAMPLE_RATE_24000)
+    {
+        return 24000;
+    }
+    if((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_16000) == AudioConfiguration::SAMPLE_RATE_16000)
+    {
+        return 16000;
+    }
+    if((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_12000) == AudioConfiguration::SAMPLE_RATE_12000)
+    {
+        return 12000;
+    }
+    //fall back to worst sample-rate
+    return 8000;
+}
+
+
 bool RtAudioWrapper::prepare()
 {
-    bool resultA = this->configureAudioProcessors();
-    bool resultB = this->initRtAudioStreamParameters();
+    /* If there is no config set, then load the default */
+    if (this->flagAudioConfigSet == false)
+        this->setDefaultAudioConfig();
+    
+    //checks if there is a configuration all processors support
+    if(!queryProcessorSupport())
+    {
+        std::cerr << "AudioProcessors could not agree on configuration!" << std::endl;
+        return false;
+    }
+    
+    bool resultA = this->initRtAudioStreamParameters();
+    bool resultB = this->configureAudioProcessors();
 
     if (resultA && resultB) {
         this->flagPrepared = true;
@@ -325,4 +371,66 @@ bool RtAudioWrapper::prepare()
 auto RtAudioWrapper::getBufferSize() -> unsigned int
 {
     return outputBufferByteSize;
+}
+
+bool RtAudioWrapper::queryProcessorSupport()
+{
+    //preset supported audio-formats with device-supported formats
+    unsigned int supportedFormats = this->rtaudio.getDeviceInfo(audioConfiguration.inputDeviceID).nativeFormats;
+    //preset supported sample-rates with device-supported rates
+    unsigned int supportedSampleRates = mapDeviceSampleRates(this->rtaudio.getDeviceInfo(audioConfiguration.inputDeviceID).sampleRates);
+    for (unsigned int i = 0; i < audioProcessors.size(); i++)
+    {
+        // a & b return all bits set in a AND b -> all flags supported by both
+        supportedFormats = supportedFormats & audioProcessors.at(i)->getSupportedAudioFormats();
+        supportedSampleRates = supportedSampleRates &audioProcessors.at(i)->getSupportedSampleRates();
+    }
+    if(supportedFormats == 0)
+    {
+        //there is no format supported by all processors
+        std::cout << "Could not find a single audio-format supported by all processors!" << std::endl;
+        return false;
+    }
+    if(supportedSampleRates == 0)
+    {
+        //there is no sample-rate supported by all processors
+        std::cout << "Could not find a single sample-rate supported by all processors!" << std::endl;
+        return false;
+    }
+    audioConfiguration.audioFormat = autoSelectAudioFormat(supportedFormats);
+    audioConfiguration.sampleRate = autoSelectSampleRate(supportedSampleRates);
+    
+    return true;
+}
+
+unsigned int RtAudioWrapper::mapDeviceSampleRates(std::vector<unsigned int> sampleRates)
+{
+    unsigned int sampleRate;
+    unsigned int sampleRatesFlags = 0;
+    for (unsigned int i = 0; i < sampleRates.size(); i++)
+    {
+        sampleRate = sampleRates.at(i);
+        if(sampleRate == 8000)
+            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_8000;
+        else if(sampleRate == 12000)
+            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_12000;
+        else if(sampleRate == 16000)
+            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_16000;
+        else if(sampleRate == 24000)
+            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_24000;
+        else if(sampleRate == 32000)
+            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_32000;
+        else if(sampleRate == 44100)
+            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_44100;
+        else if(sampleRate == 48000)
+            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_48000;
+        else if(sampleRate == 96000)
+            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_96000;
+        else if(sampleRate == 192000)
+            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_192000;
+        else
+            std::cout << "Unrecognized sample-rate: " << sampleRate << std::endl;
+    }
+    
+    return sampleRatesFlags;
 }

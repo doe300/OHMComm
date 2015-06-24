@@ -45,7 +45,7 @@ void TestRTP::testRTPPackage()
     std::string payload("This is a dummy payload");
     RTPPackageHandler pack(100, PayloadType::GSM, RTP_HEADER_MIN_SIZE);
     
-    void *packageBuffer = pack.getNewRTPPackage((char *)payload.c_str());
+    void *packageBuffer = pack.getNewRTPPackage((char *)payload.c_str(), payload.size());
     
     void *headerBuffer = pack.getRTPPackageHeader(packageBuffer);
     RTPHeader *header = (RTPHeader *)headerBuffer;
@@ -61,13 +61,13 @@ void TestRTP::testRTPBuffer()
     
     RTPBuffer buffer(5, 1000);
     RTPPackageHandler p(100);
-    void *packageBuffer = p.getNewRTPPackage((void *)payload.c_str());
+    void *packageBuffer = p.getNewRTPPackage((void *)payload.c_str(), payload.size());
     void *receiveBuffer = p.getWorkBuffer();
     //we need the data in the receive-buffer, at least for the moment
-    memcpy(receiveBuffer, packageBuffer, p.getSize());
+    memcpy(receiveBuffer, packageBuffer, p.getMaximumPackageSize());
     
     //write package to buffer
-    TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, p.getSize()), "Error adding to buffer. 01");
+    TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, payload.size()), "Error adding to buffer. 01");
     
     //assert size is 1
     TEST_ASSERT_EQUALS_MSG(1, buffer.getSize(), "Buffer-size does not match! 02");
@@ -89,9 +89,9 @@ void TestRTP::testRTPBuffer()
     for (int i = 0; i< 5; i++)
     {
             readHeader->sequence_number += 1;
-            TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, p.getSize()), "Error adding to buffer. 07");
+            TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_ALL_OKAY, buffer.addPackage(p, payload.size()), "Error adding to buffer. 07");
     }
     //TODO doesn't work yet!
     readHeader->sequence_number += 1;
-    TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_INPUT_OVERFLOW, buffer.addPackage(p, p.getSize()), "Input did not overflow. 08");
+    TEST_ASSERT_EQUALS_MSG(RTP_BUFFER_INPUT_OVERFLOW, buffer.addPackage(p, payload.size()), "Input did not overflow. 08");
 }

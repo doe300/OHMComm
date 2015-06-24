@@ -40,3 +40,4 @@ ${opusIncludes}
 )
 
 ADD_LIBRARY( silk_fixed STATIC ${SILK_FIXED_HEADERS} ${SILK_FIXED_SRCS})
+target_link_libraries(silk_fixed silk_common)
