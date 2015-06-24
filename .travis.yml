@@ -29,5 +29,6 @@ script: make
 
 after_script:
   - pwd
+  - ls -Al
   - chmod +x test/Tests
   - sh test/Tests
