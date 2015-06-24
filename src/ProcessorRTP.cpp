@@ -16,16 +16,16 @@ unsigned int ProcessorRTP::getSupportedSampleRates()
     return AudioConfiguration::SAMPLE_RATE_ALL;
 }
 
-
 unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
     // pack data into a rtp-package
     if (rtpPackage == nullptr)
     {
-        rtpPackage = new RTPPackageHandler(inputBufferByteSize);
+        rtpPackage = new RTPPackageHandler(userData->maxBufferSize);
     }
-    void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer);
-    this->networkObject->sendDataNetworkWrapper(newRTPPackage, rtpPackage->getSize());
+    void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer, inputBufferByteSize);
+    //only send the number of bytes really required: header + actual payload-size
+    this->networkObject->sendDataNetworkWrapper(newRTPPackage, rtpPackage->getRTPHeaderSize() + inputBufferByteSize);
     
     //no changes in buffer-size
     return inputBufferByteSize;
@@ -36,13 +36,14 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
     // unpack data from a rtp-package
     if (rtpPackage == nullptr)
     {
-        rtpPackage = new RTPPackageHandler(outputBufferByteSize);
+        rtpPackage = new RTPPackageHandler(userData->maxBufferSize);
     }
     //read package from buffer
     (*rtpBuffer)->readPackage(*rtpPackage);
     void* recvAudioData = rtpPackage->getRTPPackageData();
+    unsigned int receivedPayloadSize = rtpPackage->getActualPayloadSize();
     memcpy(outputBuffer, recvAudioData, outputBufferByteSize);
     
-    //no changes in buffer-size
-    return outputBufferByteSize;
+    //set received payload size for all following processors to use
+    return receivedPayloadSize;
 }

@@ -38,7 +38,7 @@ void RTPListener::runThread()
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
-        int receivedSize = this->wrapper->recvDataNetworkWrapper(receivedPackage->getWorkBuffer(), receivedPackage->getSize());
+        int receivedSize = this->wrapper->recvDataNetworkWrapper(receivedPackage->getWorkBuffer(), receivedPackage->getMaximumPackageSize());
         if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
         {
             //just continue to next loop iteration, checking if thread should continue running

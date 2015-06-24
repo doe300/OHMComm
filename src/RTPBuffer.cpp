@@ -91,6 +91,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         //buffer is empty
         //write placeholder package into buffer
         package.createSilencePackage();
+        package.setActualPayloadSize(package.getMaximumPackageSize());
         unlockMutex();
         return RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
@@ -118,6 +119,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     char *packageBuffer = (char *)package.getWorkBuffer();
     memcpy(packageBuffer, &(bufferPack->header), sizeof(bufferPack->header));
     memcpy(packageBuffer + sizeof(bufferPack->header), bufferPack->packageContent, bufferPack->contentSize);
+    package.setActualPayloadSize(bufferPack->contentSize);
 
     //Invalidate buffer-entry
     bufferPack->isValid = false;

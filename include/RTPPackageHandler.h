@@ -248,22 +248,25 @@ public:
     /*!
      * Constructs a new RTPPackage-object
      * 
-     * \param sizeOfAudioData The maximum size in bytes of the payload (body)
+     * \param maximumPayloadSize The maximum size in bytes of the payload (body)
      *
      * \param payloadType The PayloadType, defaults to L16_2
      * 
      * \param sizeOfRTPHeader The size in bytes of the RTPHeader, defaults to RTP_HEADER_MIN_SIZE  
      */
-    RTPPackageHandler(unsigned int sizeOfAudioData, PayloadType payloadType = L16_2, unsigned int sizeOfRTPHeader = RTP_HEADER_MIN_SIZE);
+    RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType = L16_2, unsigned int sizeOfRTPHeader = RTP_HEADER_MIN_SIZE);
 
     /*!
      * Generates a new RTP-package by generating the header and copying the payload-data (audio data)
      * 
      * \param audioData The payload for the new RTP-package
      * 
+     * \param payloadSize The size in bytes of the audio-payload, 
+     *  must be smaller or equals to #getMaximumPayloadSize()
+     * 
      * Returns a pointer to the internal buffer storing the new package
      */
-    auto getNewRTPPackage(void* audioData)->void*;
+    auto getNewRTPPackage(void* audioData, unsigned int payloadSize)->void*;
 
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from,  defaults nullptr
@@ -282,19 +285,33 @@ public:
     auto getRTPPackageHeader(void *rtpPackage = nullptr) -> RTPHeader*;
 
     /*!
-     * Gets the total size for the RTP package (header + body)
+     * Gets the maximum size for the RTP package (header + body)
      */
-    auto getSize() -> unsigned int const;
+    auto getMaximumPackageSize() -> unsigned int const;
 
     /*!
      * Gets the RTPHeader size
      */
-    auto getSizeOfRTPHeader() -> unsigned int const;
+    auto getRTPHeaderSize() -> unsigned int const;
 
     /*!
-     * Gets the payload size
+     * Gets the maximum payload size
      */
-    auto getSizeOfAudioData() -> unsigned int const;
+    auto getMaximumPayloadSize() -> unsigned int const;
+    
+    /*!
+     * Returns the actual size of the currently buffered audio-payload
+     * 
+     * Note: This value is only accurate if the #setActualPayloadSize() was set for the current payload
+     */
+    auto getActualPayloadSize() -> unsigned int const;
+    
+    /*!
+     * Sets the payload-size in bytes of the currently buffered package
+     * 
+     * \param payloadSize The new size in bytes
+     */
+    void setActualPayloadSize(unsigned int payloadSize);
 
     /*!
      * Returns the internal buffer, which could be used as receive buffer
@@ -328,8 +345,9 @@ private:
     unsigned int payloadType;
 
     unsigned int sizeOfRTPHeader;
-    unsigned int sizeOfAudioData;
-    unsigned int size;
+    unsigned int maximumPayloadSize;
+    unsigned int maximumBufferSize;
+    unsigned int actualPayloadSize;
 };
 
 #endif	/* RTPPACKAGEHANDLER_H */

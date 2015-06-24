@@ -7,15 +7,15 @@
 
 #include "RTPPackageHandler.h"
 
-RTPPackageHandler::RTPPackageHandler(unsigned int sizeOfAudioData, PayloadType payloadType, unsigned int sizeOfRTPHeader)
+RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType, unsigned int sizeOfRTPHeader)
 {
-	this->sizeOfAudioData = sizeOfAudioData;
+	this->maximumPayloadSize = maximumPayloadSize;
 	this->sizeOfRTPHeader = sizeOfRTPHeader;
-	this->size = sizeOfAudioData + sizeOfRTPHeader;
+	this->maximumBufferSize = maximumPayloadSize + sizeOfRTPHeader;
 	this->payloadType = payloadType;
 
-	newRTPPackageBuffer = new char[size];
-	workBuffer = new char[size];
+	newRTPPackageBuffer = new char[maximumBufferSize];
+	workBuffer = new char[maximumBufferSize];
 
 	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
 	std::mt19937 tmp(seed1);
@@ -26,7 +26,7 @@ RTPPackageHandler::RTPPackageHandler(unsigned int sizeOfAudioData, PayloadType p
 	ssrc = getAudioSourceId();
 }
 
-auto RTPPackageHandler::getNewRTPPackage(void* audioData) -> void*
+auto RTPPackageHandler::getNewRTPPackage(void* audioData, unsigned int payloadSize) -> void*
 {
 	RTPHeader RTPHeaderObject;
 
@@ -45,7 +45,7 @@ auto RTPPackageHandler::getNewRTPPackage(void* audioData) -> void*
 
 	// Copy RTPHeader and Audiodata in the buffer
 	memcpy((char*)newRTPPackageBuffer, &RTPHeaderObject, this->sizeOfRTPHeader);
-	memcpy((char*)(newRTPPackageBuffer)+sizeOfRTPHeader, audioData, this->sizeOfAudioData);
+	memcpy((char*)(newRTPPackageBuffer)+sizeOfRTPHeader, audioData, payloadSize);
 
 	return newRTPPackageBuffer;
 }
@@ -56,7 +56,7 @@ auto RTPPackageHandler::getRTPPackageData(void *rtpPackage) -> void*
 	{
 		return (char*)workBuffer + sizeOfRTPHeader;
 	}
-	memcpy((char*)(workBuffer) + sizeOfRTPHeader, (char*)rtpPackage + sizeOfRTPHeader, sizeOfAudioData);
+	memcpy((char*)(workBuffer) + sizeOfRTPHeader, (char*)rtpPackage + sizeOfRTPHeader, maximumPayloadSize);
 	return (char*)(workBuffer)+sizeOfRTPHeader;
 }
 
@@ -88,19 +88,29 @@ unsigned int RTPPackageHandler::getAudioSourceId()
     return this->randomGenerator();
 }
 
-auto RTPPackageHandler::getSize() -> unsigned int const
+auto RTPPackageHandler::getMaximumPackageSize() -> unsigned int const
 {
-	return size;
+	return maximumBufferSize;
 }
 
-auto RTPPackageHandler::getSizeOfRTPHeader() -> unsigned int const
+auto RTPPackageHandler::getRTPHeaderSize() -> unsigned int const
 {
 	return sizeOfRTPHeader;
 }
 
-auto RTPPackageHandler::getSizeOfAudioData() -> unsigned int const
+auto RTPPackageHandler::getMaximumPayloadSize() -> unsigned int const
 {
-	return sizeOfAudioData;
+	return maximumPayloadSize;
+}
+
+auto RTPPackageHandler::getActualPayloadSize() -> unsigned int const
+{
+    return actualPayloadSize;
+}
+
+void RTPPackageHandler::setActualPayloadSize(unsigned int payloadSize)
+{
+    this->actualPayloadSize = payloadSize;
 }
 
 auto RTPPackageHandler::getWorkBuffer() -> void*
@@ -112,5 +122,5 @@ void RTPPackageHandler::createSilencePackage()
 {
     RTPHeader silenceHeader;
     memcpy(workBuffer, &silenceHeader, sizeOfRTPHeader);
-    memset((char *)(workBuffer) + sizeOfRTPHeader, 0, sizeOfAudioData);
+    memset((char *)(workBuffer) + sizeOfRTPHeader, 0, maximumPayloadSize);
 }
