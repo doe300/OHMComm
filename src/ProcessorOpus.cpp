@@ -36,7 +36,7 @@ unsigned int ProcessorOpus::getSupportedAudioFormats()
 unsigned int ProcessorOpus::getSupportedSampleRates()
 {
 	//Opus supports this sampleRates: 8000, 12000, 16000, 24000, or 48000. = 1001111 binary in the format from configuration.h (every 1 stands for one supported format) = 79 decimal = 0x4F Hex
-	unsigned int SupportedSampleRates = 79;
+	unsigned int SupportedSampleRates = AudioConfiguration::SAMPLE_RATE_8000|AudioConfiguration::SAMPLE_RATE_12000|AudioConfiguration::SAMPLE_RATE_16000|AudioConfiguration::SAMPLE_RATE_24000|AudioConfiguration::SAMPLE_RATE_48000;
 	return SupportedSampleRates;
 }
 
