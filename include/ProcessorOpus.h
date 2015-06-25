@@ -10,13 +10,16 @@ class ProcessorOpus : public AudioProcessor
 {
 public:
 
-	//constructor: creates OpusEncoder and OpusDecoderObject
+	//constructor
 	ProcessorOpus(std::string name, int opusApplication, int ErrorCode);
 
 	//deliver supported Audio Formats by Opus
 	unsigned int getSupportedAudioFormats();
 	//deliver supported Sample Rates by Opus
 	unsigned int getSupportedSampleRates();
+
+	//configure the Opus Processor, this creates OpusEncoder and OpusDecoderObject
+	bool configure(AudioConfiguration audioConfig);
 
 	//encodes the Data in inputBuffer(only Signed 16 bit PCM supported) and writes the encoded Data in encodedPacket 
 	//returns lenght of encodedPacket in Bytes
@@ -41,6 +44,8 @@ private:
 
 	OpusEncoder *OpusEncoderObject;
 	OpusDecoder *OpusDecoderObject;
+	int OpusApplication;
+	int *ErrorCode;
 	//TODO: discuss better methods to access audioConfiguration parameters (see Issue #32)
 	AudioConfiguration audioConfiguration;
 	opus_int32 sampleRate;

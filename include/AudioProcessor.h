@@ -69,7 +69,7 @@ public:
      * 
      * Any implementation of this method can use the methods from UserInput.h
      */
-    bool configure(AudioConfiguration audioConfig);
+    virtual bool configure(AudioConfiguration audioConfig);
 
     /*
      * The actual processing methods. processInputData is the counterpart of processInputData 
