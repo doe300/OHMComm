@@ -344,7 +344,7 @@ int main(int argc, char** argv)
         audioObject->addProcessor(&rtp);
 
 		int opusError = 0;
-		ProcessorOpus opus("Opus-Processor", OPUS_APPLICATION_VOIP, opusError);
+		ProcessorOpus opus("Opus-Processor", OPUS_APPLICATION_VOIP);
 		audioObject->addProcessor(&opus);
 
         //configure all processors

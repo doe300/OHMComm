@@ -11,7 +11,7 @@ class ProcessorOpus : public AudioProcessor
 public:
 
 	//constructor
-	ProcessorOpus(std::string name, int opusApplication, int ErrorCode);
+	ProcessorOpus(std::string name, int opusApplication);
 
 	//deliver supported Audio Formats by Opus
 	unsigned int getSupportedAudioFormats();
@@ -45,11 +45,7 @@ private:
 	OpusEncoder *OpusEncoderObject;
 	OpusDecoder *OpusDecoderObject;
 	int OpusApplication;
-	int *ErrorCode;
-	//TODO: discuss better methods to access audioConfiguration parameters (see Issue #32)
-	AudioConfiguration audioConfiguration;
-	opus_int32 sampleRate;
-	int channels;
+	int ErrorCode;
 	//TODO: delete lengthEncodedPacketWorkaround
 	unsigned int lengthEncodedPacketWorkaround;
 

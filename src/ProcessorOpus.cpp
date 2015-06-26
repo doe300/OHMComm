@@ -1,38 +1,9 @@
 #include "ProcessorOpus.h"
 #include <fstream> //stream output to file
 
-ProcessorOpus::ProcessorOpus(std::string name, int opusApplication, int ErrorCode) : AudioProcessor(name)
+ProcessorOpus::ProcessorOpus(std::string name, int opusApplication) : AudioProcessor(name)
 {
-	this->OpusApplication = opusApplication;
-	this->ErrorCode = &ErrorCode;
-	
-	//how to get audioData Object(SampleRate, ChannelNumber)?
-	
-	//Opus supports this sampleRates: 8000, 12000, 16000, 24000, or 48000.
-	/*
-	if (audioConfiguration.sampleRate == 8000 || audioConfiguration.sampleRate == 12000 || audioConfiguration.sampleRate == 16000 || audioConfiguration.sampleRate == 24000 || audioConfiguration.sampleRate == 48000)
-	{
-		this->sampleRate = audioConfiguration.sampleRate;
-	}
-	else
-	{
-		std::cout << "SampleRate not supported by Opus! Opus supports this sampleRates: 8000, 12000, 16000, 24000, or 48000." << std::endl;
-	}
-	//Opus supports mono(1 channel) and stereo(2 channels) only.
-	if (audioConfiguration.inputDeviceChannels == 1 || audioConfiguration.inputDeviceChannels == 2)
-	{
-		this->channels = audioConfiguration.inputDeviceChannels;
-	}
-	else
-	{
-		std::cout << "Device Channels not supported by Opus! Opus supports 1 or 2 Device Channels" << std::endl;
-	}
-	*/
-	// TODO: delete manuall selection of samplerate and channels
-	//OpusEncoderObject = opus_encoder_create(48000, 2, opusApplication, &ErrorCode);
-	// TODO: delete manuall selection of samplerate and channels
-	//OpusDecoderObject = opus_decoder_create(48000, 2, &ErrorCode);
-	
+	this->OpusApplication = opusApplication;	
 }
 unsigned int ProcessorOpus::getSupportedAudioFormats()
 {
@@ -51,25 +22,71 @@ unsigned int ProcessorOpus::getSupportedSampleRates()
 bool ProcessorOpus::configure(AudioConfiguration audioConfig)
 {
 	std::cout << audioConfig.sampleRate << " [configure]audioConfig.sampleRate should be 48000" << std::endl;
-	OpusEncoderObject = opus_encoder_create(audioConfig.sampleRate, audioConfig.inputDeviceChannels, OpusApplication, ErrorCode);
-	OpusDecoderObject = opus_decoder_create(audioConfig.sampleRate, audioConfig.outputDeviceChannels, ErrorCode);
-	std::cout << "[configure]end configure opus" << std::endl;
-	return true;
+	std::cout << audioConfig.inputDeviceChannels << " [configure]audioConfig.inputDeviceChannels should be 2" << std::endl;
+	std::cout << audioConfig.outputDeviceChannels << " [configure]audioConfig.outputDeviceChannels should be 2" << std::endl;
+	OpusEncoderObject = opus_encoder_create(audioConfig.sampleRate, audioConfig.inputDeviceChannels, OpusApplication, &ErrorCode);
+	OpusDecoderObject = opus_decoder_create(audioConfig.sampleRate, audioConfig.outputDeviceChannels, &ErrorCode);
+	if (ErrorCode == OPUS_OK)
+	{
+		std::cout << "[configure]No Erros" << std::endl;
+		return true;
+	}
+	else
+	{
+		if (ErrorCode == OPUS_ALLOC_FAIL)
+		{
+			std::cout << "[Opus-configure-Error]Memory allocation has failed." << std::endl;
+			return false;
+		}
+		else if (ErrorCode == OPUS_BAD_ARG)
+		{
+			std::cout << "[Opus-configure-Error]One or more invalid/out of range arguments." << std::endl;
+			return false;
+		}
+		else if (ErrorCode == OPUS_BUFFER_TOO_SMALL)
+		{
+			std::cout << "[Opus-configure-Error]The mode struct passed is invalid." << std::endl;
+			return false;
+		}
+		else if (ErrorCode == OPUS_INTERNAL_ERROR)
+		{
+			std::cout << "[Opus-configure-Error]An internal error was detected." << std::endl;
+			return false;
+		}
+		else if (ErrorCode == OPUS_INVALID_PACKET)
+		{
+			std::cout << "[Opus-configure-Error]The compressed data passed is corrupted." << std::endl;
+			return false;
+		}
+		else if (ErrorCode == OPUS_INVALID_STATE)
+		{
+			std::cout << "[Opus-configure-Error]An encoder or decoder structure is invalid or already freed." << std::endl;
+			return false;
+		}
+		else if (ErrorCode == OPUS_UNIMPLEMENTED)
+		{
+			std::cout << "[Opus-configure-Error]Invalid/unsupported request number. " << std::endl;
+			return false;
+		}
+		else
+		{
+			std::cout << "[Opus-configure-Error]Unknown error " << std::endl;
+			return false;
+		}
+	}
 }
-unsigned char *EncodedPacketPointer = new unsigned char[4000];
 unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
 	unsigned int lengthEncodedPacketInBytes;
 	
 	std::cout << userData->nBufferFrames << " [processInput]nBufferFrames should be 960" << std::endl;
-	std::cout << userData->maxBufferSize << " [processInput]maxBufferSize" << std::endl;
+	std::cout << userData->maxBufferSize << " [processInput]maxBufferSize should be 3840" << std::endl;
 	/*
 	std::ofstream fileout("InputBuffer-before-encoding.raw", std::ios::out | std::ios::binary);
 	fileout.write((char *)inputBuffer, userData->nBufferFrames);
 	fileout.close();
 	*/
 	lengthEncodedPacketInBytes = opus_encode(OpusEncoderObject, (opus_int16 *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
-	//lengthEncodedPacketInBytes = opus_encode(OpusEncoderObject, (opus_int16 *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
 	/*
 	std::ofstream fileout2("InputBuffer-after-encoding.raw", std::ios::out | std::ios::binary);
 	fileout2.write((char *)EncodedPacketPointer, lengthEncodedPacketInBytes);
@@ -78,6 +95,7 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
 	std::cout << lengthEncodedPacketInBytes << " [processInput]lengthEncodedPacket" << std::endl;
 	
 	lengthEncodedPacketWorkaround = lengthEncodedPacketInBytes;
+
 	return lengthEncodedPacketInBytes;
 }
 
@@ -90,9 +108,8 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
 	// -lengthEncodedPacketInBytes not correctly received, no variable for it
 	// -outputBuffer isnt inputBuffer
 	
-	std::cout << userData->nBufferFrames << " [processOutput]nBufferFrames should be = " << lengthEncodedPacketWorkaround << " lengthEncodedPacket" << std::endl;
-	std::cout << outputBufferByteSize << " [processOutput]outputBufferByteSize" << std::endl;
-	std::cout << userData->maxBufferSize << " [processOutput]maxBufferSize" << std::endl;
+	std::cout << outputBufferByteSize << " [processOutput]outputBufferByteSize should be = " << lengthEncodedPacketWorkaround << " lengthEncodedPacket" << std::endl;
+	std::cout << userData->maxBufferSize << " [processOutput]maxBufferSize should be 3840" << std::endl;
 	/*
 	std::ofstream fileout3("outputBuffer-before-decoding.raw", std::ios::out | std::ios::binary);
 	fileout3.write((char *)EncodedPacketPointer, lengthEncodedPacketWorkaround);
@@ -100,10 +117,9 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
 	*/
 	//outputBufferByteSize should be in samples
 	numberOfDecodedSamples = opus_decode(OpusDecoderObject, (unsigned char *)outputBuffer, outputBufferByteSize, (opus_int16 *)outputBuffer, userData->maxBufferSize, 0);
-	//numberOfDecodedSamples = opus_decode(OpusDecoderObject, (unsigned char *)outputBuffer, userData->nBufferFrames, (opus_int16 *)outputBuffer, userData->maxBufferSize, 0);
 	userData->nBufferFrames = numberOfDecodedSamples;
 	std::cout << numberOfDecodedSamples << " [processOutput]numberOfDecodedSamples should be 960" << std::endl;
-	//TODO: find better way to find out Channel number
+	//TODO: find better way to find out Channel number ;(samples * sizeOfSample * channels)
 	const unsigned int outputBytes = (numberOfDecodedSamples*sizeof(opus_int16) * 2);
 	std::cout << outputBytes << " [processOutput]outputBytes should be 3840" << std::endl;
 	return outputBytes;
