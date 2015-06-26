@@ -38,9 +38,11 @@ void printVector(std::vector<unsigned int> v)
 }
 
 /*!
- * Lets the user choose a supported audio-format
+ * Lets the user choose a supported audio-format.
+ * RtAudio guarantees all formats to be supported, not only the native ones
+ * 
  */
-RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
+RtAudioFormat selectAudioFormat(RtAudioFormat nativeFormats)
 {
     vector<string> formatNames;
     vector<RtAudioFormat> audioFormats;
@@ -48,36 +50,18 @@ RtAudioFormat selectAudioFormat(RtAudioFormat supportedFormats)
     formatNames.reserve(8);
     audioFormats.reserve(8);
     //fill options
-    if((supportedFormats & RTAUDIO_SINT8) == RTAUDIO_SINT8)
-    {
-        formatNames.push_back("8 bit signed integer");
-        audioFormats.push_back(RTAUDIO_SINT8);
-    }
-    if((supportedFormats & RTAUDIO_SINT16) == RTAUDIO_SINT16)
-    {
-        formatNames.push_back("16 bit signed integer");
-        audioFormats.push_back(RTAUDIO_SINT16);
-    }
-    if((supportedFormats & RTAUDIO_SINT24) == RTAUDIO_SINT24)
-    {
-        formatNames.push_back("24 bit signed integer");
-        audioFormats.push_back(RTAUDIO_SINT24);
-    }
-    if((supportedFormats & RTAUDIO_SINT32) == RTAUDIO_SINT32)
-    {
-        formatNames.push_back("32 bit signed integer");
-        audioFormats.push_back(RTAUDIO_SINT32);
-    }
-    if((supportedFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32)
-    {
-        formatNames.push_back("32 bit float (normalized between +/- 1)");
-        audioFormats.push_back(RTAUDIO_FLOAT32);
-    }
-    if((supportedFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64)
-    {
-        formatNames.push_back("64 bit float (normalized between +/- 1)");
-        audioFormats.push_back(RTAUDIO_FLOAT64);
-    }
+    formatNames.push_back(string("8 bit signed integer")+ ((nativeFormats & RTAUDIO_SINT8) == RTAUDIO_SINT8 ? " (native)" : ""));
+    audioFormats.push_back(RTAUDIO_SINT8);
+    formatNames.push_back(string("16 bit signed integer") + ((nativeFormats & RTAUDIO_SINT16) == RTAUDIO_SINT16 ? " (native)" : ""));
+    audioFormats.push_back(RTAUDIO_SINT16);
+    formatNames.push_back(string("24 bit signed integer") + ((nativeFormats & RTAUDIO_SINT24) == RTAUDIO_SINT24 ? " (native)" : ""));
+    audioFormats.push_back(RTAUDIO_SINT24);
+    formatNames.push_back(string("32 bit signed integer") + ((nativeFormats & RTAUDIO_SINT32) == RTAUDIO_SINT32 ? " (native)" : ""));
+    audioFormats.push_back(RTAUDIO_SINT32);
+    formatNames.push_back(string("32 bit float (normalized between +/- 1)") + ((nativeFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32 ? " (native)" : ""));
+    audioFormats.push_back(RTAUDIO_FLOAT32);
+    formatNames.push_back(string("64 bit float (normalized between +/- 1)") + ((nativeFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64 ? " (native)" : ""));
+    audioFormats.push_back(RTAUDIO_FLOAT64);
     int formatIndex = selectOptionIndex("Choose audio format", formatNames, 0);
     //return selected option
     return audioFormats[formatIndex];

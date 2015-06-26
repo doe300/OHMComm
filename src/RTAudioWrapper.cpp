@@ -376,7 +376,9 @@ auto RtAudioWrapper::getBufferSize() -> unsigned int
 bool RtAudioWrapper::queryProcessorSupport()
 {
     //preset supported audio-formats with device-supported formats
-    unsigned int supportedFormats = this->rtaudio.getDeviceInfo(audioConfiguration.inputDeviceID).nativeFormats;
+    //although there is a value for native audio-formats in the device-info, RtAudio documentation says:
+    // "However, RtAudio will automatically provide format conversion if a particular format is not natively supported."
+    unsigned int supportedFormats = AudioConfiguration::AUDIO_FORMAT_ALL;
     //preset supported sample-rates with device-supported rates
     unsigned int supportedSampleRates = mapDeviceSampleRates(this->rtaudio.getDeviceInfo(audioConfiguration.inputDeviceID).sampleRates);
     for (unsigned int i = 0; i < audioProcessors.size(); i++)
