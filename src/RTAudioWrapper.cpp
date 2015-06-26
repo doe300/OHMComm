@@ -246,7 +246,7 @@ void RtAudioWrapper::setDefaultAudioConfig()
 	//audioConfig.audioFormat = getAudioFormatByteSize(rtaudioFormat);
 	audioConfig.audioFormat = RTAUDIO_SINT16;
     audioConfig.sampleRate = 48000;
-    audioConfig.bufferFrames = 960;
+	audioConfig.bufferFrames = 2880;
 
     this->setConfiguration(audioConfig);
 }

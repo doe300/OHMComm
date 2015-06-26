@@ -75,53 +75,58 @@ bool ProcessorOpus::configure(AudioConfiguration audioConfig)
 		}
 	}
 }
+unsigned int zaehler1 = 0;
 unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
 	unsigned int lengthEncodedPacketInBytes;
 	
-	std::cout << userData->nBufferFrames << " [processInput]nBufferFrames should be 960" << std::endl;
-	std::cout << userData->maxBufferSize << " [processInput]maxBufferSize should be 3840" << std::endl;
+	//std::cout << userData->nBufferFrames << " [processInput]nBufferFrames should be 960" << std::endl;
+	//std::cout << userData->maxBufferSize << " [processInput]maxBufferSize should be 3840" << std::endl;
 	/*
 	std::ofstream fileout("InputBuffer-before-encoding.raw", std::ios::out | std::ios::binary);
 	fileout.write((char *)inputBuffer, userData->nBufferFrames);
 	fileout.close();
 	*/
+	
+	//std::cout << "[processInput]new encode" << zaehler1 << std::endl;
 	lengthEncodedPacketInBytes = opus_encode(OpusEncoderObject, (opus_int16 *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
 	/*
 	std::ofstream fileout2("InputBuffer-after-encoding.raw", std::ios::out | std::ios::binary);
 	fileout2.write((char *)EncodedPacketPointer, lengthEncodedPacketInBytes);
 	fileout2.close();
 	*/
-	std::cout << lengthEncodedPacketInBytes << " [processInput]lengthEncodedPacket" << std::endl;
-	
+	zaehler1++;
+	std::cout << lengthEncodedPacketInBytes << " [processInput]lengthEncodedPacket " << zaehler1 << std::endl;
 	lengthEncodedPacketWorkaround = lengthEncodedPacketInBytes;
 
 	return lengthEncodedPacketInBytes;
 }
 
 
-
+unsigned int zaehler2 = 0;
 unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
 	unsigned int numberOfDecodedSamples;
 	
 	// -lengthEncodedPacketInBytes not correctly received, no variable for it
 	// -outputBuffer isnt inputBuffer
-	
-	std::cout << outputBufferByteSize << " [processOutput]outputBufferByteSize should be = " << lengthEncodedPacketWorkaround << " lengthEncodedPacket" << std::endl;
-	std::cout << userData->maxBufferSize << " [processOutput]maxBufferSize should be 3840" << std::endl;
+	zaehler2++;
+	std::cout << outputBufferByteSize << " [processOutput]outputBufferByteSize should be = " << lengthEncodedPacketWorkaround << " lengthEncodedPacket " << zaehler2<< std::endl;
+	//std::cout << userData->maxBufferSize << " [processOutput]maxBufferSize should be 3840" << std::endl;
 	/*
 	std::ofstream fileout3("outputBuffer-before-decoding.raw", std::ios::out | std::ios::binary);
 	fileout3.write((char *)EncodedPacketPointer, lengthEncodedPacketWorkaround);
 	fileout3.close();
 	*/
 	//outputBufferByteSize should be in samples
+	
+	
 	numberOfDecodedSamples = opus_decode(OpusDecoderObject, (unsigned char *)outputBuffer, outputBufferByteSize, (opus_int16 *)outputBuffer, userData->maxBufferSize, 0);
 	userData->nBufferFrames = numberOfDecodedSamples;
-	std::cout << numberOfDecodedSamples << " [processOutput]numberOfDecodedSamples should be 960" << std::endl;
+	//std::cout << numberOfDecodedSamples << " [processOutput]numberOfDecodedSamples should be 960" << std::endl;
 	//TODO: find better way to find out Channel number ;(samples * sizeOfSample * channels)
 	const unsigned int outputBytes = (numberOfDecodedSamples*sizeof(opus_int16) * 2);
-	std::cout << outputBytes << " [processOutput]outputBytes should be 3840" << std::endl;
+	//std::cout << outputBytes << " [processOutput]outputBytes should be 3840" << std::endl;
 	return outputBytes;
 }
 

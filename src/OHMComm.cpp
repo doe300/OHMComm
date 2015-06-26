@@ -340,12 +340,13 @@ int main(int argc, char** argv)
         std::unique_ptr<RTPBuffer> *rtpBuffer = new std::unique_ptr<RTPBuffer>(new RTPBuffer(256, 1000));
         
         // add a processor to the process chain
+		ProcessorOpus opus("Opus-Processor", OPUS_APPLICATION_VOIP);
+		audioObject->addProcessor(&opus);
+
         ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
         audioObject->addProcessor(&rtp);
 
-		int opusError = 0;
-		ProcessorOpus opus("Opus-Processor", OPUS_APPLICATION_VOIP);
-		audioObject->addProcessor(&opus);
+
 
         //configure all processors
         audioObject->prepare();
