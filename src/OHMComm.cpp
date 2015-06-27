@@ -21,6 +21,7 @@
 #include "ProcessorRTP.h"
 #include "RTPListener.h"
 #include "ProcessorOpus.h"
+#include "AudioProcessorFactory.h"
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
@@ -273,7 +274,7 @@ int main(int argc, char** argv)
             if(audioHandlers.size() > 1)
             {
                 //only let user choose if there is more than 1 audio-handler
-                selectedAudioHander = selectOption("Select audio handler", audioHandlers, "RtAudioWrapper");
+                selectedAudioHander = selectOption("Select audio handler", audioHandlers, AudioHandlerFactory::getDefaultAudioHandlerName());
             }
             else 
             {
@@ -286,7 +287,7 @@ int main(int argc, char** argv)
         else
         {
             //use RtAudioWrapper as default implementation
-            audioObject = AudioHandlerFactory::getAudioHandler("RtAudioWrapper");
+            audioObject = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName());
         }
 
         ////

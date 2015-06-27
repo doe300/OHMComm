@@ -1,10 +1,12 @@
 #include "AudioHandlerFactory.h"
 
+//Initialize names
+const std::string AudioHandlerFactory::RTAUDIO_WRAPPER = "RtAudioWrapper";
+
 auto AudioHandlerFactory::getAudioHandler(std::string name, AudioConfiguration &audioConfig) ->std::unique_ptr<AudioHandler>
 {
-	name = stringToUpperCase(name);
         #ifdef RTAUDIOWRAPPER_H
-	if (name == "RTAUDIOWRAPPER")
+	if (name == RTAUDIO_WRAPPER)
 	{
 		std::unique_ptr<RtAudioWrapper> rtaudiowrapper(new RtAudioWrapper(audioConfig));
 		return std::move(rtaudiowrapper);
@@ -14,9 +16,8 @@ auto AudioHandlerFactory::getAudioHandler(std::string name, AudioConfiguration &
 
 auto AudioHandlerFactory::getAudioHandler(std::string name) ->std::unique_ptr<AudioHandler>
 {
-	name = stringToUpperCase(name);
         #ifdef RTAUDIOWRAPPER_H
-	if (name == "RTAUDIOWRAPPER")
+	if (name == RTAUDIO_WRAPPER)
 	{
 		std::unique_ptr<RtAudioWrapper> rtaudiowrapper(new RtAudioWrapper);
 		return std::move(rtaudiowrapper);
@@ -28,21 +29,14 @@ const std::vector<std::string> AudioHandlerFactory::getAudioHandlerNames()
 {
     std::vector<std::string> handlerNames;
     #ifdef RTAUDIOWRAPPER_H
-    handlerNames.push_back("RtAudioWrapper");
+    handlerNames.push_back(RTAUDIO_WRAPPER);
     #endif
     return handlerNames;
 }
 
-
-auto AudioHandlerFactory::stringToUpperCase(const std::string& s) -> std::string
+std::string AudioHandlerFactory::getDefaultAudioHandlerName()
 {
-	std::string result;
-
-	std::locale loc;
-	for (unsigned int i = 0; i < s.length(); ++i)
-	{
-		result += std::toupper(s.at(i), loc);
-	}
-
-	return result;
+    #ifdef RTAUDIOWRAPPER_H
+    return RTAUDIO_WRAPPER;
+    #endif
 }
