@@ -250,12 +250,11 @@ void errorHandler( RtAudioError::Type type, const std::string &errorText )
 int main(int argc, char** argv)
 {
     //Vectors for storing available AudioHandlers, and -Processors
-    const std::vector<std::string> audioHandlers = {"RTAudioWrapper"};
-    const std::vector<std::string> audioProcessors = {};
+    const std::vector<std::string> audioHandlers = AudioHandlerFactory::getAudioHandlerNames();
+    const std::vector<std::string> audioProcessors = {"Opus", "RTP", "SimpleNetwork"};
     
     char input;
     
-    /* Run Tests */
     try
     {
         std::unique_ptr<AudioHandler> audioObject;
@@ -274,7 +273,7 @@ int main(int argc, char** argv)
             if(audioHandlers.size() > 1)
             {
                 //only let user choose if there is more than 1 audio-handler
-                selectedAudioHander = selectOption("Select audio handler", audioHandlers, "RTAudioWrapper");
+                selectedAudioHander = selectOption("Select audio handler", audioHandlers, "RtAudioWrapper");
             }
             else 
             {
@@ -286,8 +285,8 @@ int main(int argc, char** argv)
         }
         else
         {
-            //use RTAudioWrapper as default implementation
-            audioObject = AudioHandlerFactory::getAudioHandler("RTAudioWrapper");
+            //use RtAudioWrapper as default implementation
+            audioObject = AudioHandlerFactory::getAudioHandler("RtAudioWrapper");
         }
 
         ////
