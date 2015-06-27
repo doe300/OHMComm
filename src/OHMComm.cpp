@@ -252,7 +252,7 @@ int main(int argc, char** argv)
 {
     //Vectors for storing available AudioHandlers, and -Processors
     const std::vector<std::string> audioHandlers = AudioHandlerFactory::getAudioHandlerNames();
-    const std::vector<std::string> audioProcessors = {"Opus", "RTP", "SimpleNetwork"};
+    std::vector<std::string> audioProcessors = AudioProcessorFactory::getAudioProcessorNames();
     
     char input;
     
@@ -312,7 +312,18 @@ int main(int argc, char** argv)
                 network = new UDPWrapper(networkConfiguration);
         }
 
-		// TODO select and add processors
+	////
+        // AudioProcessors
+        ////
+        // add processors to the process chain
+        audioProcessors.push_back("End");
+        unsigned int selectedIndex;
+        std::cout << "The AudioProcessors should be added in the order they are used on the sending side!" << std::endl;
+        while((selectedIndex = selectOptionIndex("Select next AudioProcessor to add", audioProcessors, audioProcessors.size()-1)) != audioProcessors.size()-1)
+        {
+            audioObject->addProcessor(AudioProcessorFactory::getAudioProcessor(audioProcessors.at(selectedIndex)));
+            audioProcessors.at(selectedIndex) = audioProcessors.at(selectedIndex) + " (added)";
+        }
 
         ////
         // Startup
@@ -320,10 +331,6 @@ int main(int argc, char** argv)
 
         //initialize RTPBuffer and -Listener
         std::unique_ptr<RTPBuffer> *rtpBuffer = new std::unique_ptr<RTPBuffer>(new RTPBuffer(256, 1000));
-        
-        // add processors to the process chain
-		ProcessorOpus opus("Opus-Processor", OPUS_APPLICATION_VOIP);
-		audioObject->addProcessor(&opus);
 
         ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
         audioObject->addProcessor(&rtp);

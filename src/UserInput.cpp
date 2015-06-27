@@ -41,7 +41,7 @@ inline void printVector(vector<int> v, bool withIndex)
     }
 }
 
-inline void printVector(vector<string> v, bool withIndex)
+inline void printVector(vector<std::string> v, bool withIndex)
 {
     if(!withIndex)
     {
@@ -87,7 +87,7 @@ bool inputBoolean(std::string message)
     return inputBoolean(message);
 }
 
-string inputString(string message)
+std::string inputString(std::string message)
 {
     cout << message << ": ";
     string result;
@@ -95,7 +95,7 @@ string inputString(string message)
     return result;
 }
 
-string selectOption(string message, vector<string> options, string defaultOption)
+std::string selectOption(std::string message, std::vector<std::string> options, std::string defaultOption)
 {
     cout << message;
     printVector(options, false);
@@ -133,7 +133,7 @@ unsigned int selectOptionIndex(std::string message, std::vector<std::string> opt
     return defaultIndex;
 }
 
-int inputNumber(string message, bool allowZero, bool allowNegative)
+int inputNumber(std::string message, bool allowZero, bool allowNegative)
 {
     cout << message << ": ";
     int result;

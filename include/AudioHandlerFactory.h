@@ -1,8 +1,8 @@
 #ifndef AUDIOHANDLERFACTORY
 #define	AUDIOHANDLERFACTORY
 
-#include "AudioHandlerFactory.h"
 #include "RTAudioWrapper.h"
+#include <memory> // unique_ptr
 #include <locale>
 #include <vector>
 
