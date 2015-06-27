@@ -213,7 +213,7 @@ AudioConfiguration configureAudioDevices()
     cout << "-> Input Audio Format: " << audioConfiguration.audioFormat << endl;
         
     //Buffer size
-    audioConfiguration.bufferFrames = inputNumber("Input the number of frames to buffer (around 128 - 2048, 256 is recommended)", false, false);
+    audioConfiguration.bufferFrames = inputNumber("Input the number of frames to buffer (supported size of frames(2.5, 5, 10, 20, 40 or 60 ms) of audio data; at 48 kHz the permitted values are 120, 240, 480(10ms), 960(20ms), 1920, and 2880(60ms))", false, false);
     
     return audioConfiguration;
 }
@@ -323,14 +323,20 @@ int main(int argc, char** argv)
         //initialize RTPBuffer and -Listener
         std::unique_ptr<RTPBuffer> *rtpBuffer = new std::unique_ptr<RTPBuffer>(new RTPBuffer(256, 1000));
         
-        // add a processor to the process chain
+        // add processors to the process chain
+		ProcessorOpus opus("Opus-Processor", OPUS_APPLICATION_VOIP);
+		audioObject->addProcessor(&opus);
+
         ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
         audioObject->addProcessor(&rtp);
+
 
         //configure all processors
         audioObject->prepare();
 
         RTPListener listener(network, rtpBuffer, audioObject->getBufferSize());
+		
+
         // start audio processing
         listener.startUp();
         audioObject->startDuplexMode();
