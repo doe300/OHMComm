@@ -74,7 +74,6 @@ void configureNetwork()
     //1. remote address
     string ipString = inputString("1. Input destination IP address");
     networkConfiguration.addressOutgoing = ipString;
-    networkConfiguration.addressIncoming = "127.0.0.1";
     
     //2. remote and local ports
     int destPort = inputNumber("2. Input destination port", false, false);
@@ -306,7 +305,6 @@ int main(int argc, char** argv)
         }
         else
         {
-                networkConfiguration.addressIncoming = "127.0.0.1";
                 networkConfiguration.addressOutgoing = "127.0.0.1";
                 //the port should be a number greater than 1024
                 networkConfiguration.portIncoming = 12345;
