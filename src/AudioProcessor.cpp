@@ -16,7 +16,6 @@ void AudioProcessor::setName(std::string name)
 
 bool AudioProcessor::configure(AudioConfiguration config)
 {
-	std::cout << "[configure]dummy implementation" << std::endl;
 	//dummy implementation, does nothing
     return true;
 }
