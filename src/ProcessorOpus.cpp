@@ -27,42 +27,42 @@ bool ProcessorOpus::configure(AudioConfiguration audioConfig)
 	{
 		if (ErrorCode == OPUS_ALLOC_FAIL)
 		{
-			std::cout << "[Opus-configure-Error]Memory allocation has failed." << std::endl;
+			std::cerr << "[Opus-configure-Error]Memory allocation has failed." << std::endl;
 			return false;
 		}
 		else if (ErrorCode == OPUS_BAD_ARG)
 		{
-			std::cout << "[Opus-configure-Error]One or more invalid/out of range arguments." << std::endl;
+			std::cerr << "[Opus-configure-Error]One or more invalid/out of range arguments." << std::endl;
 			return false;
 		}
 		else if (ErrorCode == OPUS_BUFFER_TOO_SMALL)
 		{
-			std::cout << "[Opus-configure-Error]The mode struct passed is invalid." << std::endl;
+			std::cerr << "[Opus-configure-Error]The mode struct passed is invalid." << std::endl;
 			return false;
 		}
 		else if (ErrorCode == OPUS_INTERNAL_ERROR)
 		{
-			std::cout << "[Opus-configure-Error]An internal error was detected." << std::endl;
+			std::cerr << "[Opus-configure-Error]An internal error was detected." << std::endl;
 			return false;
 		}
 		else if (ErrorCode == OPUS_INVALID_PACKET)
 		{
-			std::cout << "[Opus-configure-Error]The compressed data passed is corrupted." << std::endl;
+			std::cerr << "[Opus-configure-Error]The compressed data passed is corrupted." << std::endl;
 			return false;
 		}
 		else if (ErrorCode == OPUS_INVALID_STATE)
 		{
-			std::cout << "[Opus-configure-Error]An encoder or decoder structure is invalid or already freed." << std::endl;
+			std::cerr << "[Opus-configure-Error]An encoder or decoder structure is invalid or already freed." << std::endl;
 			return false;
 		}
 		else if (ErrorCode == OPUS_UNIMPLEMENTED)
 		{
-			std::cout << "[Opus-configure-Error]Invalid/unsupported request number. " << std::endl;
+			std::cerr << "[Opus-configure-Error]Invalid/unsupported request number. " << std::endl;
 			return false;
 		}
 		else
 		{
-			std::cout << "[Opus-configure-Error]Unknown error." << std::endl;
+			std::cerr << "[Opus-configure-Error]Unknown error." << std::endl;
 			return false;
 		}
 	}
