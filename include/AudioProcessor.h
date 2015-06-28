@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "stdint.h"
 
 #include "configuration.h"
 
