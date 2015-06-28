@@ -4,7 +4,6 @@
 #include "AudioProcessor.h"
 #include "opus.h"
 #include "stdint.h"
-#include "configuration.h"
 
 class ProcessorOpus : public AudioProcessor
 {
@@ -17,7 +16,21 @@ public:
 	unsigned int getSupportedAudioFormats();
 	//returns supported Sample Rates by Opus: Opus supports this sampleRates: 8000, 12000, 16000, 24000, or 48000.
 	unsigned int getSupportedSampleRates();
-        std::vector<int> getSupportedBufferSizes(uint32_t sampleRate);
+
+	/*returns supported buffer sizes by Opus
+	supported buffer sizes are (2.5, 5, 10, 20, 40 or 60 ms) of audio data; at 48 kHz the permitted values are 120, 240, 480(10ms), 960(20ms), 1920, and 2880(60ms)
+	sample rates/permitted values:
+	8000:
+	- 20, 40, 80, 160, 320, 480
+	12000:
+	- 30, 60, 120, 240, 480, 720
+	16000:
+	- 40, 80, 160, 320, 640, 960
+	24000:
+	- 60, 120, 240, 480, 960, 1440
+	48000:
+	- 120, 240, 480, 960, 1920, 2880 */
+    std::vector<int> getSupportedBufferSizes(uint32_t sampleRate);
 
 	//configure the Opus Processor, this creates OpusEncoder and OpusDecoderObject and initialises outputDeviceChannels and ErrorCode
 	bool configure(AudioConfiguration audioConfig);
