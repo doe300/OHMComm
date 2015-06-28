@@ -4,16 +4,30 @@ ProcessorOpus::ProcessorOpus(std::string name, int opusApplication) : AudioProce
 {
 	this->OpusApplication = opusApplication;	
 }
+
+ProcessorOpus::~ProcessorOpus()
+{
+	opus_encoder_destroy(OpusEncoderObject);
+	opus_decoder_destroy(OpusDecoderObject);
+}
+
 unsigned int ProcessorOpus::getSupportedAudioFormats()
 {
 	return AudioConfiguration::AUDIO_FORMAT_SINT16;
 }
+
 unsigned int ProcessorOpus::getSupportedSampleRates()
 {
-	
 	unsigned int SupportedSampleRates = AudioConfiguration::SAMPLE_RATE_8000|AudioConfiguration::SAMPLE_RATE_12000|AudioConfiguration::SAMPLE_RATE_16000|AudioConfiguration::SAMPLE_RATE_24000|AudioConfiguration::SAMPLE_RATE_48000;
 	return SupportedSampleRates;
 }
+
+std::vector<int> ProcessorOpus::getSupportedBufferSizes(uint32_t sampleRate)
+{
+    //TODO fill in correct values
+    return std::vector<int>({960, 480});
+}
+
 bool ProcessorOpus::configure(AudioConfiguration audioConfig)
 {
 	outputDeviceChannels = audioConfig.outputDeviceChannels;
@@ -67,12 +81,14 @@ bool ProcessorOpus::configure(AudioConfiguration audioConfig)
 		}
 	}
 }
+
 unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
 	unsigned int lengthEncodedPacketInBytes;
 	lengthEncodedPacketInBytes = opus_encode(OpusEncoderObject, (opus_int16 *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
 	return lengthEncodedPacketInBytes;
 }
+
 unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
 	unsigned int numberOfDecodedSamples;
@@ -81,8 +97,4 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
 	const unsigned int outputBufferInBytes = (numberOfDecodedSamples*sizeof(opus_int16) * outputDeviceChannels);
 	return outputBufferInBytes;
 }
-ProcessorOpus::~ProcessorOpus()
-{
-	opus_encoder_destroy(OpusEncoderObject);
-	opus_decoder_destroy(OpusDecoderObject);
-}
+

@@ -244,10 +244,10 @@ void RtAudioWrapper::setDefaultAudioConfig()
     audioConfig.outputDeviceChannels = 2;
     //RtAudioFormat rtaudioFormat = autoSelectAudioFormat(outputDeviceInfo.nativeFormats);
     //audioConfig.audioFormat = getAudioFormatByteSize(rtaudioFormat);
-    //audioFormat and sampleRate are overridden by queryProcessorSupport()
-    audioConfig.audioFormat = RTAUDIO_SINT16;
-    audioConfig.sampleRate = 48000;
-    audioConfig.bufferFrames = 960;
+    //audioFormat sampleRate and bufferFrames are overridden by queryProcessorSupport()
+    audioConfig.audioFormat = 0;
+    audioConfig.sampleRate = 0;
+    audioConfig.bufferFrames = 0;
 
     this->setConfiguration(audioConfig);
 }
@@ -391,17 +391,29 @@ bool RtAudioWrapper::queryProcessorSupport()
     if(supportedFormats == 0)
     {
         //there is no format supported by all processors
-        std::cout << "Could not find a single audio-format supported by all processors!" << std::endl;
+        std::cerr << "Could not find a single audio-format supported by all processors!" << std::endl;
         return false;
     }
     if(supportedSampleRates == 0)
     {
         //there is no sample-rate supported by all processors
-        std::cout << "Could not find a single sample-rate supported by all processors!" << std::endl;
+        std::cerr << "Could not find a single sample-rate supported by all processors!" << std::endl;
         return false;
     }
     audioConfiguration.audioFormat = autoSelectAudioFormat(supportedFormats);
     audioConfiguration.sampleRate = autoSelectSampleRate(supportedSampleRates);
+    
+    //find common supported buffer-size, defaults to 512
+    unsigned int supportedBufferSize = findOptimalBufferSize(512);
+    if(supportedBufferSize == 0)
+    {
+        std::cerr << "Could not find a single buffer-size supported by all processors!" << std::endl;
+        return false;
+    }
+    audioConfiguration.bufferFrames = supportedBufferSize;
+    
+    std::cout << "Using a sample-rate of " << audioConfiguration.sampleRate << " Hz" << std::endl;
+    std::cout << "Using a buffer-size of " << supportedBufferSize << " samples (" << (supportedBufferSize * 1000 / audioConfiguration.sampleRate) << " ms)" << std::endl;
     
     return true;
 }
@@ -436,4 +448,54 @@ unsigned int RtAudioWrapper::mapDeviceSampleRates(std::vector<unsigned int> samp
     }
     
     return sampleRatesFlags;
+}
+
+unsigned int RtAudioWrapper::findOptimalBufferSize(unsigned int defaultBufferSize)
+{
+    //get all supported buffer-sizes
+    std::vector<std::vector<int>> processorBufferSizes(audioProcessors.size());
+    for (unsigned int i = 0; i < audioProcessors.size(); i++)
+    {
+        processorBufferSizes[i] = audioProcessors[i]->getSupportedBufferSizes(audioConfiguration.sampleRate);
+    }
+    //iterate through all priorities and check if the value is supported by other processors
+    for(unsigned int sizeIndex = 0; sizeIndex < 32; sizeIndex ++)
+    {
+        for(unsigned int procIndex = 0; procIndex < processorBufferSizes.size(); procIndex ++)
+        {
+            //processor has no size-entries left
+            if(processorBufferSizes[procIndex].size() <= sizeIndex)
+            {
+                continue;
+            }
+            //"suggest" buffer-size
+            int suggestedBufferSize = processorBufferSizes[procIndex][sizeIndex];
+            //check "suggested" buffer-size against all other processors
+            bool suggestionAccepted = true;
+            for(unsigned int checkProcIndex = 0; checkProcIndex < processorBufferSizes.size(); checkProcIndex ++)
+            {
+                bool singleProcessorAccepted = false;
+                //we already checked all sizes below sizeIndex
+                for(unsigned int checkSizeIndex = sizeIndex; checkSizeIndex < processorBufferSizes[checkProcIndex].size(); checkSizeIndex ++)
+                {
+                    if(processorBufferSizes[checkProcIndex][checkSizeIndex] == suggestedBufferSize || processorBufferSizes[checkProcIndex][checkSizeIndex] == BUFFER_SIZE_ANY)
+                    {
+                        singleProcessorAccepted = true;
+                        //break;
+                    }
+                }
+                if(!singleProcessorAccepted)
+                {
+                    suggestionAccepted = false;
+                    //break;
+                }
+            }
+            if(suggestionAccepted)
+            {
+                return suggestedBufferSize;
+            }
+        }
+    }
+    //TODO if all processors only have BUFFER_SIZE_ALL, return default-value
+    return 0;
 }

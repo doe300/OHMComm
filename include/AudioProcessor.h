@@ -3,8 +3,14 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "configuration.h"
+
+/*!
+ * This AudioProcessor supports any buffer-length
+ */
+const int BUFFER_SIZE_ANY = -1;
 
 /*!
  * Information about the stream to be passed to the process-methods of AudioProcessor.
@@ -61,6 +67,22 @@ public:
      * \return The supported sample-rates
      */
     virtual unsigned int getSupportedSampleRates() = 0;
+    
+    /*!
+     * This method returns all supported buffer-sizes for the given sample-rate.
+     * The buffer-size specified here is the number of samples buffered to be processed together in one processXXX(...) call.
+     * 
+     * Any AudioProcessor which supports an arbitrary buffer-size should include BUFFER_SIZE_ANY at lowest priority.
+     * 
+     * For example a processor supporting all buffer-sizes without any preferences returns {BUFFER_SIZE_ANY}. 
+     * Any processor preferring specific buffer-sizes returns them in descending priority, e.g. {512, 256, BUFFER_SIZE_ANY}
+     * prefers 512 then 256 and if none of these can be matched, any other size.
+     * 
+     * \param sampleRate The chosen sample-rate
+     * 
+     * \return A list of buffer-sizes sorted in descending priority
+     */
+    virtual std::vector<int> getSupportedBufferSizes(uint32_t sampleRate) = 0;
 
     /*!
      * Overwrite this method, if this AudioProcessor needs configuration

@@ -13,10 +13,11 @@ public:
 	//constructor, initialises the OpusApplication type
 	ProcessorOpus(std::string name, int opusApplication);
 
-	//deliver supported Audio Formats by Opus: currently only rtaudio SINT16 is supported
+	//returns supported Audio Formats by Opus: currently only rtaudio SINT16 is supported
 	unsigned int getSupportedAudioFormats();
-	//deliver supported Sample Rates by Opus: Opus supports this sampleRates: 8000, 12000, 16000, 24000, or 48000. = 1001111 binary in the format from configuration.h (every 1 stands for one supported format) = 79 decimal = 0x4F Hex
+	//returns supported Sample Rates by Opus: Opus supports this sampleRates: 8000, 12000, 16000, 24000, or 48000.
 	unsigned int getSupportedSampleRates();
+        std::vector<int> getSupportedBufferSizes(uint32_t sampleRate);
 
 	//configure the Opus Processor, this creates OpusEncoder and OpusDecoderObject and initialises outputDeviceChannels and ErrorCode
 	bool configure(AudioConfiguration audioConfig);

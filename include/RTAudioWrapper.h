@@ -108,6 +108,11 @@ private:
      * Maps the supported sample-rates from the device to the flags specified in AudioConfiguration
      */
     unsigned int mapDeviceSampleRates(std::vector<unsigned int> sampleRates);
+    
+    /*!
+     * Returns the best match for the number of buffered frames according to all processors
+     */
+    unsigned int findOptimalBufferSize(unsigned int defaultBufferSize);
 };
 
 #endif

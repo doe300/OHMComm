@@ -30,7 +30,8 @@ public:
     
     unsigned int getSupportedAudioFormats();
     unsigned int getSupportedSampleRates();
-    
+    std::vector<int> getSupportedBufferSizes(uint32_t sampleRate);
+
     unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);
     unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
 private:
