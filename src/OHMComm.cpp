@@ -63,7 +63,7 @@ RtAudioFormat selectAudioFormat(RtAudioFormat nativeFormats)
     audioFormats.push_back(RTAUDIO_FLOAT32);
     formatNames.push_back(string("64 bit float (normalized between +/- 1)") + ((nativeFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64 ? " (native)" : ""));
     audioFormats.push_back(RTAUDIO_FLOAT64);
-    int formatIndex = selectOptionIndex("Choose audio format", formatNames, 0);
+    int formatIndex = UserInput::selectOptionIndex("Choose audio format", formatNames, 0);
     //return selected option
     return audioFormats[formatIndex];
 }
@@ -73,12 +73,12 @@ void configureNetwork()
     cout << "Network configuration" << endl;
     
     //1. remote address
-    string ipString = inputString("1. Input destination IP address");
+    string ipString = UserInput::inputString("1. Input destination IP address");
     networkConfiguration.addressOutgoing = ipString;
     
     //2. remote and local ports
-    int destPort = inputNumber("2. Input destination port", false, false);
-    int localPort = inputNumber("3. Input local port", false, false);
+    int destPort = UserInput::inputNumber("2. Input destination port", false, false);
+    int localPort = UserInput::inputNumber("3. Input local port", false, false);
     networkConfiguration.portOutgoing = destPort;
 	networkConfiguration.portIncoming = localPort;
 
@@ -213,7 +213,7 @@ AudioConfiguration configureAudioDevices()
     cout << "-> Input Audio Format: " << audioConfiguration.audioFormat << endl;
         
     //Buffer size
-    audioConfiguration.bufferFrames = inputNumber("Input the number of frames to buffer (supported size of frames(2.5, 5, 10, 20, 40 or 60 ms) of audio data; at 48 kHz the permitted values are 120, 240, 480(10ms), 960(20ms), 1920, and 2880(60ms))", false, false);
+    audioConfiguration.bufferFrames = UserInput::inputNumber("Input the number of frames to buffer (supported size of frames(2.5, 5, 10, 20, 40 or 60 ms) of audio data; at 48 kHz the permitted values are 120, 240, 480(10ms), 960(20ms), 1920, and 2880(60ms))", false, false);
     
     return audioConfiguration;
 }
@@ -274,7 +274,7 @@ int main(int argc, char** argv)
             if(audioHandlers.size() > 1)
             {
                 //only let user choose if there is more than 1 audio-handler
-                selectedAudioHander = selectOption("Select audio handler", audioHandlers, AudioHandlerFactory::getDefaultAudioHandlerName());
+                selectedAudioHander = UserInput::selectOption("Select audio handler", audioHandlers, AudioHandlerFactory::getDefaultAudioHandlerName());
             }
             else 
             {
@@ -319,7 +319,7 @@ int main(int argc, char** argv)
         audioProcessors.push_back("End");
         unsigned int selectedIndex;
         std::cout << "The AudioProcessors should be added in the order they are used on the sending side!" << std::endl;
-        while((selectedIndex = selectOptionIndex("Select next AudioProcessor to add", audioProcessors, audioProcessors.size()-1)) != audioProcessors.size()-1)
+        while((selectedIndex = UserInput::selectOptionIndex("Select next AudioProcessor to add", audioProcessors, audioProcessors.size()-1)) != audioProcessors.size()-1)
         {
             audioObject->addProcessor(AudioProcessorFactory::getAudioProcessor(audioProcessors.at(selectedIndex)));
             audioProcessors.at(selectedIndex) = audioProcessors.at(selectedIndex) + " (added)";

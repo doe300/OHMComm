@@ -243,10 +243,11 @@ void RtAudioWrapper::setDefaultAudioConfig()
     audioConfig.inputDeviceChannels = 2;
     audioConfig.outputDeviceChannels = 2;
     //RtAudioFormat rtaudioFormat = autoSelectAudioFormat(outputDeviceInfo.nativeFormats);
-	//audioConfig.audioFormat = getAudioFormatByteSize(rtaudioFormat);
-	audioConfig.audioFormat = RTAUDIO_SINT16;
+    //audioConfig.audioFormat = getAudioFormatByteSize(rtaudioFormat);
+    //audioFormat and sampleRate are overridden by queryProcessorSupport()
+    audioConfig.audioFormat = RTAUDIO_SINT16;
     audioConfig.sampleRate = 48000;
-	audioConfig.bufferFrames = 960;
+    audioConfig.bufferFrames = 960;
 
     this->setConfiguration(audioConfig);
 }

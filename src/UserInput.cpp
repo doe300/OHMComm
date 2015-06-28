@@ -70,7 +70,7 @@ inline void printVector(vector<std::string> v, bool withIndex)
     }
 }
 
-bool inputBoolean(std::string message)
+bool UserInput::inputBoolean(std::string message)
 {
     cout << message << " (Yes/No): ";
     string result;
@@ -87,7 +87,7 @@ bool inputBoolean(std::string message)
     return inputBoolean(message);
 }
 
-std::string inputString(std::string message)
+std::string UserInput::inputString(std::string message)
 {
     cout << message << ": ";
     string result;
@@ -95,7 +95,7 @@ std::string inputString(std::string message)
     return result;
 }
 
-std::string selectOption(std::string message, std::vector<std::string> options, std::string defaultOption)
+std::string UserInput::selectOption(std::string message, std::vector<std::string> options, std::string defaultOption)
 {
     cout << message;
     printVector(options, false);
@@ -113,7 +113,7 @@ std::string selectOption(std::string message, std::vector<std::string> options, 
     return defaultOption;
 }
 
-unsigned int selectOptionIndex(std::string message, std::vector<std::string> options, unsigned int defaultIndex)
+unsigned int UserInput::selectOptionIndex(std::string message, std::vector<std::string> options, unsigned int defaultIndex)
 {
     cout << message;
     cout << " [" << defaultIndex << "]";
@@ -133,7 +133,7 @@ unsigned int selectOptionIndex(std::string message, std::vector<std::string> opt
     return defaultIndex;
 }
 
-int inputNumber(std::string message, bool allowZero, bool allowNegative)
+int UserInput::inputNumber(std::string message, bool allowZero, bool allowNegative)
 {
     cout << message << ": ";
     int result;
@@ -156,7 +156,7 @@ int inputNumber(std::string message, bool allowZero, bool allowNegative)
     return result;
 }
 
-int selectOption(std::string message, std::vector<int> options, int defaultOption)
+int UserInput::selectOption(std::string message, std::vector<int> options, int defaultOption)
 {
     cout << message;
     printVector(options, false);
@@ -179,7 +179,7 @@ int selectOption(std::string message, std::vector<int> options, int defaultOptio
     return defaultOption;
 }
 
-unsigned int selectOptionIndex(std::string message, std::vector<int> options, unsigned int defaultIndex)
+unsigned int UserInput::selectOptionIndex(std::string message, std::vector<int> options, unsigned int defaultIndex)
 {
     cout << message;
     cout << " [" << defaultIndex << "]";
