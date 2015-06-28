@@ -237,8 +237,8 @@ void RtAudioWrapper::setDefaultAudioConfig()
     audioConfig.outputDeviceID = this->rtaudio.getDefaultOutputDevice();
 
     //input device
-    RtAudio::DeviceInfo inputDeviceInfo = this->rtaudio.getDeviceInfo(audioConfig.inputDeviceID);
-    RtAudio::DeviceInfo outputDeviceInfo = this->rtaudio.getDeviceInfo(audioConfig.outputDeviceID);
+//    RtAudio::DeviceInfo inputDeviceInfo = this->rtaudio.getDeviceInfo(audioConfig.inputDeviceID);
+//    RtAudio::DeviceInfo outputDeviceInfo = this->rtaudio.getDeviceInfo(audioConfig.outputDeviceID);
 
     audioConfig.inputDeviceChannels = 2;
     audioConfig.outputDeviceChannels = 2;

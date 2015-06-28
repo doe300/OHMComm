@@ -70,6 +70,12 @@ inline void printVector(vector<std::string> v, bool withIndex)
     }
 }
 
+void UserInput::printSection(std::string title)
+{
+    std::cout << std::endl;
+    std::cout << "+++" << title << "+++" << std::endl;
+}
+
 bool UserInput::inputBoolean(std::string message)
 {
     cout << message << " (Yes/No): ";

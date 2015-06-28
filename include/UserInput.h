@@ -17,6 +17,13 @@
 class UserInput
 {
 public:
+    
+    /*!
+     * Prints a section-title in a common formatted way
+     * 
+     * \param title The title to print
+     */
+    static void printSection(std::string title);
     /*!
      * Allows the user to input a bool-value.
      * Accepted values are 'Y', 'Yes' and 'N', 'No' (lower and mixed case)

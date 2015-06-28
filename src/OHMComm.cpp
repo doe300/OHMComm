@@ -70,7 +70,7 @@ RtAudioFormat selectAudioFormat(RtAudioFormat nativeFormats)
 
 void configureNetwork()
 {    
-    cout << "Network configuration" << endl;
+    UserInput::printSection("Network configuration");
     
     //1. remote address
     string ipString = UserInput::inputString("1. Input destination IP address");
@@ -82,72 +82,71 @@ void configureNetwork()
     networkConfiguration.portOutgoing = destPort;
 	networkConfiguration.portIncoming = localPort;
 
-    cout << "Networkconfiguration set." << endl;
+    cout << "Network configuration set." << endl;
 }
 
 AudioConfiguration configureAudioDevices()
 {
-    AudioConfiguration audioConfiguration;
-    cout << endl;
-    cout << "+++Audio Device configuration+++" << endl;
-    cout << endl;
+    AudioConfiguration audioConfiguration = { 0 };
+    UserInput::printSection("Audio configuration");
 
     RtAudio AudioDevices;
     // Determine the number of available Audio Devices 
     unsigned int availableAudioDevices = AudioDevices.getDeviceCount();
+    vector<string> audioDeviceNames(availableAudioDevices);
 
     cout << "Available Audio Devices: " << endl;
     cout << endl;
     // printing available Audio Devices
     RtAudio::DeviceInfo DeviceInfo;
 
-    unsigned int DefaultOutputDeviceID;
-    unsigned int DefaultInputDeviceID;
+    unsigned int DefaultOutputDeviceID = 0;
+    unsigned int DefaultInputDeviceID = 0;
 
     for (unsigned int i = 0 ; i < availableAudioDevices ; i++)
     {
-            DeviceInfo = AudioDevices.getDeviceInfo(i);
-            if (DeviceInfo.probed == true) //Audio Device successfully probed
+        DeviceInfo = AudioDevices.getDeviceInfo(i);
+        if (DeviceInfo.probed == true) //Audio Device successfully probed
+        {
+            cout << "Device ID: " << i << endl;
+            cout << "Device Name = " << DeviceInfo.name << endl;
+            cout << "Maximum output channels = " << DeviceInfo.outputChannels << endl;
+            cout << "Maximum input channels = " << DeviceInfo.inputChannels << endl;
+            cout << "Maximum duplex channels = " << DeviceInfo.duplexChannels << endl;
+            cout << "Default output: ";
+            if (DeviceInfo.isDefaultOutput == true)
             {
-                    cout << "Device ID: " << i << endl;
-                    cout << "Device Name = " << DeviceInfo.name << endl;
-                    cout << "Maximum output channels = " << DeviceInfo.outputChannels << endl;
-                    cout << "Maximum input channels = " << DeviceInfo.inputChannels << endl;
-                    cout << "Maximum duplex channels = " << DeviceInfo.duplexChannels << endl;
-                    cout << "Default output: ";
-                    if (DeviceInfo.isDefaultOutput == true)
-                    {
-                            cout << "Yes" << endl;
-                            DefaultOutputDeviceID = i;
+                cout << "Yes" << endl;
+                DefaultOutputDeviceID = i;
 
-                    }
-                    else
-                    {
-                            cout << "No" << endl;
-                    }
-                    cout << "Default input: ";
-                    if (DeviceInfo.isDefaultInput == true)
-                    {
-                            cout << "Yes" << endl;
-                            DefaultInputDeviceID = i;
-                    }
-                    else
-                    {
-                            cout << "No" << endl;
-                    }
-                    cout << "Supported Sample Rates: ";
-                    printVector(DeviceInfo.sampleRates);
-                    cout << endl;
-                    cout << "Audio Format = " << DeviceInfo.nativeFormats << endl;
-                    cout << endl;
             }
+            else
+            {
+                cout << "No" << endl;
+            }
+            cout << "Default input: ";
+            if (DeviceInfo.isDefaultInput == true)
+            {
+                cout << "Yes" << endl;
+                DefaultInputDeviceID = i;
+            }
+            else
+            {
+                cout << "No" << endl;
+            }
+            cout << "Supported Sample Rates: ";
+            printVector(DeviceInfo.sampleRates);
+            cout << endl;
+            cout << "Native Audio Formats Flag = " << DeviceInfo.nativeFormats << endl;
+            cout << endl;
+            
+            audioDeviceNames[i] = (DeviceInfo.name + (DeviceInfo.isDefaultInput && DeviceInfo.isDefaultOutput ? " (default in/out)" : 
+                (DeviceInfo.isDefaultInput ? " (default in)" : (DeviceInfo.isDefaultOutput ? " (default out)" : ""))));
+        }
     }
 
-    unsigned int OutputDeviceID;
-
     //Choose output Device
-    cout << "Choose output Device ID [default is " << DefaultOutputDeviceID << " ]: ";
-    cin >> OutputDeviceID;
+    unsigned int OutputDeviceID = UserInput::selectOptionIndex("Choose output Device ID", audioDeviceNames, DefaultOutputDeviceID);
 
     RtAudio::DeviceInfo OutputDeviceInfo = AudioDevices.getDeviceInfo(OutputDeviceID);
 
@@ -159,29 +158,13 @@ AudioConfiguration configureAudioDevices()
     audioConfiguration.outputDeviceName = OutputDeviceInfo.name;
     cout << "-> Using output Device Name: " << audioConfiguration.outputDeviceName << endl;
 
-    //Configure Number of Maximum output Channels (we always use stereo)
+    //Configure outputDeviceChannels (we always use stereo)
     audioConfiguration.outputDeviceChannels = 2;
-    cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.outputDeviceChannels << endl;
 
-    unsigned int OutputSampleRate;
-
-    //Configure Output Sample Rate
-    cout << "-> Supported Sample Rates from this Device: ";
-    printVector(OutputDeviceInfo.sampleRates);
-    cout << endl << "Choose your Sample Rate: ";
-    cin >> OutputSampleRate;
-    audioConfiguration.sampleRate = OutputSampleRate;
-    cout << "-> Using Sample Rate: " << audioConfiguration.sampleRate << endl;
-
-    //Configure Output Audio Format
-    audioConfiguration.audioFormat = selectAudioFormat(OutputDeviceInfo.nativeFormats);
-    cout << "-> Output Audio Format: " << audioConfiguration.audioFormat << endl;
-
-    unsigned int InputDeviceID;
+    //sample-rate, audio-format and buffer-size is defined by the enabled Processors so we can skip them
 
     //Choose input Device
-    cout << "Choose input Device ID [default is " << DefaultInputDeviceID << " ]: ";
-    cin >> InputDeviceID;
+    unsigned int InputDeviceID = UserInput::selectOptionIndex("Choose input Device ID", audioDeviceNames, DefaultInputDeviceID);
 
     RtAudio::DeviceInfo InputDeviceInfo = AudioDevices.getDeviceInfo(InputDeviceID);
 
@@ -193,28 +176,9 @@ AudioConfiguration configureAudioDevices()
     audioConfiguration.inputDeviceName = InputDeviceInfo.name;
     cout << "-> Using input Device Name: " << audioConfiguration.inputDeviceName << endl;
 
-    //Configure Number of Maximum output Channels (we always use stereo)
+    //Configure inputDeviceChannels (we always use stereo)
     audioConfiguration.inputDeviceChannels = 2;
-    cout << "-> Number of maximum duplex Channels supported from this Device: " << audioConfiguration.inputDeviceChannels << endl;
 
-    unsigned int InputSampleRate;
-
-    //TODO sampleRate and audioFormat are overridden!
-    //Configure Input Sample Rate
-    cout << "-> Supported Sample Rates from this Device: ";
-    printVector(InputDeviceInfo.sampleRates);
-    cout << endl << "Choose your Sample Rate: ";
-    cin >> InputSampleRate;
-    audioConfiguration.sampleRate = InputSampleRate;
-    cout << "-> Using Sample Rate: " << audioConfiguration.sampleRate << endl;
-
-    //Configure Input Audio Format
-    audioConfiguration.audioFormat = selectAudioFormat(InputDeviceInfo.nativeFormats);
-    cout << "-> Input Audio Format: " << audioConfiguration.audioFormat << endl;
-        
-    //Buffer size
-    audioConfiguration.bufferFrames = UserInput::inputNumber("Input the number of frames to buffer (supported size of frames(2.5, 5, 10, 20, 40 or 60 ms) of audio data; at 48 kHz the permitted values are 120, 240, 480(10ms), 960(20ms), 1920, and 2880(60ms))", false, false);
-    
     return audioConfiguration;
 }
 
