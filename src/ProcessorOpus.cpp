@@ -26,23 +26,23 @@ std::vector<int> ProcessorOpus::getSupportedBufferSizes(uint32_t sampleRate)
 {
 	if (sampleRate == 8000)
 	{
-		return std::vector<int>({ 20, 40, 80, 160, 320, 480 });
+		return std::vector<int>({ 480, 320, 160, 80, 40, 20 });
 	}
 	else if (sampleRate == 12000)
 	{
-		return std::vector<int>({ 30, 60, 120, 240, 480, 720 });
+		return std::vector<int>({ 720, 480, 240, 120, 60, 30 });
 	}
 	else if (sampleRate == 16000)
 	{
-		return std::vector<int>({ 40, 80, 160, 320, 640, 960 });
+		return std::vector<int>({ 960, 640, 320, 160, 80, 40 });
 	}
 	else if (sampleRate == 24000)
 	{
-		return std::vector<int>({ 60, 120, 240, 480, 960, 1440 });
+		return std::vector<int>({ 1440, 960, 480, 240, 120, 60 });
 	}
 	else if (sampleRate == 48000)
 	{
-		return std::vector<int>({ 120, 240, 480, 960, 1920, 2880 });
+		return std::vector<int>({ 960, 1920, 2880, 480, 240, 120 });
 	}
 	else
 	{
