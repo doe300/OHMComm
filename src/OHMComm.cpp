@@ -22,6 +22,7 @@
 #include "RTPListener.h"
 #include "ProcessorOpus.h"
 #include "AudioProcessorFactory.h"
+#include "Statistics.h"
 
 //Declare Configurations
 NetworkConfiguration networkConfiguration;
@@ -318,6 +319,8 @@ int main(int argc, char** argv)
         audioObject->stop();
         listener.shutdown();
         //TODO fix error on shutdown
+        
+        Statistics::printStatistics();
         return 0;
     }
     catch (RtAudioError exception)

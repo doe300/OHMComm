@@ -7,10 +7,11 @@
 
 #include "RTPBuffer.h"
 #include "configuration.h"
+#include "Statistics.h"
 
 #include <iostream>
 
-//TODO implement maxDelay
+//TODO implement maxDelay. where to get reference point of time from?
 
 RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages): capacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages)
 {
@@ -21,6 +22,7 @@ RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBuffer
     #ifdef _WIN32
     bufferMutex = CreateMutex(nullptr, false, "BufferMutex");
     #endif
+    Statistics::setCounter(Statistics::RTP_BUFFER_LIMIT, maxCapacity);
 }
 
 RTPBuffer::~RTPBuffer()
@@ -79,6 +81,7 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int c
     memcpy(ringBuffer[newWriteIndex].packageContent, package.getRTPPackageData(), contentSize);
     //update size
     size++;
+    Statistics::maxCounter(Statistics::RTP_BUFFER_MAXIMUM_USAGE, size);
     unlockMutex();
     return RTP_BUFFER_ALL_OKAY;
 }
@@ -126,6 +129,8 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     //Increment Index, decrease size
     nextReadIndex = incrementIndex(nextReadIndex);
     size--;
+    //we lost all packages between the last read and this one, so we subtract the sequence numbers
+    Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_LOST, (bufferPack->header.sequence_number - minSequenceNumber)%UINT16_MAX);
     //only accept newer packages (at least one sequence number more than last read package)
     minSequenceNumber = (bufferPack->header.sequence_number + 1) % UINT16_MAX;
     unlockMutex();

@@ -1,4 +1,5 @@
 #include "RTAudioWrapper.h"
+#include "Statistics.h"
 
 // constructor
 RtAudioWrapper::RtAudioWrapper()
@@ -49,6 +50,11 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
     this->streamData->nBufferFrames = nBufferFrames;
     //streamTime is the number of seconds since start of stream, so we convert to number of microseconds
     this->streamData->streamTime = lround(streamTime * 1000000);
+    Statistics::setCounter(Statistics::TOTAL_ELAPSED_MILLISECONDS, streamTime * 1000);
+    Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECORDED, inputBufferByteSize);
+    Statistics::incrementCounter(Statistics::COUNTER_FRAMES_RECORDED, nBufferFrames);
+    Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_OUTPUT, outputBufferByteSize);
+    Statistics::incrementCounter(Statistics::COUNTER_FRAMES_OUTPUT, nBufferFrames);
 
     //in case the two buffer sizes max vary
     this->streamData->maxBufferSize = inputBufferByteSize;
