@@ -404,7 +404,7 @@ bool RtAudioWrapper::queryProcessorSupport()
     audioConfiguration.sampleRate = autoSelectSampleRate(supportedSampleRates);
     
     //find common supported buffer-size, defaults to 512
-    unsigned int supportedBufferSize = findOptimalBufferSize(512);
+    int supportedBufferSize = findOptimalBufferSize(512);
     if(supportedBufferSize == 0)
     {
         std::cerr << "Could not find a single buffer-size supported by all processors!" << std::endl;
@@ -458,6 +458,8 @@ unsigned int RtAudioWrapper::findOptimalBufferSize(unsigned int defaultBufferSiz
     {
         processorBufferSizes[i] = audioProcessors[i]->getSupportedBufferSizes(audioConfiguration.sampleRate);
     }
+    //number of processors supporting all buffer-sizes
+    std::vector<bool> processorSupportAll(processorBufferSizes.size(), false);
     //iterate through all priorities and check if the value is supported by other processors
     for(unsigned int sizeIndex = 0; sizeIndex < 32; sizeIndex ++)
     {
@@ -466,6 +468,11 @@ unsigned int RtAudioWrapper::findOptimalBufferSize(unsigned int defaultBufferSiz
             //processor has no size-entries left
             if(processorBufferSizes[procIndex].size() <= sizeIndex)
             {
+                continue;
+            }
+            if(processorBufferSizes[procIndex][sizeIndex] == BUFFER_SIZE_ANY)
+            {
+                processorSupportAll[procIndex] = true;
                 continue;
             }
             //"suggest" buffer-size
@@ -496,6 +503,20 @@ unsigned int RtAudioWrapper::findOptimalBufferSize(unsigned int defaultBufferSiz
             }
         }
     }
-    //TODO if all processors only have BUFFER_SIZE_ALL, return default-value
+    //if all processors only have BUFFER_SIZE_ALL, return default-value
+    bool supportAll = true;
+    for(unsigned int procIndex = 0; procIndex < processorSupportAll.size(); procIndex ++)
+    {
+        if(!processorSupportAll[procIndex])
+        {
+            supportAll = false;
+            break;
+        }
+    }
+    if(supportAll)
+    {
+        return defaultBufferSize;
+    }
+    
     return 0;
 }
