@@ -7,14 +7,14 @@ TestAudioIO::TestAudioIO() {
 
 void TestAudioIO::testAudioHandlerInstances()
 {
-	auto audioHandler1 = AudioHandlerFactory::getAudioHandler("rtaudioWRaPPeR");
+	auto audioHandler1 = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::RTAUDIO_WRAPPER);
 	TEST_ASSERT_MSG(audioHandler1->isAudioConfigSet() == false, "AudioConfig has been set. 01");
 	
 	AudioConfiguration audioConfig = {0};
 	audioHandler1->setConfiguration(audioConfig);
 	TEST_ASSERT_MSG(audioHandler1->isAudioConfigSet() == true, "AudioConfig has not been set. 02");
 
-	auto audioHandler2 = AudioHandlerFactory::getAudioHandler("rtaudiowrapper", audioConfig);
+	auto audioHandler2 = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::RTAUDIO_WRAPPER, audioConfig);
 	TEST_ASSERT_MSG(audioHandler2->isAudioConfigSet() == true, "AudioConfig has not been set. 03");
 
 	TEST_ASSERT_MSG(audioHandler2->getAudioConfiguration() == audioConfig, "AudioConfigs were not equal. 04");

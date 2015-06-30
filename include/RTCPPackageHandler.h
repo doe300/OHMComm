@@ -8,7 +8,6 @@
 #ifndef RTCPPACKAGEHANDLER_H
 #define	RTCPPACKAGEHANDLER_H
 
-#include <malloc.h>
 #include <string.h>
 #include <stdint.h>
 #include <vector>
