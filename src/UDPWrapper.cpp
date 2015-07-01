@@ -101,12 +101,13 @@ int UDPWrapper::getLastError()
     return error;
 }
 
-void UDPWrapper::closeSocket(int fd)
+void UDPWrapper::closeNetwork()
 {
-    shutdown(fd, SHUTDOWN_BOTH);
+    shutdown(Socket, SHUTDOWN_BOTH);
     #ifdef _WIN32
-    closesocket(fd);
+    closesocket(Socket);
     #else
-    close(fd);
+    close(Socket);
     #endif
+    Socket = INVALID_SOCKET;
 }

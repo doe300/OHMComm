@@ -47,7 +47,7 @@ public:
     int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
     int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
 
-    void closeSocket(int fd);
+    void closeNetwork();
     int getLastError();
 protected:
     int Socket;

@@ -44,7 +44,7 @@ public:
     /*!
      * Closes the underlying socket
      */
-    virtual void closeSocket(int fd) = 0;
+    virtual void closeNetwork() = 0;
 };
 
 #endif
