@@ -6,10 +6,7 @@
  */
 
 #include "RTPBuffer.h"
-#include "configuration.h"
 #include "Statistics.h"
-
-#include <iostream>
 
 //TODO implement maxDelay. where to get reference point of time from?
 

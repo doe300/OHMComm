@@ -1,9 +1,6 @@
 
 #include "UserInput.h"
 
-#include <iostream>
-#include <limits.h>
-
 using namespace std;
 
 inline void clearInput()

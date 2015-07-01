@@ -1,10 +1,8 @@
 #ifndef AUDIOPROCESSOR_H
 #define	AUDIOPROCESSOR_H
 
-#include <iostream>
 #include <string>
 #include <vector>
-#include "stdint.h"
 
 #include "configuration.h"
 
@@ -83,7 +81,7 @@ public:
      * 
      * \return A list of buffer-sizes sorted in descending priority
      */
-    virtual std::vector<int> getSupportedBufferSizes(uint32_t sampleRate) = 0;
+    virtual std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) = 0;
 
     /*!
      * Overwrite this method, if this AudioProcessor needs configuration

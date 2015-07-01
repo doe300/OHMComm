@@ -8,7 +8,6 @@
 #ifndef RTPPACKAGEHANDLER_H
 #define	RTPPACKAGEHANDLER_H
 
-#include <iostream>
 #include <random> // random generator objects
 #include <chrono> // clock, tick
 #include <string.h> //memcpy

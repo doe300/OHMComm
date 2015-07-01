@@ -13,7 +13,6 @@
 #include "RTPBuffer.h"
 
 #include "NetworkWrapper.h"
-#include "configuration.h"
 
 /*!
  * Listening-thread for incoming RTP-packages

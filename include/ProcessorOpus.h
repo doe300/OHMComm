@@ -3,7 +3,8 @@
 #define PROCESSOROPUS_H
 #include "AudioProcessor.h"
 #include "opus.h"
-#include "stdint.h"
+
+#include <iostream>
 
 class ProcessorOpus : public AudioProcessor
 {
@@ -30,7 +31,7 @@ public:
 	- 60, 120, 240, 480, 960, 1440
 	48000:
 	- 120, 240, 480, 960, 1920, 2880 */
-    std::vector<int> getSupportedBufferSizes(uint32_t sampleRate);
+    std::vector<int> getSupportedBufferSizes(unsigned int sampleRate);
 
 	//configure the Opus Processor, this creates OpusEncoder and OpusDecoderObject and initialises outputDeviceChannels and ErrorCode
 	bool configure(AudioConfiguration audioConfig);

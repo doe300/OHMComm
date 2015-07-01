@@ -8,8 +8,8 @@
 #ifndef RTCPPACKAGEHANDLER_H
 #define	RTCPPACKAGEHANDLER_H
 
-#include <string.h>
-#include <stdint.h>
+#include <string.h> // memcpy
+#include <stdint.h> //uint8_t for Windows
 #include <vector>
 #include <string>
 

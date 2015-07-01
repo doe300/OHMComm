@@ -1,7 +1,6 @@
 #ifndef PROCESSORRTP_H
 
 #define	PROCESSORRTP_H
-#include <string>
 #include "AudioProcessor.h"
 #include "RTPPackageHandler.h"
 #include "NetworkWrapper.h"
@@ -30,7 +29,7 @@ public:
     
     unsigned int getSupportedAudioFormats();
     unsigned int getSupportedSampleRates();
-    std::vector<int> getSupportedBufferSizes(uint32_t sampleRate);
+    std::vector<int> getSupportedBufferSizes(unsigned int sampleRate);
 
     unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);
     unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);

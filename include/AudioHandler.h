@@ -4,9 +4,8 @@
 #include "AudioProcessor.h"
 #include "configuration.h"
 #include <vector>
-#include <memory>
-
-typedef std::unique_ptr<AudioProcessor> ptrAudioProcessor;
+#include <memory> //std::unique_ptr
+#include <iostream>
 
 /*!
  * Base class for Audio framework.

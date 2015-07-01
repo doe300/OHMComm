@@ -10,6 +10,8 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <limits.h>
 
 /*!
  * Utility-class to provide common methods for user-input

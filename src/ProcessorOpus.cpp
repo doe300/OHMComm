@@ -22,7 +22,7 @@ unsigned int ProcessorOpus::getSupportedSampleRates()
 	return SupportedSampleRates;
 }
 
-std::vector<int> ProcessorOpus::getSupportedBufferSizes(uint32_t sampleRate)
+std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampleRate)
 {
 	if (sampleRate == 8000)
 	{

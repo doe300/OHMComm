@@ -17,7 +17,7 @@ unsigned int ProcessorRTP::getSupportedSampleRates()
     return AudioConfiguration::SAMPLE_RATE_ALL;
 }
 
-std::vector<int> ProcessorRTP::getSupportedBufferSizes(uint32_t sampleRate)
+std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sampleRate)
 {
     return std::vector<int>({BUFFER_SIZE_ANY});
 }
