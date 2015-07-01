@@ -70,6 +70,8 @@ private:
     static long counters[20];
     
     static double prettifyPercentage(double percentage);
+    
+    static std::string prettifyByteSize(double byteSize);
 };
 
 #endif	/* STATISTICS_H */
