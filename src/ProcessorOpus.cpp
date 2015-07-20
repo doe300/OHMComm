@@ -110,7 +110,7 @@ bool ProcessorOpus::configure(AudioConfiguration audioConfig)
 
 unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
-	unsigned int lengthEncodedPacketInBytes = NULL;
+	unsigned int lengthEncodedPacketInBytes = 0;
 	if (rtaudioFormat == AudioConfiguration::AUDIO_FORMAT_SINT16)
 	{
 		lengthEncodedPacketInBytes = opus_encode(OpusEncoderObject, (opus_int16 *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
@@ -124,12 +124,13 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
 	else
 	{
 		std::cerr << "[Opus-processInputData-Error]No matching encoder found, AudioFormat possibly not supported" << std::endl;
+                return 0;
 	}
 }
 
 unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
-	unsigned int numberOfDecodedSamples = NULL;
+	unsigned int numberOfDecodedSamples = 0;
 	if (rtaudioFormat == AudioConfiguration::AUDIO_FORMAT_SINT16)
 	{
 		numberOfDecodedSamples = opus_decode(OpusDecoderObject, (unsigned char *)outputBuffer, outputBufferByteSize, (opus_int16 *)outputBuffer, userData->maxBufferSize, 0);
@@ -147,6 +148,7 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
 	else
 	{
 		std::cerr << "[Opus-processOutputData-Error]No matching decoder found, AudioFormat possibly not supported" << std::endl;
+                return 0;
 	}
 }
 
