@@ -6,7 +6,7 @@
 #include <vector>
 #include <memory> //std::unique_ptr
 #include <iostream>
-
+#include <chrono>
 /*!
  * Base class for Audio framework.
  * 
@@ -53,10 +53,15 @@ protected:
 
 
     std::vector<AudioProcessor*> audioProcessors;
+	std::vector<double> inputProcessingStatistics;
+	std::vector<double> outputProcessingStatistics;
+	int outputProcessingCount = 0;
+	int inputProcessingCount = 0;
+	int printStatisticsOnEveryCountOf = 1000;
     AudioConfiguration audioConfiguration;
     void processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData);
     void processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, StreamData *streamData);
-
+	typedef std::chrono::high_resolution_clock Clock;
     /*!
      * Calls AudioProcessor#configure() for all registered processors
      */
