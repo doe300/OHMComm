@@ -8,8 +8,8 @@ RtAudioWrapper::RtAudioWrapper()
     streamData = new StreamData();
 
     #ifdef _WIN32
-    semaphore_waitForMainThread = CreateSemaphore(nullptr, 1, 1, "semaphore_waitForMainThread");
-    semaphore_waitForWorkerThread = CreateSemaphore(nullptr, 0, 1, "semaphore_waitForWorkerThread");
+    semaphore_waitForMainThread = CreateSemaphore(nullptr, 1, 1, L"semaphore_waitForMainThread");
+    semaphore_waitForWorkerThread = CreateSemaphore(nullptr, 0, 1, L"semaphore_waitForWorkerThread");
     #else
             /* TODO, two linux semaphores needed */
     #endif

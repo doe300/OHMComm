@@ -17,7 +17,7 @@ RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBuffer
     size = 0;
     minSequenceNumber = 0;
     #ifdef _WIN32
-    bufferMutex = CreateMutex(nullptr, false, "BufferMutex");
+    bufferMutex = CreateMutex(nullptr, false, L"BufferMutex");
     #endif
     Statistics::setCounter(Statistics::RTP_BUFFER_LIMIT, maxCapacity);
 }
