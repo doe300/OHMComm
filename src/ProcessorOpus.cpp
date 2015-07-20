@@ -124,7 +124,7 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
 	else
 	{
 		std::cerr << "[Opus-processInputData-Error]No matching encoder found, AudioFormat possibly not supported" << std::endl;
-                return 0;
+        return 0;
 	}
 }
 
@@ -148,7 +148,7 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
 	else
 	{
 		std::cerr << "[Opus-processOutputData-Error]No matching decoder found, AudioFormat possibly not supported" << std::endl;
-                return 0;
+        return 0;
 	}
 }
 
