@@ -57,6 +57,8 @@ private:
 	int ErrorCode;
 	//number of outputDeviceChannels needed for the calculation of outputBytes in processOutputData
 	unsigned int outputDeviceChannels;
+	//RtAudioFormat needed to decide if we need the floating point or the fixed-point implementation of opus-encode/decode
+	unsigned long rtaudioFormat;
 
 };
 #endif
