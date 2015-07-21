@@ -14,20 +14,9 @@ SET(opus_BIN ${opus_BINARY_DIR})
 
 add_definitions(/DHAVE_CONFIG_H)
 
-IF(WIN32)
-IF(MSVC12)
-# message("Detected MSVC12 compiler")
-set(MSVC_VER VC12)
-ELSEIF(MSVC11)
-# message("Detected MSVC11 compiler")
-set(MSVC_VER VC11)
-ELSEIF(MSVC10)
-# message("Detected MSVC10 compiler")
-set(MSVC_VER VC10)
-ELSE(MSVC12)
-message("WARNING: Unknown/unsupported MSVC version")
-ENDIF(MSVC12)
-ENDIF(WIN32)
+IF(MSVC)
+add_definitions(-DUNICODE -D_UNICODE)
+ENDIF(MSVC)
 
 IF(WIN32)
 SET(opusIncludes
