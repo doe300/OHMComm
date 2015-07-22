@@ -197,26 +197,20 @@ Makefile
 /compile_commands.json
 /Socket
 
+# whitelist opus directory
+!/lib/opus-1.1/**
+
 # rtaudio local builds
 rtaudio_static.lib
 /documents/object_structure.dia
 /documents/class_structure.dia
 /recording.rtaudio
-/lib/cpptest-1.1.2/Makefile
-/lib/cpptest-1.1.2/config.status
-/lib/cpptest-1.1.2/libtool
-/lib/cpptest-1.1.2/config/config.h
-/lib/cpptest-1.1.2/config/stamp-h
-/lib/cpptest-1.1.2/config/stamp-h1
-
-# whitelist opus directory
-!/lib/opus-1.1/**
-#blacklist certain files
-/lib/opus-1.1/Makefile
-/lib/opus-1.1/config.log
-/lib/opus-1.1/config.status
-/lib/opus-1.1/libtool
-/lib/opus-1.1/config.h
-/lib/opus-1.1/stamp-h
-/lib/opus-1.1/stamp-h1
-/lib/opus-1.1/doc/
+/lib/**/Makefile
+/lib/**/config.log
+/lib/**/config.status
+/lib/**/libtool
+/lib/**/config.h
+/lib/**/stamp-h
+/lib/**/stamp-h1
+/lib/**/Doxyfile
+/lib/**/.deps

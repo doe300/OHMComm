@@ -25,6 +25,8 @@ ${opus_SOURCE_DIR}/include
 ${opus_SOURCE_DIR}/win32
 )
 ELSEIF(UNIX)
+#Run ./configure
+execute_process(COMMAND sh ./configure WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 # Include directories
 SET(opusIncludes
 ${opus_SOURCE_DIR}

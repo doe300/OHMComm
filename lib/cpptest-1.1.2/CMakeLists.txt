@@ -21,6 +21,8 @@ if(WIN32)
 	
 	add_library(CppTest STATIC ${SRCS} ${WIN})
 else()
+	#Run ./configure
+	execute_process(COMMAND sh ./configure WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 	include_directories ("${PROJECT_SOURCE_DIR}/config")
 	
 	add_library(cpptest ${SRCS})
