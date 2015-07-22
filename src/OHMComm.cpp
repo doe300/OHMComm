@@ -13,6 +13,7 @@
 
 
 #include "UserInput.h"
+#include "Parameters.h"
 
 //dependencies
 #include "RtAudio.h"
@@ -20,7 +21,6 @@
 #include "UDPWrapper.h"
 #include "ProcessorRTP.h"
 #include "RTPListener.h"
-#include "ProcessorOpus.h"
 #include "AudioProcessorFactory.h"
 #include "Statistics.h"
 
@@ -183,6 +183,30 @@ AudioConfiguration configureAudioDevices()
     return audioConfiguration;
 }
 
+AudioConfiguration fillAudioConfiguration(int outputDeviceID, int inputDeviceID)
+{
+    AudioConfiguration config = { 0 };
+    RtAudio audioDevices;
+    if(outputDeviceID < 0)
+    {
+        outputDeviceID = audioDevices.getDefaultOutputDevice();
+    }
+    if(inputDeviceID < 0)
+    {
+        inputDeviceID = audioDevices.getDefaultInputDevice();
+    }
+    //we always use stereo
+    config.outputDeviceChannels = 2;
+    config.inputDeviceChannels = 2;
+    
+    config.outputDeviceID = outputDeviceID;
+    config.outputDeviceName = audioDevices.getDeviceInfo(outputDeviceID).name;
+    
+    config.inputDeviceID = inputDeviceID;
+    config.inputDeviceName = audioDevices.getDeviceInfo(inputDeviceID).name;
+    return config;
+}
+
 /*!
  * RtAudio Error Handler
  */
@@ -212,9 +236,11 @@ void errorHandler( RtAudioError::Type type, const std::string &errorText )
 }
 
 
-
-int main(int argc, char** argv)
+int main(int argc, char* argv[])
 {
+    Parameters params;
+    bool runWithArguments = params.parseParameters(argc, argv);
+    
     //Vectors for storing available AudioHandlers, and -Processors
     const std::vector<std::string> audioHandlers = AudioHandlerFactory::getAudioHandlerNames();
     std::vector<std::string> audioProcessors = AudioProcessorFactory::getAudioProcessorNames();
@@ -228,31 +254,49 @@ int main(int argc, char** argv)
         ////
         //Audio-Config
         ////
-
-        cout << "Load default audio config? Yes (y), No (n)?" << endl;
-        cin >> input;
-
-        if (input == 'N' || input == 'n')
+        if(runWithArguments)
         {
-            //manually configure audio-handler, so manually select it
-            std::string selectedAudioHander;
-            if(audioHandlers.size() > 1)
+            //get device configuration from parameters
+            int outputDeviceID = -1;
+            int inputDeviceID = -1;
+            if(params.isParameterSet(Parameters::OUTPUT_DEVICE))
             {
-                //only let user choose if there is more than 1 audio-handler
-                selectedAudioHander = UserInput::selectOption("Select audio handler", audioHandlers, AudioHandlerFactory::getDefaultAudioHandlerName());
+                outputDeviceID = atoi(params.getParameterValue(Parameters::OUTPUT_DEVICE).c_str());
             }
-            else 
+            if(params.isParameterSet(Parameters::INPUT_DEVICE))
             {
-                selectedAudioHander = *audioHandlers.begin();
+                inputDeviceID = atoi(params.getParameterValue(Parameters::INPUT_DEVICE).c_str());
             }
-            std::cout << "Using AudioHandler: " << selectedAudioHander << std::endl;
-            AudioConfiguration audioConfiguration = configureAudioDevices();
-            audioObject = AudioHandlerFactory::getAudioHandler(selectedAudioHander, audioConfiguration);
+            AudioConfiguration audioConfig = fillAudioConfiguration(outputDeviceID, inputDeviceID);
+            audioObject = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName(), audioConfig);
         }
         else
         {
-            //use RtAudioWrapper as default implementation
-            audioObject = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName());
+            cout << "Load default audio config? Yes (y), No (n)?" << endl;
+            cin >> input;
+
+            if (input == 'N' || input == 'n')
+            {
+                //manually configure audio-handler, so manually select it
+                std::string selectedAudioHander;
+                if(audioHandlers.size() > 1)
+                {
+                    //only let user choose if there is more than 1 audio-handler
+                    selectedAudioHander = UserInput::selectOption("Select audio handler", audioHandlers, AudioHandlerFactory::getDefaultAudioHandlerName());
+                }
+                else 
+                {
+                    selectedAudioHander = *audioHandlers.begin();
+                }
+                std::cout << "Using AudioHandler: " << selectedAudioHander << std::endl;
+                AudioConfiguration audioConfiguration = configureAudioDevices();
+                audioObject = AudioHandlerFactory::getAudioHandler(selectedAudioHander, audioConfiguration);
+            }
+            else
+            {
+                //use RtAudioWrapper as default implementation
+                audioObject = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName());
+            }
         }
 
         ////
@@ -260,34 +304,58 @@ int main(int argc, char** argv)
         ////
 
         NetworkWrapper *network;
-        cout << "Load default network config? Yes (y), No (n)?" << endl;
-        cin >> input;
-
-        if (input == 'N' || input == 'n')
+        if(runWithArguments)
         {
-                configureNetwork();
-                network = new UDPWrapper(networkConfiguration);
+            networkConfiguration.addressOutgoing = params.getParameterValue(Parameters::REMOTE_ADDRESS);
+            networkConfiguration.portIncoming = atoi(params.getParameterValue(Parameters::LOCAL_PORT).c_str());
+            networkConfiguration.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
+            network = new UDPWrapper(networkConfiguration);
         }
         else
         {
-                networkConfiguration.addressOutgoing = "127.0.0.1";
-                //the port should be a number greater than 1024
-                networkConfiguration.portIncoming = 12345;
-                networkConfiguration.portOutgoing = 12345;
-                network = new UDPWrapper(networkConfiguration);
+             cout << "Load default network config? Yes (y), No (n)?" << endl;
+            cin >> input;
+
+            if (input == 'N' || input == 'n')
+            {
+                    configureNetwork();
+                    network = new UDPWrapper(networkConfiguration);
+            }
+            else
+            {
+                    networkConfiguration.addressOutgoing = "127.0.0.1";
+                    //the port should be a number greater than 1024
+                    networkConfiguration.portIncoming = DEFAULT_NETWORK_PORT;
+                    networkConfiguration.portOutgoing = DEFAULT_NETWORK_PORT;
+                    network = new UDPWrapper(networkConfiguration);
+            }
         }
 
 	////
         // AudioProcessors
         ////
-        // add processors to the process chain
-        audioProcessors.push_back("End");
-        unsigned int selectedIndex;
-        std::cout << "The AudioProcessors should be added in the order they are used on the sending side!" << std::endl;
-        while((selectedIndex = UserInput::selectOptionIndex("Select next AudioProcessor to add", audioProcessors, audioProcessors.size()-1)) != audioProcessors.size()-1)
+        if(runWithArguments)
         {
-            audioObject->addProcessor(AudioProcessorFactory::getAudioProcessor(audioProcessors.at(selectedIndex)));
-            audioProcessors.at(selectedIndex) = audioProcessors.at(selectedIndex) + " (added)";
+            for(const std::string procName : params.getAudioProcessors())
+            {
+                AudioProcessor* proc = AudioProcessorFactory::getAudioProcessor(procName);
+                if(proc != nullptr)
+                {
+                    audioObject->addProcessor(proc);
+                }
+            }
+        }
+        else
+        {
+            // add processors to the process chain
+            audioProcessors.push_back("End");
+            unsigned int selectedIndex;
+            std::cout << "The AudioProcessors should be added in the order they are used on the sending side!" << std::endl;
+            while((selectedIndex = UserInput::selectOptionIndex("Select next AudioProcessor to add", audioProcessors, audioProcessors.size()-1)) != audioProcessors.size()-1)
+            {
+                audioObject->addProcessor(AudioProcessorFactory::getAudioProcessor(audioProcessors.at(selectedIndex)));
+                audioProcessors.at(selectedIndex) = audioProcessors.at(selectedIndex) + " (added)";
+            }
         }
 
         ////

@@ -10,6 +10,10 @@
 
 #include <string>
 
+#define DEFAULT_NETWORK_PORT 12345
+//The program's current version as string
+#define OHMCOMM_VERSION "0.3"
+
 struct NetworkConfiguration
 {
     //we don't need local IP, because we listen on any address
