@@ -9,7 +9,6 @@
 #define	AUDIOPROCESSORFACTORY_H
 
 #include "AudioProcessor.h"
-#include "ProcessorOpus.h"
 #include <vector>
 
 /*!
@@ -19,6 +18,7 @@ class AudioProcessorFactory
 {
 public:
     static const std::string OPUS_CODEC;
+    static const std::string WAV_WRITER;
     static AudioProcessor* getAudioProcessor(std::string name);
     static const std::vector<std::string> getAudioProcessorNames();
 private:

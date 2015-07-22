@@ -7,7 +7,11 @@
 
 #include "AudioProcessorFactory.h"
 
+#include "ProcessorOpus.h"
+#include "ProcessorWAV.h"
+
 const std::string AudioProcessorFactory::OPUS_CODEC = "Opus-Codec";
+const std::string AudioProcessorFactory::WAV_WRITER = "wav-Writer";
 
 AudioProcessor* AudioProcessorFactory::getAudioProcessor(std::string name)
 {
@@ -17,6 +21,12 @@ AudioProcessor* AudioProcessorFactory::getAudioProcessor(std::string name)
         return new ProcessorOpus(OPUS_CODEC, OPUS_APPLICATION_VOIP);
     }
     #endif
+    #ifdef PROCESSORWAV_H
+    if(name == WAV_WRITER)
+    {
+        return new ProcessorWAV();
+    }
+    #endif
 }
 
 const std::vector<std::string> AudioProcessorFactory::getAudioProcessorNames()
@@ -24,6 +34,9 @@ const std::vector<std::string> AudioProcessorFactory::getAudioProcessorNames()
     std::vector<std::string> processorNames;
     #ifdef PROCESSOROPUS_H
     processorNames.push_back(OPUS_CODEC);
+    #endif
+    #ifdef PROCESSORWAV_H
+    processorNames.push_back(WAV_WRITER);
     #endif
     return processorNames;
 }
