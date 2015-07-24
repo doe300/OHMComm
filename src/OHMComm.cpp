@@ -238,7 +238,7 @@ void errorHandler( RtAudioError::Type type, const std::string &errorText )
 
 int main(int argc, char* argv[])
 {
-    Parameters params;
+    Parameters params(AudioProcessorFactory::getAudioProcessorNames());
     bool runWithArguments = params.parseParameters(argc, argv);
     
     //Vectors for storing available AudioHandlers, and -Processors

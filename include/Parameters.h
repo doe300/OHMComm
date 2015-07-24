@@ -8,6 +8,8 @@
 #ifndef PARAMETERS_H
 #define	PARAMETERS_H
 
+#include "configuration.h"
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -103,10 +105,11 @@ public:
     // A list of all available parameters
     static const std::vector<const Parameter*> availableParameters;
     
-    Parameters();
+    /*!
+     * \param allProcessorNames A list of all available processor names to be printed in the help-output
+     */
+    Parameters(const std::vector<std::string> allProcessorNames);
     
-    ~Parameters();
-
     /*!
      * Parses the arguments passed to main(argc,argv) if there are any
      * 
@@ -148,6 +151,7 @@ private:
     
     std::vector<ParameterValue> readParameters;
     std::vector<std::string> processorNames;
+    const std::vector<std::string> allProcessorNames;
 };
 
 #endif	/* PARAMETERS_H */

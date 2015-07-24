@@ -1,4 +1,6 @@
 #include "Tests.h"
+#include "TestUserInput.h"
+#include "TestParameters.h"
 
 TestAudioIO::TestAudioIO() {
 	TEST_ADD(TestAudioIO::testAudioHandlerInstances);
@@ -42,4 +44,10 @@ int main(int argc, char** argv)
     
     TestRTP testRTP;
     testRTP.run(output);
+    
+    TestUserInput testInput;
+    testInput.run(output);
+    
+    TestParameters testParams;
+    testParams.run(output);
 }

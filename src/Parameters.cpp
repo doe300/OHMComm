@@ -6,9 +6,6 @@
  */
 
 #include "Parameters.h"
-#include "configuration.h"
-#include "AudioProcessorFactory.h"
-
 #include <iomanip>
 #include <string.h>
 
@@ -20,6 +17,7 @@ const Parameter Parameters::REMOTE_PORT(ParameterCategory::NETWORK, true, 'p', "
 const Parameter Parameters::LOCAL_PORT(ParameterCategory::NETWORK, true, 'l', "local-port", "The local port to listen on", std::to_string(DEFAULT_NETWORK_PORT), true);
 const Parameter Parameters::AUDIO_PROCESSOR(ParameterCategory::PROCESSORS, 'a', "add-processor", "The name of the audio-processor to add", "");
 
+//TODO allow for adding processor-specific parameters
 const std::vector<const Parameter*> Parameters::availableParameters = {
     //General
     &HELP,
@@ -31,13 +29,8 @@ const std::vector<const Parameter*> Parameters::availableParameters = {
     &AUDIO_PROCESSOR
 };
 
-Parameters::Parameters()
+Parameters::Parameters(const std::vector<std::string> allProcessorNames) : allProcessorNames(allProcessorNames)
 {
-}
-
-Parameters::~Parameters()
-{
-    readParameters.~vector();
 }
 
 bool Parameters::parseParameters(int argc, char* argv[])
@@ -77,7 +70,8 @@ bool Parameters::parseParameters(int argc, char* argv[])
         }
         else
         {
-            std::string longParam = std::string(paramText).substr(2);
+            unsigned int posEqualsSign = std::string(paramText).find("=");
+            std::string longParam = std::string(paramText).substr(2, posEqualsSign-2);
             for(const Parameter* p : availableParameters)
             {
                 if(p->longName.compare(longParam) == 0)
@@ -188,7 +182,7 @@ void Parameters::printHelpPage()
     }
     std::cout << std::endl;
     std::cout << "Currently available audio-processors are: " << std::endl;
-    for(const std::string name : AudioProcessorFactory::getAudioProcessorNames())
+    for(const std::string name : allProcessorNames)
     {
        std::cout << std::setw(5) << ' ' << name << std::endl;
     }
