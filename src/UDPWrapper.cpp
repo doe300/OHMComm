@@ -11,7 +11,17 @@ UDPWrapper::UDPWrapper(unsigned short portIncoming, std::string remoteIPAddress,
 
 UDPWrapper::UDPWrapper(struct NetworkConfiguration networkConfig) : 
     UDPWrapper(networkConfig.portIncoming, networkConfig.addressOutgoing, networkConfig.portOutgoing) 
-{}
+{
+}
+
+UDPWrapper::~UDPWrapper()
+{
+    if(Socket >= 0)
+    {
+        closeNetwork();
+    }
+}
+
 
 void UDPWrapper::initializeNetwork()
 {

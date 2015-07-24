@@ -36,6 +36,8 @@ public:
 
     UDPWrapper(struct NetworkConfiguration networkConfig);
 
+    ~UDPWrapper();
+    
     void initializeNetwork();
 
     void startWinsock();

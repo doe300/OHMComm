@@ -10,6 +10,7 @@
 
 #include "AudioProcessor.h"
 #include <vector>
+#include <stdexcept>
 
 /*!
  * Factory-class to provide audio-processor objects without needing to know the details of the implementation.

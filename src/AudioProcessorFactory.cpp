@@ -27,6 +27,7 @@ AudioProcessor* AudioProcessorFactory::getAudioProcessor(std::string name)
         return new ProcessorWAV();
     }
     #endif
+    throw std::invalid_argument("No AudioProcessor for the given name");
 }
 
 const std::vector<std::string> AudioProcessorFactory::getAudioProcessorNames()

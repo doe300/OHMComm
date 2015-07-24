@@ -18,6 +18,12 @@
 class NetworkWrapper
 {
 public:
+    
+    virtual ~NetworkWrapper()
+    {
+        //needs a virtual destructor to be overridden correctly
+    }
+    
     /*!
      * \param buffer The buffer to send
      * 
