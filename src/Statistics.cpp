@@ -25,6 +25,7 @@ const int Statistics::RTP_BUFFER_MAXIMUM_USAGE = 14;
 const int Statistics::RTP_BUFFER_LIMIT = 15;
 
 long Statistics::counters[] = {0};
+std::vector<AudioProcessorStatistic*> Statistics::audioProcessorStatistics;
 
 void Statistics::incrementCounter(int counterIndex, long byValue)
 {
@@ -122,6 +123,9 @@ void Statistics::printStatistics()
             << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED]) << " ("
             << prettifyPercentage((counters[COUNTER_PAYLOAD_BYTES_OUTPUT] / (double) counters[COUNTER_PAYLOAD_BYTES_RECEIVED])) 
             << "% decompression)" << std::endl;
+
+	// AudioProcessor statistics
+	Statistics::printAudioProcessorStatistic();
 }
 
 double Statistics::prettifyPercentage(double percentage)
@@ -159,3 +163,37 @@ std::string Statistics::prettifyByteSize(double byteSize)
     return std::string(buf, numChars) + unit;
 }
 
+void Statistics::addProcessor(std::string name)
+{
+	Statistics::audioProcessorStatistics.push_back(new AudioProcessorStatistic(name));
+}
+
+
+void Statistics::removeProcessor(std::string name)
+{
+	for (auto i = 0; i < Statistics::audioProcessorStatistics.size(); i++)
+	{
+		if (Statistics::audioProcessorStatistics.at(i)->getProcessorName() == name)
+			Statistics::audioProcessorStatistics.erase(Statistics::audioProcessorStatistics.begin() + i);
+	}
+}
+
+
+void Statistics::removeAllProcessors()
+{
+	Statistics::audioProcessorStatistics.clear();
+}
+
+void Statistics::printAudioProcessorStatistic()
+{
+	
+	// AudioProcessor statistics
+	std::cout << std::endl;
+	std::cout << "+++ AudioProcessor statistics +++" << std::endl;
+	for (auto i = 0; i < Statistics::audioProcessorStatistics.size(); i++)
+	{
+		std::cout << std::endl << audioProcessorStatistics.at(i)->getProcessorName() << std::endl;
+		std::cout << "InputStatistics" << audioProcessorStatistics.at(i)->getAverageInputTime() << std::endl;
+		std::cout << "OutputStatistics" << audioProcessorStatistics.at(i)->getAverageOuputTime() << std::endl;
+	}
+}

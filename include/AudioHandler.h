@@ -2,6 +2,7 @@
 #define	AUDIOIO_H
 
 #include "AudioProcessor.h"
+#include "Statistics.h"
 #include "configuration.h"
 #include <vector>
 #include <memory> //std::unique_ptr
@@ -53,11 +54,6 @@ protected:
 
 
     std::vector<AudioProcessor*> audioProcessors;
-	std::vector<double> inputProcessingStatistics;
-	std::vector<double> outputProcessingStatistics;
-	int outputProcessingCount = 0;
-	int inputProcessingCount = 0;
-	int printStatisticsOnEveryCountOf = 1000;
     AudioConfiguration audioConfiguration;
     void processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData);
     void processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, StreamData *streamData);

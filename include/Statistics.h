@@ -10,7 +10,8 @@
 
 #include <iostream>
 #include <string>
-
+#include "AudioProcessorStatistic.h"
+#include <vector>
 /*!
  * Class to collect and print statistical information
  */
@@ -65,6 +66,30 @@ public:
      * Prints some general statistical information
      */
     static void printStatistics();
+
+	/*!
+	 * Adds a processor to statistics array in order to record its statistic
+	 *
+	 * \param name The name of the AudioProcessor
+	 */
+	static void addProcessor(std::string name);
+
+	/*!
+	 * Removes a processor from statistics array
+	 *
+	 * \param name The name of the AudioProcessor
+	 */
+	static void removeProcessor(std::string name);
+
+	/*!
+	 * Removes all processors from the statistics array
+	 */
+	static void removeAllProcessors();
+
+	/*!
+	 * Prints statistics from all added AudioProcessors
+	 */
+	static void printAudioProcessorStatistic();
 private:
 
     static long counters[20];
@@ -72,7 +97,11 @@ private:
     static double prettifyPercentage(double percentage);
     
     static std::string prettifyByteSize(double byteSize);
+
+	static std::vector<AudioProcessorStatistic*> Statistics::audioProcessorStatistics;
 };
+
+
 
 #endif	/* STATISTICS_H */
 
