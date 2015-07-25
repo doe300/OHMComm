@@ -13,7 +13,11 @@ auto AudioHandler::addProcessor(AudioProcessor *audioProcessor) -> bool
 {
     if (hasAudioProcessor(audioProcessor) == false) {
         audioProcessors.push_back(audioProcessor);
-		Statistics::addProcessor(audioProcessor->getName());
+        if(ProfilingAudioProcessor* profiler = dynamic_cast<ProfilingAudioProcessor*>(audioProcessor))
+        {
+            //if this is a profiling processor, we need to add it to statistics to be printed on exit
+            Statistics::addProfiler(profiler);
+        }
         return true; // Successful added
     }
     return false;
@@ -25,7 +29,10 @@ auto AudioHandler::removeAudioProcessor(AudioProcessor *audioProcessor) -> bool
     {
         if ((audioProcessors.at(i))->getName() == audioProcessor->getName()) {
             audioProcessors.erase(audioProcessors.begin() + i);
-			Statistics::removeProcessor(audioProcessor->getName());
+            if(ProfilingAudioProcessor* profiler = dynamic_cast<ProfilingAudioProcessor*>(audioProcessor))
+            {
+                Statistics::removeProfiler(profiler);
+            }
             return true; // Successful removed
         }	
     }
@@ -36,9 +43,13 @@ auto AudioHandler::removeAudioProcessor(std::string nameOfAudioProcessor) -> boo
 {
     for (size_t i = 0; i < audioProcessors.size(); i++)
     {
-        if (audioProcessors.at(i)->getName() == nameOfAudioProcessor) {
+        if (audioProcessors.at(i)->getName() == nameOfAudioProcessor)
+        {
+            if(ProfilingAudioProcessor* profiler = dynamic_cast<ProfilingAudioProcessor*>(audioProcessors.at(i)))
+            {
+                Statistics::removeProfiler(profiler);
+            }
             audioProcessors.erase(audioProcessors.begin() + i);
-			Statistics::removeProcessor(nameOfAudioProcessor);
             return true; // Successful removed
         }
     }
@@ -48,7 +59,7 @@ auto AudioHandler::removeAudioProcessor(std::string nameOfAudioProcessor) -> boo
 auto AudioHandler::clearAudioProcessors() -> bool
 {
     audioProcessors.clear();
-	Statistics::removeAllProcessors();
+    Statistics::removeAllProfilers();
     return true;
 }
 
@@ -90,29 +101,19 @@ auto AudioHandler::getAudioConfiguration()->AudioConfiguration
 
 void AudioHandler::processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData)
 {
-	
     unsigned int bufferSize = outputBufferByteSize;
-    for (auto i = audioProcessors.size(); i > 0; i--)
+    for (unsigned int i = audioProcessors.size(); i > 0; i--)
     {
-		auto beginTime = Clock::now();
         bufferSize = audioProcessors.at(i-1)->processOutputData(outputBuffer, bufferSize, streamData);
-		auto endTime = Clock::now();
-		auto difference = endTime - beginTime;
-		int ms = std::chrono::duration_cast<std::chrono::milliseconds> (difference).count();
     }
 }
 
 void AudioHandler::processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, StreamData *streamData)
 {
     unsigned int bufferSize = inputBufferByteSize;
-
-	for (auto i = 0; i < audioProcessors.size(); i++)
+    for (unsigned int i = 0; i < audioProcessors.size(); i++)
     {
-		auto beginTime = Clock::now();
-		bufferSize = audioProcessors.at(i)->processInputData(inputBuffer, bufferSize, streamData);
-		auto endTime = Clock::now();
-		auto difference = endTime - beginTime;
-		int ms = std::chrono::duration_cast<std::chrono::milliseconds> (difference).count();
+        bufferSize = audioProcessors.at(i)->processInputData(inputBuffer, bufferSize, streamData);
     }
 }
 

@@ -20,7 +20,14 @@ class AudioProcessorFactory
 public:
     static const std::string OPUS_CODEC;
     static const std::string WAV_WRITER;
-    static AudioProcessor* getAudioProcessor(std::string name);
+    /*!
+     * Returns the AudioProcessor for the given name
+     * 
+     * \param name The name to look for
+     * 
+     * \param createProfiler whether to create a profiler for the audio-processor
+     */
+    static AudioProcessor* getAudioProcessor(std::string name, bool createProfiler);
     static const std::vector<std::string> getAudioProcessorNames();
 private:
 

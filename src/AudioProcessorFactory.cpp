@@ -9,24 +9,34 @@
 
 #include "ProcessorOpus.h"
 #include "ProcessorWAV.h"
+#include "ProfilingAudioProcessor.h"
 
 const std::string AudioProcessorFactory::OPUS_CODEC = "Opus-Codec";
 const std::string AudioProcessorFactory::WAV_WRITER = "wav-Writer";
 
-AudioProcessor* AudioProcessorFactory::getAudioProcessor(std::string name)
+AudioProcessor* AudioProcessorFactory::getAudioProcessor(std::string name, bool createProfiler)
 {
+    AudioProcessor* processor = nullptr;
     #ifdef PROCESSOROPUS_H
     if(name == OPUS_CODEC)
     {
-        return new ProcessorOpus(OPUS_CODEC, OPUS_APPLICATION_VOIP);
+        processor = new ProcessorOpus(OPUS_CODEC, OPUS_APPLICATION_VOIP);
     }
     #endif
     #ifdef PROCESSORWAV_H
     if(name == WAV_WRITER)
     {
-        return new ProcessorWAV();
+        processor = new ProcessorWAV();
     }
     #endif
+    if(processor != nullptr)
+    {
+        if(createProfiler)
+        {
+            return new ProfilingAudioProcessor(processor);
+        }
+        return processor;
+    }
     throw std::invalid_argument("No AudioProcessor for the given name");
 }
 

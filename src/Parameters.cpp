@@ -16,8 +16,12 @@ const Parameter Parameters::REMOTE_ADDRESS(ParameterCategory::NETWORK, true, 'r'
 const Parameter Parameters::REMOTE_PORT(ParameterCategory::NETWORK, true, 'p', "remote-port", "The port of the remote computer", std::to_string(DEFAULT_NETWORK_PORT), true);
 const Parameter Parameters::LOCAL_PORT(ParameterCategory::NETWORK, true, 'l', "local-port", "The local port to listen on", std::to_string(DEFAULT_NETWORK_PORT), true);
 const Parameter Parameters::AUDIO_PROCESSOR(ParameterCategory::PROCESSORS, 'a', "add-processor", "The name of the audio-processor to add", "");
+const Parameter Parameters::PROFILE_PROCESSORS(ParameterCategory::PROCESSORS, 't', "profile-processors", "Whether to profile the execution time of audio-processors");
 
 //TODO allow for adding processor-specific parameters
+//they would need to be added before reading the command-line arguments.
+//Which means, before the processors are initialized.
+//Could they be added via global code?
 const std::vector<const Parameter*> Parameters::availableParameters = {
     //General
     &HELP,
@@ -26,7 +30,7 @@ const std::vector<const Parameter*> Parameters::availableParameters = {
     //Network-config
     &REMOTE_ADDRESS, &REMOTE_PORT, &LOCAL_PORT,
     //Processor-config
-    &AUDIO_PROCESSOR
+    &AUDIO_PROCESSOR, &PROFILE_PROCESSORS
 };
 
 Parameters::Parameters(const std::vector<std::string> allProcessorNames) : allProcessorNames(allProcessorNames)

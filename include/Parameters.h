@@ -101,6 +101,7 @@ public:
     static const Parameter REMOTE_PORT;
     static const Parameter LOCAL_PORT;
     static const Parameter AUDIO_PROCESSOR;
+    static const Parameter PROFILE_PROCESSORS;
     
     // A list of all available parameters
     static const std::vector<const Parameter*> availableParameters;

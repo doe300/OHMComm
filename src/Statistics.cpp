@@ -6,6 +6,7 @@
  */
 
 #include "Statistics.h"
+#include "UserInput.h"
 
 const int Statistics::COUNTER_PACKAGES_SENT = 0;
 const int Statistics::COUNTER_PACKAGES_RECEIVED = 1;
@@ -25,7 +26,7 @@ const int Statistics::RTP_BUFFER_MAXIMUM_USAGE = 14;
 const int Statistics::RTP_BUFFER_LIMIT = 15;
 
 long Statistics::counters[] = {0};
-std::vector<AudioProcessorStatistic*> Statistics::audioProcessorStatistics;
+std::vector<ProfilingAudioProcessor*> Statistics::audioProcessorStatistics;
 
 void Statistics::incrementCounter(int counterIndex, long byValue)
 {
@@ -56,8 +57,7 @@ void Statistics::printStatistics()
     std::cout << std::endl;
     std::cout << "Ran " << counters[TOTAL_ELAPSED_MILLISECONDS] << " ms (" << seconds << " s)" << std::endl;
     //Audio statistics
-    std::cout << std::endl;
-    std::cout << "+++ Audio statistics +++" << std::endl;
+    UserInput::printSection("Audio statistics");
     std::cout << "Recorded " << counters[COUNTER_PAYLOAD_BYTES_RECORDED] << " bytes (" 
             << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]) << ") of audio-data (" 
             << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]/seconds) << "/s)" << std::endl;
@@ -69,8 +69,7 @@ void Statistics::printStatistics()
     std::cout << "Played " << counters[COUNTER_FRAMES_OUTPUT] << " audio-frames (" 
             << (counters[COUNTER_FRAMES_OUTPUT]/seconds) << " fps)" << std::endl;
     //Network statistics
-    std::cout << std::endl;
-    std::cout << "+++ Network statistics +++" << std::endl;
+    UserInput::printSection("Network statistics");
     std::cout << "Sent " << counters[COUNTER_PACKAGES_SENT] << " packages (" 
             << (counters[COUNTER_PACKAGES_SENT]/seconds) << " per second)" << std::endl;
     std::cout << "Sent " << (counters[COUNTER_PAYLOAD_BYTES_SENT] + counters[COUNTER_HEADER_BYTES_SENT]) << " bytes ("
@@ -106,15 +105,13 @@ void Statistics::printStatistics()
     std::cout << "Lost " << counters[COUNTER_PACKAGES_LOST] << " RTP-packages (" 
             << (counters[COUNTER_PACKAGES_LOST]/seconds) << " packages per second)" << std::endl;
     //Buffer statistics
-    std::cout << std::endl;
-    std::cout << "+++ Buffer statistics +++" << std::endl;
+    UserInput::printSection("Buffer statistics");
     std::cout << "Maximum buffer usage was " << counters[RTP_BUFFER_MAXIMUM_USAGE] << " of " 
             << counters[RTP_BUFFER_LIMIT] << " packages ("
             << prettifyPercentage(counters[RTP_BUFFER_MAXIMUM_USAGE]/(double)counters[RTP_BUFFER_LIMIT]) << "%)" 
             << std::endl;
     //Compression statistics
-    std::cout << std::endl;
-    std::cout << "+++ Compression statistics +++" << std::endl;
+    UserInput::printSection("Compression statistics");
     std::cout << "Compressed " << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]) << " of audio-data into " 
             << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_SENT]) << " (" 
             << prettifyPercentage(1 - (counters[COUNTER_PAYLOAD_BYTES_SENT] / (double) counters[COUNTER_PAYLOAD_BYTES_RECORDED])) 
@@ -124,8 +121,8 @@ void Statistics::printStatistics()
             << prettifyPercentage((counters[COUNTER_PAYLOAD_BYTES_OUTPUT] / (double) counters[COUNTER_PAYLOAD_BYTES_RECEIVED])) 
             << "% decompression)" << std::endl;
 
-	// AudioProcessor statistics
-	//Statistics::printAudioProcessorStatistic();
+    // AudioProcessor statistics
+    Statistics::printAudioProcessorStatistic();
 }
 
 double Statistics::prettifyPercentage(double percentage)
@@ -163,83 +160,45 @@ std::string Statistics::prettifyByteSize(double byteSize)
     return std::string(buf, numChars) + unit;
 }
 
-void Statistics::addProcessor(std::string name)
+void Statistics::addProfiler(ProfilingAudioProcessor* profiler)
 {
-	Statistics::audioProcessorStatistics.push_back(new AudioProcessorStatistic(name));
+    Statistics::audioProcessorStatistics.push_back(profiler);
 }
 
 
-void Statistics::removeProcessor(std::string name)
+void Statistics::removeProfiler(ProfilingAudioProcessor* profiler)
 {
-	for (auto i = 0; i < Statistics::audioProcessorStatistics.size(); i++)
-	{
-		if (Statistics::audioProcessorStatistics.at(i)->getProcessorName() == name)
-			Statistics::audioProcessorStatistics.erase(Statistics::audioProcessorStatistics.begin() + i);
-	}
+    for (unsigned int i = 0; i < Statistics::audioProcessorStatistics.size(); i++)
+    {
+        if (Statistics::audioProcessorStatistics.at(i) ==profiler)
+        {
+            Statistics::audioProcessorStatistics.erase(Statistics::audioProcessorStatistics.begin() + i);
+        }
+    }
 }
 
 
-void Statistics::removeAllProcessors()
+void Statistics::removeAllProfilers()
 {
-	Statistics::audioProcessorStatistics.clear();
+    Statistics::audioProcessorStatistics.clear();
 }
 
 void Statistics::printAudioProcessorStatistic()
 {
-	
-	// AudioProcessor statistics
-	std::cout << std::endl;
-	std::cout << "+++ AudioProcessor statistics +++" << std::endl;
-	for (auto i = 0; i < Statistics::audioProcessorStatistics.size(); i++)
-	{
-		std::cout << std::endl << audioProcessorStatistics.at(i)->getProcessorName() << std::endl;
-		std::cout << "InputStatistics: " << audioProcessorStatistics.at(i)->getAverageInputTime() << "Microseconds" << std::endl;
-		std::cout << "OutputStatistics: " << audioProcessorStatistics.at(i)->getAverageOuputTime() << "Microseconds" << std::endl;
-	}
-}
-
-auto Statistics::getAudioProcessorStatistic(std::string name) -> AudioProcessorStatistic*
-{
-	for (auto i = 0; i < Statistics::audioProcessorStatistics.size(); i++)
-	{
-		if (audioProcessorStatistics.at(i)->getProcessorName() == name)
-			return audioProcessorStatistics.at(i);
-	}
-	return nullptr;
-}
-
-void Statistics::TimerStartInputProcessing(std::string name)
-{
-#ifdef _AUDIOPROCESSORSTATISTIC
-	auto audioProcessorStatisticObject = getAudioProcessorStatistic(name);
-	audioProcessorStatisticObject->time.start();
-#endif
-}
-
-void Statistics::TimerStopInputProcessing(std::string name)
-{
-#ifdef _AUDIOPROCESSORSTATISTIC
-	auto audioProcessorStatisticObject = getAudioProcessorStatistic(name);
-	audioProcessorStatisticObject->time.stop();
-	int timeDifference = audioProcessorStatisticObject->time.getDifferenceInMs();
-	audioProcessorStatisticObject->addTimeInputProcessing(timeDifference);
-#endif
-}
-
-void Statistics::TimerStartOutputProcessing(std::string name)
-{
-#ifdef _AUDIOPROCESSORSTATISTIC
-	auto audioProcessorStatisticObject = getAudioProcessorStatistic(name);
-	audioProcessorStatisticObject->time.start();
-#endif
-}
-
-void Statistics::TimerStopOutputProcessing(std::string name)
-{
-#ifdef _AUDIOPROCESSORSTATISTIC
-	auto audioProcessorStatisticObject = getAudioProcessorStatistic(name);
-	audioProcessorStatisticObject->time.stop();
-	int timeDifference = audioProcessorStatisticObject->time.getDifferenceInMs();
-	audioProcessorStatisticObject->addTimeOutputProcessing(timeDifference);
-#endif
+    if(Statistics::audioProcessorStatistics.empty())
+    {
+        return;
+    }
+    // AudioProcessor statistics
+    UserInput::printSection("AudioProcessor statistics");
+    for(ProfilingAudioProcessor* profiler : Statistics::audioProcessorStatistics)
+    {
+        double inputAverage = profiler->getTotalInputTime() / (double)profiler->getTotalCount();
+        double outputAverage = profiler->getTotalOutputTime() / (double)profiler->getTotalCount();
+        std::cout << std::endl << profiler->getName() << std::endl;
+        std::cout << "\tProcessing audio-input took " << profiler->getTotalInputTime()
+                << " microseconds in total (" << inputAverage << " microseconds per call)" << std::endl;
+        std::cout << "\tProcessing audio-output took  " << profiler->getTotalOutputTime()
+                << " microseconds in total (" << outputAverage << " microseconds per call)" << std::endl;
+    }
 }

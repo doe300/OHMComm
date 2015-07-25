@@ -21,7 +21,7 @@ public:
      * \param wrapper The underlying NetworkWrapper
      */
     NetworkWrappingProcessor(std::string name, NetworkWrapper *wrapper);
-    virtual ~NetworkWrappingProcessor();
+    ~NetworkWrappingProcessor();
     
     unsigned int getSupportedAudioFormats();
     unsigned int getSupportedSampleRates();

@@ -334,11 +334,13 @@ int main(int argc, char* argv[])
 	////
         // AudioProcessors
         ////
+        bool createProfiler;
         if(runWithArguments)
         {
+            createProfiler = params.isParameterSet(Parameters::PROFILE_PROCESSORS);
             for(const std::string procName : params.getAudioProcessors())
             {
-                AudioProcessor* proc = AudioProcessorFactory::getAudioProcessor(procName);
+                AudioProcessor* proc = AudioProcessorFactory::getAudioProcessor(procName, createProfiler);
                 if(proc != nullptr)
                 {
                     audioObject->addProcessor(proc);
@@ -347,13 +349,14 @@ int main(int argc, char* argv[])
         }
         else
         {
+            createProfiler = UserInput::inputBoolean("Create profiler for audio-processors?");
             // add processors to the process chain
             audioProcessors.push_back("End");
             unsigned int selectedIndex;
             std::cout << "The AudioProcessors should be added in the order they are used on the sending side!" << std::endl;
             while((selectedIndex = UserInput::selectOptionIndex("Select next AudioProcessor to add", audioProcessors, audioProcessors.size()-1)) != audioProcessors.size()-1)
             {
-                audioObject->addProcessor(AudioProcessorFactory::getAudioProcessor(audioProcessors.at(selectedIndex)));
+                audioObject->addProcessor(AudioProcessorFactory::getAudioProcessor(audioProcessors.at(selectedIndex), createProfiler));
                 audioProcessors.at(selectedIndex) = audioProcessors.at(selectedIndex) + " (added)";
             }
         }
@@ -366,7 +369,16 @@ int main(int argc, char* argv[])
         std::unique_ptr<RTPBuffer> *rtpBuffer = new std::unique_ptr<RTPBuffer>(new RTPBuffer(256, 1000));
 
         ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
-        audioObject->addProcessor(&rtp);
+        if(createProfiler)
+        {
+            //enabled profiling of the RTP processor
+            ProfilingAudioProcessor* rtpProfiler = new ProfilingAudioProcessor(&rtp);
+            audioObject->addProcessor(rtpProfiler);
+        }
+        else
+        {
+            audioObject->addProcessor(&rtp);
+        }
 
 
         //configure all processors
@@ -383,7 +395,8 @@ int main(int argc, char* argv[])
         cout << "Type Enter to exit" << endl;
         cin >> input;
 
-		Statistics::printStatistics();
+        //TODO remove this when shutdown-error is fixed
+        Statistics::printStatistics();
         audioObject->stop();
         listener.shutdown();
         network->closeNetwork();

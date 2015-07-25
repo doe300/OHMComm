@@ -10,8 +10,9 @@
 
 #include <iostream>
 #include <string>
-#include "AudioProcessorStatistic.h"
 #include <vector>
+
+#include "ProfilingAudioProcessor.h"
 /*!
  * Class to collect and print statistical information
  */
@@ -67,62 +68,30 @@ public:
      */
     static void printStatistics();
 
-	/*!
-	 * Adds a processor to statistics array in order to record its statistic
-	 *
-	 * \param name The name of the AudioProcessor
-	 */
-	static void addProcessor(std::string name);
+    /*!
+     * Adds a processor to statistics array in order to record its statistic
+     *
+     * \param profiler The profiling audio-processor
+     */
+    static void addProfiler(ProfilingAudioProcessor* profiler);
 
-	/*!
-	 * Removes a processor from statistics array
-	 *
-	 * \param name The name of the AudioProcessor
-	 */
-	static void removeProcessor(std::string name);
+    /*!
+     * Removes a processor from statistics array
+     *
+     * \param profiler The profiling audio-processor
+     */
+    static void removeProfiler(ProfilingAudioProcessor* profiler);
 
-	/*!
-	 * Removes all processors from the statistics array
-	 */
-	static void removeAllProcessors();
+    /*!
+     * Removes all processors from the statistics array
+     */
+    static void removeAllProfilers();
 
-	/*!
-	 * Get the specific AudioProcessorStatistic
-	 */
-	static auto getAudioProcessorStatistic(std::string name) -> AudioProcessorStatistic*;
+    /*!
+     * Prints statistics from all added AudioProcessors
+     */
+    static void printAudioProcessorStatistic();
 
-	/*!
-	 * Prints statistics from all added AudioProcessors
-	 */
-	static void printAudioProcessorStatistic();
-
-	/*!
-	 * Starts the timer for an AudioProcessorStatistic-Object (Input)
-	 *
-	 * \param name The name of the AudioProcessor
-	 */
-	static void TimerStartInputProcessing(std::string name);
-
-	/*!
-	 * Stops the timer for an AudioProcessorStatistic-Object (Input)
-	 *
-	 * \param name The name of the AudioProcessor
-	 */
-	static void TimerStopInputProcessing(std::string name);
-
-	/*!
-	 * Starts the timer for an AudioProcessorStatistic-Object (Output)
-	 *
-	 * \param name The name of the AudioProcessor
-	 */
-	static void TimerStartOutputProcessing(std::string name);
-
-	/*!
-	 * Stops the timer for an AudioProcessorStatistic-Object (Output)
-	 *
-	 * \param name The name of the AudioProcessor
-	 */
-	static void TimerStopOutputProcessing(std::string name);
 private:
 
     static long counters[20];
@@ -131,7 +100,7 @@ private:
     
     static std::string prettifyByteSize(double byteSize);
 
-	static std::vector<AudioProcessorStatistic*> Statistics::audioProcessorStatistics;
+    static std::vector<ProfilingAudioProcessor*> audioProcessorStatistics;
 };
 
 

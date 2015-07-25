@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include "Statistics.h"
 
 #include "configuration.h"
 
@@ -46,7 +45,12 @@ class AudioProcessor
 {
 public:
     AudioProcessor(std::string name);
-
+    
+    virtual ~AudioProcessor()
+    {
+        
+    }
+    
     const std::string getName();
     void setName(std::string name);
     
