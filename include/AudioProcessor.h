@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "Statistics.h"
 
 #include "configuration.h"
 

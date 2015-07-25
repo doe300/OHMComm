@@ -34,3 +34,19 @@ void AudioProcessorStatistic::reset()
 	inputProcessingTime = 0; 
 	counts = 0; 
 }
+
+void Time::start()
+{
+	timeStart = std::chrono::high_resolution_clock::now();
+}
+
+void Time::stop()
+{
+	timeStop = std::chrono::high_resolution_clock::now();
+}
+
+int Time::getDifferenceInMs()
+{
+	long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(timeStop - timeStart).count();
+	return static_cast<int>(microseconds);
+}

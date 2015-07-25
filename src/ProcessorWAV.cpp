@@ -69,18 +69,32 @@ unsigned int ProcessorWAV::getSupportedSampleRates()
 
 unsigned int ProcessorWAV::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
+	// Measure performance in ms
+	Statistics::TimerStartInputProcessing(this->getName());
+
     if(writeInputFile != nullptr)
     {
         wavfile_write(writeInputFile, (short*)inputBuffer, userData->nBufferFrames*2);
     }
+
+	// Measure performance in ms
+	Statistics::TimerStopInputProcessing(this->getName());
     return inputBufferByteSize;
+
 }
 
 unsigned int ProcessorWAV::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
 {
+	// Measure performance in ms
+	Statistics::TimerStartOutputProcessing(this->getName());
+
     if(writeOutputFile != nullptr)
     {
         wavfile_write(writeOutputFile, (short*)outputBuffer, userData->nBufferFrames*2);
     }
+
+	// Measure performance in ms
+	Statistics::TimerStopOutputProcessing(this->getName());
+
     return outputBufferByteSize;
 }

@@ -3,6 +3,18 @@
 
 #include <iostream>
 #include <string>
+#include <chrono>
+
+class Time
+{
+public:
+	void start();
+	void stop();
+	int getDifferenceInMs();
+private:
+	std::chrono::system_clock::time_point timeStart;
+	std::chrono::system_clock::time_point timeStop;
+};
 
 class AudioProcessorStatistic
 {
@@ -14,12 +26,12 @@ public:
 	double getAverageOuputTime();
 	std::string getProcessorName();
 	void reset();
+	Time time;
 private:
 	std::string processorName;
 	unsigned int outputProcessingTime;
 	unsigned int inputProcessingTime;
 	unsigned int counts;
 };
-
 
 #endif

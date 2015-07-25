@@ -125,7 +125,7 @@ void Statistics::printStatistics()
             << "% decompression)" << std::endl;
 
 	// AudioProcessor statistics
-	Statistics::printAudioProcessorStatistic();
+	//Statistics::printAudioProcessorStatistic();
 }
 
 double Statistics::prettifyPercentage(double percentage)
@@ -193,7 +193,53 @@ void Statistics::printAudioProcessorStatistic()
 	for (auto i = 0; i < Statistics::audioProcessorStatistics.size(); i++)
 	{
 		std::cout << std::endl << audioProcessorStatistics.at(i)->getProcessorName() << std::endl;
-		std::cout << "InputStatistics" << audioProcessorStatistics.at(i)->getAverageInputTime() << std::endl;
-		std::cout << "OutputStatistics" << audioProcessorStatistics.at(i)->getAverageOuputTime() << std::endl;
+		std::cout << "InputStatistics: " << audioProcessorStatistics.at(i)->getAverageInputTime() << "Microseconds" << std::endl;
+		std::cout << "OutputStatistics: " << audioProcessorStatistics.at(i)->getAverageOuputTime() << "Microseconds" << std::endl;
 	}
+}
+
+auto Statistics::getAudioProcessorStatistic(std::string name) -> AudioProcessorStatistic*
+{
+	for (auto i = 0; i < Statistics::audioProcessorStatistics.size(); i++)
+	{
+		if (audioProcessorStatistics.at(i)->getProcessorName() == name)
+			return audioProcessorStatistics.at(i);
+	}
+	return nullptr;
+}
+
+void Statistics::TimerStartInputProcessing(std::string name)
+{
+#ifdef _AUDIOPROCESSORSTATISTIC
+	auto audioProcessorStatisticObject = getAudioProcessorStatistic(name);
+	audioProcessorStatisticObject->time.start();
+#endif
+}
+
+void Statistics::TimerStopInputProcessing(std::string name)
+{
+#ifdef _AUDIOPROCESSORSTATISTIC
+	auto audioProcessorStatisticObject = getAudioProcessorStatistic(name);
+	audioProcessorStatisticObject->time.stop();
+	int timeDifference = audioProcessorStatisticObject->time.getDifferenceInMs();
+	audioProcessorStatisticObject->addTimeInputProcessing(timeDifference);
+#endif
+}
+
+void Statistics::TimerStartOutputProcessing(std::string name)
+{
+#ifdef _AUDIOPROCESSORSTATISTIC
+	auto audioProcessorStatisticObject = getAudioProcessorStatistic(name);
+	audioProcessorStatisticObject->time.start();
+#endif
+}
+
+void Statistics::TimerStopOutputProcessing(std::string name)
+{
+#ifdef _AUDIOPROCESSORSTATISTIC
+	auto audioProcessorStatisticObject = getAudioProcessorStatistic(name);
+	audioProcessorStatisticObject->time.stop();
+	int timeDifference = audioProcessorStatisticObject->time.getDifferenceInMs();
+	audioProcessorStatisticObject->addTimeOutputProcessing(timeDifference);
+#endif
 }

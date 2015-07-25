@@ -87,9 +87,42 @@ public:
 	static void removeAllProcessors();
 
 	/*!
+	 * Get the specific AudioProcessorStatistic
+	 */
+	static auto getAudioProcessorStatistic(std::string name) -> AudioProcessorStatistic*;
+
+	/*!
 	 * Prints statistics from all added AudioProcessors
 	 */
 	static void printAudioProcessorStatistic();
+
+	/*!
+	 * Starts the timer for an AudioProcessorStatistic-Object (Input)
+	 *
+	 * \param name The name of the AudioProcessor
+	 */
+	static void TimerStartInputProcessing(std::string name);
+
+	/*!
+	 * Stops the timer for an AudioProcessorStatistic-Object (Input)
+	 *
+	 * \param name The name of the AudioProcessor
+	 */
+	static void TimerStopInputProcessing(std::string name);
+
+	/*!
+	 * Starts the timer for an AudioProcessorStatistic-Object (Output)
+	 *
+	 * \param name The name of the AudioProcessor
+	 */
+	static void TimerStartOutputProcessing(std::string name);
+
+	/*!
+	 * Stops the timer for an AudioProcessorStatistic-Object (Output)
+	 *
+	 * \param name The name of the AudioProcessor
+	 */
+	static void TimerStopOutputProcessing(std::string name);
 private:
 
     static long counters[20];

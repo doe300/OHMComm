@@ -383,7 +383,7 @@ int main(int argc, char* argv[])
         cout << "Type Enter to exit" << endl;
         cin >> input;
 
-
+		Statistics::printStatistics();
         audioObject->stop();
         listener.shutdown();
         network->closeNetwork();

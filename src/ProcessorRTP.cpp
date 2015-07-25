@@ -24,6 +24,9 @@ std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sampleRate)
 
 unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
+	// Measure performance in ms
+	//Statistics::TimerStartInputProcessing(this->getName());
+
     // pack data into a rtp-package
     if (rtpPackage == nullptr)
     {
@@ -38,12 +41,18 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTP_HEADER_MIN_SIZE);
     Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT, inputBufferByteSize);
     
+	// Measure performance in ms
+	//Statistics::TimerStopInputProcessing(this->getName());
+
     //no changes in buffer-size
     return inputBufferByteSize;
 }
 
 unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
+	// Measure performance in ms
+	//Statistics::TimerStartOutputProcessing(this->getName());
+
     // unpack data from a rtp-package
     if (rtpPackage == nullptr)
     {
@@ -55,6 +64,9 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
     unsigned int receivedPayloadSize = rtpPackage->getActualPayloadSize();
     memcpy(outputBuffer, recvAudioData, outputBufferByteSize);
     
+	// Measure performance in ms
+	//Statistics::TimerStopOutputProcessing(this->getName());
+
     //set received payload size for all following processors to use
     return receivedPayloadSize;
 }
