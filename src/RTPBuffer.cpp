@@ -5,6 +5,8 @@
  * Created on March 28, 2015, 12:27 PM
  */
 
+#include <malloc.h>
+
 #include "RTPBuffer.h"
 #include "Statistics.h"
 
@@ -66,15 +68,20 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int c
     uint16_t newWriteIndex = calculateIndex(nextReadIndex, receivedHeader->sequence_number-minSequenceNumber);
     //write package-data into buffer
     ringBuffer[newWriteIndex].isValid = true;
-
     ringBuffer[newWriteIndex].header = *receivedHeader;
-
-    ringBuffer[newWriteIndex].contentSize = contentSize;
-
     if(ringBuffer[newWriteIndex].packageContent == nullptr)
     {
-        ringBuffer[newWriteIndex].packageContent = new char[contentSize];
+        //allocate new buffer with the current content-size
+        ringBuffer[newWriteIndex].bufferSize = contentSize;
+        ringBuffer[newWriteIndex].packageContent = malloc(contentSize);
     }
+    else if(ringBuffer[newWriteIndex].bufferSize < contentSize)
+    {
+        //reallocate buffer, because the content would not fit
+        ringBuffer[newWriteIndex].bufferSize = contentSize;
+        ringBuffer[newWriteIndex].packageContent = realloc(ringBuffer[newWriteIndex].packageContent, contentSize);
+    }
+    ringBuffer[newWriteIndex].contentSize = contentSize;
     memcpy(ringBuffer[newWriteIndex].packageContent, package.getRTPPackageData(), contentSize);
     //update size
     size++;

@@ -47,7 +47,7 @@ public:
 private:
     NetworkWrapper *wrapper;
     std::unique_ptr<RTPBuffer> *buffer;
-    RTPPackageHandler *receivedPackage;
+    RTPPackageHandler receivedPackage;
     std::thread receiveThread;
     bool threadRunning = false;
 

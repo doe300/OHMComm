@@ -8,14 +8,14 @@
 #include "RTPListener.h"
 #include "Statistics.h"
 
-RTPListener::RTPListener(NetworkWrapper *wrapper, std::unique_ptr<RTPBuffer> *buffer, unsigned int receiveBufferSize)
+RTPListener::RTPListener(NetworkWrapper *wrapper, std::unique_ptr<RTPBuffer> *buffer, unsigned int receiveBufferSize) :
+    receivedPackage(receiveBufferSize)
 {
     this->wrapper = wrapper;
     this->buffer = buffer;
-    receivedPackage = new RTPPackageHandler(receiveBufferSize);
 }
 
-RTPListener::RTPListener(const RTPListener& orig)
+RTPListener::RTPListener(const RTPListener& orig) : receivedPackage(orig.receivedPackage)
 {
     this->wrapper = orig.wrapper;
     this->buffer = orig.buffer;
@@ -24,7 +24,6 @@ RTPListener::RTPListener(const RTPListener& orig)
 RTPListener::~RTPListener()
 {
     shutdown();
-    delete receivedPackage;
 }
 
 void RTPListener::startUp()
@@ -39,15 +38,15 @@ void RTPListener::runThread()
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
-        int receivedSize = this->wrapper->recvDataNetworkWrapper(receivedPackage->getWorkBuffer(), receivedPackage->getMaximumPackageSize());
+        int receivedSize = this->wrapper->recvDataNetworkWrapper(receivedPackage.getWorkBuffer(), receivedPackage.getMaximumPackageSize());
         if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
-        else
+        else if(threadRunning)
         {
             //2. write package to buffer
-            if((*buffer)->addPackage(*receivedPackage, receivedSize - RTP_HEADER_MIN_SIZE) == RTP_BUFFER_INPUT_OVERFLOW)
+            if((*buffer)->addPackage(receivedPackage, receivedSize - RTP_HEADER_MIN_SIZE) == RTP_BUFFER_INPUT_OVERFLOW)
             {
                 //TODO some handling or simply discard?
                 std::cerr << "Input Buffer overflow" << std::endl;
@@ -60,6 +59,7 @@ void RTPListener::runThread()
             }
         }
     }
+    std::cout << "RTP-Listener shut down" << std::endl;
 }
 
 void RTPListener::shutdown()

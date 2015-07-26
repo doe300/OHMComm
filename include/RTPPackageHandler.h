@@ -40,7 +40,7 @@ const unsigned int RTP_HEADER_MAX_SIZE = 72;
  * The header extension contains a 16-bit length field that counts the number of 32-bit words in the extension,
  * excluding the four-octet extension header (therefore zero is a valid length). Only a single extension
  * can be appended to the RTP data header. To allow multiple interoperating implementations to each experiment
- * independently with different header extensions, or to allow aparticular implementation to experiment
+ * independently with different header extensions, or to allow a particular implementation to experiment
  * with more than one type of header extension, the first 16 bits of the header extension are left open
  * for distinguishing identifiers or parameters. The format of these 16 bits is to be defined
  * by the profile specification under which the implementations are operating. 

@@ -48,7 +48,7 @@ public:
     
     virtual ~AudioProcessor()
     {
-        
+        //needs a virtual destructor to be overridden correctly
     }
     
     const std::string getName();
