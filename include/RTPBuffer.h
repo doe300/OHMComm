@@ -99,6 +99,10 @@ private:
          */
         unsigned int contentSize;
         /*!
+         * The size of the buffer, this is at least contentSize
+         */
+        unsigned int bufferSize;
+        /*!
          * The package data
          */
         void *packageContent = nullptr;

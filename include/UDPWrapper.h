@@ -30,8 +30,6 @@
 class UDPWrapper : public NetworkWrapper
 {
 public:
-    UDPWrapper(sockaddr_in localAddress, sockaddr_in remoteAddress);
-
     UDPWrapper(unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing);
 
     UDPWrapper(struct NetworkConfiguration networkConfig);
@@ -53,8 +51,8 @@ public:
     int getLastError();
 protected:
     int Socket;
-    sockaddr_in localAddress;
-    sockaddr_in remoteAddress;
+    sockaddr localAddress;
+    sockaddr remoteAddress;
     unsigned int outputBufferSize = 0;
     unsigned int inputBufferSize = 0;
 };

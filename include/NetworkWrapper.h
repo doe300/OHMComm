@@ -51,6 +51,14 @@ public:
      * Closes the underlying socket
      */
     virtual void closeNetwork() = 0;
+    
+protected:
+    /*!
+     * \param ipAddress The address to check
+     * 
+     * \return Whether the address given is an IPv6 address
+     */
+    static bool isIPv6(std::string ipAddress);
 };
 
 #endif
