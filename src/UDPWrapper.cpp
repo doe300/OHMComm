@@ -118,7 +118,7 @@ int UDPWrapper::sendDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 
 int UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 {
-    unsigned int localAddrLen = sizeof(localAddress);
+    int localAddrLen = sizeof(localAddress);
     int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, &(this->localAddress), &localAddrLen);
     if (result == -1)
         std::cerr << this->getLastError();
