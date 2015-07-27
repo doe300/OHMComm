@@ -11,6 +11,7 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
+#include <ws2tcpip.h>
 
 // Defines OS-independant flag to close socket
 #define SHUTDOWN_BOTH SD_BOTH   // 2
