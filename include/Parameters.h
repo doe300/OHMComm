@@ -95,6 +95,7 @@ class Parameters
 public:
     
     static const Parameter HELP;
+    static const Parameter LOG_TO_FILE;
     static const Parameter INPUT_DEVICE;
     static const Parameter OUTPUT_DEVICE;
     static const Parameter REMOTE_ADDRESS;

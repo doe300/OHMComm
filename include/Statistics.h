@@ -64,9 +64,14 @@ public:
     static void maxCounter(int counterIndex, long newValue);
     
     /*!
-     * Prints some general statistical information
+     * Prints some general statistical information to stdout
      */
     static void printStatistics();
+    
+    /*!
+     * Prints the statistical information to the file specified by the given name
+     */
+    static void printStatisticsToFile(std::string fileName);
 
     /*!
      * Adds a processor to statistics array in order to record its statistic
@@ -87,11 +92,6 @@ public:
      */
     static void removeAllProfilers();
 
-    /*!
-     * Prints statistics from all added AudioProcessors
-     */
-    static void printAudioProcessorStatistic();
-
 private:
 
     static long counters[20];
@@ -101,6 +101,15 @@ private:
     static std::string prettifyByteSize(double byteSize);
 
     static std::vector<ProfilingAudioProcessor*> audioProcessorStatistics;
+
+    /*!
+     * Internal helper-method to print statistics to given output-stream
+     */
+    static void printStatistics(std::ostream& outputStream);
+    /*!
+     * Internal helper-method to print audio-processor profiling results to given output-stream
+     */
+    static void printAudioProcessorStatistic(std::ostream& outputStream);
 };
 
 

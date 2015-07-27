@@ -335,6 +335,8 @@ int main(int argc, char* argv[])
         // AudioProcessors
         ////
         bool createProfiler;
+        bool logStatisticsToFile;
+        std::string statisticsLogFile;
         if(runWithArguments)
         {
             createProfiler = params.isParameterSet(Parameters::PROFILE_PROCESSORS);
@@ -346,10 +348,17 @@ int main(int argc, char* argv[])
                     audioObject->addProcessor(proc);
                 }
             }
+            logStatisticsToFile = params.isParameterSet(Parameters::LOG_TO_FILE);
+            statisticsLogFile = params.getParameterValue(Parameters::LOG_TO_FILE);
         }
         else
         {
             createProfiler = UserInput::inputBoolean("Create profiler for audio-processors?");
+            logStatisticsToFile = UserInput::inputBoolean("Log statistics and profiling-results to file?");
+            if(logStatisticsToFile)
+            {
+                statisticsLogFile = UserInput::inputString("Type log-file name");
+            }
             // add processors to the process chain
             audioProcessors.push_back("End");
             unsigned int selectedIndex;
@@ -395,13 +404,16 @@ int main(int argc, char* argv[])
         cout << "Type Enter to exit" << endl;
         cin >> input;
 
-        //TODO remove this when shutdown-error is fixed
-        Statistics::printStatistics();
         audioObject->stop();
         listener.shutdown();
         network->closeNetwork();
         //TODO fix error on shutdown
         
+        if(logStatisticsToFile)
+        {
+            Statistics::printStatisticsToFile(statisticsLogFile);
+        }
+        //print statistics to stdout anyway
         Statistics::printStatistics();
         return 0;
     }

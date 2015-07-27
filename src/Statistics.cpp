@@ -6,7 +6,7 @@
  */
 
 #include "Statistics.h"
-#include "UserInput.h"
+#include <fstream>
 
 const int Statistics::COUNTER_PACKAGES_SENT = 0;
 const int Statistics::COUNTER_PACKAGES_RECEIVED = 1;
@@ -48,81 +48,26 @@ void Statistics::maxCounter(int counterIndex, long newValue)
 
 void Statistics::printStatistics()
 {
-    double seconds = counters[TOTAL_ELAPSED_MILLISECONDS] / 1000.0;
-    if(seconds == 0)
-    {
-        std::cout << "Couldn't print statistics" << std::endl;
-        return;
-    }
-    std::cout << std::endl;
-    std::cout << "Ran " << counters[TOTAL_ELAPSED_MILLISECONDS] << " ms (" << seconds << " s)" << std::endl;
-    //Audio statistics
-    UserInput::printSection("Audio statistics");
-    std::cout << "Recorded " << counters[COUNTER_PAYLOAD_BYTES_RECORDED] << " bytes (" 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]) << ") of audio-data (" 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]/seconds) << "/s)" << std::endl;
-    std::cout << "Recorded " << counters[COUNTER_FRAMES_RECORDED] << " audio-frames (" 
-            << (counters[COUNTER_FRAMES_RECORDED]/seconds) << " fps)" << std::endl;
-    std::cout << "Played " << counters[COUNTER_PAYLOAD_BYTES_OUTPUT] << " bytes (" 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_OUTPUT]) << ") of audio-data (" 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_OUTPUT]/seconds) << "/s)" << std::endl;
-    std::cout << "Played " << counters[COUNTER_FRAMES_OUTPUT] << " audio-frames (" 
-            << (counters[COUNTER_FRAMES_OUTPUT]/seconds) << " fps)" << std::endl;
-    //Network statistics
-    UserInput::printSection("Network statistics");
-    std::cout << "Sent " << counters[COUNTER_PACKAGES_SENT] << " packages (" 
-            << (counters[COUNTER_PACKAGES_SENT]/seconds) << " per second)" << std::endl;
-    std::cout << "Sent " << (counters[COUNTER_PAYLOAD_BYTES_SENT] + counters[COUNTER_HEADER_BYTES_SENT]) << " bytes ("
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_SENT] + counters[COUNTER_HEADER_BYTES_SENT]) << ") in total ("
-            << prettifyByteSize((counters[COUNTER_PAYLOAD_BYTES_SENT] + counters[COUNTER_HEADER_BYTES_SENT])/seconds) << "/s)"
-            << std::endl;
-    std::cout << "Sent " << counters[COUNTER_PAYLOAD_BYTES_SENT] << " bytes (" 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_SENT]) << ") of audio-data (" 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_SENT]/seconds) << "/s)" << std::endl;
-    std::cout << "Sent " << counters[COUNTER_HEADER_BYTES_SENT] << " bytes (" 
-            << prettifyByteSize(counters[COUNTER_HEADER_BYTES_SENT]) << ") of RTP-header (" 
-            << prettifyByteSize(counters[COUNTER_HEADER_BYTES_SENT]/seconds) << "/s)" << std::endl;
-    std::cout << "Sent " << counters[COUNTER_HEADER_BYTES_SENT] << " of " 
-            << counters[COUNTER_PAYLOAD_BYTES_SENT] << " bytes as overhead ("
-            << prettifyPercentage(counters[COUNTER_HEADER_BYTES_SENT] / (double) counters[COUNTER_PAYLOAD_BYTES_SENT]) 
-            << "%)" << std::endl;
-    std::cout << "Received " << counters[COUNTER_PACKAGES_RECEIVED] << " packages (" 
-            << (counters[COUNTER_PACKAGES_RECEIVED]/seconds) << " per second)" << std::endl;
-    std::cout << "Received " << (counters[COUNTER_PAYLOAD_BYTES_RECEIVED] + counters[COUNTER_HEADER_BYTES_RECEIVED]) << " bytes ("
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED] + counters[COUNTER_HEADER_BYTES_RECEIVED]) << ") in total ("
-            << prettifyByteSize((counters[COUNTER_PAYLOAD_BYTES_RECEIVED] + counters[COUNTER_HEADER_BYTES_RECEIVED])/seconds) << "/s)"
-            << std::endl;
-    std::cout << "Received " << counters[COUNTER_PAYLOAD_BYTES_RECEIVED] << " bytes (" 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED]) << ") of audio-data (" 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED]/seconds) << "/s)" << std::endl;
-    std::cout << "Received " << counters[COUNTER_HEADER_BYTES_RECEIVED] << " bytes (" 
-            << prettifyByteSize(counters[COUNTER_HEADER_BYTES_RECEIVED]) << ") of RTP-header (" 
-            << prettifyByteSize(counters[COUNTER_HEADER_BYTES_RECEIVED]/seconds) << "/s)" << std::endl;
-    std::cout << "Received " << counters[COUNTER_HEADER_BYTES_RECEIVED] << " of " 
-            << counters[COUNTER_PAYLOAD_BYTES_RECEIVED] << " bytes as overhead ("
-            << prettifyPercentage(counters[COUNTER_HEADER_BYTES_RECEIVED] / (double) counters[COUNTER_PAYLOAD_BYTES_RECEIVED]) 
-            << "%)" << std::endl;
-    std::cout << "Lost " << counters[COUNTER_PACKAGES_LOST] << " RTP-packages (" 
-            << (counters[COUNTER_PACKAGES_LOST]/seconds) << " packages per second)" << std::endl;
-    //Buffer statistics
-    UserInput::printSection("Buffer statistics");
-    std::cout << "Maximum buffer usage was " << counters[RTP_BUFFER_MAXIMUM_USAGE] << " of " 
-            << counters[RTP_BUFFER_LIMIT] << " packages ("
-            << prettifyPercentage(counters[RTP_BUFFER_MAXIMUM_USAGE]/(double)counters[RTP_BUFFER_LIMIT]) << "%)" 
-            << std::endl;
-    //Compression statistics
-    UserInput::printSection("Compression statistics");
-    std::cout << "Compressed " << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]) << " of audio-data into " 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_SENT]) << " (" 
-            << prettifyPercentage(1 - (counters[COUNTER_PAYLOAD_BYTES_SENT] / (double) counters[COUNTER_PAYLOAD_BYTES_RECORDED])) 
-            << "% compression)" << std::endl;
-    std::cout << "Decompressed " << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_OUTPUT]) << " of audio-data out of " 
-            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED]) << " ("
-            << prettifyPercentage((counters[COUNTER_PAYLOAD_BYTES_OUTPUT] / (double) counters[COUNTER_PAYLOAD_BYTES_RECEIVED])) 
-            << "% decompression)" << std::endl;
+    printStatistics(std::cout);
+}
 
-    // AudioProcessor statistics
-    Statistics::printAudioProcessorStatistic();
+void Statistics::printStatisticsToFile(std::string fileName)
+{
+    std::ofstream fileStream(fileName.c_str(), std::ios_base::out|std::ios_base::trunc);
+    if(fileStream.is_open())
+    {
+        printStatistics(fileStream);
+    }
+    else
+    {
+        std::cerr << "Error while opening log-file" << std::endl;
+    }
+    fileStream.close();
+    if(fileStream.fail())
+    {
+        //TODO how to get at least error-code?
+        std::cerr << "Error while writing statistics!" << std::endl;
+    }
 }
 
 double Statistics::prettifyPercentage(double percentage)
@@ -183,22 +128,106 @@ void Statistics::removeAllProfilers()
     Statistics::audioProcessorStatistics.clear();
 }
 
-void Statistics::printAudioProcessorStatistic()
+void Statistics::printStatistics(std::ostream& outputStream)
+{
+    double seconds = counters[TOTAL_ELAPSED_MILLISECONDS] / 1000.0;
+    if(seconds == 0)
+    {
+        outputStream << "Couldn't print statistics" << std::endl;
+        return;
+    }
+    outputStream << std::endl;
+    outputStream << "Ran " << counters[TOTAL_ELAPSED_MILLISECONDS] << " ms (" << seconds << " s)" << std::endl;
+    //Audio statistics
+    outputStream << std::endl;
+    outputStream << "+++ Audio statistics +++" << std::endl;
+    outputStream << "Recorded " << counters[COUNTER_PAYLOAD_BYTES_RECORDED] << " bytes (" 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]) << ") of audio-data (" 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]/seconds) << "/s)" << std::endl;
+    outputStream << "Recorded " << counters[COUNTER_FRAMES_RECORDED] << " audio-frames (" 
+            << (counters[COUNTER_FRAMES_RECORDED]/seconds) << " fps)" << std::endl;
+    outputStream << "Played " << counters[COUNTER_PAYLOAD_BYTES_OUTPUT] << " bytes (" 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_OUTPUT]) << ") of audio-data (" 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_OUTPUT]/seconds) << "/s)" << std::endl;
+    outputStream << "Played " << counters[COUNTER_FRAMES_OUTPUT] << " audio-frames (" 
+            << (counters[COUNTER_FRAMES_OUTPUT]/seconds) << " fps)" << std::endl;
+    //Network statistics
+    outputStream << std::endl;
+    outputStream << "+++ Network statistics +++" << std::endl;
+    outputStream << "Sent " << counters[COUNTER_PACKAGES_SENT] << " packages (" 
+            << (counters[COUNTER_PACKAGES_SENT]/seconds) << " per second)" << std::endl;
+    outputStream << "Sent " << (counters[COUNTER_PAYLOAD_BYTES_SENT] + counters[COUNTER_HEADER_BYTES_SENT]) << " bytes ("
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_SENT] + counters[COUNTER_HEADER_BYTES_SENT]) << ") in total ("
+            << prettifyByteSize((counters[COUNTER_PAYLOAD_BYTES_SENT] + counters[COUNTER_HEADER_BYTES_SENT])/seconds) << "/s)"
+            << std::endl;
+    outputStream << "Sent " << counters[COUNTER_PAYLOAD_BYTES_SENT] << " bytes (" 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_SENT]) << ") of audio-data (" 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_SENT]/seconds) << "/s)" << std::endl;
+    outputStream << "Sent " << counters[COUNTER_HEADER_BYTES_SENT] << " bytes (" 
+            << prettifyByteSize(counters[COUNTER_HEADER_BYTES_SENT]) << ") of RTP-header (" 
+            << prettifyByteSize(counters[COUNTER_HEADER_BYTES_SENT]/seconds) << "/s)" << std::endl;
+    outputStream << "Sent " << counters[COUNTER_HEADER_BYTES_SENT] << " of " 
+            << counters[COUNTER_PAYLOAD_BYTES_SENT] << " bytes as overhead ("
+            << prettifyPercentage(counters[COUNTER_HEADER_BYTES_SENT] / (double) counters[COUNTER_PAYLOAD_BYTES_SENT]) 
+            << "%)" << std::endl;
+    outputStream << "Received " << counters[COUNTER_PACKAGES_RECEIVED] << " packages (" 
+            << (counters[COUNTER_PACKAGES_RECEIVED]/seconds) << " per second)" << std::endl;
+    outputStream << "Received " << (counters[COUNTER_PAYLOAD_BYTES_RECEIVED] + counters[COUNTER_HEADER_BYTES_RECEIVED]) << " bytes ("
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED] + counters[COUNTER_HEADER_BYTES_RECEIVED]) << ") in total ("
+            << prettifyByteSize((counters[COUNTER_PAYLOAD_BYTES_RECEIVED] + counters[COUNTER_HEADER_BYTES_RECEIVED])/seconds) << "/s)"
+            << std::endl;
+    outputStream << "Received " << counters[COUNTER_PAYLOAD_BYTES_RECEIVED] << " bytes (" 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED]) << ") of audio-data (" 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED]/seconds) << "/s)" << std::endl;
+    outputStream << "Received " << counters[COUNTER_HEADER_BYTES_RECEIVED] << " bytes (" 
+            << prettifyByteSize(counters[COUNTER_HEADER_BYTES_RECEIVED]) << ") of RTP-header (" 
+            << prettifyByteSize(counters[COUNTER_HEADER_BYTES_RECEIVED]/seconds) << "/s)" << std::endl;
+    outputStream << "Received " << counters[COUNTER_HEADER_BYTES_RECEIVED] << " of " 
+            << counters[COUNTER_PAYLOAD_BYTES_RECEIVED] << " bytes as overhead ("
+            << prettifyPercentage(counters[COUNTER_HEADER_BYTES_RECEIVED] / (double) counters[COUNTER_PAYLOAD_BYTES_RECEIVED]) 
+            << "%)" << std::endl;
+    outputStream << "Lost " << counters[COUNTER_PACKAGES_LOST] << " RTP-packages (" 
+            << (counters[COUNTER_PACKAGES_LOST]/seconds) << " packages per second)" << std::endl;
+    //Buffer statistics
+    outputStream << std::endl;
+    outputStream << "+++ Buffer statistics +++" << std::endl;
+    outputStream << "Maximum buffer usage was " << counters[RTP_BUFFER_MAXIMUM_USAGE] << " of " 
+            << counters[RTP_BUFFER_LIMIT] << " packages ("
+            << prettifyPercentage(counters[RTP_BUFFER_MAXIMUM_USAGE]/(double)counters[RTP_BUFFER_LIMIT]) << "%)" 
+            << std::endl;
+    //Compression statistics
+    outputStream << std::endl;
+    outputStream << "+++ Compression statistics +++" << std::endl;
+    outputStream << "Compressed " << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]) << " of audio-data into " 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_SENT]) << " (" 
+            << prettifyPercentage(1 - (counters[COUNTER_PAYLOAD_BYTES_SENT] / (double) counters[COUNTER_PAYLOAD_BYTES_RECORDED])) 
+            << "% compression)" << std::endl;
+    outputStream << "Decompressed " << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_OUTPUT]) << " of audio-data out of " 
+            << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED]) << " ("
+            << prettifyPercentage((counters[COUNTER_PAYLOAD_BYTES_OUTPUT] / (double) counters[COUNTER_PAYLOAD_BYTES_RECEIVED])) 
+            << "% decompression)" << std::endl;
+
+    // AudioProcessor statistics
+    Statistics::printAudioProcessorStatistic(outputStream);
+}
+
+void Statistics::printAudioProcessorStatistic(std::ostream& outputStream)
 {
     if(Statistics::audioProcessorStatistics.empty())
     {
         return;
     }
     // AudioProcessor statistics
-    UserInput::printSection("AudioProcessor statistics");
+    outputStream << std::endl;
+    outputStream << "+++ AudioProcessor statistics +++" << std::endl;
     for(ProfilingAudioProcessor* profiler : Statistics::audioProcessorStatistics)
     {
         double inputAverage = profiler->getTotalInputTime() / (double)profiler->getTotalCount();
         double outputAverage = profiler->getTotalOutputTime() / (double)profiler->getTotalCount();
-        std::cout << std::endl << profiler->getName() << std::endl;
-        std::cout << "\tProcessing audio-input took " << profiler->getTotalInputTime()
+        outputStream << std::endl << profiler->getName() << std::endl;
+        outputStream << "\tProcessing audio-input took " << profiler->getTotalInputTime()
                 << " microseconds in total (" << inputAverage << " microseconds per call)" << std::endl;
-        std::cout << "\tProcessing audio-output took  " << profiler->getTotalOutputTime()
+        outputStream << "\tProcessing audio-output took  " << profiler->getTotalOutputTime()
                 << " microseconds in total (" << outputAverage << " microseconds per call)" << std::endl;
     }
 }

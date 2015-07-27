@@ -10,6 +10,7 @@
 #include <string.h>
 
 const Parameter Parameters::HELP(ParameterCategory::GENERAL, 'h', "help", "Print this help message and exit");
+const Parameter Parameters::LOG_TO_FILE(ParameterCategory::GENERAL, 'f', "log-file", "Log statistics and profiling-information to file.", "OHMComm.log");
 const Parameter Parameters::INPUT_DEVICE(ParameterCategory::AUDIO, 'i', "input-device-id", "The id of the device used for audio-input. This value will fall back to the library-default", "");
 const Parameter Parameters::OUTPUT_DEVICE(ParameterCategory::AUDIO, 'o', "output-device-id", "The id of the device used for audio-output. This value will fall back to the library-default", "");
 const Parameter Parameters::REMOTE_ADDRESS(ParameterCategory::NETWORK, true, 'r', "remote-address", "The IP address of the computer to connect to", "", true);
@@ -24,7 +25,7 @@ const Parameter Parameters::PROFILE_PROCESSORS(ParameterCategory::PROCESSORS, 't
 //Could they be added via global code?
 const std::vector<const Parameter*> Parameters::availableParameters = {
     //General
-    &HELP,
+    &HELP, &LOG_TO_FILE,
     //Audio-config
     &INPUT_DEVICE, &OUTPUT_DEVICE,
     //Network-config
