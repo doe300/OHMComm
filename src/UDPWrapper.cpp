@@ -118,7 +118,11 @@ int UDPWrapper::sendDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 
 int UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
 {
+    #ifdef _WIN32
     int localAddrLen = sizeof(localAddress);
+    #else
+    unsigned int localAddrLen = sizeof(localAddress);
+    #endif
     int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, &(this->localAddress), &localAddrLen);
     if (result == -1)
         std::cerr << this->getLastError();
