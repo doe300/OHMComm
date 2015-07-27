@@ -42,7 +42,7 @@ public:
 
     void createSocket();
 
-    void InitializeNetworkConfig(unsigned short localPort, std::string remoteAddress, unsigned short remotePort);
+    void initializeNetworkConfig(unsigned short localPort, std::string remoteAddress, unsigned short remotePort);
 
     int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
     int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
@@ -50,6 +50,7 @@ public:
     void closeNetwork();
     int getLastError();
 protected:
+    bool isIPv6;
     int Socket;
     sockaddr localAddress;
     sockaddr remoteAddress;
