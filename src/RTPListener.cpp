@@ -23,7 +23,8 @@ RTPListener::RTPListener(const RTPListener& orig) : receivedPackage(orig.receive
 
 RTPListener::~RTPListener()
 {
-    shutdown();
+	// Wait until thread has really stopped
+	receiveThread.join();
 }
 
 void RTPListener::startUp()
@@ -39,7 +40,12 @@ void RTPListener::runThread()
     {
         //1. wait for package and store into RTPPackage
         int receivedSize = this->wrapper->recvDataNetworkWrapper(receivedPackage.getWorkBuffer(), receivedPackage.getMaximumPackageSize());
-        if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
+
+		if (receivedSize == 1 && *(unsigned char*)receivedPackage.getWorkBuffer() == 255)
+		{
+			shutdown();
+		}
+        else if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
@@ -64,7 +70,7 @@ void RTPListener::runThread()
 
 void RTPListener::shutdown()
 {
-    //notify the thread to stop
+    // notify the thread to stop
     threadRunning = false;
 }
 

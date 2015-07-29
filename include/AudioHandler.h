@@ -60,6 +60,7 @@ protected:
      * Calls AudioProcessor#configure() for all registered processors
      */
     auto configureAudioProcessors() -> bool;
+	auto cleanUpAudioProcessors() -> bool;
 };
 
 #endif

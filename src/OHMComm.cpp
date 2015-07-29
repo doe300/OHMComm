@@ -407,7 +407,6 @@ int main(int argc, char* argv[])
         audioObject->stop();
         listener.shutdown();
         network->closeNetwork();
-        //TODO fix error on shutdown
         
         if(logStatisticsToFile)
         {

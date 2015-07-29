@@ -74,6 +74,17 @@ auto AudioHandler::configureAudioProcessors() -> bool
     return true;
 }
 
+auto AudioHandler::cleanUpAudioProcessors() -> bool
+{
+	for (AudioProcessor *processor : audioProcessors)
+	{
+		bool result = processor->cleanUp();
+		if (result == false) // Configuration failed
+			return false;
+	}
+	return true;
+}
+
 auto AudioHandler::hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool
 {
     for (const auto processor : audioProcessors)

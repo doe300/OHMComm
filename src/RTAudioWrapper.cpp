@@ -158,6 +158,7 @@ void RtAudioWrapper::stop()
 {
     this->suspend();
     this->rtaudio.closeStream();
+	this->cleanUpAudioProcessors();
 }
 
 void RtAudioWrapper::resume()

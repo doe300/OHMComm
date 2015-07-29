@@ -70,3 +70,11 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
     //set received payload size for all following processors to use
     return receivedPayloadSize;
 }
+
+bool ProcessorRTP::cleanUp()
+{
+	// Send a special packet, to tell the client that communication has been stopped
+	char buffer = 255;
+	this->networkObject->sendDataNetworkWrapper(&buffer, 1);
+	return true;
+}

@@ -18,4 +18,8 @@ bool AudioProcessor::configure(AudioConfiguration config)
     return true;
 }
 
-
+bool AudioProcessor::cleanUp()
+{
+	//dummy implementation, does nothing
+	return true;
+}

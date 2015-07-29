@@ -33,6 +33,8 @@ public:
 
     unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);
     unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
+
+	bool cleanUp();
 private:
     NetworkWrapper *networkObject;
     RTPPackageHandler *rtpPackage = nullptr;

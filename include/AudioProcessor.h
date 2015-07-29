@@ -97,6 +97,12 @@ public:
      */
     virtual bool configure(AudioConfiguration audioConfig);
 
+	/*!
+	 * Counterpart of configure(). This method is called, when the object is not needed any longer.
+	 */
+	virtual bool cleanUp();
+
+
     /*
      * The actual processing methods. processInputData is the counterpart of processInputData 
      * 
