@@ -23,6 +23,8 @@ class RtAudioWrapper : public AudioHandler
 public:
     RtAudioWrapper();
     RtAudioWrapper(const AudioConfiguration &audioConfig);
+    
+    ~RtAudioWrapper();
 
     /* deny copies with the copy constructor */
     RtAudioWrapper(const RtAudioWrapper & copy) = delete;

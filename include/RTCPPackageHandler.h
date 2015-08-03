@@ -501,11 +501,43 @@ public:
      * 
      * \param packageLength The number of bytes to read
      * 
-     * \param header The RTCPHEader to store the read header into
+     * \param header The RTCPHeader to store the read header into
      * 
      * \return the read ApplicationDefined data
      */
     ApplicationDefined readApplicationDefinedMessage(void *appDefinedPackage, uint16_t packageLength, RTCPHeader &header);
+
+    /*!
+     * Reads an RTCP-header and returns whether the package was an RTCP-package
+     * 
+     * \param rtcpPackage The buffer to read from
+     * 
+     * \param packageLength The number of bytes in the package
+     * 
+     * \return Whether the RTCP-header was successfully read
+     */
+    RTCPHeader readRTCPHeader(void* rtcpPackage, unsigned int packageLength);
+    
+    /*!
+     * This method tries to determine whether the received buffer holds an RTCP package.
+     * 
+     * NOTE: Though this method can distinguish RTCP-packages from RTP-packages,
+     * there may be some type of packages, which are not distinguished and falsely accepted as valid RTCP-package.
+     * 
+     * \param packageBuffer The buffer storing the package-data
+     * 
+     * \param packageLength The length of the package in bytes
+     * 
+     * \return Whether this buffer COULD be holding hold an RTCP package
+     */
+    bool isRTCPPackage(void* packageBuffer, unsigned int packageLength );
+    
+    /*!
+     * \param lengthHeaderField The value of the RTCP header-field "length"
+     * 
+     * \return the length of the RTCP-package in bytes
+     */
+    unsigned int getRTCPPackageLength(unsigned int lengthHeaderField);
     
 private:
     char *rtcpPackageBuffer;

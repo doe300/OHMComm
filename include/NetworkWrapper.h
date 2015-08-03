@@ -31,7 +31,7 @@ public:
      * 
      * Returns the number of bytes sent
      */
-    virtual int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0) = 0;
+    virtual int sendData(void *buffer, unsigned int bufferSize = 0) = 0;
 
     /*!
      * \param buffer The buffer to receive into
@@ -40,7 +40,7 @@ public:
      * 
      * Returns the number of bytes received
      */
-    virtual int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0) = 0;
+    virtual int receiveData(void *buffer, unsigned int bufferSize = 0) = 0;
 
     /*!
      * Returns the last error code

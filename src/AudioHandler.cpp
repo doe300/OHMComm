@@ -1,9 +1,12 @@
 #include "AudioHandler.h"
 
+AudioHandler::~AudioHandler()
+{
+}
 
 void AudioHandler::printAudioProcessorOrder(std::ostream& OutputStream) const
 {
-    for (const auto processor : audioProcessors)
+    for (const auto& processor : audioProcessors)
     {
         OutputStream << processor->getName() << std::endl;
     }
@@ -12,7 +15,7 @@ void AudioHandler::printAudioProcessorOrder(std::ostream& OutputStream) const
 auto AudioHandler::addProcessor(AudioProcessor *audioProcessor) -> bool
 {
     if (hasAudioProcessor(audioProcessor) == false) {
-        audioProcessors.push_back(audioProcessor);
+        audioProcessors.push_back(std::unique_ptr<AudioProcessor>(audioProcessor));
         if(ProfilingAudioProcessor* profiler = dynamic_cast<ProfilingAudioProcessor*>(audioProcessor))
         {
             //if this is a profiling processor, we need to add it to statistics to be printed on exit
@@ -45,7 +48,7 @@ auto AudioHandler::removeAudioProcessor(std::string nameOfAudioProcessor) -> boo
     {
         if (audioProcessors.at(i)->getName() == nameOfAudioProcessor)
         {
-            if(ProfilingAudioProcessor* profiler = dynamic_cast<ProfilingAudioProcessor*>(audioProcessors.at(i)))
+            if(ProfilingAudioProcessor* profiler = dynamic_cast<ProfilingAudioProcessor*>(audioProcessors.at(i).get()))
             {
                 Statistics::removeProfiler(profiler);
             }
@@ -65,7 +68,7 @@ auto AudioHandler::clearAudioProcessors() -> bool
 
 auto AudioHandler::configureAudioProcessors() -> bool
 {
-    for (AudioProcessor *processor : audioProcessors)
+    for (const auto& processor : audioProcessors)
     {
         bool result = processor->configure(audioConfiguration);
         if (result == false) // Configuration failed
@@ -76,10 +79,10 @@ auto AudioHandler::configureAudioProcessors() -> bool
 
 auto AudioHandler::cleanUpAudioProcessors() -> bool
 {
-	for (AudioProcessor *processor : audioProcessors)
+	for (const auto& processor : audioProcessors)
 	{
 		bool result = processor->cleanUp();
-		if (result == false) // Configuration failed
+		if (result == false) // Cleanup failed
 			return false;
 	}
 	return true;
@@ -87,7 +90,7 @@ auto AudioHandler::cleanUpAudioProcessors() -> bool
 
 auto AudioHandler::hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool
 {
-    for (const auto processor : audioProcessors)
+    for (const auto& processor : audioProcessors)
     {
         if ( processor->getName() == audioProcessor->getName() )
             return true;
@@ -97,7 +100,7 @@ auto AudioHandler::hasAudioProcessor(AudioProcessor *audioProcessor) const -> bo
 
 auto AudioHandler::hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool
 {
-    for (const auto processor : audioProcessors)
+    for (const auto& processor : audioProcessors)
     {
         if ( processor->getName() == nameOfAudioProcessor )
             return true;

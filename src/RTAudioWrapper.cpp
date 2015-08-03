@@ -21,6 +21,11 @@ RtAudioWrapper::RtAudioWrapper(const AudioConfiguration &audioConfig) : RtAudioW
     this->setConfiguration(audioConfig);
 }
 
+RtAudioWrapper::~RtAudioWrapper()
+{
+    delete streamData;
+    delete[] (char*)bufferAudioOutput;
+}
 
 // static callbackHelper (calls the callback of the object)
 auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int
@@ -158,7 +163,7 @@ void RtAudioWrapper::stop()
 {
     this->suspend();
     this->rtaudio.closeStream();
-	this->cleanUpAudioProcessors();
+    this->cleanUpAudioProcessors();
 }
 
 void RtAudioWrapper::resume()

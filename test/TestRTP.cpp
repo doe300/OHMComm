@@ -28,6 +28,7 @@ void TestRTP::testRTCPByeMessage()
     //modify package-type again
     byeHeader->packageType = RTCP_PACKAGE_RECEIVER_REPORT;
     
+    TEST_ASSERT_MSG(p.isRTCPPackage(byePointer, 21), "RTCP message not recognized as such");
     std::string byeMessage = p.readByeMessage(byePointer, 21, *byeHeader);
     //package-type should be adjusted again
     TEST_ASSERT_EQUALS_MSG(RTCP_PACKAGE_GOODBYE, byeHeader->packageType, "Package-type of GOODBYE expected! 02");

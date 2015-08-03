@@ -111,12 +111,12 @@ void UDPWrapper::createSocket()
     }
 }
 
-int UDPWrapper::sendDataNetworkWrapper(void *buffer, unsigned int bufferSize)
+int UDPWrapper::sendData(void *buffer, unsigned int bufferSize)
 {
     return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, &(this->remoteAddress), sizeof(remoteAddress));
 }
 
-int UDPWrapper::recvDataNetworkWrapper(void *buffer, unsigned int bufferSize)
+int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
 {
     #ifdef _WIN32
     int localAddrLen = sizeof(localAddress);

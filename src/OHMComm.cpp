@@ -303,13 +303,14 @@ int main(int argc, char* argv[])
         // Network-Config
         ////
 
-        NetworkWrapper *network;
+        std::shared_ptr<NetworkWrapper> network;
         if(runWithArguments)
         {
             networkConfiguration.addressOutgoing = params.getParameterValue(Parameters::REMOTE_ADDRESS);
             networkConfiguration.portIncoming = atoi(params.getParameterValue(Parameters::LOCAL_PORT).c_str());
             networkConfiguration.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
-            network = new UDPWrapper(networkConfiguration);
+            std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfiguration));
+            network = std::move(tmp);
         }
         else
         {
@@ -318,16 +319,18 @@ int main(int argc, char* argv[])
 
             if (input == 'N' || input == 'n')
             {
-                    configureNetwork();
-                    network = new UDPWrapper(networkConfiguration);
+                configureNetwork();
+                std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfiguration));
+                network = std::move(tmp);    
             }
             else
             {
-                    networkConfiguration.addressOutgoing = "127.0.0.1";
-                    //the port should be a number greater than 1024
-                    networkConfiguration.portIncoming = DEFAULT_NETWORK_PORT;
-                    networkConfiguration.portOutgoing = DEFAULT_NETWORK_PORT;
-                    network = new UDPWrapper(networkConfiguration);
+                networkConfiguration.addressOutgoing = "127.0.0.1";
+                //the port should be a number greater than 1024
+                networkConfiguration.portIncoming = DEFAULT_NETWORK_PORT;
+                networkConfiguration.portOutgoing = DEFAULT_NETWORK_PORT;
+                std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfiguration));
+                network = std::move(tmp);
             }
         }
 
@@ -375,18 +378,18 @@ int main(int argc, char* argv[])
         ////
 
         //initialize RTPBuffer and -Listener
-        std::unique_ptr<RTPBuffer> *rtpBuffer = new std::unique_ptr<RTPBuffer>(new RTPBuffer(256, 1000));
+        std::shared_ptr<RTPBuffer> rtpBuffer(new RTPBuffer(256, 1000));
 
-        ProcessorRTP rtp("RTP-Processor", network, rtpBuffer);
+        ProcessorRTP* rtp = new ProcessorRTP("RTP-Processor", network, rtpBuffer);
         if(createProfiler)
         {
             //enabled profiling of the RTP processor
-            ProfilingAudioProcessor* rtpProfiler = new ProfilingAudioProcessor(&rtp);
+            ProfilingAudioProcessor* rtpProfiler = new ProfilingAudioProcessor(rtp);
             audioObject->addProcessor(rtpProfiler);
         }
         else
         {
-            audioObject->addProcessor(&rtp);
+            audioObject->addProcessor(rtp);
         }
 
 

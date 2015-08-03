@@ -8,14 +8,14 @@
 #include "RTPListener.h"
 #include "Statistics.h"
 
-RTPListener::RTPListener(NetworkWrapper *wrapper, std::unique_ptr<RTPBuffer> *buffer, unsigned int receiveBufferSize) :
-    receivedPackage(receiveBufferSize)
+RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBuffer> buffer, unsigned int receiveBufferSize) :
+    rtpHandler(receiveBufferSize)
 {
     this->wrapper = wrapper;
     this->buffer = buffer;
 }
 
-RTPListener::RTPListener(const RTPListener& orig) : receivedPackage(orig.receivedPackage)
+RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler)
 {
     this->wrapper = orig.wrapper;
     this->buffer = orig.buffer;
@@ -23,8 +23,8 @@ RTPListener::RTPListener(const RTPListener& orig) : receivedPackage(orig.receive
 
 RTPListener::~RTPListener()
 {
-	// Wait until thread has really stopped
-	receiveThread.join();
+    // Wait until thread has really stopped
+    receiveThread.join();
 }
 
 void RTPListener::startUp()
@@ -39,12 +39,26 @@ void RTPListener::runThread()
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
-        int receivedSize = this->wrapper->recvDataNetworkWrapper(receivedPackage.getWorkBuffer(), receivedPackage.getMaximumPackageSize());
+        int receivedSize = this->wrapper->receiveData(rtpHandler.getWorkBuffer(), rtpHandler.getMaximumPackageSize());
 
-		if (receivedSize == 1 && *(unsigned char*)receivedPackage.getWorkBuffer() == 255)
-		{
-			shutdown();
-		}
+        if(receivedSize == INVALID_SOCKET)
+        {
+            //socket was already closed
+            shutdown();
+        }
+        else if (rtcpHandler.isRTCPPackage(rtpHandler.getWorkBuffer(), receivedSize))
+        {
+            //handle RTCP-packages
+            RTCPHeader header = rtcpHandler.readRTCPHeader(rtpHandler.getWorkBuffer(), receivedSize);
+            if(header.packageType == RTCP_PACKAGE_GOODBYE)
+            {
+                //other side sent an BYE-package, shutting down
+                std::cout << "Received Goodbye-message: " << rtcpHandler.readByeMessage(rtpHandler.getWorkBuffer(), receivedSize, header) << std::endl;
+                std::cout << "Dialog partner requested end of communication, shutting down!" << std::endl;
+                shutdown();
+                //TODO shutdown sending side!
+            }
+        }
         else if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
         {
             //just continue to next loop iteration, checking if thread should continue running
@@ -52,7 +66,7 @@ void RTPListener::runThread()
         else if(threadRunning)
         {
             //2. write package to buffer
-            if((*buffer)->addPackage(receivedPackage, receivedSize - RTP_HEADER_MIN_SIZE) == RTP_BUFFER_INPUT_OVERFLOW)
+            if(buffer->addPackage(rtpHandler, receivedSize - RTP_HEADER_MIN_SIZE) == RTP_BUFFER_INPUT_OVERFLOW)
             {
                 //TODO some handling or simply discard?
                 std::cerr << "Input Buffer overflow" << std::endl;

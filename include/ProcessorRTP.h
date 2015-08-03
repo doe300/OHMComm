@@ -25,7 +25,7 @@ public:
      * 
      * \param buffer The RTPBuffer to read packages from
      */
-    ProcessorRTP(std::string name, NetworkWrapper *networkwrapper, std::unique_ptr<RTPBuffer> *buffer);
+    ProcessorRTP(std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, std::shared_ptr<RTPBuffer> buffer);
     
     unsigned int getSupportedAudioFormats();
     unsigned int getSupportedSampleRates();
@@ -34,10 +34,10 @@ public:
     unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);
     unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
 
-	bool cleanUp();
+    bool cleanUp();
 private:
-    NetworkWrapper *networkObject;
+    std::shared_ptr<NetworkWrapper> networkObject;
     RTPPackageHandler *rtpPackage = nullptr;
-    std::unique_ptr<RTPBuffer> *rtpBuffer;
+    std::shared_ptr<RTPBuffer> rtpBuffer;
 };
 #endif

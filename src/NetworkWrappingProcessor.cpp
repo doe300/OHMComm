@@ -28,7 +28,7 @@ unsigned int NetworkWrappingProcessor::getSupportedSampleRates()
 
 unsigned int NetworkWrappingProcessor::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
-    wrapper->sendDataNetworkWrapper(inputBuffer, inputBufferByteSize); 
+    wrapper->sendData(inputBuffer, inputBufferByteSize); 
     
     //no changes in buffer-size
     return inputBufferByteSize;
@@ -36,7 +36,7 @@ unsigned int NetworkWrappingProcessor::processInputData(void* inputBuffer, const
 
 unsigned int NetworkWrappingProcessor::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
 {
-    unsigned int receiveBufferSize = wrapper->recvDataNetworkWrapper(outputBuffer, outputBufferByteSize);
+    unsigned int receiveBufferSize = wrapper->receiveData(outputBuffer, outputBufferByteSize);
     
     //set initial received buffer size
     return receiveBufferSize;

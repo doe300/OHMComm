@@ -23,7 +23,7 @@ struct StreamData
     unsigned int nBufferFrames;
 
     /*!
-     * The current time in the stream (i.e. elasped microseconds)
+     * The current time in the stream (i.e. elapsed microseconds)
      */
     unsigned int streamTime;
     

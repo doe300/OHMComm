@@ -45,8 +45,8 @@ public:
 
     void initializeNetworkConfig(unsigned short localPort, std::string remoteAddress, unsigned short remotePort);
 
-    int sendDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
-    int recvDataNetworkWrapper(void *buffer, unsigned int bufferSize = 0);
+    int sendData(void *buffer, unsigned int bufferSize = 0);
+    int receiveData(void *buffer, unsigned int bufferSize = 0);
 
     void closeNetwork();
     int getLastError();

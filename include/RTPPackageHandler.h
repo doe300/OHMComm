@@ -255,6 +255,8 @@ public:
      */
     RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType = L16_2, unsigned int sizeOfRTPHeader = RTP_HEADER_MIN_SIZE);
 
+    ~RTPPackageHandler();
+    
     /*!
      * Generates a new RTP-package by generating the header and copying the payload-data (audio data)
      * 
@@ -323,6 +325,11 @@ public:
      * A silence-package is a RTP-package with a dummy header and zeroed out payload resulting in silence on playback.
      */
     void createSilencePackage();
+    
+    /*!
+     * Returns this device SSRC
+     */
+    unsigned int getSSRC();
     
 private:
     // When a new RTP-Package is created, it will be written in this buffer

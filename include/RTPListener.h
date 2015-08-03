@@ -13,6 +13,7 @@
 #include "RTPBuffer.h"
 
 #include "NetworkWrapper.h"
+#include "RTCPPackageHandler.h"
 
 /*!
  * Listening-thread for incoming RTP-packages
@@ -31,7 +32,7 @@ public:
      * 
      * \param receiveBufferSize The maximum size (in bytes) a RTP-package can fill, according to the configuration
      */
-    RTPListener(NetworkWrapper *wrapper, std::unique_ptr<RTPBuffer> *buffer, unsigned int receiveBufferSize);
+    RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBuffer> buffer, unsigned int receiveBufferSize);
     RTPListener(const RTPListener& orig);
     virtual ~RTPListener();
 
@@ -45,9 +46,10 @@ public:
      */
     void startUp();
 private:
-    NetworkWrapper *wrapper;
-    std::unique_ptr<RTPBuffer> *buffer;
-    RTPPackageHandler receivedPackage;
+    std::shared_ptr<NetworkWrapper> wrapper;
+    std::shared_ptr<RTPBuffer> buffer;
+    RTPPackageHandler rtpHandler;
+    RTCPPackageHandler rtcpHandler;
     std::thread receiveThread;
     bool threadRunning = false;
 

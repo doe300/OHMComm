@@ -18,7 +18,7 @@ RTCPPackageHandler::RTCPPackageHandler()
 
 RTCPPackageHandler::~RTCPPackageHandler()
 {
-    free(rtcpPackageBuffer);
+    delete[] rtcpPackageBuffer;
 }
 
 
@@ -224,6 +224,62 @@ ApplicationDefined RTCPPackageHandler::readApplicationDefinedMessage(void* appDe
     ApplicationDefined result(name, dataLength, data, readHeader->receptionReportOrSourceCount);
     return result;
 }
+
+RTCPHeader RTCPPackageHandler::readRTCPHeader(void* rtcpPackage, unsigned int packageLength)
+{
+    memcpy(rtcpPackageBuffer, rtcpPackage, packageLength);
+    
+    RTCPHeader *readHeader = (RTCPHeader *)rtcpPackageBuffer;
+    RTCPHeader headerCopy = *readHeader;
+    return headerCopy;
+}
+
+bool RTCPPackageHandler::isRTCPPackage(void* packageBuffer, unsigned int packageLength)
+{
+    //1. check for package size, if large enough
+    if(packageLength < RTCP_HEADER_SIZE)
+    {
+        return false;
+    }
+    //2. we assume, it is an RTCP package
+    memcpy(rtcpPackageBuffer, packageBuffer, packageLength);
+    RTCPHeader *readHeader = (RTCPHeader* )rtcpPackageBuffer;
+    
+    //3. check for header-fields
+    if(readHeader->version != 2)
+    {
+        //version is always 2 per specification
+        return false;
+    }
+    switch(readHeader->packageType)
+    {
+        //the packageType must be one of those values per specification
+        //this comparison makes sure, RTP-packages are not accepted, because of the different bit-pattern in the headers
+        case RTCP_PACKAGE_SENDER_REPORT:
+        case RTCP_PACKAGE_RECEIVER_REPORT:
+        case RTCP_PACKAGE_SOURCE_DESCRIPTION:
+        case RTCP_PACKAGE_APPLICATION_DEFINED:
+        case RTCP_PACKAGE_GOODBYE:
+            break;
+        default:
+            return false;
+    }
+    //4. check if the complete package fits in the buffer
+    //the length is the number of 32-bit groups
+    if(getRTCPPackageLength(readHeader->length-1) > packageLength)
+    {
+        return false;
+    }
+    //we have no more fields to eliminate the package as RTCP-package, so we accept it
+    return true;
+}
+
+unsigned int RTCPPackageHandler::getRTCPPackageLength(unsigned int lengthHeaderField)
+{
+    //"The length of this RTCP packet in 32-bit words minus one, including the header and any padding"
+    return (lengthHeaderField + 1) * 4;
+}
+
 
 
 uint8_t RTCPPackageHandler::calculateLengthField(uint16_t length)

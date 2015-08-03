@@ -15,6 +15,7 @@
 class AudioHandler
 {
 public:
+    virtual ~AudioHandler();
     virtual void startRecordingMode() = 0;
     virtual void startPlaybackMode() = 0;
     virtual void startDuplexMode() = 0;
@@ -52,7 +53,7 @@ protected:
     bool flagPrepared = false;
 
 
-    std::vector<AudioProcessor*> audioProcessors;
+    std::vector<std::unique_ptr<AudioProcessor>> audioProcessors;
     AudioConfiguration audioConfiguration;
     void processAudioOutput(void *outputBuffer, const unsigned int &outputBufferByteSize, StreamData *streamData);
     void processAudioInput(void *inputBuffer, const unsigned int &inputBufferByteSize, StreamData *streamData);

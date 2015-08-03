@@ -45,7 +45,7 @@ public:
      * \param minBufferPackages The minimum of packages to buffer before returning valid audio-data
      */
     RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages = 1);
-    virtual ~RTPBuffer();
+    ~RTPBuffer();
 
     /*!
      * Adds a new package to the buffer
@@ -106,6 +106,14 @@ private:
          * The package data
          */
         void *packageContent = nullptr;
+        
+        ~RTPBufferPackage()
+        {
+            if(packageContent != nullptr)
+            {
+                free(packageContent);
+            }
+        }
     };
 
     /*!

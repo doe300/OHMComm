@@ -26,6 +26,12 @@ RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadTyp
 	ssrc = getAudioSourceId();
 }
 
+RTPPackageHandler::~RTPPackageHandler()
+{
+    delete[] (char*)newRTPPackageBuffer;
+    delete[] (char*)workBuffer;
+}
+
 auto RTPPackageHandler::getNewRTPPackage(void* audioData, unsigned int payloadSize) -> void*
 {
 	RTPHeader RTPHeaderObject;
@@ -124,3 +130,9 @@ void RTPPackageHandler::createSilencePackage()
     memcpy(workBuffer, &silenceHeader, sizeOfRTPHeader);
     memset((char *)(workBuffer) + sizeOfRTPHeader, 0, maximumPayloadSize);
 }
+
+unsigned int RTPPackageHandler::getSSRC()
+{
+    return ssrc;
+}
+
