@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <string.h>
 
-const Parameter Parameters::HELP(ParameterCategory::GENERAL, 'h', "help", "Print this help message and exit");
+const Parameter Parameters::HELP(ParameterCategory::GENERAL, 'h', "help", "Print this help page and exit");
 const Parameter Parameters::LOG_TO_FILE(ParameterCategory::GENERAL, 'f', "log-file", "Log statistics and profiling-information to file.", "OHMComm.log");
 const Parameter Parameters::INPUT_DEVICE(ParameterCategory::AUDIO, 'i', "input-device-id", "The id of the device used for audio-input. This value will fall back to the library-default", "");
 const Parameter Parameters::OUTPUT_DEVICE(ParameterCategory::AUDIO, 'o', "output-device-id", "The id of the device used for audio-output. This value will fall back to the library-default", "");
@@ -17,7 +17,7 @@ const Parameter Parameters::REMOTE_ADDRESS(ParameterCategory::NETWORK, true, 'r'
 const Parameter Parameters::REMOTE_PORT(ParameterCategory::NETWORK, true, 'p', "remote-port", "The port of the remote computer", std::to_string(DEFAULT_NETWORK_PORT), true);
 const Parameter Parameters::LOCAL_PORT(ParameterCategory::NETWORK, true, 'l', "local-port", "The local port to listen on", std::to_string(DEFAULT_NETWORK_PORT), true);
 const Parameter Parameters::AUDIO_PROCESSOR(ParameterCategory::PROCESSORS, 'a', "add-processor", "The name of the audio-processor to add", "");
-const Parameter Parameters::PROFILE_PROCESSORS(ParameterCategory::PROCESSORS, 't', "profile-processors", "Whether to profile the execution time of audio-processors");
+const Parameter Parameters::PROFILE_PROCESSORS(ParameterCategory::PROCESSORS, 't', "profile-processors", "Enables profiling of the the execution time of audio-processors");
 
 //TODO allow for adding processor-specific parameters
 //they would need to be added before reading the command-line arguments.
@@ -147,9 +147,9 @@ const std::vector<std::string> Parameters::getAudioProcessors()
 
 void Parameters::printHelpPage()
 {
-    std::cout << "OHMComm peer-to-peer Voice-over-IP communication program running in version " << OHMCOMM_VERSION << std::endl;
+    std::cout << "OHMComm peer-to-peer voice-over-IP communication program running in version " << OHMCOMM_VERSION << std::endl;
     std::cout << "Usage: OHMComm [option]" << std::endl;
-    std::cout << "If run without command-line arguments, the program will start in interactive mode." << std::endl;
+    std::cout << "When run without command-line arguments, the program will start in interactive mode." << std::endl;
     std::cout << std::endl;
     
     //TODO make categories more flexible
@@ -249,7 +249,7 @@ void Parameters::printParameterHelp(const Parameter* param)
     if(!param->longName.empty())
     {
         //start column at offset 12
-        std::cout << std::setw(12-offset) << '-' << "--" << param->longName;
+        std::cout << std::setw(12-offset) << ' ' << "--" << param->longName;
         offset = 12 + 2 + param->longName.length();
     }
     if(param->hasValue)
@@ -264,8 +264,8 @@ void Parameters::printParameterHelp(const Parameter* param)
     }
     if(!param->infoText.empty())
     {
-        //start column at offset 40
-        std::cout << std::setw(40 - offset) << ' ';
+        //start column at offset 45
+        std::cout << std::setw(45 - offset) << ' ';
         if(param->required)
         {
             std::cout << "Required. ";
