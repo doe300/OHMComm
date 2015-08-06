@@ -91,7 +91,7 @@ void UDPWrapper::createSocket()
     }
     if (Socket == INVALID_SOCKET)
     {
-        std::cerr << "Error on creating socket: " << getLastError() << std::endl;
+        std::wcerr << "Error on creating socket: " << getLastError() << std::endl;
         return;
     }
     else
@@ -102,7 +102,7 @@ void UDPWrapper::createSocket()
     //FIXME bind doesn't work yet for IPv6 -- EADDRNOTAVAIL
     if (bind(Socket, &(this->localAddress), addressLength) == SOCKET_ERROR)
     {
-        std::cerr << "Error binding the socket: " << getLastError() << std::endl;
+        std::wcerr << "Error binding the socket: " << getLastError() << std::endl;
         return;
     }
     else
@@ -125,23 +125,23 @@ int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
     #endif
     int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, &(this->localAddress), &localAddrLen);
     if (result == -1)
-        std::cerr << this->getLastError();
+        std::wcerr << this->getLastError();
     return result;
 }
 
 
-std::string UDPWrapper::getLastError()
+std::wstring UDPWrapper::getLastError()
 {
     int error;
     #ifdef _WIN32
     error = WSAGetLastError();
-    char* tmp;
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,0, error, LANG_USER_DEFAULT, &tmp, 0, nullptr);
+	wchar_t* tmp;
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,0, error, LANG_USER_DEFAULT, (wchar_t*)&tmp, 0, nullptr);
     #else
     error = errno;
     char* tmp = strerror(error);
     #endif
-    return (std::to_string(error) + " - ") + std::string(tmp);
+    return (std::to_wstring(error) + L" - ") + tmp;
 }
 
 void UDPWrapper::closeNetwork()

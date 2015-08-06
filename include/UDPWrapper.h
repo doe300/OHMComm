@@ -8,23 +8,6 @@
 #include "NetworkWrapper.h"
 #include <string.h> //for memcpy
 
-
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-
-// Defines OS-independant flag to close socket
-#define SHUTDOWN_BOTH SD_BOTH   // 2
-#else
-#include <sys/socket.h> // socket(), connect()
-#include <arpa/inet.h> // sockaddr_in
-#include <stdexcept>
-#include <unistd.h> //socklen_t
-
-// Defines OS-independant flag to close socket
-#define SHUTDOWN_BOTH SHUT_RDWR // 2
-#endif
-
 /*!
  * NetworkWrapper implementation using the UDP protocol
  */
@@ -49,7 +32,7 @@ public:
     int receiveData(void *buffer, unsigned int bufferSize = 0);
 
     void closeNetwork();
-    std::string getLastError();
+    std::wstring getLastError();
 protected:
     bool isIPv6;
     int Socket;

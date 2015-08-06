@@ -4,8 +4,20 @@
 #include <iostream>
 #include <string>
 
-//defines for non-Windows
-#ifndef _WIN32
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+// Defines OS-independant flag to close socket
+#define SHUTDOWN_BOTH SD_BOTH   // 2
+#else
+#include <sys/socket.h> // socket(), connect()
+#include <arpa/inet.h> // sockaddr_in
+#include <stdexcept>
+#include <unistd.h> //socklen_t
+
+// Defines OS-independant flag to close socket
+#define SHUTDOWN_BOTH SHUT_RDWR // 2
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
 #endif
@@ -46,7 +58,7 @@ public:
     /*!
      * Returns the last error code and a human-readable description
      */
-    virtual std::string getLastError() = 0;
+    virtual std::wstring getLastError() = 0;
 
     /*!
      * Closes the underlying socket
