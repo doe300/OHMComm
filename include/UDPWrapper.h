@@ -49,7 +49,7 @@ public:
     int receiveData(void *buffer, unsigned int bufferSize = 0);
 
     void closeNetwork();
-    int getLastError();
+    std::string getLastError();
 protected:
     bool isIPv6;
     int Socket;

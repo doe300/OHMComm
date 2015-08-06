@@ -81,7 +81,7 @@ void configureNetwork()
     int destPort = UserInput::inputNumber("2. Input destination port", false, false);
     int localPort = UserInput::inputNumber("3. Input local port", false, false);
     networkConfiguration.portOutgoing = destPort;
-	networkConfiguration.portIncoming = localPort;
+    networkConfiguration.portIncoming = localPort;
 
     cout << "Network configuration set." << endl;
 }

@@ -48,16 +48,7 @@ void RTPListener::runThread()
         }
         else if (rtcpHandler.isRTCPPackage(rtpHandler.getWorkBuffer(), receivedSize))
         {
-            //handle RTCP-packages
-            RTCPHeader header = rtcpHandler.readRTCPHeader(rtpHandler.getWorkBuffer(), receivedSize);
-            if(header.packageType == RTCP_PACKAGE_GOODBYE)
-            {
-                //other side sent an BYE-package, shutting down
-                std::cout << "Received Goodbye-message: " << rtcpHandler.readByeMessage(rtpHandler.getWorkBuffer(), receivedSize, header) << std::endl;
-                std::cout << "Dialog partner requested end of communication, shutting down!" << std::endl;
-                shutdown();
-                //TODO shutdown sending side!
-            }
+            handleRTCPPackage(rtpHandler.getWorkBuffer(), (unsigned int)receivedSize);
         }
         else if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
         {
@@ -81,6 +72,25 @@ void RTPListener::runThread()
     }
     std::cout << "RTP-Listener shut down" << std::endl;
 }
+
+void RTPListener::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSize)
+{
+    //handle RTCP-packages
+    RTCPHeader header = rtcpHandler.readRTCPHeader(receiveBuffer, receivedSize);
+    if(header.packageType == RTCP_PACKAGE_GOODBYE)
+    {
+        //other side sent an BYE-package, shutting down
+        std::cout << "Received Goodbye-message: " << rtcpHandler.readByeMessage(receiveBuffer, receivedSize, header) << std::endl;
+        std::cout << "Dialog partner requested end of communication, shutting down!" << std::endl;
+        shutdown();
+        //TODO shutdown sending side/whole program!
+    }
+//    else if(header.packageType == RTCP_PACKAGE_APPLICATION_DEFINED)
+//    {
+//        ApplicationDefined appDefined = rtcpHandler.readApplicationDefinedMessage(receiveBuffer, receivedSize, header);
+//    }
+}
+
 
 void RTPListener::shutdown()
 {

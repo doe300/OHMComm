@@ -506,7 +506,7 @@ public:
      * \return the read ApplicationDefined data
      */
     ApplicationDefined readApplicationDefinedMessage(void *appDefinedPackage, uint16_t packageLength, RTCPHeader &header);
-
+    
     /*!
      * Reads an RTCP-header and returns whether the package was an RTCP-package
      * 

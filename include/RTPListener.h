@@ -57,6 +57,11 @@ private:
      * Method called in the parallel thread, receiving packages and writing them into RTPBuffer
      */
     void runThread();
+    
+    /*!
+     * This method handles received RTCP packages and is called only from #runThread()
+     */
+    void handleRTCPPackage(void* receiveBuffer, unsigned int receivedSize);
 };
 
 #endif	/* RTPLISTENER_H */

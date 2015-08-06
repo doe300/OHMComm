@@ -130,15 +130,18 @@ int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
 }
 
 
-int UDPWrapper::getLastError()
+std::string UDPWrapper::getLastError()
 {
     int error;
     #ifdef _WIN32
     error = WSAGetLastError();
+    char* tmp;
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,0, error, LANG_USER_DEFAULT, &tmp, 0, nullptr);
     #else
     error = errno;
+    char* tmp = strerror(error);
     #endif
-    return error;
+    return (std::to_string(error) + " - ") + std::string(tmp);
 }
 
 void UDPWrapper::closeNetwork()

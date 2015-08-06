@@ -2,6 +2,7 @@
 #define	NETWORKWRAPPER_H
 
 #include <iostream>
+#include <string>
 
 //defines for non-Windows
 #ifndef _WIN32
@@ -43,9 +44,9 @@ public:
     virtual int receiveData(void *buffer, unsigned int bufferSize = 0) = 0;
 
     /*!
-     * Returns the last error code
+     * Returns the last error code and a human-readable description
      */
-    virtual int getLastError() = 0;
+    virtual std::string getLastError() = 0;
 
     /*!
      * Closes the underlying socket
