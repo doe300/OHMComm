@@ -139,7 +139,7 @@ std::wstring UDPWrapper::getLastError()
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,0, error, LANG_USER_DEFAULT, (wchar_t*)&tmp, 0, nullptr);
     #else
     error = errno;
-    char* tmp = strerror(error);
+    wchar_t* tmp = strerror(error);
     #endif
     return (std::to_wstring(error) + L" - ") + tmp;
 }
