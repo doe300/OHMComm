@@ -4,7 +4,7 @@
  * For complete documentation, see:
  * http://www.nd.edu/~dthain/courses/cse20211/fall2013/wavfile
  *
- * Source: http://www3.nd.edu/%7Edthain/courses/cse20211/fall2013/wavfile/
+ * Original Source: http://www3.nd.edu/%7Edthain/courses/cse20211/fall2013/wavfile/
  * 
  */
 
@@ -14,12 +14,14 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-FILE * wavfile_open( const char *filename );
-void wavfile_write( FILE *file, short data[], int length );
-void wavfile_close( FILE * file );
+namespace wav {
+    
+    FILE * wavfile_open( const char *filename );
+    void wavfile_write( FILE *file, short data[], int length );
+    void wavfile_close( FILE * file );
 
-#define WAVFILE_SAMPLES_PER_SECOND 44100
-
+    static const int WAVFILE_SAMPLES_PER_SECOND  = 44100;
+}
 
 #endif	/* WAVFILE_H */
 

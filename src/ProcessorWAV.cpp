@@ -8,6 +8,8 @@
 #include "ProcessorWAV.h"
 #include "UserInput.h"
 
+using namespace wav;
+
 ProcessorWAV::ProcessorWAV() : AudioProcessor("WAV-Writer")
 {
     writeInputFile = nullptr;

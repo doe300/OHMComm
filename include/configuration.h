@@ -10,9 +10,9 @@
 
 #include <string>
 
-#define DEFAULT_NETWORK_PORT 12345
+static const int DEFAULT_NETWORK_PORT = 12345;
 //The program's current version as string
-#define OHMCOMM_VERSION "0.3"
+static const std::string OHMCOMM_VERSION = "0.3";
 
 struct NetworkConfiguration
 {
@@ -110,8 +110,5 @@ struct AudioConfiguration
     static const unsigned int SAMPLE_RATE_ALL = 0xFFFFFFFF; // supports all sample-rates
 };
 
-//Configurations are declared in OhmComm.cpp
-//this two lines are required for all files to find the configurations
-extern NetworkConfiguration networkConfiguration;
 #endif	/* CONFIGURATION_H */
 

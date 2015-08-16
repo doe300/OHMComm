@@ -16,7 +16,7 @@ class UDPWrapper : public NetworkWrapper
 public:
     UDPWrapper(unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing);
 
-    UDPWrapper(struct NetworkConfiguration networkConfig);
+    UDPWrapper(const struct NetworkConfiguration networkConfig);
 
     ~UDPWrapper();
     

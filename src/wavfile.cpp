@@ -4,7 +4,7 @@
  * For complete documentation, see:
  * http://www.nd.edu/~dthain/courses/cse20211/fall2013/wavfile
  * 
- * Source: http://www3.nd.edu/%7Edthain/courses/cse20211/fall2013/wavfile/
+ * Original Source: http://www3.nd.edu/%7Edthain/courses/cse20211/fall2013/wavfile/
 */
 
 #include "wavfile.h"
@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+using namespace wav;
 
 struct wavfile_header {
 	char	riff_tag[4];
@@ -29,7 +31,7 @@ struct wavfile_header {
 	int	data_length;
 };
 
-FILE * wavfile_open( const char *filename )
+FILE * wav::wavfile_open( const char *filename )
 {
 	struct wavfile_header header;
 
@@ -62,12 +64,12 @@ FILE * wavfile_open( const char *filename )
 
 }
 
-void wavfile_write( FILE *file, short data[], int length )
+void wav::wavfile_write( FILE *file, short data[], int length )
 {
 	fwrite(data,sizeof(short),length,file);
 }
 
-void wavfile_close( FILE *file )
+void wav::wavfile_close( FILE *file )
 {
 	int file_length = ftell(file);
 

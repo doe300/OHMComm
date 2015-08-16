@@ -24,10 +24,6 @@
 #include "AudioProcessorFactory.h"
 #include "Statistics.h"
 
-//Declare Configurations
-NetworkConfiguration networkConfiguration;
-
-
 using namespace std;
 
 // method for printing vectors used in configureAudioDevices
@@ -69,8 +65,9 @@ RtAudioFormat selectAudioFormat(RtAudioFormat nativeFormats)
     return audioFormats[formatIndex];
 }
 
-void configureNetwork()
+NetworkConfiguration configureNetwork()
 {    
+    NetworkConfiguration networkConfiguration{0};
     UserInput::printSection("Network configuration");
     
     //1. remote address
@@ -84,6 +81,8 @@ void configureNetwork()
     networkConfiguration.portIncoming = localPort;
 
     cout << "Network configuration set." << endl;
+    
+    return networkConfiguration;
 }
 
 AudioConfiguration configureAudioDevices()
@@ -306,6 +305,7 @@ int main(int argc, char* argv[])
         std::shared_ptr<NetworkWrapper> network;
         if(runWithArguments)
         {
+            NetworkConfiguration networkConfiguration{0};
             networkConfiguration.addressOutgoing = params.getParameterValue(Parameters::REMOTE_ADDRESS);
             networkConfiguration.portIncoming = atoi(params.getParameterValue(Parameters::LOCAL_PORT).c_str());
             networkConfiguration.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
@@ -319,12 +319,13 @@ int main(int argc, char* argv[])
 
             if (input == 'N' || input == 'n')
             {
-                configureNetwork();
+                NetworkConfiguration networkConfiguration = configureNetwork();
                 std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfiguration));
                 network = std::move(tmp);    
             }
             else
             {
+                NetworkConfiguration networkConfiguration{0};
                 networkConfiguration.addressOutgoing = "127.0.0.1";
                 //the port should be a number greater than 1024
                 networkConfiguration.portIncoming = DEFAULT_NETWORK_PORT;

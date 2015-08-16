@@ -97,10 +97,10 @@ public:
      */
     virtual bool configure(AudioConfiguration audioConfig);
 
-	/*!
-	 * Counterpart of configure(). This method is called, when the object is not needed any longer.
-	 */
-	virtual bool cleanUp();
+    /*!
+     * Counterpart of configure(). This method is called, when the object is not needed any longer.
+     */
+    virtual bool cleanUp();
 
 
     /*

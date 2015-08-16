@@ -187,7 +187,7 @@ void Parameters::printHelpPage()
     }
     std::cout << std::endl;
     std::cout << "Currently available audio-processors are: " << std::endl;
-    for(const std::string name : allProcessorNames)
+    for(const std::string& name : allProcessorNames)
     {
        std::cout << std::setw(5) << ' ' << name << std::endl;
     }
@@ -196,7 +196,7 @@ void Parameters::printHelpPage()
 
 bool Parameters::isParameterSet(const Parameter& param)
 {
-    for(const ParameterValue val: readParameters)
+    for(const ParameterValue& val: readParameters)
     {
         if(val.parameter == &param)
         {
@@ -208,7 +208,7 @@ bool Parameters::isParameterSet(const Parameter& param)
 
 std::string Parameters::getParameterValue(const Parameter& param)
 {
-    for(const ParameterValue val: readParameters)
+    for(const ParameterValue& val: readParameters)
     {
         if(val.parameter->longName == param.longName)
         {
