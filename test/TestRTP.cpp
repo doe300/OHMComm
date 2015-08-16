@@ -9,36 +9,8 @@
 
 TestRTP::TestRTP()
 {
-    TEST_ADD(TestRTP::testRTCPByeMessage);
     TEST_ADD(TestRTP::testRTPPackage);
     TEST_ADD(TestRTP::testRTPBuffer);
-}
-
-void TestRTP::testRTCPByeMessage()
-{
-    std::string testMessage("Test massage");
-    uint32_t testSSRC = 500;
-    
-    RTCPHeader *byeHeader = new RTCPHeader(testSSRC);
-    RTCPPackageHandler p;
-    void *byePointer = p.createByePackage(*byeHeader, testMessage);
-    //package-type should be adjusted
-    TEST_ASSERT_EQUALS_MSG(RTCP_PACKAGE_GOODBYE, byeHeader->packageType, "Package-type of GOODBYE expected! 01");
-    
-    //modify package-type again
-    byeHeader->packageType = RTCP_PACKAGE_RECEIVER_REPORT;
-    
-    TEST_ASSERT_MSG(p.isRTCPPackage(byePointer, 21), "RTCP message not recognized as such");
-    std::string byeMessage = p.readByeMessage(byePointer, 21, *byeHeader);
-    //package-type should be adjusted again
-    TEST_ASSERT_EQUALS_MSG(RTCP_PACKAGE_GOODBYE, byeHeader->packageType, "Package-type of GOODBYE expected! 02");
-    TEST_ASSERT_EQUALS_MSG(testMessage, byeMessage, "Messages don't match! 03");
-    TEST_ASSERT_EQUALS_MSG(testSSRC, byeHeader->ssrc, "SSRCs don't match! 04")
-    
-    //test empty message
-    byePointer = p.createByePackage(*byeHeader, std::string());
-    byeMessage = p.readByeMessage(byePointer, 21, *byeHeader);
-    TEST_ASSERT_EQUALS_MSG(std::string(), byeMessage, "Empty message does not match! 05");
 }
 
 void TestRTP::testRTPPackage()

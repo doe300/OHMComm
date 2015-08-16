@@ -362,7 +362,7 @@ struct ApplicationDefined
     //5 bit application defined sub-type -> is stored in RTCPHeader.receptionReportOrSourceCount
     unsigned int subType : 5;
     
-    ApplicationDefined(char name[4], uint16_t dataLength, char *data, uint8_t subType) : dataLength(dataLength), data(data), subType(subType)
+    ApplicationDefined(const char name[4], uint16_t dataLength, char *data, uint8_t subType) : dataLength(dataLength), data(data), subType(subType)
     {
         memcpy(this->name, name, 4);
     }

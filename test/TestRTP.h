@@ -19,8 +19,6 @@ class TestRTP: public Test::Suite
 public:
     TestRTP();
     
-    void testRTCPByeMessage();
-    
     void testRTPPackage();
     
     void testRTPBuffer();

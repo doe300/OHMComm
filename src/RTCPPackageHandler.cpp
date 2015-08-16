@@ -5,6 +5,8 @@
  * Created on June 16, 2015, 5:47 PM
  */
 
+#include <stdexcept>
+
 #include "RTCPPackageHandler.h"
 
 RTCPPackageHandler::RTCPPackageHandler()
@@ -116,16 +118,21 @@ void* RTCPPackageHandler::createByePackage(RTCPHeader& header, std::string byeMe
 void* RTCPPackageHandler::createApplicationDefinedPackage(RTCPHeader& header, ApplicationDefined& appDefined)
 {
     header.packageType = RTCP_PACKAGE_APPLICATION_DEFINED;
-    header.length = calculateLengthField(RTCP_HEADER_SIZE + 4 + appDefined.dataLength);
+    //the length is the header-size, the data-length and 4 bytes for the app-defined name
+    header.length = calculateLengthField(RTCP_HEADER_SIZE + sizeof(appDefined.name) + appDefined.dataLength);
     //application defined data must be already padded to 32bit
+    if((appDefined.dataLength % 4) != 0)
+    {
+        throw std::invalid_argument("Length of Application Defined data must be a multiple of 32 bits (4 bytes)!");
+    }
     header.padding = 0;
     header.receptionReportOrSourceCount = appDefined.subType;
     
     memcpy(rtcpPackageBuffer, &header, RTCP_HEADER_SIZE);
-    memcpy(rtcpPackageBuffer+ RTCP_HEADER_SIZE, appDefined.name, 4);
+    memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE, appDefined.name, sizeof(appDefined.name));
     if(appDefined.dataLength > 0)
     {
-        memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE + 4, appDefined.data, appDefined.dataLength);
+        memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE + sizeof(appDefined.name), appDefined.data, appDefined.dataLength);
     }
     return rtcpPackageBuffer;
 }
@@ -216,10 +223,10 @@ ApplicationDefined RTCPPackageHandler::readApplicationDefinedMessage(void* appDe
     header = *readHeader;
     
     char name[4];
-    memcpy(name, rtcpPackageBuffer + RTCP_HEADER_SIZE, 4);
-    //length of whole package - 3 lines (2 for header, 1 for name) -> convert to bytes
-    uint16_t dataLength = (readHeader->length - 3) * 4;
-    char * data = rtcpPackageBuffer + RTCP_HEADER_SIZE + 4;
+    memcpy(name, rtcpPackageBuffer + RTCP_HEADER_SIZE, sizeof(name));
+    //data-length = length of whole package - header - name
+    uint16_t dataLength = getRTCPPackageLength(readHeader->length) - RTCP_HEADER_SIZE - sizeof(name);
+    char* data = rtcpPackageBuffer + RTCP_HEADER_SIZE + sizeof(name);
     
     ApplicationDefined result(name, dataLength, data, readHeader->receptionReportOrSourceCount);
     return result;
