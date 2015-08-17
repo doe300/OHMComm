@@ -42,7 +42,13 @@ enum class ConfigurationMode
 };
 
 /*!
- * Main class containing all required methods to start and control the P2P communication
+ * Main class containing all required methods to start and control the P2P communication.
+ * 
+ * There are 3 modes, the OHMComm can run in:
+ * 
+ * 1. parameterized: all necessary configurations are passed via the second constructor
+ * 2. programmatically: the configurations have to be set via the corresponding configure-methods
+ * 3. interactive: upon start, the OHMComm will ask the user for the configuration via stdout/stdin
  */
 class OHMComm
 {

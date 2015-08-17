@@ -122,7 +122,7 @@ bool OHMComm::isConfigurationDone(bool runInteractiveConfiguration)
 
 void OHMComm::configureInteractive()
 {
-    if(!configurationActive)
+    if(!configurationActive || configurationMode != ConfigurationMode::INTERACTIVE)
     {
         return;
     }
@@ -462,6 +462,10 @@ NetworkConfiguration OHMComm::createDefaultNetworkConfiguration()
 
 int main(int argc, char* argv[])
 {
+    ////
+    // Configuration
+    ////
+    
     OHMComm* ohmComm;
     Parameters params;
     if(params.parseParameters(argc, argv, AudioProcessorFactory::getAudioProcessorNames()))
