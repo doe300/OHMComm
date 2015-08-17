@@ -185,8 +185,11 @@ void OHMComm::startAudioThreads()
         throw std::runtime_error("OHMComm not fully configured!");
     }
     configurationActive = false;
-    audioHandler->prepare();
-    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize()));
+    if(!audioHandler->prepare())
+    {
+        throw std::runtime_error("Failed to configure audio-handler!");
+    }
+    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize(), this));
     
     listener->startUp();
     audioHandler->startDuplexMode();
