@@ -189,7 +189,7 @@ void OHMComm::startAudioThreads()
     {
         throw std::runtime_error("Failed to configure audio-handler!");
     }
-    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize(), this));
+    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize()));
     
     listener->startUp();
     audioHandler->startDuplexMode();
