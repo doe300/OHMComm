@@ -19,6 +19,7 @@ const Parameter Parameters::LOCAL_PORT(ParameterCategory::NETWORK, true, 'l', "l
 const Parameter Parameters::AUDIO_PROCESSOR(ParameterCategory::PROCESSORS, 'a', "add-processor", "The name of the audio-processor to add", "");
 const Parameter Parameters::PROFILE_PROCESSORS(ParameterCategory::PROCESSORS, 't', "profile-processors", "Enables profiling of the the execution time of audio-processors");
 
+//TODO add parameter forcing a specific sample rate??
 //TODO allow for adding processor-specific parameters
 //they would need to be added before reading the command-line arguments.
 //Which means, before the processors are initialized.
@@ -34,11 +35,11 @@ const std::vector<const Parameter*> Parameters::availableParameters = {
     &AUDIO_PROCESSOR, &PROFILE_PROCESSORS
 };
 
-Parameters::Parameters(const std::vector<std::string> allProcessorNames) : allProcessorNames(allProcessorNames)
+Parameters::Parameters()
 {
 }
 
-bool Parameters::parseParameters(int argc, char* argv[])
+bool Parameters::parseParameters(int argc, char* argv[], const std::vector<std::string> allProcessorNames)
 {
     //argv[0] is the name of the program
     if(argc <= 1)
@@ -122,7 +123,7 @@ bool Parameters::parseParameters(int argc, char* argv[])
     //print help page and exit if requested
     if(isParameterSet(HELP))
     {
-        printHelpPage();
+        printHelpPage(allProcessorNames);
         exit(0);
     }
     //check if all required parameters are set or at least have a default-value
@@ -140,12 +141,12 @@ bool Parameters::parseParameters(int argc, char* argv[])
     return true;
 }
 
-const std::vector<std::string> Parameters::getAudioProcessors()
+const std::vector<std::string> Parameters::getAudioProcessors() const
 {
     return processorNames;
 }
 
-void Parameters::printHelpPage()
+void Parameters::printHelpPage(const std::vector<std::string> allProcessorNames) const
 {
     std::cout << "OHMComm peer-to-peer voice-over-IP communication program running in version " << OHMCOMM_VERSION << std::endl;
     std::cout << "Usage: OHMComm [option]" << std::endl;
@@ -194,7 +195,7 @@ void Parameters::printHelpPage()
     std::cout << std::endl;
 }
 
-bool Parameters::isParameterSet(const Parameter& param)
+bool Parameters::isParameterSet(const Parameter& param) const
 {
     for(const ParameterValue& val: readParameters)
     {
@@ -206,7 +207,7 @@ bool Parameters::isParameterSet(const Parameter& param)
     return false;
 }
 
-std::string Parameters::getParameterValue(const Parameter& param)
+std::string Parameters::getParameterValue(const Parameter& param) const
 {
     for(const ParameterValue& val: readParameters)
     {
@@ -220,7 +221,7 @@ std::string Parameters::getParameterValue(const Parameter& param)
 
 
 
-std::string Parameters::getCategoryName(const ParameterCategory& category)
+std::string Parameters::getCategoryName(const ParameterCategory& category) const
 {
     switch(category)
     {
@@ -236,7 +237,7 @@ std::string Parameters::getCategoryName(const ParameterCategory& category)
     return "Other";
 }
 
-void Parameters::printParameterHelp(const Parameter* param)
+void Parameters::printParameterHelp(const Parameter* param) const
 {
     //Offset to build column-like formatting
     unsigned int offset = 0;

@@ -108,52 +108,54 @@ public:
     static const std::vector<const Parameter*> availableParameters;
     
     /*!
-     * \param allProcessorNames A list of all available processor names to be printed in the help-output
+     * Default no-arg constructor
      */
-    Parameters(const std::vector<std::string> allProcessorNames);
+    Parameters();
     
     /*!
      * Parses the arguments passed to main(argc,argv) if there are any
      * 
      * \param argc The argument count
      * \param argv The arguments
+     * \param allProcessorNames The names of the audio-processors to print. This is only required for printing the help-page
      * 
      * \return whether arguments have been set and parsed
      */
-    bool parseParameters(int argc, char* argv[]);
+    bool parseParameters(int argc, char* argv[], const std::vector<std::string> allProcessorNames = {});
     
     /*!
      * Prints the help-text to stdout
+     * 
+     * \param allProcessorNames The names of all audio-processor to be printed
      */
-    void printHelpPage();
+    void printHelpPage(const std::vector<std::string> allProcessorNames) const;
 
     /*!
      * \return whether this specific parameter has been set
      */
-    bool isParameterSet(const Parameter& param);
+    bool isParameterSet(const Parameter& param) const;
     
     /*!
      * NOTE: this method will return the default-value if the parameter has not been set explicitely
      * 
      * \return the value for this parameter
      */
-    std::string getParameterValue(const Parameter& param);
+    std::string getParameterValue(const Parameter& param) const;
     
     /*!
      * \return a vector with all configured audio-processor names
      */
-    const std::vector<std::string> getAudioProcessors();
+    const std::vector<std::string> getAudioProcessors() const;
     
 private:
     //Returns the name of the given category
-    std::string getCategoryName(const ParameterCategory& category);
+    std::string getCategoryName(const ParameterCategory& category) const;
     
     //Prints a help-line for a single parameter
-    void printParameterHelp(const Parameter* param);
+    void printParameterHelp(const Parameter* param) const;
     
     std::vector<ParameterValue> readParameters;
     std::vector<std::string> processorNames;
-    const std::vector<std::string> allProcessorNames;
 };
 
 #endif	/* PARAMETERS_H */

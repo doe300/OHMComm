@@ -13,8 +13,8 @@ class AudioHandlerFactory
 {
 public:
     static const std::string RTAUDIO_WRAPPER;
-    static auto getAudioHandler(std::string name, AudioConfiguration &audioConfig)->std::unique_ptr<AudioHandler>;
-    static auto getAudioHandler(std::string name) -> std::unique_ptr<AudioHandler>;
+    static auto getAudioHandler(const std::string name, const AudioConfiguration& audioConfig)->std::unique_ptr<AudioHandler>;
+    static auto getAudioHandler(const std::string name) -> std::unique_ptr<AudioHandler>;
     static auto getAudioHandlerNames() -> const std::vector<std::string>;
     static std::string getDefaultAudioHandlerName();
 };

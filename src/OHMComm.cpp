@@ -1,102 +1,312 @@
 /* 
  * File:   OHMComm.cpp
- * Author: daniel, jonas
- *
- * Created on March 29, 2015, 1:49 PM
+ * Author: daniel
+ * 
+ * Created on August 17, 2015, 4:42 PM
  */
 
-#include <cstdlib>
-#include <string>
-#include <sstream>
-#include <iostream>
-#include <stdio.h>
-
-
-#include "UserInput.h"
-#include "Parameters.h"
-
-//dependencies
-#include "RtAudio.h"
-#include "AudioHandlerFactory.h"
+#include "OHMComm.h"
 #include "UDPWrapper.h"
 #include "ProcessorRTP.h"
-#include "RTPListener.h"
-#include "AudioProcessorFactory.h"
-#include "Statistics.h"
 
-using namespace std;
-
-// method for printing vectors used in configureAudioDevices
-void printVector(std::vector<unsigned int> v)
+OHMComm::OHMComm(const ConfigurationMode mode)
+    : rtpBuffer(new RTPBuffer(256, 1000)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
 {
-	for (unsigned int i = 0; i < v.size(); i++)
-	{
-		std::cout << v[i] << " ";
-	}
+    if(mode == ConfigurationMode::PARAMETERIZED)
+    {
+        throw std::invalid_argument("Parameterized mode can only be initialized by passing Parameters!");
+    }
+    if(mode == ConfigurationMode::PROGRAMMATICALLY)
+    {
+        //initialize configuration with default values as far as possible
+
+        //we set default audio-handler
+        isAudioConfigured = true;
+        audioHandler = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName());
+        
+        isNetworkConfigured = true;
+        std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(createDefaultNetworkConfiguration()));
+        networkWrapper = std::move(tmp);
+        
+        //we can't initialize audio-processors
+        isProcessorsConfigured = false;
+    }
+    if(mode == ConfigurationMode::INTERACTIVE)
+    {
+        //all configuration has to be done interactively
+        isAudioConfigured = false;
+        isNetworkConfigured = false;
+        isProcessorsConfigured = false;
+    }
 }
 
-/*!
- * Lets the user choose a supported audio-format.
- * RtAudio guarantees all formats to be supported, not only the native ones
- * 
- */
-RtAudioFormat selectAudioFormat(RtAudioFormat nativeFormats)
+OHMComm::OHMComm(const Parameters params)
+    : rtpBuffer(new RTPBuffer(256, 1000)), configurationMode(ConfigurationMode::PARAMETERIZED), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
 {
-    vector<string> formatNames;
-    vector<RtAudioFormat> audioFormats;
-    //preallocate vectors
-    formatNames.reserve(8);
-    audioFormats.reserve(8);
-    //fill options
-    formatNames.push_back(string("8 bit signed integer")+ ((nativeFormats & RTAUDIO_SINT8) == RTAUDIO_SINT8 ? " (native)" : ""));
-    audioFormats.push_back(RTAUDIO_SINT8);
-    formatNames.push_back(string("16 bit signed integer") + ((nativeFormats & RTAUDIO_SINT16) == RTAUDIO_SINT16 ? " (native)" : ""));
-    audioFormats.push_back(RTAUDIO_SINT16);
-    formatNames.push_back(string("24 bit signed integer") + ((nativeFormats & RTAUDIO_SINT24) == RTAUDIO_SINT24 ? " (native)" : ""));
-    audioFormats.push_back(RTAUDIO_SINT24);
-    formatNames.push_back(string("32 bit signed integer") + ((nativeFormats & RTAUDIO_SINT32) == RTAUDIO_SINT32 ? " (native)" : ""));
-    audioFormats.push_back(RTAUDIO_SINT32);
-    formatNames.push_back(string("32 bit float (normalized between +/- 1)") + ((nativeFormats & RTAUDIO_FLOAT32) == RTAUDIO_FLOAT32 ? " (native)" : ""));
-    audioFormats.push_back(RTAUDIO_FLOAT32);
-    formatNames.push_back(string("64 bit float (normalized between +/- 1)") + ((nativeFormats & RTAUDIO_FLOAT64) == RTAUDIO_FLOAT64 ? " (native)" : ""));
-    audioFormats.push_back(RTAUDIO_FLOAT64);
-    int formatIndex = UserInput::selectOptionIndex("Choose audio format", formatNames, 0);
-    //return selected option
-    return audioFormats[formatIndex];
+    //convert configuration
+    //get device configuration from parameters
+    int outputDeviceID = -1;
+    int inputDeviceID = -1;
+    if(params.isParameterSet(Parameters::OUTPUT_DEVICE))
+    {
+        outputDeviceID = atoi(params.getParameterValue(Parameters::OUTPUT_DEVICE).c_str());
+    }
+    if(params.isParameterSet(Parameters::INPUT_DEVICE))
+    {
+        inputDeviceID = atoi(params.getParameterValue(Parameters::INPUT_DEVICE).c_str());
+    }
+    AudioConfiguration audioConfig = fillAudioConfiguration(outputDeviceID, inputDeviceID);
+    isAudioConfigured = true;
+    audioHandler = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName(), audioConfig);
+    
+    //get network configuration from parameters
+    isNetworkConfigured = true;
+    NetworkConfiguration networkConfig{0};
+    networkConfig.addressOutgoing = params.getParameterValue(Parameters::REMOTE_ADDRESS);
+    networkConfig.portIncoming = atoi(params.getParameterValue(Parameters::LOCAL_PORT).c_str());
+    networkConfig.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
+    std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfig));
+    networkWrapper = std::move(tmp);
+    
+    //get audio-processors from parameters
+    isProcessorsConfigured = true;
+    profileProcessors = params.isParameterSet(Parameters::PROFILE_PROCESSORS);
+    logStatisticsToFile = params.isParameterSet(Parameters::LOG_TO_FILE);
+    logFileName = params.getParameterValue(Parameters::LOG_TO_FILE);
+    for(const std::string& procName : params.getAudioProcessors())
+    {
+        AudioProcessor* proc = AudioProcessorFactory::getAudioProcessor(procName, profileProcessors);
+        if(proc != nullptr)
+        {
+            audioHandler->addProcessor(proc);
+        }
+    }
+    configureRTPProcessor();
 }
 
-NetworkConfiguration configureNetwork()
-{    
-    NetworkConfiguration networkConfiguration{0};
-    UserInput::printSection("Network configuration");
-    
-    //1. remote address
-    string ipString = UserInput::inputString("1. Input destination IP address");
-    networkConfiguration.addressOutgoing = ipString;
-    
-    //2. remote and local ports
-    int destPort = UserInput::inputNumber("2. Input destination port", false, false);
-    int localPort = UserInput::inputNumber("3. Input local port", false, false);
-    networkConfiguration.portOutgoing = destPort;
-    networkConfiguration.portIncoming = localPort;
-
-    cout << "Network configuration set." << endl;
-    
-    return networkConfiguration;
+OHMComm::~OHMComm()
+{
+    audioHandler.reset(nullptr);
+    listener.reset(nullptr);
+    networkWrapper.reset();
+    rtpBuffer.reset();
 }
 
-AudioConfiguration configureAudioDevices()
+const ConfigurationMode OHMComm::getConfigurationMode()
 {
-    AudioConfiguration audioConfiguration = { 0 };
+    return configurationMode;
+}
+
+const bool OHMComm::isConfigurationActive()
+{
+    return configurationActive;
+}
+
+bool OHMComm::isConfigurationDone(bool runInteractiveConfiguration)
+{
+    if(!configurationActive)
+    {
+        return true;
+    }
+    if(isAudioConfigured && isNetworkConfigured && isProcessorsConfigured)
+    {
+        return true;
+    }
+    if(runInteractiveConfiguration && configurationMode == ConfigurationMode::INTERACTIVE)
+    {
+        //run interactive configuration
+        configureInteractive();
+    }
+    return isAudioConfigured && isNetworkConfigured && isProcessorsConfigured;
+}
+
+void OHMComm::configureInteractive()
+{
+    if(!configurationActive)
+    {
+        return;
+    }
+    if(!isAudioConfigured)
+    {
+        //interactive audio configuration
+        if (!UserInput::inputBoolean("Load default audio config?"))
+        {
+            const std::vector<std::string> audioHandlers = AudioHandlerFactory::getAudioHandlerNames();
+            //manually configure audio-handler, so manually select it
+            std::string selectedAudioHander;
+            if(audioHandlers.size() > 1)
+            {
+                //only let user choose if there is more than 1 audio-handler
+                selectedAudioHander = UserInput::selectOption("Select audio handler", audioHandlers, AudioHandlerFactory::getDefaultAudioHandlerName());
+            }
+            else 
+            {
+                selectedAudioHander = *audioHandlers.begin();
+            }
+            std::cout << "Using AudioHandler: " << selectedAudioHander << std::endl;
+            AudioConfiguration audioConfig = interactivelyConfigureAudioDevices();
+            audioHandler = AudioHandlerFactory::getAudioHandler(selectedAudioHander, audioConfig);
+        }
+        else
+        {
+            //use RtAudioWrapper as default implementation
+            audioHandler = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName());
+        }
+        isAudioConfigured = true;
+    }
+    if(!isNetworkConfigured)
+    {
+        //interactive network configuration
+        if (!UserInput::inputBoolean("Load default network config?"))
+        {
+            NetworkConfiguration networkConfig = interactivelyConfigureNetwork();
+            std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfig));
+            networkWrapper = std::move(tmp);
+        }
+        else
+        {
+            std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(createDefaultNetworkConfiguration()));
+            networkWrapper = std::move(tmp);
+        }
+        isNetworkConfigured = true;
+            
+    }
+    if(!isProcessorsConfigured)
+    {
+        interactivelyConfigureProcessors();
+        isProcessorsConfigured = true;
+    }
+}
+
+void OHMComm::startAudioThreads()
+{
+    if(!isConfigurationDone(false))
+    {
+        throw std::runtime_error("OHMComm not fully configured!");
+    }
+    configurationActive = false;
+    audioHandler->prepare();
+    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize()));
+    
+    listener->startUp();
+    audioHandler->startDuplexMode();
+    
+    running = true;
+}
+
+void OHMComm::stopAudioThreads()
+{
+    running = false;
+    
+    audioHandler->stop();
+    listener->shutdown();
+    networkWrapper->closeNetwork();
+    
+    if(logStatisticsToFile)
+    {
+        Statistics::printStatisticsToFile(logFileName);
+    }
+    //print statistics to stdout anyway
+    Statistics::printStatistics();
+}
+
+bool OHMComm::isRunning()
+{
+    return running;
+}
+
+void OHMComm::configureAudio(const std::string audioHandlerName, const AudioConfiguration& audioConfig)
+{
+    checkConfigurable();
+    audioHandler = AudioHandlerFactory::getAudioHandler(audioHandlerName, audioConfig);
+    isAudioConfigured = true;
+}
+
+void OHMComm::configureNetwork(const NetworkConfiguration& networkConfig)
+{
+    checkConfigurable();
+    std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfig));
+    networkWrapper = std::move(tmp);
+}
+
+void OHMComm::configureProcessors(const std::vector<std::string>& processorNames, bool profileProcessors)
+{
+    checkConfigurable();
+    if(!isAudioConfigured)
+    {
+        throw std::runtime_error("AudioHandler needs to be configured before the AudioProcessors!");
+    }
+    this->profileProcessors = profileProcessors;
+    for(const std::string& procName : processorNames)
+    {
+        AudioProcessor* proc = AudioProcessorFactory::getAudioProcessor(procName, profileProcessors);
+        if(proc != nullptr)
+        {
+            audioHandler->addProcessor(proc);
+        }
+    }
+    configureRTPProcessor();
+}
+
+void OHMComm::configureLogToFile(const std::string logFileName)
+{
+    logStatisticsToFile = true;
+    this->logFileName = logFileName;
+}
+
+////
+//  Private helper methods
+////
+
+void OHMComm::checkConfigurable()
+{
+    if(!configurationActive)
+    {
+        throw std::runtime_error("Can't configure after OHMComm has been started!");
+    }
+    if(configurationMode != ConfigurationMode::PROGRAMMATICALLY)
+    {
+        throw std::runtime_error("Can't programmatically configure a pre-configured OHMComm!");
+    }
+}
+
+AudioConfiguration OHMComm::fillAudioConfiguration(int outputDeviceID, int inputDeviceID)
+{
+    AudioConfiguration audioConfig;
+    RtAudio audioDevices;
+    if(outputDeviceID < 0)
+    {
+        outputDeviceID = audioDevices.getDefaultOutputDevice();
+    }
+    if(inputDeviceID < 0)
+    {
+        inputDeviceID = audioDevices.getDefaultInputDevice();
+    }
+    //we always use stereo
+    audioConfig.outputDeviceChannels = 2;
+    audioConfig.inputDeviceChannels = 2;
+    
+    audioConfig.outputDeviceID = outputDeviceID;
+    audioConfig.outputDeviceName = audioDevices.getDeviceInfo(outputDeviceID).name;
+    
+    audioConfig.inputDeviceID = inputDeviceID;
+    audioConfig.inputDeviceName = audioDevices.getDeviceInfo(inputDeviceID).name;
+    
+    return audioConfig;
+}
+
+AudioConfiguration OHMComm::interactivelyConfigureAudioDevices()
+{
+    AudioConfiguration audioConfig;
     UserInput::printSection("Audio configuration");
 
     RtAudio AudioDevices;
     // Determine the number of available Audio Devices 
     unsigned int availableAudioDevices = AudioDevices.getDeviceCount();
-    vector<string> audioDeviceNames(availableAudioDevices);
+    std::vector<std::string> audioDeviceNames(availableAudioDevices);
 
-    cout << "Available Audio Devices: " << endl;
-    cout << endl;
+    std::cout << "Available Audio Devices: " << std::endl;
+    std::cout << std::endl;
     // printing available Audio Devices
     RtAudio::DeviceInfo DeviceInfo;
 
@@ -108,37 +318,40 @@ AudioConfiguration configureAudioDevices()
         DeviceInfo = AudioDevices.getDeviceInfo(i);
         if (DeviceInfo.probed == true) //Audio Device successfully probed
         {
-            cout << "Device ID: " << i << endl;
-            cout << "Device Name = " << DeviceInfo.name << endl;
-            cout << "Maximum output channels = " << DeviceInfo.outputChannels << endl;
-            cout << "Maximum input channels = " << DeviceInfo.inputChannels << endl;
-            cout << "Maximum duplex channels = " << DeviceInfo.duplexChannels << endl;
-            cout << "Default output: ";
+            std::cout << "Device ID: " << i << std::endl;
+            std::cout << "Device Name = " << DeviceInfo.name << std::endl;
+            std::cout << "Maximum output channels = " << DeviceInfo.outputChannels << std::endl;
+            std::cout << "Maximum input channels = " << DeviceInfo.inputChannels << std::endl;
+            std::cout << "Maximum duplex channels = " << DeviceInfo.duplexChannels << std::endl;
+            std::cout << "Default output: ";
             if (DeviceInfo.isDefaultOutput == true)
             {
-                cout << "Yes" << endl;
+                std::cout << "Yes" << std::endl;
                 DefaultOutputDeviceID = i;
 
             }
             else
             {
-                cout << "No" << endl;
+                std::cout << "No" << std::endl;
             }
-            cout << "Default input: ";
+            std::cout << "Default input: ";
             if (DeviceInfo.isDefaultInput == true)
             {
-                cout << "Yes" << endl;
+                std::cout << "Yes" << std::endl;
                 DefaultInputDeviceID = i;
             }
             else
             {
-                cout << "No" << endl;
+                std::cout << "No" << std::endl;
             }
-            cout << "Supported Sample Rates: ";
-            printVector(DeviceInfo.sampleRates);
-            cout << endl;
-            cout << "Native Audio Formats Flag = " << DeviceInfo.nativeFormats << endl;
-            cout << endl;
+            std::cout << "Supported Sample Rates: ";
+            for (unsigned int sampleRate : DeviceInfo.sampleRates)
+            {
+                std::cout << sampleRate << " ";
+            }
+            std::cout << std::endl;
+            std::cout << "Native Audio Formats Flag = " << DeviceInfo.nativeFormats << std::endl;
+            std::cout << std::endl;
             
             audioDeviceNames[i] = (DeviceInfo.name + (DeviceInfo.isDefaultInput && DeviceInfo.isDefaultOutput ? " (default in/out)" : 
                 (DeviceInfo.isDefaultInput ? " (default in)" : (DeviceInfo.isDefaultOutput ? " (default out)" : ""))));
@@ -151,15 +364,15 @@ AudioConfiguration configureAudioDevices()
     RtAudio::DeviceInfo OutputDeviceInfo = AudioDevices.getDeviceInfo(OutputDeviceID);
 
     //Configure ID of the Output Audio Device
-    audioConfiguration.outputDeviceID = OutputDeviceID;
-    cout << "-> Using output Device ID: " << audioConfiguration.outputDeviceID << endl;
+    audioConfig.outputDeviceID = OutputDeviceID;
+    std::cout << "-> Using output Device ID: " << audioConfig.outputDeviceID << std::endl;
 
     //Configure Name of the Output Audio Device
-    audioConfiguration.outputDeviceName = OutputDeviceInfo.name;
-    cout << "-> Using output Device Name: " << audioConfiguration.outputDeviceName << endl;
+    audioConfig.outputDeviceName = OutputDeviceInfo.name;
+    std::cout << "-> Using output Device Name: " << audioConfig.outputDeviceName << std::endl;
 
     //Configure outputDeviceChannels (we always use stereo)
-    audioConfiguration.outputDeviceChannels = 2;
+    audioConfig.outputDeviceChannels = 2;
 
     //sample-rate, audio-format and buffer-size is defined by the enabled Processors so we can skip them
 
@@ -169,260 +382,116 @@ AudioConfiguration configureAudioDevices()
     RtAudio::DeviceInfo InputDeviceInfo = AudioDevices.getDeviceInfo(InputDeviceID);
 
     //Configure ID of the Input Audio Device
-    audioConfiguration.inputDeviceID = InputDeviceID;
-    cout << "-> Using input Device ID " << audioConfiguration.inputDeviceID << endl;
+    audioConfig.inputDeviceID = InputDeviceID;
+    std::cout << "-> Using input Device ID " << audioConfig.inputDeviceID << std::endl;
 
     //Configure Name of the Input Audio Device
-    audioConfiguration.inputDeviceName = InputDeviceInfo.name;
-    cout << "-> Using input Device Name: " << audioConfiguration.inputDeviceName << endl;
+    audioConfig.inputDeviceName = InputDeviceInfo.name;
+    std::cout << "-> Using input Device Name: " << audioConfig.inputDeviceName << std::endl;
 
     //Configure inputDeviceChannels (we always use stereo)
-    audioConfiguration.inputDeviceChannels = 2;
-
-    return audioConfiguration;
-}
-
-AudioConfiguration fillAudioConfiguration(int outputDeviceID, int inputDeviceID)
-{
-    AudioConfiguration config = { 0 };
-    RtAudio audioDevices;
-    if(outputDeviceID < 0)
-    {
-        outputDeviceID = audioDevices.getDefaultOutputDevice();
-    }
-    if(inputDeviceID < 0)
-    {
-        inputDeviceID = audioDevices.getDefaultInputDevice();
-    }
-    //we always use stereo
-    config.outputDeviceChannels = 2;
-    config.inputDeviceChannels = 2;
+    audioConfig.inputDeviceChannels = 2;
     
-    config.outputDeviceID = outputDeviceID;
-    config.outputDeviceName = audioDevices.getDeviceInfo(outputDeviceID).name;
-    
-    config.inputDeviceID = inputDeviceID;
-    config.inputDeviceName = audioDevices.getDeviceInfo(inputDeviceID).name;
-    return config;
+    return audioConfig;
 }
 
-/*!
- * RtAudio Error Handler
- */
-void errorHandler( RtAudioError::Type type, const std::string &errorText )
+NetworkConfiguration OHMComm::interactivelyConfigureNetwork()
 {
-    cerr << "An error occurred!" << endl;
-    switch(type)
-    {
-        case RtAudioError::Type::WARNING:
-        case RtAudioError::Type::DEBUG_WARNING:
-            cerr << "WARNING: ";
-        case RtAudioError::Type::MEMORY_ERROR:
-        case RtAudioError::Type::DRIVER_ERROR:
-        case RtAudioError::Type::SYSTEM_ERROR:
-        case RtAudioError::Type::THREAD_ERROR:
-            cerr << "ERROR: ";
-        case RtAudioError::Type::NO_DEVICES_FOUND:
-        case RtAudioError::Type::INVALID_DEVICE:
-            cerr << "Device Error: ";
-        case RtAudioError::Type::INVALID_PARAMETER:
-        case RtAudioError::Type::INVALID_USE:
-            cerr << "Invalid Function-call: ";
-        case RtAudioError::Type::UNSPECIFIED:
-            cerr << "Unspecified Error: ";
-    }
-    cerr << errorText << endl;
+    NetworkConfiguration networkConfiguration{0};
+    UserInput::printSection("Network configuration");
+    
+    //1. remote address
+    std::string ipString = UserInput::inputString("1. Input destination IP address");
+    networkConfiguration.addressOutgoing = ipString;
+    
+    //2. remote and local ports
+    int destPort = UserInput::inputNumber("2. Input destination port", false, false);
+    int localPort = UserInput::inputNumber("3. Input local port", false, false);
+    networkConfiguration.portOutgoing = destPort;
+    networkConfiguration.portIncoming = localPort;
+
+    std::cout << "Network configuration set." << std::endl;
+    
+    return networkConfiguration;
 }
 
+void OHMComm::interactivelyConfigureProcessors()
+{
+    std::vector<std::string> audioProcessors = AudioProcessorFactory::getAudioProcessorNames();
+    //interactive processor configuration
+    profileProcessors = UserInput::inputBoolean("Create profiler for audio-processors?");
+    logStatisticsToFile = UserInput::inputBoolean("Log statistics and profiling-results to file?");
+    if(logStatisticsToFile)
+    {
+        logFileName = UserInput::inputString("Type log-file name");
+    }
+    // add processors to the process chain
+    audioProcessors.push_back("End");
+    unsigned int selectedIndex;
+    std::cout << "The AudioProcessors should be added in the order they are used on the sending side!" << std::endl;
+    while((selectedIndex = UserInput::selectOptionIndex("Select next AudioProcessor to add", audioProcessors, audioProcessors.size()-1)) != audioProcessors.size()-1)
+    {
+        audioHandler->addProcessor(AudioProcessorFactory::getAudioProcessor(audioProcessors.at(selectedIndex), profileProcessors));
+        audioProcessors.at(selectedIndex) = audioProcessors.at(selectedIndex) + " (added)";
+    }
+    configureRTPProcessor();
+}
+
+void OHMComm::configureRTPProcessor()
+{
+    ProcessorRTP* rtpProcessor = new ProcessorRTP("RTP-Processor", networkWrapper, rtpBuffer);
+    if(profileProcessors)
+    {
+        //enabled profiling of the RTP processor
+        audioHandler->addProcessor(new ProfilingAudioProcessor(rtpProcessor));
+    }
+    else
+    {
+        audioHandler->addProcessor(rtpProcessor);
+    }
+}
+
+NetworkConfiguration OHMComm::createDefaultNetworkConfiguration()
+{
+    NetworkConfiguration networkConfig{0};
+    networkConfig.addressOutgoing = "127.0.0.1";
+    networkConfig.portIncoming = DEFAULT_NETWORK_PORT;
+    networkConfig.portOutgoing = DEFAULT_NETWORK_PORT;
+    return networkConfig;
+}
 
 int main(int argc, char* argv[])
 {
-    Parameters params(AudioProcessorFactory::getAudioProcessorNames());
-    bool runWithArguments = params.parseParameters(argc, argv);
+    OHMComm* ohmComm;
+    Parameters params;
+    if(params.parseParameters(argc, argv, AudioProcessorFactory::getAudioProcessorNames()))
+    {
+        ohmComm = new OHMComm(params);
+    }
+    else
+    {
+        ohmComm = new OHMComm(ConfigurationMode::INTERACTIVE);
+    }
+
+    ////
+    // Startup
+    ////
     
-    //Vectors for storing available AudioHandlers, and -Processors
-    const std::vector<std::string> audioHandlers = AudioHandlerFactory::getAudioHandlerNames();
-    std::vector<std::string> audioProcessors = AudioProcessorFactory::getAudioProcessorNames();
-    
+    if(!ohmComm->isConfigurationDone(true))
+    {
+        std::cerr << "Failed to configure OHMComm!" << std::endl;
+        return 1;
+    }
+    ohmComm->startAudioThreads();
+
     char input;
+    // wait for exit
+    std::cout << "Type Enter to exit" << std::endl;
+    std::cin >> input;
+
+    ohmComm->stopAudioThreads();
+
+    delete ohmComm;
     
-    try
-    {
-        std::unique_ptr<AudioHandler> audioObject;
-
-        ////
-        //Audio-Config
-        ////
-        if(runWithArguments)
-        {
-            //get device configuration from parameters
-            int outputDeviceID = -1;
-            int inputDeviceID = -1;
-            if(params.isParameterSet(Parameters::OUTPUT_DEVICE))
-            {
-                outputDeviceID = atoi(params.getParameterValue(Parameters::OUTPUT_DEVICE).c_str());
-            }
-            if(params.isParameterSet(Parameters::INPUT_DEVICE))
-            {
-                inputDeviceID = atoi(params.getParameterValue(Parameters::INPUT_DEVICE).c_str());
-            }
-            AudioConfiguration audioConfig = fillAudioConfiguration(outputDeviceID, inputDeviceID);
-            audioObject = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName(), audioConfig);
-        }
-        else
-        {
-            cout << "Load default audio config? Yes (y), No (n)?" << endl;
-            cin >> input;
-
-            if (input == 'N' || input == 'n')
-            {
-                //manually configure audio-handler, so manually select it
-                std::string selectedAudioHander;
-                if(audioHandlers.size() > 1)
-                {
-                    //only let user choose if there is more than 1 audio-handler
-                    selectedAudioHander = UserInput::selectOption("Select audio handler", audioHandlers, AudioHandlerFactory::getDefaultAudioHandlerName());
-                }
-                else 
-                {
-                    selectedAudioHander = *audioHandlers.begin();
-                }
-                std::cout << "Using AudioHandler: " << selectedAudioHander << std::endl;
-                AudioConfiguration audioConfiguration = configureAudioDevices();
-                audioObject = AudioHandlerFactory::getAudioHandler(selectedAudioHander, audioConfiguration);
-            }
-            else
-            {
-                //use RtAudioWrapper as default implementation
-                audioObject = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName());
-            }
-        }
-
-        ////
-        // Network-Config
-        ////
-
-        std::shared_ptr<NetworkWrapper> network;
-        if(runWithArguments)
-        {
-            NetworkConfiguration networkConfiguration{0};
-            networkConfiguration.addressOutgoing = params.getParameterValue(Parameters::REMOTE_ADDRESS);
-            networkConfiguration.portIncoming = atoi(params.getParameterValue(Parameters::LOCAL_PORT).c_str());
-            networkConfiguration.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
-            std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfiguration));
-            network = std::move(tmp);
-        }
-        else
-        {
-             cout << "Load default network config? Yes (y), No (n)?" << endl;
-            cin >> input;
-
-            if (input == 'N' || input == 'n')
-            {
-                NetworkConfiguration networkConfiguration = configureNetwork();
-                std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfiguration));
-                network = std::move(tmp);    
-            }
-            else
-            {
-                NetworkConfiguration networkConfiguration{0};
-                networkConfiguration.addressOutgoing = "127.0.0.1";
-                //the port should be a number greater than 1024
-                networkConfiguration.portIncoming = DEFAULT_NETWORK_PORT;
-                networkConfiguration.portOutgoing = DEFAULT_NETWORK_PORT;
-                std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfiguration));
-                network = std::move(tmp);
-            }
-        }
-
-	////
-        // AudioProcessors
-        ////
-        bool createProfiler;
-        bool logStatisticsToFile;
-        std::string statisticsLogFile;
-        if(runWithArguments)
-        {
-            createProfiler = params.isParameterSet(Parameters::PROFILE_PROCESSORS);
-            for(const std::string procName : params.getAudioProcessors())
-            {
-                AudioProcessor* proc = AudioProcessorFactory::getAudioProcessor(procName, createProfiler);
-                if(proc != nullptr)
-                {
-                    audioObject->addProcessor(proc);
-                }
-            }
-            logStatisticsToFile = params.isParameterSet(Parameters::LOG_TO_FILE);
-            statisticsLogFile = params.getParameterValue(Parameters::LOG_TO_FILE);
-        }
-        else
-        {
-            createProfiler = UserInput::inputBoolean("Create profiler for audio-processors?");
-            logStatisticsToFile = UserInput::inputBoolean("Log statistics and profiling-results to file?");
-            if(logStatisticsToFile)
-            {
-                statisticsLogFile = UserInput::inputString("Type log-file name");
-            }
-            // add processors to the process chain
-            audioProcessors.push_back("End");
-            unsigned int selectedIndex;
-            std::cout << "The AudioProcessors should be added in the order they are used on the sending side!" << std::endl;
-            while((selectedIndex = UserInput::selectOptionIndex("Select next AudioProcessor to add", audioProcessors, audioProcessors.size()-1)) != audioProcessors.size()-1)
-            {
-                audioObject->addProcessor(AudioProcessorFactory::getAudioProcessor(audioProcessors.at(selectedIndex), createProfiler));
-                audioProcessors.at(selectedIndex) = audioProcessors.at(selectedIndex) + " (added)";
-            }
-        }
-
-        ////
-        // Startup
-        ////
-
-        //initialize RTPBuffer and -Listener
-        std::shared_ptr<RTPBuffer> rtpBuffer(new RTPBuffer(256, 1000));
-
-        ProcessorRTP* rtp = new ProcessorRTP("RTP-Processor", network, rtpBuffer);
-        if(createProfiler)
-        {
-            //enabled profiling of the RTP processor
-            ProfilingAudioProcessor* rtpProfiler = new ProfilingAudioProcessor(rtp);
-            audioObject->addProcessor(rtpProfiler);
-        }
-        else
-        {
-            audioObject->addProcessor(rtp);
-        }
-
-
-        //configure all processors
-        audioObject->prepare();
-
-        RTPListener listener(network, rtpBuffer, audioObject->getBufferSize());
-		
-
-        // start audio processing
-        listener.startUp();
-        audioObject->startDuplexMode();
-
-        // wait for exit
-        cout << "Type Enter to exit" << endl;
-        cin >> input;
-
-        audioObject->stop();
-        listener.shutdown();
-        network->closeNetwork();
-        
-        if(logStatisticsToFile)
-        {
-            Statistics::printStatisticsToFile(statisticsLogFile);
-        }
-        //print statistics to stdout anyway
-        Statistics::printStatistics();
-        return 0;
-    }
-    catch (RtAudioError exception)
-    {
-        cout << "Exception: " << exception.getMessage() << endl;
-    }
+    return 0;
 }
-
