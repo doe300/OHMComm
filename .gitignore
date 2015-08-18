@@ -197,6 +197,9 @@ Makefile
 /compile_commands.json
 /Socket
 
+# CodeBlocks
+OHMComm.cbp
+
 # whitelist opus directory
 !/lib/opus-1.1/**
 

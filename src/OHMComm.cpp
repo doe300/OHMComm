@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   OHMComm.cpp
  * Author: daniel
- * 
+ *
  * Created on August 17, 2015, 4:42 PM
  */
 
@@ -16,18 +16,18 @@ OHMComm::OHMComm(const ConfigurationMode mode)
     {
         throw std::invalid_argument("Parameterized mode can only be initialized by passing Parameters!");
     }
-    if(mode == ConfigurationMode::PROGRAMMATICALLY)
+    if(mode == ConfigurationMode::LIBRARY)
     {
         //initialize configuration with default values as far as possible
 
         //we set default audio-handler
         isAudioConfigured = true;
         audioHandler = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName());
-        
+
         isNetworkConfigured = true;
         std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(createDefaultNetworkConfiguration()));
         networkWrapper = std::move(tmp);
-        
+
         //we can't initialize audio-processors
         isProcessorsConfigured = false;
     }
@@ -58,7 +58,7 @@ OHMComm::OHMComm(const Parameters params)
     AudioConfiguration audioConfig = fillAudioConfiguration(outputDeviceID, inputDeviceID);
     isAudioConfigured = true;
     audioHandler = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName(), audioConfig);
-    
+
     //get network configuration from parameters
     isNetworkConfigured = true;
     NetworkConfiguration networkConfig{0};
@@ -67,7 +67,7 @@ OHMComm::OHMComm(const Parameters params)
     networkConfig.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
     std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(networkConfig));
     networkWrapper = std::move(tmp);
-    
+
     //get audio-processors from parameters
     isProcessorsConfigured = true;
     profileProcessors = params.isParameterSet(Parameters::PROFILE_PROCESSORS);
@@ -139,7 +139,7 @@ void OHMComm::configureInteractive()
                 //only let user choose if there is more than 1 audio-handler
                 selectedAudioHander = UserInput::selectOption("Select audio handler", audioHandlers, AudioHandlerFactory::getDefaultAudioHandlerName());
             }
-            else 
+            else
             {
                 selectedAudioHander = *audioHandlers.begin();
             }
@@ -169,7 +169,7 @@ void OHMComm::configureInteractive()
             networkWrapper = std::move(tmp);
         }
         isNetworkConfigured = true;
-            
+
     }
     if(!isProcessorsConfigured)
     {
@@ -190,21 +190,21 @@ void OHMComm::startAudioThreads()
         throw std::runtime_error("Failed to configure audio-handler!");
     }
     listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize()));
-    
+
     listener->startUp();
     audioHandler->startDuplexMode();
-    
+
     running = true;
 }
 
 void OHMComm::stopAudioThreads()
 {
     running = false;
-    
+
     audioHandler->stop();
     listener->shutdown();
     networkWrapper->closeNetwork();
-    
+
     if(logStatisticsToFile)
     {
         Statistics::printStatisticsToFile(logFileName);
@@ -267,7 +267,7 @@ void OHMComm::checkConfigurable()
     {
         throw std::runtime_error("Can't configure after OHMComm has been started!");
     }
-    if(configurationMode != ConfigurationMode::PROGRAMMATICALLY)
+    if(configurationMode != ConfigurationMode::LIBRARY)
     {
         throw std::runtime_error("Can't programmatically configure a pre-configured OHMComm!");
     }
@@ -288,13 +288,13 @@ AudioConfiguration OHMComm::fillAudioConfiguration(int outputDeviceID, int input
     //we always use stereo
     audioConfig.outputDeviceChannels = 2;
     audioConfig.inputDeviceChannels = 2;
-    
+
     audioConfig.outputDeviceID = outputDeviceID;
     audioConfig.outputDeviceName = audioDevices.getDeviceInfo(outputDeviceID).name;
-    
+
     audioConfig.inputDeviceID = inputDeviceID;
     audioConfig.inputDeviceName = audioDevices.getDeviceInfo(inputDeviceID).name;
-    
+
     return audioConfig;
 }
 
@@ -304,7 +304,7 @@ AudioConfiguration OHMComm::interactivelyConfigureAudioDevices()
     UserInput::printSection("Audio configuration");
 
     RtAudio AudioDevices;
-    // Determine the number of available Audio Devices 
+    // Determine the number of available Audio Devices
     unsigned int availableAudioDevices = AudioDevices.getDeviceCount();
     std::vector<std::string> audioDeviceNames(availableAudioDevices);
 
@@ -355,8 +355,8 @@ AudioConfiguration OHMComm::interactivelyConfigureAudioDevices()
             std::cout << std::endl;
             std::cout << "Native Audio Formats Flag = " << DeviceInfo.nativeFormats << std::endl;
             std::cout << std::endl;
-            
-            audioDeviceNames[i] = (DeviceInfo.name + (DeviceInfo.isDefaultInput && DeviceInfo.isDefaultOutput ? " (default in/out)" : 
+
+            audioDeviceNames[i] = (DeviceInfo.name + (DeviceInfo.isDefaultInput && DeviceInfo.isDefaultOutput ? " (default in/out)" :
                 (DeviceInfo.isDefaultInput ? " (default in)" : (DeviceInfo.isDefaultOutput ? " (default out)" : ""))));
         }
     }
@@ -394,7 +394,7 @@ AudioConfiguration OHMComm::interactivelyConfigureAudioDevices()
 
     //Configure inputDeviceChannels (we always use stereo)
     audioConfig.inputDeviceChannels = 2;
-    
+
     return audioConfig;
 }
 
@@ -402,11 +402,11 @@ NetworkConfiguration OHMComm::interactivelyConfigureNetwork()
 {
     NetworkConfiguration networkConfiguration{0};
     UserInput::printSection("Network configuration");
-    
+
     //1. remote address
     std::string ipString = UserInput::inputString("1. Input destination IP address");
     networkConfiguration.addressOutgoing = ipString;
-    
+
     //2. remote and local ports
     int destPort = UserInput::inputNumber("2. Input destination port", false, false);
     int localPort = UserInput::inputNumber("3. Input local port", false, false);
@@ -414,7 +414,7 @@ NetworkConfiguration OHMComm::interactivelyConfigureNetwork()
     networkConfiguration.portIncoming = localPort;
 
     std::cout << "Network configuration set." << std::endl;
-    
+
     return networkConfiguration;
 }
 
@@ -468,7 +468,7 @@ int main(int argc, char* argv[])
     ////
     // Configuration
     ////
-    
+
     OHMComm* ohmComm;
     Parameters params;
     if(params.parseParameters(argc, argv, AudioProcessorFactory::getAudioProcessorNames()))
@@ -483,7 +483,7 @@ int main(int argc, char* argv[])
     ////
     // Startup
     ////
-    
+
     if(!ohmComm->isConfigurationDone(true))
     {
         std::cerr << "Failed to configure OHMComm!" << std::endl;
@@ -499,6 +499,6 @@ int main(int argc, char* argv[])
     ohmComm->stopAudioThreads();
 
     delete ohmComm;
-    
+
     return 0;
 }
