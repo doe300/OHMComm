@@ -45,15 +45,17 @@ struct StreamData
 class AudioProcessor
 {
 public:
-    AudioProcessor(std::string name);
+    AudioProcessor(const std::string name);
 
     virtual ~AudioProcessor()
     {
         //needs a virtual destructor to be overridden correctly
     }
 
+    /*!
+     * \return the unique name of this audio-processor
+     */
     const std::string getName();
-    void setName(std::string name);
 
     /*!
      * This method returns the OR'ed flags of the supported audio-formats
@@ -130,7 +132,7 @@ public:
      */
     virtual unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) = 0;
 private:
-    std::string name;
+    const std::string name;
 };
 
 

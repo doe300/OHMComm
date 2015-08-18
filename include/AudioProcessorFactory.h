@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   AudioProcessorFactory.h
  * Author: daniel
  *
@@ -20,14 +20,19 @@ class AudioProcessorFactory
 public:
     static const std::string OPUS_CODEC;
     static const std::string WAV_WRITER;
+
     /*!
      * Returns the AudioProcessor for the given name
-     * 
+     *
      * \param name The name to look for
-     * 
+     *
      * \param createProfiler whether to create a profiler for the audio-processor
      */
     static AudioProcessor* getAudioProcessor(std::string name, bool createProfiler);
+
+    /*!
+     * \return a list of the names of all available audio-processors
+     */
     static const std::vector<std::string> getAudioProcessorNames();
 private:
 

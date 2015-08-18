@@ -1,4 +1,5 @@
 #include "AudioHandlerFactory.h"
+#include "RTAudioWrapper.h"
 
 //Initialize names
 const std::string AudioHandlerFactory::RTAUDIO_WRAPPER = "RtAudioWrapper";
