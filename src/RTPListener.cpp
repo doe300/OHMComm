@@ -1,15 +1,15 @@
-/* 
+/*
  * File:   ReceiveThread.cpp
  * Author: daniel
- * 
+ *
  * Created on May 16, 2015, 12:49 PM
  */
 
 #include "RTPListener.h"
 #include "Statistics.h"
 
-RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBuffer> buffer, unsigned int receiveBufferSize) :
-    rtpHandler(receiveBufferSize)
+RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBuffer> buffer, unsigned int receiveBufferSize, std::function<void ()> stopCallback) :
+    stopCallback(stopCallback), rtpHandler(receiveBufferSize)
 {
     this->wrapper = wrapper;
     this->buffer = buffer;
@@ -83,7 +83,8 @@ void RTPListener::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         std::cout << "Received Goodbye-message: " << rtcpHandler.readByeMessage(receiveBuffer, receivedSize, header) << std::endl;
         std::cout << "Dialog partner requested end of communication, shutting down!" << std::endl;
         shutdown();
-        //TODO shutdown sending side/whole program!
+        //notify OHMComm to shut down
+        stopCallback();
     }
 //    else if(header.packageType == RTCP_PACKAGE_APPLICATION_DEFINED)
 //    {

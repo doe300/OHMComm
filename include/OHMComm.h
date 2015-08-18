@@ -8,15 +8,13 @@
 #ifndef OHMCOMM_H
 #define	OHMCOMM_H
 
-#include "RtAudio.h"
+#include "AudioHandler.h"
 #include "Parameters.h"
-#include "AudioProcessorFactory.h"
-#include "AudioHandlerFactory.h"
-#include "UserInput.h"
 #include "RTPBuffer.h"
 #include "NetworkWrapper.h"
 #include "RTPListener.h"
 
+#include <functional>
 #include <memory> // unique_ptr
 #include <string>
 #include <stdexcept>
@@ -190,6 +188,7 @@ private:
     void interactivelyConfigureProcessors();
     void configureRTPProcessor();
     NetworkConfiguration createDefaultNetworkConfiguration();
+    std::function<void ()> createStopCallback();
 };
 
 #endif	/* OHMCOMM_H */

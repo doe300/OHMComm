@@ -8,6 +8,10 @@
 #include "OHMComm.h"
 #include "UDPWrapper.h"
 #include "ProcessorRTP.h"
+#include "AudioProcessorFactory.h"
+#include "AudioHandlerFactory.h"
+#include "UserInput.h"
+#include "RtAudio.h"
 
 OHMComm::OHMComm(const ConfigurationMode mode)
     : rtpBuffer(new RTPBuffer(256, 1000)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
@@ -180,6 +184,11 @@ void OHMComm::configureInteractive()
 
 void OHMComm::startAudioThreads()
 {
+    if(running)
+    {
+        std::cout << "OHMComm already running..." << std::endl;
+        return;
+    }
     if(!isConfigurationDone(false))
     {
         throw std::runtime_error("OHMComm not fully configured!");
@@ -189,25 +198,34 @@ void OHMComm::startAudioThreads()
     {
         throw std::runtime_error("Failed to configure audio-handler!");
     }
-    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize()));
+    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize(), createStopCallback()));
 
     listener->startUp();
     audioHandler->startDuplexMode();
 
+    std::cout << "OHMComm started!" << std::endl;
     running = true;
 }
 
 void OHMComm::stopAudioThreads()
 {
+    if(!running)
+    {
+        //to prevent recursive calls
+        std::cout << "OHMComm is not running" << std::endl;
+        return;
+    }
     running = false;
 
     audioHandler->stop();
     listener->shutdown();
     networkWrapper->closeNetwork();
 
+    std::cout << "OHMComm stopped!" << std::endl;
     if(logStatisticsToFile)
     {
         Statistics::printStatisticsToFile(logFileName);
+        std::cout << "Statistics file written" << std::endl;
     }
     //print statistics to stdout anyway
     Statistics::printStatistics();
@@ -461,6 +479,11 @@ NetworkConfiguration OHMComm::createDefaultNetworkConfiguration()
     networkConfig.portIncoming = DEFAULT_NETWORK_PORT;
     networkConfig.portOutgoing = DEFAULT_NETWORK_PORT;
     return networkConfig;
+}
+
+std::function<void ()> OHMComm::createStopCallback()
+{
+    return std::bind(&OHMComm::stopAudioThreads,this);
 }
 
 int main(int argc, char* argv[])

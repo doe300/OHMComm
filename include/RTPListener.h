@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   ReceiveThread.h
  * Author: daniel
  *
@@ -9,6 +9,7 @@
 #define	RTPLISTENER_H
 
 #include <thread>
+#include <functional>
 
 #include "RTPBuffer.h"
 
@@ -17,7 +18,7 @@
 
 /*!
  * Listening-thread for incoming RTP-packages
- * 
+ *
  * This class starts a new thread which writes all received RTP-packages to the RTPBuffer
  */
 class RTPListener
@@ -25,14 +26,16 @@ class RTPListener
 public:
     /*!
      * Constructs a new RTPListener
-     * 
+     *
      * \param wrapper The NetworkWrapper to use for receiving packages
-     * 
+     *
      * \param buffer The RTPBuffer to write into
-     * 
+     *
      * \param receiveBufferSize The maximum size (in bytes) a RTP-package can fill, according to the configuration
+     *
+     * \param stopCallback The callback to be executed after receiving a RTCP GOODBYE-package
      */
-    RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBuffer> buffer, unsigned int receiveBufferSize);
+    RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBuffer> buffer, unsigned int receiveBufferSize, std::function<void ()> stopCallback);
     RTPListener(const RTPListener& orig);
     virtual ~RTPListener();
 
@@ -46,6 +49,7 @@ public:
      */
     void startUp();
 private:
+    std::function<void ()> stopCallback;
     std::shared_ptr<NetworkWrapper> wrapper;
     std::shared_ptr<RTPBuffer> buffer;
     RTPPackageHandler rtpHandler;
@@ -57,7 +61,7 @@ private:
      * Method called in the parallel thread, receiving packages and writing them into RTPBuffer
      */
     void runThread();
-    
+
     /*!
      * This method handles received RTCP packages and is called only from #runThread()
      */
