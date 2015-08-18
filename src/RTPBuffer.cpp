@@ -10,8 +10,6 @@
 #include "RTPBuffer.h"
 #include "Statistics.h"
 
-//TODO implement maxDelay. where to get reference point of time from?
-
 RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages): capacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages)
 {
     nextReadIndex = 0;
@@ -56,12 +54,7 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int c
     }
     if(receivedHeader->sequence_number - minSequenceNumber >= capacity)
     {
-        // TODO: Its not smart to discard new packages. This is only the case if packages were lost while transmitting. 
-		// And if that is the case then the buffer should not wait for old packages and discard all further (new) packages. 
-		// Instead it should the move the current pointer in the buffer ahead. 
-        // -> need to correctly implement maxDelay
-
-        //package is far too new -> we have now choice but to discard it without getting into an undetermined state
+        //should never occur: package is far too new -> we have now choice but to discard it without getting into an undetermined state
         unlockMutex();
         return RTP_BUFFER_INPUT_OVERFLOW;
     }
@@ -81,6 +74,8 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int c
         ringBuffer[newWriteIndex].bufferSize = contentSize;
         ringBuffer[newWriteIndex].packageContent = realloc(ringBuffer[newWriteIndex].packageContent, contentSize);
     }
+    //save timestamp of reception
+    ringBuffer[newWriteIndex].receptionTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     ringBuffer[newWriteIndex].contentSize = contentSize;
     memcpy(ringBuffer[newWriteIndex].packageContent, package.getRTPPackageData(), contentSize);
     //update size
@@ -95,18 +90,25 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     lockMutex();
     if(size < minBufferPackages)
     {
-        //buffer is empty
-        //write placeholder package into buffer
+        //buffer has insufficient fill level
+        //return silence package
         package.createSilencePackage();
         package.setActualPayloadSize(package.getMaximumPackageSize());
         unlockMutex();
         return RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
-    //need to search for oldest valid package, newer than minSequenceNumber
+    //need to search for oldest valid package, newer than minSequenceNumber and newer than currentTimestamp - maxDelay
     uint16_t index = nextReadIndex;
+    unsigned long currentTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     while(incrementIndex(index) != nextReadIndex)
     {
-        if(ringBuffer[index].isValid == true && ringBuffer[index].header.sequence_number >= minSequenceNumber)
+        //check whether package is too delayed
+        if(ringBuffer[index].isValid == true && ringBuffer[index].receptionTimestamp + maxDelay < currentTimestamp)
+        {
+            //package is valid but too old, invalidate and skip
+            ringBuffer[index].isValid = false;
+        }
+        else if(ringBuffer[index].isValid == true && ringBuffer[index].header.sequence_number >= minSequenceNumber)
         {
             nextReadIndex = index;
             break;
@@ -117,12 +119,14 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     RTPBufferPackage *bufferPack = &(ringBuffer[nextReadIndex]);
     if(bufferPack->isValid == false)
     {
-        //no valid packages found -> should never occur, because size was > 0
+        //no valid packages found
+        //return silence package
+        package.createSilencePackage();
+        package.setActualPayloadSize(package.getMaximumPackageSize());
         unlockMutex();
         return RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
 
-    // TODO: move to RTPPackage? need to use correct buffer!
     char *packageBuffer = (char *)package.getWorkBuffer();
     memcpy(packageBuffer, &(bufferPack->header), sizeof(bufferPack->header));
     memcpy(packageBuffer + sizeof(bufferPack->header), bufferPack->packageContent, bufferPack->contentSize);

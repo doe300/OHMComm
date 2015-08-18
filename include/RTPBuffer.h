@@ -95,6 +95,10 @@ private:
          */
         RTPHeader header;
         /*!
+         * The timestamp (in milliseconds) this package was received
+         */
+        unsigned int receptionTimestamp;
+        /*!
          * The package size in bytes (size of the content)
          */
         unsigned int contentSize;
