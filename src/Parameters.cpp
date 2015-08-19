@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   Parameter.cpp
  * Author: daniel
- * 
+ *
  * Created on July 22, 2015, 1:57 PM
  */
 
@@ -152,8 +152,7 @@ void Parameters::printHelpPage(const std::vector<std::string> allProcessorNames)
     std::cout << "Usage: OHMComm [option]" << std::endl;
     std::cout << "When run without command-line arguments, the program will start in interactive mode." << std::endl;
     std::cout << std::endl;
-    
-    //TODO make categories more flexible
+
     std::cout << "General configuration:" << std::endl;
     for(const Parameter* param : availableParameters)
     {

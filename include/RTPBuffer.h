@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   RTPBuffer.h
  * Author: daniel
  *
@@ -23,15 +23,15 @@
  * This status is returned by the addPackage/readPackage-method to determine whether the operation did succeed
  */
 typedef uint8_t RTPBufferStatus;
-static const RTPBufferStatus RTP_BUFFER_ALL_OKAY = 0;
+static constexpr RTPBufferStatus RTP_BUFFER_ALL_OKAY = 0;
 /*!
  * New package was not buffered, because of an overflow in the buffer
  */
-static const RTPBufferStatus RTP_BUFFER_INPUT_OVERFLOW = 0x1;
+static constexpr RTPBufferStatus RTP_BUFFER_INPUT_OVERFLOW = 0x1;
 /*!
  * No package to read, because of an underflow in the buffer
  */
-static const RTPBufferStatus RTP_BUFFER_OUTPUT_UNDERFLOW = 0x2;
+static constexpr RTPBufferStatus RTP_BUFFER_OUTPUT_UNDERFLOW = 0x2;
 
 /*!
  * Serves as jitter-buffer for RTP packages
@@ -49,11 +49,11 @@ public:
 
     /*!
      * Adds a new package to the buffer
-     * 
+     *
      * \param package The package to add, must be allocated on the HEAP
-     * 
+     *
      * \param contentSize The size in bytes of the package-content
-     * 
+     *
      * Returns zero on success or one of the RTPBufferStatus-codes listed in RTPBuffer.h
      */
     RTPBufferStatus addPackage(RTPPackageHandler &package, unsigned int contentSize);
@@ -61,7 +61,7 @@ public:
     /*!
      * Reads the oldest package in the buffer and writes it into the package-variable
      * \param A placeholder for the package to read, must be allocated on the HEAP
-     * 
+     *
      * Returns zero on success or one if the RTPBufferStatus-codes listed in RTPBuffer.h
      */
     RTPBufferStatus readPackage(RTPPackageHandler &package);
@@ -110,7 +110,7 @@ private:
          * The package data
          */
         void *packageContent = nullptr;
-        
+
         ~RTPBufferPackage()
         {
             if(packageContent != nullptr)

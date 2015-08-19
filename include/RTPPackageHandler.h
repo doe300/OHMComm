@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   RTPPackage.h
  * Author: daniel
  *
@@ -15,18 +15,18 @@
 /*!
  * Minimum size of a RTP-Header in bytes, without any CSRCs set
  */
-const unsigned int RTP_HEADER_MIN_SIZE = 12;
+static constexpr unsigned int RTP_HEADER_MIN_SIZE = 12;
 /*!
  * Maximum size of a RTP-Header with all CSRCs set.
  * TODO currently doesn't account for any header-extension
  */
-const unsigned int RTP_HEADER_MAX_SIZE = 72;
+static constexpr unsigned int RTP_HEADER_MAX_SIZE = 72;
 
 //TODO byte-order (network-order)??
 
 /*!
  * A RTP header extension has the following format:
- * 
+ *
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -34,7 +34,7 @@ const unsigned int RTP_HEADER_MAX_SIZE = 72;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |                        header extension                       |
  * |                             ....                              |
- * 
+ *
  * If the X bit in the RTP header is one, a variable-length header extension MUST be appended to the RTP header,
  * following the CSRC list if present.
  * The header extension contains a 16-bit length field that counts the number of 32-bit words in the extension,
@@ -43,8 +43,8 @@ const unsigned int RTP_HEADER_MAX_SIZE = 72;
  * independently with different header extensions, or to allow a particular implementation to experiment
  * with more than one type of header extension, the first 16 bits of the header extension are left open
  * for distinguishing identifiers or parameters. The format of these 16 bits is to be defined
- * by the profile specification under which the implementations are operating. 
- * 
+ * by the profile specification under which the implementations are operating.
+ *
  * This RTP specification does not define any header extensions itself.
  */
 struct RTPHeaderExtension
@@ -60,9 +60,9 @@ struct RTPHeaderExtension
 };
 
 /*!
- * 
+ *
  * The RTP header has the following format:
- * 
+ *
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -75,24 +75,24 @@ struct RTPHeaderExtension
  * |            contributing source (CSRC) identifiers             |
  * |                             ....                              |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * 
+ *
  * The first twelve octets are present in every RTP packet, while the
  * list of CSRC identifiers is present only when inserted by a mixer.
  * The fields have the following meaning:
- * 
+ *
  * version (V): 2 bits
  *  This field identifies the version of RTP. The version defined by this specification is two (2).
- * 
+ *
  * padding (P): 1 bit
  *  If the padding bit is set, the packet contains one or more additional padding octets at the end
- *  which are not part of the payload. The last octet of the padding contains a count of how many padding octets 
+ *  which are not part of the payload. The last octet of the padding contains a count of how many padding octets
  *  should be ignored, including itself. Padding may be needed by some encryption algorithms with fixed block sizes
  *  or for carrying several RTP packets in a lower-layer protocol data unit.
- * 
+ *
  * extension (X): 1 bit
  *  If the extension bit is set, the fixed header MUST be followed by exactly one header extension,
  *  with a format defined in Section 5.3.1.
- * 
+ *
  * CSRC count (CC): 4 bits
  *  The CSRC count contains the number of CSRC identifiers that follow the fixed header.
  *
@@ -100,27 +100,27 @@ struct RTPHeaderExtension
  *  The interpretation of the marker is defined by a profile. It is intended to allow significant events
  *  such as frame boundaries to be marked in the packet stream. A profile MAY define additional marker bits
  *  or specify that there is no marker bit by changing the number of bits in the payload type field (see Section 5.3).
- * 
+ *
  * payload type (PT): 7 bits
  *  This field identifies the format of the RTP payload and determines its interpretation by the application.
- *  A profile MAY specify a default static mapping of payload type codes to payload formats. 
+ *  A profile MAY specify a default static mapping of payload type codes to payload formats.
  *  Additional payload type codes MAY be defined dynamically through non-RTP means (see Section 3).
  *  A set of default mappings for audio and video is specified in the companion RFC 3551 [1].
  *  An RTP source MAY change the payload type during a session, but this field SHOULD NOT be used
  *  for multiplexing separate media streams (see Section 5.2).
  *  A receiver MUST ignore packets with payload types that it does not understand.
- * 
+ *
  * sequence number: 16 bits
  *  The sequence number increments by one for each RTP data packet sent, and may be used by the receiver
  *  to detect packet loss and to restore packet sequence. The initial value of the sequence number SHOULD be random
  *  (unpredictable) to make known-plaintext attacks on encryption more difficult, even if the source itself does not
  *  encrypt according to the method in Section 9.1, because the packets may flow through a translator that does.
- * 
+ *
  * timestamp: 32 bits
  *  The timestamp reflects the sampling instant of the first octet in the RTP data packet.
  *  The sampling instant MUST be derived from a clock that increments monotonically and linearly in time to allow
  *  synchronization and jitter calculations (see Section 6.4.1). The resolution of the clock MUST be sufficient
- *  for the desired synchronization accuracy and for measuring packet arrival jitter 
+ *  for the desired synchronization accuracy and for measuring packet arrival jitter
  *  (one tick per video frame is typically not sufficient). The clock frequency is dependent on the format of data
  *  carried as payload and is specified statically in the profile or payload format specification
  *  that defines the format, or MAY be specified dynamically for payload formats defined through non-RTP means.
@@ -130,7 +130,7 @@ struct RTPHeaderExtension
  *  If an audio application reads blocks covering 160 sampling periods from the input device,
  *  the timestamp would be increased by 160 for each such block, regardless of whether the block is transmitted
  *  in a packet or dropped as silent.
- *  The initial value of the timestamp SHOULD be random, as for the sequence number. 
+ *  The initial value of the timestamp SHOULD be random, as for the sequence number.
  *  Several consecutive RTP packets will have equal timestamps if they are (logically) generated at once,
  *  e.g., belong to the same video frame.  Consecutive RTP packets MAY contain timestamps that are not monotonic
  *  if the data is not transmitted in the order it was sampled, as in the case of MPEG interpolated video frames.
@@ -143,7 +143,7 @@ struct RTPHeaderExtension
  *  timeline derived from wallclock time to determine when the next frame or other unit of each medium
  *  in the stored data should be presented.
  *  NOTE: in our implementation, the RT(C)P timestamp is always in milliseconds precision
- * 
+ *
  * SSRC: 32 bits
  *  The SSRC field identifies the synchronization source. This identifier SHOULD be chosen randomly,
  *  with the intent that no two synchronization sources within the same RTP session will have the same SSRC identifier.
@@ -153,7 +153,7 @@ struct RTPHeaderExtension
  *  collision along with a mechanism for resolving collisions and detecting RTP-level forwarding loops
  *  based on the uniqueness of the SSRC identifier. If a source changes its source transport address,
  *  it must also choose a new SSRC identifier to avoid being interpreted as a looped source (see Section 8.2).
- * 
+ *
  * CSRC list: 0 to 15 items, 32 bits each
  *  The CSRC list identifies the contributing sources for the payload contained in this packet.
  *  The number of identifiers is given by the CC field. If there are more than 15 contributing sources,
@@ -189,7 +189,7 @@ struct RTPHeader
 
     //32 bit SSRC field
     unsigned int ssrc : 32;
-    
+
     //list of 32 bit CSRCs
     //TODO adding this requires correct handling of RTPHeader (depending on the csrc_count, like it was before)
     //uint32_t csrc_list[15];
@@ -197,9 +197,9 @@ struct RTPHeader
 
 /*!
  * List of default mappings for payload-type, as specified in https://www.ietf.org/rfc/rfc3551.txt
- * 
+ *
  * Also see: https://en.wikipedia.org/wiki/RTP_audio_video_profile
- * 
+ *
  * Currently only containing audio mappings.
  */
 enum PayloadType
@@ -246,41 +246,41 @@ class RTPPackageHandler
 public:
     /*!
      * Constructs a new RTPPackage-object
-     * 
+     *
      * \param maximumPayloadSize The maximum size in bytes of the payload (body)
      *
      * \param payloadType The PayloadType, defaults to L16_2
-     * 
-     * \param sizeOfRTPHeader The size in bytes of the RTPHeader, defaults to RTP_HEADER_MIN_SIZE  
+     *
+     * \param sizeOfRTPHeader The size in bytes of the RTPHeader, defaults to RTP_HEADER_MIN_SIZE
      */
     RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType = L16_2, unsigned int sizeOfRTPHeader = RTP_HEADER_MIN_SIZE);
 
     ~RTPPackageHandler();
-    
+
     /*!
      * Generates a new RTP-package by generating the header and copying the payload-data (audio data)
-     * 
+     *
      * \param audioData The payload for the new RTP-package
-     * 
-     * \param payloadSize The size in bytes of the audio-payload, 
+     *
+     * \param payloadSize The size in bytes of the audio-payload,
      *  must be smaller or equals to #getMaximumPayloadSize()
-     * 
+     *
      * Returns a pointer to the internal buffer storing the new package
      */
     auto getNewRTPPackage(void* audioData, unsigned int payloadSize)->void*;
 
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from,  defaults nullptr
-     *   
-     * Returns a pointer to the payload of rtpPackage. When rtpPackage is not set (defaults to nullptr) 
+     *
+     * Returns a pointer to the payload of rtpPackage. When rtpPackage is not set (defaults to nullptr)
      * the internal 'workBuffer' will be used as source.
      */
     auto getRTPPackageData(void *rtpPackage = nullptr) -> void*;
 
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from, defaults nullptr
-     * 
-     * Returns a RTPHeader pointer of the rtpPackage. When rtpPackage is not set (defaults to nullptr) 
+     *
+     * Returns a RTPHeader pointer of the rtpPackage. When rtpPackage is not set (defaults to nullptr)
      * the internal 'workBuffer' will be used as source.
      */
     auto getRTPPackageHeader(void *rtpPackage = nullptr) -> RTPHeader*;
@@ -299,17 +299,17 @@ public:
      * Gets the maximum payload size
      */
     auto getMaximumPayloadSize() -> unsigned int const;
-    
+
     /*!
      * Returns the actual size of the currently buffered audio-payload
-     * 
+     *
      * Note: This value is only accurate if the #setActualPayloadSize() was set for the current payload
      */
     auto getActualPayloadSize() -> unsigned int const;
-    
+
     /*!
      * Sets the payload-size in bytes of the currently buffered package
-     * 
+     *
      * \param payloadSize The new size in bytes
      */
     void setActualPayloadSize(unsigned int payloadSize);
@@ -318,19 +318,19 @@ public:
      * Returns the internal buffer, which could be used as receive buffer
      */
     auto getWorkBuffer() -> void*;
-    
+
     /*!
      * Creates a silence-package in the internal work-buffer.
-     * 
+     *
      * A silence-package is a RTP-package with a dummy header and zeroed out payload resulting in silence on playback.
      */
     void createSilencePackage();
-    
+
     /*!
      * Returns this device SSRC
      */
     unsigned int getSSRC();
-    
+
 private:
     // When a new RTP-Package is created, it will be written in this buffer
     void *newRTPPackageBuffer;

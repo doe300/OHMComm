@@ -26,7 +26,7 @@ inline void printVector(vector<int> v, bool withIndex)
             cout << ", ";
         }
         cout << v[i];
-        
+
     }
     if(!withIndex)
     {
@@ -55,7 +55,7 @@ inline void printVector(vector<std::string> v, bool withIndex)
             cout << ", ";
         }
         cout << v[i];
-        
+
     }
     if(!withIndex)
     {
@@ -129,7 +129,7 @@ unsigned int UserInput::selectOptionIndex(std::string message, std::vector<std::
         cout << "Invalid input: You must input a number!" << endl;
         return selectOptionIndex(message, options, defaultIndex);
     }
-    if(selectedIndex >= 0 && selectedIndex < options.size())
+    if(selectedIndex < options.size())
     {
         return selectedIndex;
     }
@@ -195,7 +195,7 @@ unsigned int UserInput::selectOptionIndex(std::string message, std::vector<int> 
         cout << "Invalid input: You must input a number!" << endl;
         return selectOptionIndex(message, options, defaultIndex);
     }
-    if(selectedIndex >= 0 && selectedIndex < options.size())
+    if(selectedIndex < options.size())
     {
         return selectedIndex;
     }

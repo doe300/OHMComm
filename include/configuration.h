@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   configuration.h
  * Author: daniel, jonas
  *
@@ -11,7 +11,7 @@
 #include <string>
 
 //the port should be a number greater than 1024
-static const int DEFAULT_NETWORK_PORT = 12345;
+static constexpr int DEFAULT_NETWORK_PORT = 12345;
 //The program's current version as string
 static const std::string OHMCOMM_VERSION = "0.3";
 
@@ -89,26 +89,26 @@ struct AudioConfiguration
 
         return true;
     }
-    
+
     //The AUDIO_FORMAT_XXX flags are the same as the RtAudioFormats
-    static const unsigned int AUDIO_FORMAT_SINT8 = 0x1;    // 8-bit signed integer.
-    static const unsigned int AUDIO_FORMAT_SINT16 = 0x2;   // 16-bit signed integer.
-    static const unsigned int AUDIO_FORMAT_SINT24 = 0x4;   // 24-bit signed integer.
-    static const unsigned int AUDIO_FORMAT_SINT32 = 0x8;   // 32-bit signed integer.
-    static const unsigned int AUDIO_FORMAT_FLOAT32 = 0x10; // Normalized between plus/minus 1.0.
-    static const unsigned int AUDIO_FORMAT_FLOAT64 = 0x20; // Normalized between plus/minus 1.0.
-    static const unsigned int AUDIO_FORMAT_ALL = 0xFFFFFFFF; // supports all audio-formats
-    
-    static const unsigned int SAMPLE_RATE_8000 = 1;         // 8 kHz
-    static const unsigned int SAMPLE_RATE_12000 = 2;        // 12 kHz
-    static const unsigned int SAMPLE_RATE_16000 = 4;        // 16 kHz
-    static const unsigned int SAMPLE_RATE_24000 = 8;        // 24 kHz
-    static const unsigned int SAMPLE_RATE_32000 = 16;       // 32 kHz
-    static const unsigned int SAMPLE_RATE_44100 = 32;       // 44.1 kHz
-    static const unsigned int SAMPLE_RATE_48000 = 64;       // 48 kHz
-    static const unsigned int SAMPLE_RATE_96000 = 128;      // 96 kHz
-    static const unsigned int SAMPLE_RATE_192000 = 256;     // 192 kHz
-    static const unsigned int SAMPLE_RATE_ALL = 0xFFFFFFFF; // supports all sample-rates
+    static constexpr unsigned int AUDIO_FORMAT_SINT8 = 0x1;    // 8-bit signed integer.
+    static constexpr unsigned int AUDIO_FORMAT_SINT16 = 0x2;   // 16-bit signed integer.
+    static constexpr unsigned int AUDIO_FORMAT_SINT24 = 0x4;   // 24-bit signed integer.
+    static constexpr unsigned int AUDIO_FORMAT_SINT32 = 0x8;   // 32-bit signed integer.
+    static constexpr unsigned int AUDIO_FORMAT_FLOAT32 = 0x10; // Normalized between plus/minus 1.0.
+    static constexpr unsigned int AUDIO_FORMAT_FLOAT64 = 0x20; // Normalized between plus/minus 1.0.
+    static constexpr unsigned int AUDIO_FORMAT_ALL = 0xFFFFFFFF; // supports all audio-formats
+
+    static constexpr unsigned int SAMPLE_RATE_8000 = 1;         // 8 kHz
+    static constexpr unsigned int SAMPLE_RATE_12000 = 2;        // 12 kHz
+    static constexpr unsigned int SAMPLE_RATE_16000 = 4;        // 16 kHz
+    static constexpr unsigned int SAMPLE_RATE_24000 = 8;        // 24 kHz
+    static constexpr unsigned int SAMPLE_RATE_32000 = 16;       // 32 kHz
+    static constexpr unsigned int SAMPLE_RATE_44100 = 32;       // 44.1 kHz
+    static constexpr unsigned int SAMPLE_RATE_48000 = 64;       // 48 kHz
+    static constexpr unsigned int SAMPLE_RATE_96000 = 128;      // 96 kHz
+    static constexpr unsigned int SAMPLE_RATE_192000 = 256;     // 192 kHz
+    static constexpr unsigned int SAMPLE_RATE_ALL = 0xFFFFFFFF; // supports all sample-rates
 };
 
 #endif	/* CONFIGURATION_H */
