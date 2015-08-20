@@ -37,10 +37,6 @@ static constexpr RTCPSourceDescriptionType RTCP_SOURCE_LOC = 5;
 static constexpr RTCPSourceDescriptionType RTCP_SOURCE_TOOL = 6;
 static constexpr RTCPSourceDescriptionType RTCP_SOURCE_NOTE = 7;
 
-static constexpr uint8_t RTCP_HEADER_SIZE = 8;
-static constexpr uint8_t RTCP_SENDER_INFO_SIZE = 20;
-static constexpr uint8_t RTCP_RECEPTION_REPORT_SIZE = 24;
-
 /*!
  * The RTCP header has the following format:
  *
@@ -379,6 +375,10 @@ class RTCPPackageHandler
 {
 public:
 
+    static constexpr uint8_t RTCP_HEADER_SIZE = sizeof(RTCPHeader);
+    static constexpr uint8_t RTCP_SENDER_INFO_SIZE = sizeof(SenderInformation);
+    static constexpr uint8_t RTCP_RECEPTION_REPORT_SIZE = sizeof(ReceptionReport);
+
     RTCPPackageHandler();
 
     virtual ~RTCPPackageHandler();
@@ -530,14 +530,14 @@ public:
      *
      * \return Whether this buffer COULD be holding hold an RTCP package
      */
-    bool isRTCPPackage(void* packageBuffer, unsigned int packageLength );
+    static bool isRTCPPackage(void* packageBuffer, unsigned int packageLength );
 
     /*!
      * \param lengthHeaderField The value of the RTCP header-field "length"
      *
      * \return the length of the RTCP-package in bytes
      */
-    unsigned int getRTCPPackageLength(unsigned int lengthHeaderField);
+    static const unsigned int getRTCPPackageLength(unsigned int lengthHeaderField);
 
 private:
     char *rtcpPackageBuffer;
@@ -547,7 +547,7 @@ private:
      *
      * Specification: "The length of this RTCP packet in 32-bit words minus one, including the header and any padding"
      */
-    uint8_t calculateLengthField(uint16_t length);
+    static const uint8_t calculateLengthField(uint16_t length);
 };
 
 #endif	/* RTCPPACKAGEHANDLER_H */
