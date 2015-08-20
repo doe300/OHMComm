@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   ConfigurationMode.h
  * Author: daniel
  *
@@ -27,47 +27,47 @@ public:
 
     /*!
      * Runs the configuration, if possible.
-     * 
+     *
      * Any successive calls to this method will be no-ops
-     * 
+     *
      * \return Whether the configuration was successfully run
      */
     virtual bool runConfiguration() = 0;
-    
+
     /*!
      * \return Whether this configuration if fully configured
      */
     virtual bool isConfigured() const;
-    
+
     /*!
      * \return a pair consisting of (first) the name for the audio-handler to use and (second) a flag whether to use the manual audio-configuration
      */
     const std::pair<std::string, bool> getAudioHandlerConfiguration() const;
-    
+
     /*!
      * \return the configured AudioConfiguration
      */
     const AudioConfiguration getAudioConfiguration() const;
-    
+
     /*!
      * \return the configured NetworkConfiguration
      */
     const NetworkConfiguration getNetworkConfiguration() const;
-    
+
     /*!
      * \return a pair containing (first) all configured processor-names and (second) a flag whether to profile the processors
      */
     bool getAudioProcessorsConfiguration(std::vector<std::string>& processorNames) const;
-    
+
     /*!
      * \return a pair containing (first) a flag whether to write a log to file and (second) the file-name for the log-file
      */
     const std::pair<bool, std::string> getLogToFileConfiguration() const;
-    
+
 protected:
-    
+
     void createDefaultNetworkConfiguration();
-    
+
     bool isConfigurationDone = false;
     bool useDefaultAudioConfig = true;
     std::string audioHandlerName;
@@ -86,9 +86,9 @@ class ParameterConfiguration : public ConfigurationMode
 {
 public:
     ParameterConfiguration(const Parameters& params);
-    
+
     virtual bool runConfiguration();
-    
+
 private:
     void fillAudioConfiguration(int outputDeviceID, int inputDeviceID);
 };
@@ -106,7 +106,7 @@ public:
     virtual bool runConfiguration();
 
 private:
-    
+
     void interactivelyConfigureAudioDevices();
     void interactivelyConfigureNetwork();
     void interactivelyConfigureProcessors();
@@ -128,16 +128,16 @@ public:
     virtual bool runConfiguration();
 
     virtual bool isConfigured() const;
-    
+
     /*!
      * Configures the audio-handler for the LIBRARY configuration-mode
      *
      * \param audioHandlerName The name of the AudioHandler to use
      *
-     * \param audioConfig The audio-configuration
+     * \param audioConfig The audio-configuration or a nullptr
      *
      */
-    void configureAudio(const std::string audioHandlerName, const AudioConfiguration& audioConfig);
+    void configureAudio(const std::string audioHandlerName, const AudioConfiguration* audioConfig);
 
     /*!
      * Configures the network for the LIBRARY configuration-mode
@@ -162,7 +162,7 @@ public:
      *
      */
     void configureLogToFile(const std::string logFileName);
-    
+
 private:
     bool isAudioConfigured = false;
     bool isNetworkConfigured = false;
@@ -176,7 +176,7 @@ class PassiveConfiguration : public ConfigurationMode
 {
 public:
     PassiveConfiguration(const NetworkConfiguration& networkConfig);
-    
+
     virtual bool runConfiguration();
 };
 #endif	/* CONFIGURATIONMODE_H */

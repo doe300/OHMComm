@@ -2,6 +2,7 @@
 #include "TestUserInput.h"
 #include "TestParameters.h"
 #include "TestRTCP.h"
+#include "TestConfigurationModes.h"
 
 TestAudioIO::TestAudioIO() {
 	TEST_ADD(TestAudioIO::testAudioHandlerInstances);
@@ -12,7 +13,7 @@ void TestAudioIO::testAudioHandlerInstances()
 {
 	auto audioHandler1 = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::RTAUDIO_WRAPPER);
 	TEST_ASSERT_MSG(audioHandler1->isAudioConfigSet() == false, "AudioConfig has been set. 01");
-	
+
 	AudioConfiguration audioConfig = {0};
 	audioHandler1->setConfiguration(audioConfig);
 	TEST_ASSERT_MSG(audioHandler1->isAudioConfigSet() == true, "AudioConfig has not been set. 02");
@@ -34,7 +35,7 @@ void TestAudioIO::testAudioHandlerInstances()
 
 void TestAudioIO::testAudioProcessorInterface()
 {
-    
+
 }
 
 int main(int argc, char** argv)
@@ -42,16 +43,19 @@ int main(int argc, char** argv)
     Test::TextOutput output(Test::TextOutput::Verbose);
     TestAudioIO testaudio;
     testaudio.run(output);
-    
+
     TestRTP testRTP;
     testRTP.run(output);
-    
+
     TestUserInput testInput;
     testInput.run(output);
-    
+
     TestParameters testParams;
     testParams.run(output);
-    
+
     TestRTCP testRTCP;
     testRTCP.run(output);
+
+    TestConfigurationModes testConfig;
+    testConfig.run(output);
 }

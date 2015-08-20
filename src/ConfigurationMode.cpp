@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   ConfigurationMode.cpp
  * Author: daniel
- * 
+ *
  * Created on August 19, 2015, 4:48 PM
  */
 
@@ -117,7 +117,7 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params)
     profileProcessors = params.isParameterSet(Parameters::PROFILE_PROCESSORS);
     logToFile = params.isParameterSet(Parameters::LOG_TO_FILE);
     logFileName = params.getParameterValue(Parameters::LOG_TO_FILE);
-    
+
     //we completely configured OHMComm
     isConfigurationDone = true;
 }
@@ -188,7 +188,7 @@ bool InteractiveConfiguration::runConfiguration()
         createDefaultNetworkConfiguration();
     }
     interactivelyConfigureProcessors();
-    
+
     isConfigurationDone = true;
     return true;
 }
@@ -339,12 +339,15 @@ bool LibraryConfiguration::isConfigured() const
 }
 
 
-void LibraryConfiguration::configureAudio(const std::string audioHandlerName, const AudioConfiguration& audioConfig)
+void LibraryConfiguration::configureAudio(const std::string audioHandlerName, const AudioConfiguration* audioConfig)
 {
     this->audioHandlerName = audioHandlerName;
-    this->audioConfig = audioConfig;
+    if(audioConfig != nullptr)
+    {
+        this->audioConfig = *audioConfig;
+        useDefaultAudioConfig = false;
+    }
     isAudioConfigured = true;
-    useDefaultAudioConfig = false;
 }
 
 void LibraryConfiguration::configureNetwork(const NetworkConfiguration& networkConfig)
@@ -359,7 +362,7 @@ void LibraryConfiguration::configureProcessors(const std::vector<std::string>& p
     this->processorNames.reserve(processorNames.size());
     std::copy(processorNames.begin(), processorNames.end(), this->processorNames.begin());
     this->profileProcessors = profileProcessors;
-    
+
     isProcessorsConfigured = true;
 }
 
@@ -380,7 +383,7 @@ bool PassiveConfiguration::runConfiguration()
     {
         return true;
     }
-    
+
     //TODO ask other side for configuration
     return false;
 }
