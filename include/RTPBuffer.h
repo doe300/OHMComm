@@ -23,15 +23,15 @@
  * This status is returned by the addPackage/readPackage-method to determine whether the operation did succeed
  */
 typedef uint8_t RTPBufferStatus;
-static constexpr RTPBufferStatus RTP_BUFFER_ALL_OKAY = 0;
+static const RTPBufferStatus RTP_BUFFER_ALL_OKAY = 0;
 /*!
  * New package was not buffered, because of an overflow in the buffer
  */
-static constexpr RTPBufferStatus RTP_BUFFER_INPUT_OVERFLOW = 0x1;
+static const RTPBufferStatus RTP_BUFFER_INPUT_OVERFLOW = 0x1;
 /*!
  * No package to read, because of an underflow in the buffer
  */
-static constexpr RTPBufferStatus RTP_BUFFER_OUTPUT_UNDERFLOW = 0x2;
+static const RTPBufferStatus RTP_BUFFER_OUTPUT_UNDERFLOW = 0x2;
 
 /*!
  * Serves as jitter-buffer for RTP packages

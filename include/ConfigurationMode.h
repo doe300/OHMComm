@@ -70,9 +70,9 @@ protected:
 
     bool isConfigurationDone = false;
     bool useDefaultAudioConfig = true;
-    std::string audioHandlerName;
-    AudioConfiguration audioConfig{0};
-    NetworkConfiguration networkConfig{0};
+	std::string audioHandlerName;
+	AudioConfiguration audioConfig; // Initialisation in constructor
+    NetworkConfiguration networkConfig; // Initialisation in constructor
     std::vector<std::string> processorNames;
     bool profileProcessors = false;
     bool logToFile = false;

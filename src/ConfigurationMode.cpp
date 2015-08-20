@@ -12,7 +12,7 @@
 #include "AudioProcessorFactory.h"
 #include "RtAudio.h"
 
-ConfigurationMode::ConfigurationMode()
+ConfigurationMode::ConfigurationMode() : audioConfig( {0} ), networkConfig( {0} )
 {
 }
 

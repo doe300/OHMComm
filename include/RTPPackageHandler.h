@@ -15,12 +15,12 @@
 /*!
  * Minimum size of a RTP-Header in bytes, without any CSRCs set
  */
-static constexpr unsigned int RTP_HEADER_MIN_SIZE = 12;
+static const unsigned int RTP_HEADER_MIN_SIZE = 12;
 /*!
  * Maximum size of a RTP-Header with all CSRCs set.
  * TODO currently doesn't account for any header-extension
  */
-static constexpr unsigned int RTP_HEADER_MAX_SIZE = 72;
+static const unsigned int RTP_HEADER_MAX_SIZE = 72;
 
 //TODO byte-order (network-order)??
 

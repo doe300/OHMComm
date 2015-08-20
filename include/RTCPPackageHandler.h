@@ -18,24 +18,24 @@
  */
 typedef uint8_t RTCPPackageType;
 
-static constexpr RTCPPackageType RTCP_PACKAGE_SENDER_REPORT = 200;
-static constexpr RTCPPackageType RTCP_PACKAGE_RECEIVER_REPORT = 201;
-static constexpr RTCPPackageType RTCP_PACKAGE_SOURCE_DESCRIPTION = 202;
-static constexpr RTCPPackageType RTCP_PACKAGE_GOODBYE = 203;
-static constexpr RTCPPackageType RTCP_PACKAGE_APPLICATION_DEFINED = 204;
+static const RTCPPackageType RTCP_PACKAGE_SENDER_REPORT = 200;
+static const RTCPPackageType RTCP_PACKAGE_RECEIVER_REPORT = 201;
+static const RTCPPackageType RTCP_PACKAGE_SOURCE_DESCRIPTION = 202;
+static const RTCPPackageType RTCP_PACKAGE_GOODBYE = 203;
+static const RTCPPackageType RTCP_PACKAGE_APPLICATION_DEFINED = 204;
 
 /*!
  * RTCP Source description (SDES) payload type
  */
 typedef uint8_t RTCPSourceDescriptionType;
 
-static constexpr RTCPSourceDescriptionType RTCP_SOURCE_CNAME = 1;
-static constexpr RTCPSourceDescriptionType RTCP_SOURCE_NAME = 2;
-static constexpr RTCPSourceDescriptionType RTCP_SOURCE_EMAIL = 3;
-static constexpr RTCPSourceDescriptionType RTCP_SOURCE_PHONE = 4;
-static constexpr RTCPSourceDescriptionType RTCP_SOURCE_LOC = 5;
-static constexpr RTCPSourceDescriptionType RTCP_SOURCE_TOOL = 6;
-static constexpr RTCPSourceDescriptionType RTCP_SOURCE_NOTE = 7;
+static const RTCPSourceDescriptionType RTCP_SOURCE_CNAME = 1;
+static const RTCPSourceDescriptionType RTCP_SOURCE_NAME = 2;
+static const RTCPSourceDescriptionType RTCP_SOURCE_EMAIL = 3;
+static const RTCPSourceDescriptionType RTCP_SOURCE_PHONE = 4;
+static const RTCPSourceDescriptionType RTCP_SOURCE_LOC = 5;
+static const RTCPSourceDescriptionType RTCP_SOURCE_TOOL = 6;
+static const RTCPSourceDescriptionType RTCP_SOURCE_NOTE = 7;
 
 /*!
  * The RTCP header has the following format:
@@ -375,9 +375,9 @@ class RTCPPackageHandler
 {
 public:
 
-    static constexpr uint8_t RTCP_HEADER_SIZE = sizeof(RTCPHeader);
-    static constexpr uint8_t RTCP_SENDER_INFO_SIZE = sizeof(SenderInformation);
-    static constexpr uint8_t RTCP_RECEPTION_REPORT_SIZE = sizeof(ReceptionReport);
+    static const uint8_t RTCP_HEADER_SIZE = sizeof(RTCPHeader);
+    static const uint8_t RTCP_SENDER_INFO_SIZE = sizeof(SenderInformation);
+    static const uint8_t RTCP_RECEPTION_REPORT_SIZE = sizeof(ReceptionReport);
 
     RTCPPackageHandler();
 
