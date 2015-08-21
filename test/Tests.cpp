@@ -3,6 +3,7 @@
 #include "TestParameters.h"
 #include "TestRTCP.h"
 #include "TestConfigurationModes.h"
+#include "TestNetworkWrappers.h"
 
 TestAudioIO::TestAudioIO() {
 	TEST_ADD(TestAudioIO::testAudioHandlerInstances);
@@ -58,4 +59,7 @@ int main(int argc, char** argv)
 
     TestConfigurationModes testConfig;
     testConfig.run(output);
+
+    TestNetworkWrappers testNetwork;
+    testNetwork.run(output);
 }

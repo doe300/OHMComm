@@ -5,12 +5,12 @@
 #include "Statistics.h"
 #include "configuration.h"
 #include <vector>
-#include <memory>
+#include <memory> //for std::unique_ptr
 #include <iostream>
 
 /*!
  * Base class for Audio framework.
- * 
+ *
  * Implementations of this class wrap a specific audio library
  */
 class AudioHandler
@@ -58,16 +58,16 @@ public:
 	/*!
 	* Stops and resets the audio configuration (Instance can be reused with a new audio configuration)
 	*/
-    virtual void reset() = 0; 
+    virtual void reset() = 0;
 
 	/*!
 	* Loads a default audio configuration
 	*/
-    virtual void setDefaultAudioConfig() = 0; 
+    virtual void setDefaultAudioConfig() = 0;
 
     /*!
      * Initializes the audio library and prepares for execution.
-     * 
+     *
      * This includes allocating memory, configuring the audio-processors or the audio-library, etc.
      */
     virtual auto prepare() -> bool = 0;

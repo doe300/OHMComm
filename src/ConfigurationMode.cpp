@@ -83,6 +83,11 @@ void ConfigurationMode::createDefaultNetworkConfiguration()
     networkConfig.portOutgoing = DEFAULT_NETWORK_PORT;
 }
 
+////
+//  ParameterConfiguration
+////
+
+
 ParameterConfiguration::ParameterConfiguration(const Parameters& params)
 {
     //convert configuration
@@ -149,6 +154,10 @@ void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inpu
     audioConfig.inputDeviceName = audioDevices.getDeviceInfo(inputDeviceID).name;
 }
 
+////
+//  InteractiveConfiguration
+////
+
 bool InteractiveConfiguration::runConfiguration()
 {
     if(isConfigurationDone)
@@ -177,6 +186,7 @@ bool InteractiveConfiguration::runConfiguration()
     {
         //use RtAudioWrapper as default implementation
         audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
+        useDefaultAudioConfig = true;
     }
     //interactive network configuration
     if (!UserInput::inputBoolean("Load default network config?"))
@@ -328,6 +338,10 @@ void InteractiveConfiguration::interactivelyConfigureProcessors()
     }
 }
 
+////
+//  LibraryConfiguration
+////
+
 bool LibraryConfiguration::runConfiguration()
 {
     return isConfigured();
@@ -371,6 +385,10 @@ void LibraryConfiguration::configureLogToFile(const std::string logFileName)
     logToFile = true;
     this->logFileName = logFileName;
 }
+
+////
+//  PassiveConfiguration
+////
 
 PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig)
 {

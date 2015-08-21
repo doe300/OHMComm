@@ -66,7 +66,7 @@ void TestConfigurationModes::testInteractiveConfiguration()
 
     TEST_ASSERT(mode->isConfigured());
 
-    TEST_ASSERT_MSG(mode->getAudioHandlerConfiguration().second, "default audio-config was not set!");
+    TEST_ASSERT_MSG(false == mode->getAudioHandlerConfiguration().second, "default audio-config was not set!");
     TEST_ASSERT_EQUALS(DEFAULT_NETWORK_PORT, mode->getNetworkConfiguration().portIncoming);
     TEST_ASSERT_MSG(mode->getLogToFileConfiguration().first, "Log to file was not configured!");
     TEST_ASSERT_EQUALS("test.log", mode->getLogToFileConfiguration().second);
