@@ -54,7 +54,7 @@ std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampleRate)
 bool ProcessorOpus::configure(AudioConfiguration audioConfig)
 {
 	outputDeviceChannels = audioConfig.outputDeviceChannels;
-	rtaudioFormat = audioConfig.audioFormat;
+	rtaudioFormat = audioConfig.audioFormatFlag;
 
 	OpusEncoderObject = opus_encoder_create(audioConfig.sampleRate, audioConfig.inputDeviceChannels, OpusApplication, &ErrorCode);
 	OpusDecoderObject = opus_decoder_create(audioConfig.sampleRate, audioConfig.outputDeviceChannels, &ErrorCode);

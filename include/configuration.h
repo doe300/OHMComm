@@ -54,14 +54,20 @@ struct AudioConfiguration
     std::string inputDeviceName;
 
     // RtAudioformat, which is defined as: typedef unsigned long RtAudioFormat;
-    unsigned long audioFormat;
+    unsigned long audioFormatFlag;
 
     // sample rate of the audio device
     unsigned int sampleRate;
 
     // buffer frames
     unsigned int bufferFrames;
-
+    
+    // set if configuration forces a specific sample-rate
+    unsigned int forceSampleRate;
+    
+    // set if configuration forces a specific audio-format
+    unsigned int forceAudioFormatFlag;
+    
     friend bool operator==(const AudioConfiguration& lhs, const AudioConfiguration& rhs)
     {
         if (lhs.outputDeviceID != rhs.outputDeviceID)
@@ -80,7 +86,7 @@ struct AudioConfiguration
             return false;
         if (lhs.inputDeviceName != rhs.inputDeviceName)
             return false;
-        if (lhs.audioFormat != rhs.audioFormat)
+        if (lhs.audioFormatFlag != rhs.audioFormatFlag)
             return false;
         if (lhs.sampleRate != rhs.sampleRate)
             return false;
@@ -109,6 +115,23 @@ struct AudioConfiguration
     static const unsigned int SAMPLE_RATE_96000 = 128;      // 96 kHz
     static const unsigned int SAMPLE_RATE_192000 = 256;     // 192 kHz
     static const unsigned int SAMPLE_RATE_ALL = 0xFFFFFFFF; // supports all sample-rates
+    
+    /*!
+     * Returns a human-readable string for the given AUDIO_FORMAT_XXX flag
+     */
+    static const std::string getAudioFormatDescription(const unsigned int audioFormatFlag)
+    {
+        switch(audioFormatFlag)
+        {
+            case AudioConfiguration::AUDIO_FORMAT_SINT8: return "8-bit signed integer";
+            case AudioConfiguration::AUDIO_FORMAT_SINT16: return "16-bit signed integer (default for PCM samples, required for WAV, supported by Opus)";
+            case AudioConfiguration::AUDIO_FORMAT_SINT24: return "24-bit signed integer";
+            case AudioConfiguration::AUDIO_FORMAT_SINT32: return "32-bit signed integer";
+            case AudioConfiguration::AUDIO_FORMAT_FLOAT32: return "32-bit float (supported by Opus)";
+            case AudioConfiguration::AUDIO_FORMAT_FLOAT64: return "64-bit float";
+            default: return "unrecognized audio-format";
+        }
+    }
 };
 
 #endif	/* CONFIGURATION_H */

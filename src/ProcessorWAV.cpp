@@ -30,7 +30,7 @@ ProcessorWAV::~ProcessorWAV()
 
 bool ProcessorWAV::configure(AudioConfiguration audioConfig)
 {
-    if(audioConfig.audioFormat != AudioConfiguration::AUDIO_FORMAT_SINT16)
+    if(audioConfig.audioFormatFlag != AudioConfiguration::AUDIO_FORMAT_SINT16)
     {
         std::cerr << "Unsupported audio-format!" << std::endl;
         return false;

@@ -11,6 +11,8 @@
 #include "AudioHandlerFactory.h"
 #include "AudioProcessorFactory.h"
 #include "RtAudio.h"
+#include "RTCPPackageHandler.h"
+#include "UDPWrapper.h"
 
 ConfigurationMode::ConfigurationMode() : audioConfig( {0} ), networkConfig( {0} )
 {
@@ -105,7 +107,7 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params)
     if(inputDeviceID >= 0 || outputDeviceID >= 0)
     {
         useDefaultAudioConfig = false;
-        fillAudioConfiguration(outputDeviceID, inputDeviceID);
+        fillAudioConfiguration(outputDeviceID, inputDeviceID, params);
     }
     else
     {
@@ -132,7 +134,7 @@ bool ParameterConfiguration::runConfiguration()
     return isConfigurationDone;
 }
 
-void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inputDeviceID)
+void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inputDeviceID, const Parameters& params)
 {
     RtAudio audioDevices;
     if(outputDeviceID < 0)
@@ -152,6 +154,15 @@ void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inpu
 
     audioConfig.inputDeviceID = inputDeviceID;
     audioConfig.inputDeviceName = audioDevices.getDeviceInfo(inputDeviceID).name;
+    
+    if(params.isParameterSet(Parameters::FORCE_AUDIO_FORMAT))
+    {
+        audioConfig.forceAudioFormatFlag = atoi(params.getParameterValue(Parameters::FORCE_AUDIO_FORMAT).c_str());
+    }
+    if(params.isParameterSet(Parameters::FORCE_SAMPLE_RATE))
+    {
+        audioConfig.forceSampleRate = atoi(params.getParameterValue(Parameters::FORCE_SAMPLE_RATE).c_str());
+    }
 }
 
 ////
@@ -298,6 +309,28 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices()
 
     //Configure inputDeviceChannels (we always use stereo)
     audioConfig.inputDeviceChannels = 2;
+    
+    //configure whether to force audio-format and sample-rate
+    std::vector<std::string> audioFormats = {
+        "let audio-handler decide",
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT8),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT16),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT24),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT32),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT32),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT64)
+    };
+    unsigned int selectedAudioFormatIndex = UserInput::selectOptionIndex("Select audio-format", audioFormats, 0);
+    if(selectedAudioFormatIndex != 0)
+    {
+        audioConfig.forceAudioFormatFlag = 1 << selectedAudioFormatIndex;
+    }
+    
+    unsigned int selectedSampleRate = UserInput::inputNumber("Input a sample-rate [use 0 for default]", true, false);
+    if(selectedSampleRate > 0)
+    {
+        audioConfig.forceSampleRate = selectedSampleRate;
+    }
 }
 
 void InteractiveConfiguration::interactivelyConfigureNetwork()
@@ -390,9 +423,21 @@ void LibraryConfiguration::configureLogToFile(const std::string logFileName)
 //  PassiveConfiguration
 ////
 
-PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig)
+PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors, std::string logFile) : 
+        ConfigurationMode()
 {
+    this->useDefaultAudioConfig = false;
+    this->audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
     this->networkConfig = networkConfig;
+    this->profileProcessors = profileProcessors;
+    if(!logFile.empty())
+    {
+        this->logToFile = true;
+        this->logFileName = logFile;
+    }
+    else{
+        this->logToFile = false;
+    }
 }
 
 bool PassiveConfiguration::runConfiguration()
@@ -401,8 +446,99 @@ bool PassiveConfiguration::runConfiguration()
     {
         return true;
     }
+    UDPWrapper wrapper(networkConfig);
 
-    //TODO ask other side for configuration
-    return false;
+    RTCPPackageHandler handler;
+    RTCPHeader requestHeader(0);  //we do not have a SSID and it doesn't really matter
+    ApplicationDefined configRequest("REQC", 0, nullptr, ApplicationDefined::OHMCOMM_CONFIGURATION_REQUEST);
+
+    void* buffer = handler.createApplicationDefinedPackage(requestHeader, configRequest);
+
+    if(wrapper.sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(requestHeader.length)) < (int)RTCPPackageHandler::getRTCPPackageLength(requestHeader.length))
+    {
+        std::wcerr << wrapper.getLastError() << std::endl;
+        return false;
+    }
+
+    //we can reuse buffer, because it is large enough (as of RTCPPackageHandler)
+    int receivedSize = wrapper.receiveData(buffer, 6000);
+    if(receivedSize < 0)
+    {
+        std::wcerr << wrapper.getLastError() << std::endl;
+        return false;
+    }
+    else if(receivedSize == 0)
+    {
+        //we didn't receive anything. Don't know if this can actually occur
+        return false;
+    }
+    RTCPHeader responseHeader = handler.readRTCPHeader(buffer, receivedSize);
+    if(responseHeader.packageType != RTCP_PACKAGE_APPLICATION_DEFINED)
+    {
+        std::cerr << "Invalid RTCP response package type: " << responseHeader.packageType << std::endl;
+        return false;
+    }
+    ApplicationDefined configResponse = handler.readApplicationDefinedMessage(buffer, receivedSize, responseHeader);
+    if(configResponse.subType != ApplicationDefined::OHMCOMM_CONFIGURATION_RESPONSE)
+    {
+        std::cerr << "Invalid RTCP sub-type for response package: " << configResponse.name << " " << configResponse.subType << std::endl;
+        return false;
+    }
+    //we need to receive audio-configuration and processor-names
+    ConfigurationMessage receivedMessage = PassiveConfiguration::readConfigurationMessage(configResponse.data, configResponse.dataLength);
+    
+    //TODO force buffer frames?
+    audioConfig.forceAudioFormatFlag = receivedMessage.audioFormat;
+    audioConfig.forceSampleRate = receivedMessage.sampleRate;
+    audioConfig.inputDeviceChannels = receivedMessage.nChannels;
+    audioConfig.outputDeviceChannels = receivedMessage.nChannels;
+    processorNames.reserve(receivedMessage.processorNames.size());
+    std::copy(receivedMessage.processorNames.begin(), receivedMessage.processorNames.end(), processorNames.begin());
+
+    this->isConfigurationDone = true;
+    return true;
 }
+
+const PassiveConfiguration::ConfigurationMessage PassiveConfiguration::readConfigurationMessage(void* buffer, unsigned int bufferSize)
+{
+    ConfigurationMessage message = *((ConfigurationMessage*)buffer);
+    //we filled the vector with trash, so we initialize a new one
+    message.processorNames = {};
+    message.processorNames.reserve(message.numProcessorNames);
+    //get the pointer to the first processor-name
+    char* procNamePtr = (char*)buffer + CONFIGURATION_MESSAGE_SIZE;
+    for(uint8_t numProc = 0; numProc < message.numProcessorNames; numProc++)
+    {
+        std::string nextProcName = std::string(procNamePtr);
+        message.processorNames.push_back(nextProcName);
+        //skip processor-name and zero-termination
+        procNamePtr += nextProcName.size() + 1;
+    }
+    return message;
+}
+
+unsigned int PassiveConfiguration::writeConfigurationMessage(void* buffer, unsigned int maxBufferSize, ConfigurationMessage& configMessage)
+{
+    if(maxBufferSize < CONFIGURATION_MESSAGE_SIZE)
+    {
+        return -1;
+    }
+    unsigned int writtenBytes = 0;
+    configMessage.numProcessorNames = configMessage.processorNames.size();
+    //copy the configuration-message to the output-buffer
+    *((ConfigurationMessage*)buffer) = configMessage;
+    writtenBytes = CONFIGURATION_MESSAGE_SIZE;
+    //we can't send a vector, so we map it to a string-array
+    for(uint8_t procIndex = 0; procIndex < configMessage.numProcessorNames; procIndex++)
+    {
+        std::string nextProcName = configMessage.processorNames[procIndex];
+        //copy the string into the package
+        writtenBytes += nextProcName.copy((char*)buffer + writtenBytes, nextProcName.size(), 0);
+        //terminate name with a zero-byte
+        *((char*)buffer + writtenBytes) = '\0';
+        writtenBytes += 1;
+    }
+    return writtenBytes;
+}
+
 

@@ -110,6 +110,9 @@ void TestConfigurationModes::testPassiveConfiguration()
 
     //TODO implementation of other side
     TEST_ASSERT_MSG(mode->runConfiguration(), "Failed to configure passively!");
+    
+    TEST_ASSERT_MSG(mode->getAudioConfiguration().forceAudioFormatFlag != 0, "Forcing audio-format was not set!");
+    TEST_ASSERT_MSG(mode->getAudioConfiguration().forceSampleRate != 0, "Forcing sample-rate was not set!");
 
     delete mode;
 }

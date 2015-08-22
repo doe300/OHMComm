@@ -10,25 +10,27 @@
 #include <string.h>
 
 const Parameter Parameters::HELP(ParameterCategory::GENERAL, 'h', "help", "Print this help page and exit");
+const Parameter Parameters::PASSIVE_CONFIGURATION(ParameterCategory::GENERAL, 'P', "passive", "Enables passive configuration. The communication partner will decide the audio-configuration");
 const Parameter Parameters::LOG_TO_FILE(ParameterCategory::GENERAL, 'f', "log-file", "Log statistics and profiling-information to file.", "OHMComm.log");
 const Parameter Parameters::INPUT_DEVICE(ParameterCategory::AUDIO, 'i', "input-device-id", "The id of the device used for audio-input. This value will fall back to the library-default", "");
 const Parameter Parameters::OUTPUT_DEVICE(ParameterCategory::AUDIO, 'o', "output-device-id", "The id of the device used for audio-output. This value will fall back to the library-default", "");
+const Parameter Parameters::FORCE_AUDIO_FORMAT(ParameterCategory::AUDIO, 'A', "audio-format", "Forces the given audio-format to be used. For a list of audio-formats see below", "");
+const Parameter Parameters::FORCE_SAMPLE_RATE(ParameterCategory::AUDIO, 'S', "sample-rate", "Forces the given sample-rate to be used, i.e. 44100", "");
 const Parameter Parameters::REMOTE_ADDRESS(ParameterCategory::NETWORK, true, 'r', "remote-address", "The IP address of the computer to connect to", "", true);
 const Parameter Parameters::REMOTE_PORT(ParameterCategory::NETWORK, true, 'p', "remote-port", "The port of the remote computer", std::to_string(DEFAULT_NETWORK_PORT), true);
 const Parameter Parameters::LOCAL_PORT(ParameterCategory::NETWORK, true, 'l', "local-port", "The local port to listen on", std::to_string(DEFAULT_NETWORK_PORT), true);
 const Parameter Parameters::AUDIO_PROCESSOR(ParameterCategory::PROCESSORS, 'a', "add-processor", "The name of the audio-processor to add", "");
 const Parameter Parameters::PROFILE_PROCESSORS(ParameterCategory::PROCESSORS, 't', "profile-processors", "Enables profiling of the the execution time of audio-processors");
 
-//TODO add parameter forcing a specific sample rate??
 //TODO allow for adding processor-specific parameters
 //they would need to be added before reading the command-line arguments.
 //Which means, before the processors are initialized.
 //Could they be added via global code?
 const std::vector<const Parameter*> Parameters::availableParameters = {
     //General
-    &HELP, &LOG_TO_FILE,
+    &HELP, &LOG_TO_FILE, &PASSIVE_CONFIGURATION,
     //Audio-config
-    &INPUT_DEVICE, &OUTPUT_DEVICE,
+    &INPUT_DEVICE, &OUTPUT_DEVICE, &FORCE_AUDIO_FORMAT, &FORCE_SAMPLE_RATE,
     //Network-config
     &REMOTE_ADDRESS, &REMOTE_PORT, &LOCAL_PORT,
     //Processor-config
@@ -186,12 +188,29 @@ void Parameters::printHelpPage(const std::vector<std::string> allProcessorNames)
         }
     }
     std::cout << std::endl;
+    
+    //print AudioProcessors
     std::cout << "Currently available audio-processors are: " << std::endl;
     for(const std::string& name : allProcessorNames)
     {
-       std::cout << std::setw(5) << ' ' << name << std::endl;
+       std::cout << std::setw(tabSize) << ' ' << name << std::endl;
     }
     std::cout << std::endl;
+    
+    //print audio-formats
+    std::cout << "Available audio-formats (use the number as parameter): " << std::endl;
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT8 
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT8) << std::endl;
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT16 
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT16) << std::endl;
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT24 
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT24) << std::endl;
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT32 
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT32) << std::endl;
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_FLOAT32 
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT32) << std::endl;
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_FLOAT64 
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT64) << std::endl;
 }
 
 bool Parameters::isParameterSet(const Parameter& param) const
@@ -242,15 +261,15 @@ void Parameters::printParameterHelp(const Parameter* param) const
     unsigned int offset = 0;
     if(param->shortName != 0)
     {
-        //start column at offset 5
-        std::cout << std::setw(5) << ' ' <<  '-' << param->shortName;
-        offset = 5 + 1 + 1;
+        //start column at offset tabSize
+        std::cout << std::setw(tabSize) << ' ' <<  '-' << param->shortName;
+        offset = tabSize + 1 + 1;
     }
     if(!param->longName.empty())
     {
         //start column at offset 12
-        std::cout << std::setw(12-offset) << ' ' << "--" << param->longName;
-        offset = 12 + 2 + param->longName.length();
+        std::cout << std::setw(tabSize) << ' ' << "--" << param->longName;
+        offset += tabSize + param->longName.length();
     }
     if(param->hasValue)
     {

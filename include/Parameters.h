@@ -95,9 +95,12 @@ class Parameters
 public:
     
     static const Parameter HELP;
+    static const Parameter PASSIVE_CONFIGURATION;
     static const Parameter LOG_TO_FILE;
     static const Parameter INPUT_DEVICE;
     static const Parameter OUTPUT_DEVICE;
+    static const Parameter FORCE_AUDIO_FORMAT;
+    static const Parameter FORCE_SAMPLE_RATE;
     static const Parameter REMOTE_ADDRESS;
     static const Parameter REMOTE_PORT;
     static const Parameter LOCAL_PORT;
@@ -148,6 +151,7 @@ public:
     const std::vector<std::string> getAudioProcessors() const;
     
 private:
+    static const unsigned int tabSize{5};
     //Returns the name of the given category
     std::string getCategoryName(const ParameterCategory& category) const;
     
