@@ -6,13 +6,6 @@ RtAudioWrapper::RtAudioWrapper()
 {
     this->audioConfiguration = { 0 };
     streamData = new StreamData();
-
-    #ifdef _WIN32
-    semaphore_waitForMainThread = CreateSemaphore(nullptr, 1, 1, L"semaphore_waitForMainThread");
-    semaphore_waitForWorkerThread = CreateSemaphore(nullptr, 0, 1, L"semaphore_waitForWorkerThread");
-    #else
-            /* TODO, two linux semaphores needed */
-    #endif
 }
 
 // constructor
@@ -49,9 +42,6 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
         std::cout << "Underflow\n";
     }
 
-    // relevant if playData(..) is invoked
-    this->playbackFileData(outputBuffer);
-
     this->streamData->nBufferFrames = nBufferFrames;
     //streamTime is the number of seconds since start of stream, so we convert to number of microseconds
     this->streamData->streamTime = lround(streamTime * 1000000);
@@ -73,38 +63,6 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
 
     return 0;
 }
-
-void RtAudioWrapper::playbackFileData(void *outputBuffer)
-{
-    if (this->BufferAudioOutHasData)
-    {
-        // critical section starts
-        #ifdef _WIN32
-        WaitForSingleObject(semaphore_waitForMainThread, INFINITE);
-        #endif
-
-        char *buffer = (char *)outputBuffer;
-        memcpy(buffer, bufferAudioOutput, outputBufferByteSize);
-        this->BufferAudioOutHasData = false;
-
-        #ifdef _WIN32
-        ReleaseSemaphore(semaphore_waitForMainThread, 1, nullptr);
-
-        // critical section ends
-
-        // inform that the data has been processed
-        ReleaseSemaphore(semaphore_waitForWorkerThread, 1, nullptr);
-        #endif
-    }
-    else
-    {
-        // If there is no data to be played then clean the buffer (otherwise it will cause a wired 
-        // sound, since the buffer is used for playback over and over again with the same playback data)
-
-        // TODO: getOutputData() and copy to outputbuffer;
-    }
-}
-
 
 // Region: AudioWrapper methods
 void RtAudioWrapper::startRecordingMode()
@@ -151,10 +109,6 @@ void RtAudioWrapper::suspend()
 {
     if (this->rtaudio.isStreamRunning())
     {
-        #ifdef _WIN32
-        CloseHandle(semaphore_waitForMainThread);
-        CloseHandle(semaphore_waitForWorkerThread);
-        #endif
         this->rtaudio.stopStream();
     }	
 }
@@ -178,46 +132,6 @@ void RtAudioWrapper::reset()
     this->audioConfiguration = { 0 };
     this->flagAudioConfigSet = false;
     this->flagPrepared = false;
-}
-
-void RtAudioWrapper::playData(void *playbackData, unsigned int size)
-{
-    char *buffer = (char *)playbackData;
-    int dataLoops = (int) ceil((double)size / outputBufferByteSize);
-
-    for (int i = 0; i < dataLoops; i++)
-    {
-        // critical section starts
-        #ifdef _WIN32
-        WaitForSingleObject(semaphore_waitForMainThread, INFINITE);
-        #endif
-        this->BufferAudioOutHasData = true;
-
-        /* In the last loop, the size of the data may not be as big as bufferByteSize
-        * In this special case, calculate the size of the remaining data
-        */
-        if (i + 1 == dataLoops && i != 0)
-        {
-            // calculate the size of  the remaining data
-            int dataSizeLastLoop = (int) ceil(size % outputBufferByteSize);
-
-            // first clean the buffer
-            //memcpy(bufferAudioOut, 0x0, bufferByteSize);
-
-            // fill the buffer with the remaining data
-            memcpy(bufferAudioOutput, (buffer + i * dataSizeLastLoop), dataSizeLastLoop);
-        }
-        else
-            memcpy(bufferAudioOutput, (buffer + i * outputBufferByteSize), outputBufferByteSize);
-
-        #ifdef _WIN32
-        ReleaseSemaphore(semaphore_waitForMainThread, 1, nullptr);
-        // critical section ends
-
-        // wait until the data is processed
-        WaitForSingleObject(semaphore_waitForWorkerThread, INFINITE);
-        #endif
-    }
 }
 
 

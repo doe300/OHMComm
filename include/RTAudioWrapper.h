@@ -11,8 +11,6 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h> // semaphores
-#else
-/* TODO, linux semaphores needed */
 #endif
 
 /*!
@@ -44,8 +42,6 @@ public:
     void reset();
     /* sets default audio config */
     void setDefaultAudioConfig();
-    /* This is a blocking function, do NOT call this function within the RtAudio callback */
-    void playData(void *playbackData, unsigned int size);
     auto prepare() -> bool;
     auto getBufferSize() -> unsigned int;
 
@@ -54,14 +50,6 @@ public:
     static auto callbackHelper(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int;
 
 private:
-    /* variables for the "void playData(...)" function
-     * to enable synchronizing between rtaudio- and main-thread */
-#ifdef _WIN32
-    HANDLE semaphore_waitForMainThread;
-    HANDLE semaphore_waitForWorkerThread;
-#else
-    /* TODO, two linux semaphores needed */
-#endif
     void *bufferAudioOutput;
     bool BufferAudioOutHasData = false;
 
@@ -95,8 +83,6 @@ private:
      * Returns the sample-rate as number of the best supported sample-rate flag
      */
     auto autoSelectSampleRate(unsigned int supportedRatesFlag) -> unsigned int;
-
-    void playbackFileData(void *outputBuffer);
     
     /*!
      * "Asks" the AudioProcessors for supported audio-configuration and uses the sample-rate, frame-size and 
