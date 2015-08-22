@@ -2,10 +2,10 @@
 #include "Statistics.h"
 #include "RTCPPackageHandler.h"
 
-ProcessorRTP::ProcessorRTP(std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, std::shared_ptr<RTPBuffer> buffer) : AudioProcessor(name)
+ProcessorRTP::ProcessorRTP(std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, std::shared_ptr<RTPBufferHandler> buffer) : AudioProcessor(name)
 {
 	this->networkObject = networkwrapper;
-        this->rtpBuffer = buffer;
+    this->rtpBuffer = buffer;
 }
 
 unsigned int ProcessorRTP::getSupportedAudioFormats()

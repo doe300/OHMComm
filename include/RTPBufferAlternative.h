@@ -1,5 +1,5 @@
-#ifndef RTPBUFFER2_H
-#define	RTPBUFFER2_H
+#ifndef RTPBUFFERALTERNATIVE_H
+#define	RTPBUFFERALTERNATIVE_H
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -8,18 +8,14 @@
 #include <mutex>			//std::mutex
 #endif
 
-#include "RTPPackageHandler.h"
-#include <memory>			//for std::unique_ptr<RTPBuffer>
+#include "RTPBufferHandler.h"
 #include <math.h>           // log2
 
-/*!
-* This status is returned by the addPackage/readPackage-method to determine whether the operation did succeed
-*/
-typedef uint8_t RTPBufferStatus;
-static const RTPBufferStatus RTP_BUFFER_ALL_OKAY = 0;
-static const RTPBufferStatus RTP_BUFFER_INPUT_OVERFLOW = 0x1;
-static const RTPBufferStatus RTP_BUFFER_OUTPUT_UNDERFLOW = 0x2;
 
+
+/*!
+* Internal data structure to buffer RTP packages
+*/
 class RTPBufferPackage
 {
 public:
@@ -103,6 +99,9 @@ private:
 	unsigned int creationTimestamp;
 };
 
+/*!
+* A buffer for RTP packages
+*/
 class RTPBufferAlternative
 {
 public:

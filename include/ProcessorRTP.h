@@ -4,7 +4,7 @@
 #include "AudioProcessor.h"
 #include "RTPPackageHandler.h"
 #include "NetworkWrapper.h"
-#include "RTPBuffer.h"
+#include "RTPBufferHandler.h"
 
 /*!
  * AudioProcessor wrapping/unwrapping audio-frames in/out of a RTP-package
@@ -25,7 +25,7 @@ public:
      * 
      * \param buffer The RTPBuffer to read packages from
      */
-    ProcessorRTP(std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, std::shared_ptr<RTPBuffer> buffer);
+	ProcessorRTP(std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, std::shared_ptr<RTPBufferHandler> buffer);
     
     unsigned int getSupportedAudioFormats();
     unsigned int getSupportedSampleRates();
@@ -38,6 +38,6 @@ public:
 private:
     std::shared_ptr<NetworkWrapper> networkObject;
     RTPPackageHandler *rtpPackage = nullptr;
-    std::shared_ptr<RTPBuffer> rtpBuffer;
+	std::shared_ptr<RTPBufferHandler> rtpBuffer;
 };
 #endif

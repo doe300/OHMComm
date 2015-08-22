@@ -11,7 +11,7 @@
 #include <thread>
 #include <functional>
 
-#include "RTPBuffer.h"
+#include "RTPBufferHandler.h"
 
 #include "NetworkWrapper.h"
 #include "RTCPPackageHandler.h"
@@ -35,7 +35,7 @@ public:
      *
      * \param stopCallback The callback to be executed after receiving a RTCP GOODBYE-package
      */
-    RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBuffer> buffer, unsigned int receiveBufferSize, std::function<void ()> stopCallback);
+    RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize, std::function<void ()> stopCallback);
     RTPListener(const RTPListener& orig);
     virtual ~RTPListener();
 
@@ -51,7 +51,7 @@ public:
 private:
     std::function<void ()> stopCallback;
     std::shared_ptr<NetworkWrapper> wrapper;
-    std::shared_ptr<RTPBuffer> buffer;
+	std::shared_ptr<RTPBufferHandler> buffer;
     RTPPackageHandler rtpHandler;
     RTCPPackageHandler rtcpHandler;
     std::thread receiveThread;

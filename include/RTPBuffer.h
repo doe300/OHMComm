@@ -8,7 +8,7 @@
 #ifndef RTPBUFFER_H
 #define	RTPBUFFER_H
 
-#include "RTPPackageHandler.h"
+#include "RTPBufferHandler.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -17,26 +17,11 @@
 #include <mutex>    //std::mutex
 #endif
 
-#include <memory> //for std::unique_ptr<RTPBuffer>
-
-/*!
- * This status is returned by the addPackage/readPackage-method to determine whether the operation did succeed
- */
-typedef uint8_t RTPBufferStatus;
-static const RTPBufferStatus RTP_BUFFER_ALL_OKAY = 0;
-/*!
- * New package was not buffered, because of an overflow in the buffer
- */
-static const RTPBufferStatus RTP_BUFFER_INPUT_OVERFLOW = 0x1;
-/*!
- * No package to read, because of an underflow in the buffer
- */
-static const RTPBufferStatus RTP_BUFFER_OUTPUT_UNDERFLOW = 0x2;
 
 /*!
  * Serves as jitter-buffer for RTP packages
  */
-class RTPBuffer
+class RTPBuffer : public RTPBufferHandler
 {
 public:
     /*!
@@ -44,8 +29,8 @@ public:
      * \param maxDelay The maximum delay in milliseconds before dropping packages
      * \param minBufferPackages The minimum of packages to buffer before returning valid audio-data
      */
-    RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages = 1);
-    ~RTPBuffer();
+	RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages = 1);
+	~RTPBuffer();
 
     /*!
      * Adds a new package to the buffer
@@ -123,7 +108,7 @@ private:
     /*!
      * The ring-buffer containing the packages
      */
-    RTPBuffer::RTPBufferPackage *ringBuffer;
+	RTPBuffer::RTPBufferPackage *ringBuffer;
     /*!
      * The maximum entries in the buffer, size of the array
      */

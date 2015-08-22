@@ -8,7 +8,7 @@
 #include "RTPListener.h"
 #include "Statistics.h"
 
-RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBuffer> buffer, unsigned int receiveBufferSize, std::function<void ()> stopCallback) :
+RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize, std::function<void()> stopCallback) :
     stopCallback(stopCallback), rtpHandler(receiveBufferSize)
 {
     this->wrapper = wrapper;

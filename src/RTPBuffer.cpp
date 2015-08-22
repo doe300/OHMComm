@@ -5,12 +5,11 @@
  * Created on March 28, 2015, 12:27 PM
  */
 
-#include <malloc.h>
 
 #include "RTPBuffer.h"
-#include "Statistics.h"
 
-RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages): capacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages)
+
+RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : capacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages)
 {
     nextReadIndex = 0;
     ringBuffer = new RTPBufferPackage[maxCapacity];
