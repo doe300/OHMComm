@@ -7,4 +7,4 @@ IT-Project at the [faculty for Computer Science of the technical university Geor
 
 This program is currently developed under linux (Fedora 22) and Windows (7/8) and tested under Mac OS X.
 
-Since OHMComm is based upon [RtAudio](http://www.music.mcgill.ca/~gary/rtaudio/) it supports all audio-libraries supported by RtAudio (see [RtAudio API-Notes](http://www.music.mcgill.ca/~gary/rtaudio/apinotes.html)).
+OHMComm is based upon [RtAudio](http://www.music.mcgill.ca/~gary/rtaudio/) and therefore supports all audio-libraries supported by RtAudio (see [RtAudio API-Notes](http://www.music.mcgill.ca/~gary/rtaudio/apinotes.html)). The audio-data are (optionally but highly recommended) encoded with the included [opus-codec](http://www.opus-codec.org/).
