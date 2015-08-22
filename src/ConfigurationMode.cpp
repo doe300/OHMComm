@@ -107,11 +107,19 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params)
     if(inputDeviceID >= 0 || outputDeviceID >= 0)
     {
         useDefaultAudioConfig = false;
-        fillAudioConfiguration(outputDeviceID, inputDeviceID, params);
+        fillAudioConfiguration(outputDeviceID, inputDeviceID);
     }
     else
     {
         useDefaultAudioConfig = true;
+    }
+    if(params.isParameterSet(Parameters::FORCE_AUDIO_FORMAT))
+    {
+        audioConfig.forceAudioFormatFlag = atoi(params.getParameterValue(Parameters::FORCE_AUDIO_FORMAT).c_str());
+    }
+    if(params.isParameterSet(Parameters::FORCE_SAMPLE_RATE))
+    {
+        audioConfig.forceSampleRate = atoi(params.getParameterValue(Parameters::FORCE_SAMPLE_RATE).c_str());
     }
     audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
 
@@ -134,7 +142,7 @@ bool ParameterConfiguration::runConfiguration()
     return isConfigurationDone;
 }
 
-void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inputDeviceID, const Parameters& params)
+void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inputDeviceID)
 {
     RtAudio audioDevices;
     if(outputDeviceID < 0)
@@ -154,15 +162,6 @@ void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inpu
 
     audioConfig.inputDeviceID = inputDeviceID;
     audioConfig.inputDeviceName = audioDevices.getDeviceInfo(inputDeviceID).name;
-    
-    if(params.isParameterSet(Parameters::FORCE_AUDIO_FORMAT))
-    {
-        audioConfig.forceAudioFormatFlag = atoi(params.getParameterValue(Parameters::FORCE_AUDIO_FORMAT).c_str());
-    }
-    if(params.isParameterSet(Parameters::FORCE_SAMPLE_RATE))
-    {
-        audioConfig.forceSampleRate = atoi(params.getParameterValue(Parameters::FORCE_SAMPLE_RATE).c_str());
-    }
 }
 
 ////
@@ -487,11 +486,22 @@ bool PassiveConfiguration::runConfiguration()
     //we need to receive audio-configuration and processor-names
     ConfigurationMessage receivedMessage = PassiveConfiguration::readConfigurationMessage(configResponse.data, configResponse.dataLength);
     
-    //TODO force buffer frames?
+    std::cout << "Passive Configuration received ... " << std::endl;
+
+    //TODO force buffer frames? Should be distinct from combination of sample-rate and audio-processors
+    std::cout << "Received audio-format: " << AudioConfiguration::getAudioFormatDescription(receivedMessage.audioFormat) << std::endl;;
     audioConfig.forceAudioFormatFlag = receivedMessage.audioFormat;
+    std::cout << "Received sample-rate: " << receivedMessage.sampleRate << std::endl;
     audioConfig.forceSampleRate = receivedMessage.sampleRate;
+    std::cout << "Received channels: " << receivedMessage.nChannels << std::endl;
     audioConfig.inputDeviceChannels = receivedMessage.nChannels;
     audioConfig.outputDeviceChannels = receivedMessage.nChannels;
+    std::cout << "\tReceived audio-processors: ";
+    for(std::string& procName : receivedMessage.processorNames)
+    {
+        std::cout << procName << ' ';
+    }
+    std::cout << std::endl;
     processorNames.reserve(receivedMessage.processorNames.size());
     std::copy(receivedMessage.processorNames.begin(), receivedMessage.processorNames.end(), processorNames.begin());
 

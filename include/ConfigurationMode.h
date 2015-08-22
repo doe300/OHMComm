@@ -90,7 +90,7 @@ public:
     virtual bool runConfiguration();
 
 private:
-    void fillAudioConfiguration(int outputDeviceID, int inputDeviceID, const Parameters& params);
+    void fillAudioConfiguration(int outputDeviceID, int inputDeviceID);
 };
 
 /*!

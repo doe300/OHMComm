@@ -14,9 +14,9 @@ TestConfigurationModes::TestConfigurationModes()
 
 void TestConfigurationModes::testParameterConfiguration()
 {
-    char* args[] = {(char*)"Tests", (char*)"-r=127.0.0.1", (char*)"-l=33333", (char*)"-p=33333", (char*)"-a=Opus-Codec", (char*)"--log-file=test.log"};
+    char* args[] = {(char*)"Tests", (char*)"-r=127.0.0.1", (char*)"-l=33333", (char*)"-p=33333", (char*)"-a=Opus-Codec", (char*)"--log-file=test.log", (char*)"-S=48000"};
     Parameters params;
-    TEST_ASSERT_MSG(params.parseParameters(5, args, AudioProcessorFactory::getAudioProcessorNames()), "Failed to parse parameters!");
+    TEST_ASSERT_MSG(params.parseParameters(7, args, AudioProcessorFactory::getAudioProcessorNames()), "Failed to parse parameters!");
 
     ConfigurationMode* mode = new ParameterConfiguration(params);
 
@@ -27,6 +27,7 @@ void TestConfigurationModes::testParameterConfiguration()
     TEST_ASSERT_EQUALS(33333, mode->getNetworkConfiguration().portOutgoing);
 
     TEST_ASSERT_MSG(mode->getLogToFileConfiguration().first, "Log to file not configured!");
+    TEST_ASSERT_EQUALS(48000, mode->getAudioConfiguration().forceSampleRate);
 
     delete mode;
 }
