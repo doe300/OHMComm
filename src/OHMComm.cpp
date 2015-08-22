@@ -161,7 +161,18 @@ int main(int argc, char* argv[])
     Parameters params;
     if(params.parseParameters(argc, argv, AudioProcessorFactory::getAudioProcessorNames()))
     {
-        ohmComm = new OHMComm(new ParameterConfiguration(params));
+        if(params.isParameterSet(Parameters::PASSIVE_CONFIGURATION))
+        {
+            NetworkConfiguration networkConfig{0};
+            networkConfig.addressOutgoing = params.getParameterValue(Parameters::REMOTE_ADDRESS);
+            networkConfig.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).data());
+            networkConfig.portIncoming = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
+            ohmComm = new OHMComm(new PassiveConfiguration(networkConfig));
+        }
+        else
+        {
+            ohmComm = new OHMComm(new ParameterConfiguration(params));
+        }
     }
     else
     {

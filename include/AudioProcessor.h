@@ -98,6 +98,7 @@ public:
      *
      * Any implementation of this method can use the methods from UserInput.h
      */
+    //TODO allow for non-interactive configuration
     virtual bool configure(AudioConfiguration audioConfig);
 
     /*!
