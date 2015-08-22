@@ -13,6 +13,7 @@
 #include "UserInput.h"
 #include "RtAudio.h"
 #include "ConfigurationMode.h"
+#include "RTPBufferAlternative.h"
 
 OHMComm::OHMComm(ConfigurationMode* mode)
     : rtpBuffer(new RTPBuffer(256, 1000)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
