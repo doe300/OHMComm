@@ -85,7 +85,7 @@ public:
 
 private:
 
-	std::shared_ptr<RTPBufferHandler> rtpBuffer;
+    std::shared_ptr<RTPBufferHandler> rtpBuffer;
     /*! Overall mode of configuration */
     ConfigurationMode* configurationMode;
     /*! Flag, whether this object can be configured */

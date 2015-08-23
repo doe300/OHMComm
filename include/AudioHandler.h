@@ -16,6 +16,9 @@
 class AudioHandler
 {
 public:
+    
+    AudioHandler();
+    
     virtual ~AudioHandler();
 
 	/*!
@@ -172,7 +175,7 @@ protected:
      * Calls AudioProcessor#configure() for all registered processors
      */
     auto configureAudioProcessors() -> bool;
-	auto cleanUpAudioProcessors() -> bool;
+    auto cleanUpAudioProcessors() -> bool;
 };
 
 #endif

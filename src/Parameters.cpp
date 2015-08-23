@@ -14,8 +14,8 @@ const Parameter Parameters::PASSIVE_CONFIGURATION(ParameterCategory::GENERAL, 'P
 const Parameter Parameters::LOG_TO_FILE(ParameterCategory::GENERAL, 'f', "log-file", "Log statistics and profiling-information to file.", "OHMComm.log");
 const Parameter Parameters::INPUT_DEVICE(ParameterCategory::AUDIO, 'i', "input-device-id", "The id of the device used for audio-input. This value will fall back to the library-default", "");
 const Parameter Parameters::OUTPUT_DEVICE(ParameterCategory::AUDIO, 'o', "output-device-id", "The id of the device used for audio-output. This value will fall back to the library-default", "");
-const Parameter Parameters::FORCE_AUDIO_FORMAT(ParameterCategory::AUDIO, 'A', "audio-format", "Forces the given audio-format to be used. For a list of audio-formats see below", "");
-const Parameter Parameters::FORCE_SAMPLE_RATE(ParameterCategory::AUDIO, 'S', "sample-rate", "Forces the given sample-rate to be used, i.e. 44100", "");
+const Parameter Parameters::FORCE_AUDIO_FORMAT(ParameterCategory::AUDIO, 'A', "audio-format", "Forces the given audio-format to be used. For a list of audio-formats see below. Currently only works in conjunction with -i or -o.", "");
+const Parameter Parameters::FORCE_SAMPLE_RATE(ParameterCategory::AUDIO, 'S', "sample-rate", "Forces the given sample-rate to be used, i.e. 44100. Currently only works in conjunction with -i or -o.", "");
 const Parameter Parameters::REMOTE_ADDRESS(ParameterCategory::NETWORK, true, 'r', "remote-address", "The IP address of the computer to connect to", "", true);
 const Parameter Parameters::REMOTE_PORT(ParameterCategory::NETWORK, true, 'p', "remote-port", "The port of the remote computer", std::to_string(DEFAULT_NETWORK_PORT), true);
 const Parameter Parameters::LOCAL_PORT(ParameterCategory::NETWORK, true, 'l', "local-port", "The local port to listen on", std::to_string(DEFAULT_NETWORK_PORT), true);
@@ -200,17 +200,17 @@ void Parameters::printHelpPage(const std::vector<std::string> allProcessorNames)
     //print audio-formats
     std::cout << "Available audio-formats (use the number as parameter): " << std::endl;
     std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT8 
-            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT8) << std::endl;
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT8, true) << std::endl;
     std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT16 
-            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT16) << std::endl;
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT16, true) << std::endl;
     std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT24 
-            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT24) << std::endl;
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT24, true) << std::endl;
     std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT32 
-            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT32) << std::endl;
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT32, true) << std::endl;
     std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_FLOAT32 
-            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT32) << std::endl;
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT32, true) << std::endl;
     std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_FLOAT64 
-            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT64) << std::endl;
+            << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT64, true) << std::endl;
 }
 
 bool Parameters::isParameterSet(const Parameter& param) const

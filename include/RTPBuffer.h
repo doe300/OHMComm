@@ -29,8 +29,8 @@ public:
      * \param maxDelay The maximum delay in milliseconds before dropping packages
      * \param minBufferPackages The minimum of packages to buffer before returning valid audio-data
      */
-	RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages = 1);
-	~RTPBuffer();
+    RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages = 1);
+    ~RTPBuffer();
 
     /*!
      * Adds a new package to the buffer
@@ -94,21 +94,23 @@ private:
         /*!
          * The package data
          */
-        void *packageContent = nullptr;
+        void *packageContent;
+        
+        RTPBufferPackage() : isValid(false), header({0}), receptionTimestamp(0), contentSize(0), bufferSize(0), packageContent(nullptr)
+        {
+            
+        }
 
         ~RTPBufferPackage()
         {
-            if(packageContent != nullptr)
-            {
-                free(packageContent);
-            }
+            free(packageContent);
         }
     };
 
     /*!
      * The ring-buffer containing the packages
      */
-	RTPBuffer::RTPBufferPackage *ringBuffer;
+    RTPBuffer::RTPBufferPackage *ringBuffer;
     /*!
      * The maximum entries in the buffer, size of the array
      */

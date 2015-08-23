@@ -118,16 +118,22 @@ struct AudioConfiguration
     
     /*!
      * Returns a human-readable string for the given AUDIO_FORMAT_XXX flag
+     * 
+     * \param audioFormatFlag AUDIO_FORMAT_XXX-flag
+     * 
+     * \param longDescription Whether to return a longer descriptions containing use-cases for the given audio-format
      */
-    static const std::string getAudioFormatDescription(const unsigned int audioFormatFlag)
+    static const std::string getAudioFormatDescription(const unsigned int audioFormatFlag, bool longDescription)
     {
         switch(audioFormatFlag)
         {
             case AudioConfiguration::AUDIO_FORMAT_SINT8: return "8-bit signed integer";
-            case AudioConfiguration::AUDIO_FORMAT_SINT16: return "16-bit signed integer (default for PCM samples, required for WAV, supported by Opus)";
+            case AudioConfiguration::AUDIO_FORMAT_SINT16: 
+                return !longDescription ? "16-bit signed integer" : "16-bit signed integer (default for PCM samples, required for WAV, supported by Opus)";
             case AudioConfiguration::AUDIO_FORMAT_SINT24: return "24-bit signed integer";
             case AudioConfiguration::AUDIO_FORMAT_SINT32: return "32-bit signed integer";
-            case AudioConfiguration::AUDIO_FORMAT_FLOAT32: return "32-bit float (supported by Opus)";
+            case AudioConfiguration::AUDIO_FORMAT_FLOAT32: 
+                return !longDescription ? "32-bit float" : "32-bit float (supported by Opus)";
             case AudioConfiguration::AUDIO_FORMAT_FLOAT64: return "64-bit float";
             default: return "unrecognized audio-format";
         }
