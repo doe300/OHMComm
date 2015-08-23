@@ -13,13 +13,10 @@
 #include "UserInput.h"
 #include "RtAudio.h"
 #include "ConfigurationMode.h"
+#include "RTPBufferAlternative.h"
 
 OHMComm::OHMComm(ConfigurationMode* mode)
-<<<<<<< HEAD
     : rtpBuffer(new RTPBufferAlternative(256, 1000, 32)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
-=======
-    : rtpBuffer(new RTPBuffer(64, 100)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
->>>>>>> origin/master
 {
 }
 
