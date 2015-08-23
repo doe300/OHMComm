@@ -10,7 +10,10 @@
 
 #include "RTPBufferHandler.h"
 #include <math.h>           // log2
+#include <algorithm>
 
+
+#define COUNT_OF_RTP_SEQ_NR 64 // TODO: Another magic number
 
 
 /*!
@@ -85,11 +88,8 @@ public:
 	void *getPacketContent()
 	{
 		// Reading a packet which has already been read? -> set the underflow flag
-		if (hasBeenRead == true) {
-			hasUnderflow = true;
-			// Remove the data from it (Silence package)
-			memset(this->packageContent, 0, contentSize);
-		}
+		if (hasBeenRead == true) 
+			hasUnderflow = true;		
 		else
 			hasUnderflow = false;
 
@@ -175,14 +175,17 @@ private:
 	int isPowerOfTwo(unsigned int x);
 	void initializeRingBuffer(unsigned int contentSize, unsigned int rtpHeaderSize);
 	RTPBufferPackage **ringBuffer;
-	bool copyPlaybackDataIntoBuffer(RTPPackageHandler &package);
-	void copySilencePackageIntoBuffer(RTPPackageHandler &package);
+	bool copyNextPossiblePackageIntoPackage(RTPPackageHandler &package);
+	bool copyNextPackageIntoPackage(RTPPackageHandler &package);
+	void copySilencePackageIntoPackage(RTPPackageHandler &package);
 	void incrementReadPos();
 	void lockMutex();
 	void unlockMutex();
-	unsigned int currentReadPos;
 
-	unsigned long packagesCount;
+	uint16_t currentReadPos = 0;
+	uint16_t lastReadSeqNr = 0;
+	uint16_t amountOfUnderflowsInRow = 0;
+	uint16_t amountOfPackages;
 #ifdef _WIN32
 	HANDLE bufferMutex;
 #else
@@ -193,6 +196,53 @@ private:
 	uint16_t maxDelay;
 	uint16_t minBufferPackages;
 	uint16_t log;
+};
+
+/*!
+ * This is a helper class to determine the current and highest sequence number in the buffer
+ * It considers when the sequence number starts at zero again or when packages (sequence numbers) gets lost on transmitting
+ * 
+ */
+class RTPBufferManagement
+{
+public:
+	void addSeqNr(unsigned int sequenceNumber)
+	{
+		lastReceivedSequenceNumbers[currentPos] = sequenceNumber;
+		sortedSequenceNumbers[currentPos] = sequenceNumber;
+		currentPos++;
+		if (currentPos >= COUNT_OF_RTP_SEQ_NR)
+			currentPos = 0;
+	}
+
+	void sortSeqNr()
+	{
+		//Now we call the sort function
+		std::sort(sortedSequenceNumbers, sortedSequenceNumbers + COUNT_OF_RTP_SEQ_NR);
+	}
+
+	void calcDistances()
+	{
+		for (size_t i = 0; i < COUNT_OF_RTP_SEQ_NR-1; i++)
+			distancesBetweenSeqNrs[i] = sortedSequenceNumbers[i + 1] - sortedSequenceNumbers[i];
+	}
+
+	unsigned int findHighestValidSeqNr()
+	{
+		sortSeqNr();
+		calcDistances();
+		for (size_t i = 0; i < COUNT_OF_RTP_SEQ_NR - 1; i++)
+		{
+			if (distancesBetweenSeqNrs[i] >= 2000) // TODO: Another magic number
+				return sortedSequenceNumbers[i];
+		}
+		return sortedSequenceNumbers[COUNT_OF_RTP_SEQ_NR - 2];
+	}
+private:
+	unsigned int lastReceivedSequenceNumbers[COUNT_OF_RTP_SEQ_NR];
+	unsigned int sortedSequenceNumbers[COUNT_OF_RTP_SEQ_NR];
+	unsigned int distancesBetweenSeqNrs[COUNT_OF_RTP_SEQ_NR-1];
+	unsigned int currentPos = 0;
 };
 
 #endif

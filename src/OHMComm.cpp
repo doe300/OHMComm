@@ -16,7 +16,7 @@
 #include "RTPBufferAlternative.h"
 
 OHMComm::OHMComm(ConfigurationMode* mode)
-    : rtpBuffer(new RTPBuffer(256, 1000)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
+    : rtpBuffer(new RTPBufferAlternative(256, 1000, 32)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
 {
 }
 

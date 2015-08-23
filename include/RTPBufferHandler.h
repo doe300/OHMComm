@@ -21,6 +21,12 @@ static const RTPBufferStatus RTP_BUFFER_INPUT_OVERFLOW = 0x1;
 * No package to read, because of an underflow in the buffer
 */
 static const RTPBufferStatus RTP_BUFFER_OUTPUT_UNDERFLOW = 0x2;
+/*!
+* The package was thrown away because the sequence number of the received package was lower than the current read sequence number
+* Example: The last read sequence number was 55. If it now receives the sequence number 54 or lower it will be thrown away. 
+* The received package is to old, therefore it will not be processed.
+*/
+static const RTPBufferStatus RTP_BUFFER_PACKAGE_TO_OLD = 0x3;
 
 /*!
 * Abstract super-type for all classes used as RTBBuffer (Jitter-Buffer)
