@@ -14,8 +14,8 @@ const Parameter Parameters::PASSIVE_CONFIGURATION(ParameterCategory::GENERAL, 'P
 const Parameter Parameters::LOG_TO_FILE(ParameterCategory::GENERAL, 'f', "log-file", "Log statistics and profiling-information to file.", "OHMComm.log");
 const Parameter Parameters::INPUT_DEVICE(ParameterCategory::AUDIO, 'i', "input-device-id", "The id of the device used for audio-input. This value will fall back to the library-default", "");
 const Parameter Parameters::OUTPUT_DEVICE(ParameterCategory::AUDIO, 'o', "output-device-id", "The id of the device used for audio-output. This value will fall back to the library-default", "");
-const Parameter Parameters::FORCE_AUDIO_FORMAT(ParameterCategory::AUDIO, 'A', "audio-format", "Forces the given audio-format to be used. For a list of audio-formats see below", "");
-const Parameter Parameters::FORCE_SAMPLE_RATE(ParameterCategory::AUDIO, 'S', "sample-rate", "Forces the given sample-rate to be used, i.e. 44100", "");
+const Parameter Parameters::FORCE_AUDIO_FORMAT(ParameterCategory::AUDIO, 'A', "audio-format", "Forces the given audio-format to be used. For a list of audio-formats see below. Currently only works in conjunction with -i or -o.", "");
+const Parameter Parameters::FORCE_SAMPLE_RATE(ParameterCategory::AUDIO, 'S', "sample-rate", "Forces the given sample-rate to be used, i.e. 44100. Currently only works in conjunction with -i or -o.", "");
 const Parameter Parameters::REMOTE_ADDRESS(ParameterCategory::NETWORK, true, 'r', "remote-address", "The IP address of the computer to connect to", "", true);
 const Parameter Parameters::REMOTE_PORT(ParameterCategory::NETWORK, true, 'p', "remote-port", "The port of the remote computer", std::to_string(DEFAULT_NETWORK_PORT), true);
 const Parameter Parameters::LOCAL_PORT(ParameterCategory::NETWORK, true, 'l', "local-port", "The local port to listen on", std::to_string(DEFAULT_NETWORK_PORT), true);

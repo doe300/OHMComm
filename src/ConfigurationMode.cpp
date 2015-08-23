@@ -14,7 +14,7 @@
 #include "RTCPPackageHandler.h"
 #include "UDPWrapper.h"
 
-ConfigurationMode::ConfigurationMode() : audioConfig( {0} ), networkConfig( {0} )
+ConfigurationMode::ConfigurationMode() : audioConfig( {0} ), networkConfig( {0} ), processorNames(std::vector<std::string>(0))
 {
 }
 
@@ -61,10 +61,10 @@ bool ConfigurationMode::getAudioProcessorsConfiguration(std::vector<std::string>
     {
         throw std::runtime_error("Configuration was not finished!");
     }
-    if(profileProcessors)
+    processorNames.reserve(this->processorNames.size());
+    for(const std::string& procName : this->processorNames)
     {
-        processorNames.reserve(this->processorNames.size());
-        std::copy(this->processorNames.begin(), this->processorNames.end(), processorNames.begin());
+        processorNames.push_back(procName);
     }
     return profileProcessors;
 }
@@ -113,6 +113,7 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params)
     {
         useDefaultAudioConfig = true;
     }
+    //TODO fix, so force audio-format or sample-rate works without device-parameter set
     if(params.isParameterSet(Parameters::FORCE_AUDIO_FORMAT))
     {
         audioConfig.forceAudioFormatFlag = atoi(params.getParameterValue(Parameters::FORCE_AUDIO_FORMAT).c_str());
@@ -129,6 +130,11 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params)
     networkConfig.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
 
     //get audio-processors from parameters
+    processorNames.reserve(params.getAudioProcessors().size());
+    for(const std::string& procName : params.getAudioProcessors())
+    {
+        processorNames.push_back(procName);
+    }
     profileProcessors = params.isParameterSet(Parameters::PROFILE_PROCESSORS);
     logToFile = params.isParameterSet(Parameters::LOG_TO_FILE);
     logFileName = params.getParameterValue(Parameters::LOG_TO_FILE);

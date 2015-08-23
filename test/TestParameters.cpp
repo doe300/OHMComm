@@ -44,4 +44,5 @@ void TestParameters::testGetAudioProcessors()
 {
     TEST_ASSERT_EQUALS_MSG(2, params.getAudioProcessors().size(), "AudioProcessors not detected correctly");
     TEST_ASSERT_EQUALS_MSG("Proc1", params.getAudioProcessors()[0], "AudioProcessor-names wrong");
+    TEST_ASSERT_EQUALS_MSG("Proc2", params.getAudioProcessors()[1], "AudioProcessor-names wrong");
 }

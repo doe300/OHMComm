@@ -14,9 +14,9 @@ TestConfigurationModes::TestConfigurationModes()
 
 void TestConfigurationModes::testParameterConfiguration()
 {
-    char* args[] = {(char*)"Tests", (char*)"-r=127.0.0.1", (char*)"-l=33333", (char*)"-p=33333", (char*)"-a=Opus-Codec", (char*)"--log-file=test.log", (char*)"-S=48000"};
+    char* args[] = {(char*)"Tests", (char*)"-r=127.0.0.1", (char*)"-l=33333", (char*)"-p=33333", (char*)"-a=Opus-Codec", (char*)"--log-file=test.log", (char*)"-S=48000", (char*)"-t"};
     Parameters params;
-    TEST_ASSERT_MSG(params.parseParameters(7, args, AudioProcessorFactory::getAudioProcessorNames()), "Failed to parse parameters!");
+    TEST_ASSERT_MSG(params.parseParameters(8, args, AudioProcessorFactory::getAudioProcessorNames()), "Failed to parse parameters!");
 
     ConfigurationMode* mode = new ParameterConfiguration(params);
 
@@ -28,6 +28,10 @@ void TestConfigurationModes::testParameterConfiguration()
 
     TEST_ASSERT_MSG(mode->getLogToFileConfiguration().first, "Log to file not configured!");
     TEST_ASSERT_EQUALS(48000, mode->getAudioConfiguration().forceSampleRate);
+    
+    std::vector<std::string> tmp(0);
+    TEST_ASSERT_MSG(mode->getAudioProcessorsConfiguration(tmp), "Profile processors not configured!");
+    TEST_ASSERT_EQUALS(AudioProcessorFactory::OPUS_CODEC, tmp[0]);
 
     delete mode;
 }

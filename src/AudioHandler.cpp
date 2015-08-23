@@ -70,6 +70,7 @@ auto AudioHandler::configureAudioProcessors() -> bool
 {
     for (const auto& processor : audioProcessors)
     {
+        std::cout << "Configuring audio-processor '" << processor->getName() << "'..." << std::endl;
         bool result = processor->configure(audioConfiguration);
         if (result == false) // Configuration failed
             return false;

@@ -13,10 +13,9 @@
 #include "UserInput.h"
 #include "RtAudio.h"
 #include "ConfigurationMode.h"
-#include "RTPBufferAlternative.h"
 
 OHMComm::OHMComm(ConfigurationMode* mode)
-    : rtpBuffer(new RTPBuffer(256, 1000)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
+    : rtpBuffer(new RTPBuffer(64, 100)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
 {
 }
 
@@ -80,7 +79,7 @@ void OHMComm::startAudioThreads()
     }
     std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(configurationMode->getNetworkConfiguration()));
     networkWrapper = std::move(tmp);
-    std::vector<std::string> procNames;
+    std::vector<std::string> procNames(0);
     bool profileProcessors = configurationMode->getAudioProcessorsConfiguration(procNames);
     for(const std::string& procName : procNames)
     {
