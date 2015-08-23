@@ -8,6 +8,15 @@
 #ifndef CONFIGURATION_H
 #define	CONFIGURATION_H
 
+#define TESTMODE 1
+#define PACKET_LOSS_CHANCE_IN_PERCENT 0
+
+#if TESTMODE
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#endif
+
 #include <string>
 
 //the port should be a number greater than 1024
@@ -20,7 +29,6 @@ struct NetworkConfiguration
     //we don't need local IP, because we listen on any address
     //Local port
     unsigned short portIncoming;
-
     //Remote IP address
     std::string addressOutgoing;
     //Remote port

@@ -28,6 +28,8 @@ static const RTPBufferStatus RTP_BUFFER_OUTPUT_UNDERFLOW = 0x2;
 */
 static const RTPBufferStatus RTP_BUFFER_PACKAGE_TO_OLD = 0x3;
 
+static const RTPBufferStatus RTP_BUFFER_IS_PUFFERING = 0x4;
+
 /*!
 * Abstract super-type for all classes used as RTBBuffer (Jitter-Buffer)
 */

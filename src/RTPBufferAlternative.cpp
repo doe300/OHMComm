@@ -31,6 +31,7 @@ RTPBufferStatus RTPBufferAlternative::addPackage(RTPPackageHandler &package, uns
 	{
 		initializeRingBuffer(package.getMaximumPayloadSize(), package.getRTPHeaderSize());
 		currentReadPos = packetPositionRingBuffer;
+		lastReadSeqNr = 0;
 	}
 	
 	// add packages to the buffer, which are not older than the current sequence number
@@ -65,7 +66,7 @@ RTPBufferStatus RTPBufferAlternative::readPackage(RTPPackageHandler &package)
 	if (bufferContainsPackages == false)
 	{
 		copySilencePackageIntoPackage(package);
-		return RTP_BUFFER_ALL_OKAY;
+		return RTP_BUFFER_IS_PUFFERING;
 	}
 
 	lockMutex();
@@ -164,6 +165,7 @@ bool RTPBufferAlternative::copyNextPossiblePackageIntoPackage(RTPPackageHandler 
 	{
 		amountOfPackages = 0;
 		lastReadSeqNr = 0;
+		bufferContainsPackages = false;
 	}	
 	
 	return underflow;

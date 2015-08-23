@@ -40,7 +40,6 @@ void RTPListener::runThread()
     {
         //1. wait for package and store into RTPPackage
         int receivedSize = this->wrapper->receiveData(rtpHandler.getWorkBuffer(), rtpHandler.getMaximumPackageSize());
-
         if(receivedSize == INVALID_SOCKET)
         {
             //socket was already closed
@@ -57,11 +56,16 @@ void RTPListener::runThread()
         else if(threadRunning)
         {
             //2. write package to buffer
-            if(buffer->addPackage(rtpHandler, receivedSize - RTP_HEADER_MIN_SIZE) == RTP_BUFFER_INPUT_OVERFLOW)
+			auto result = buffer->addPackage(rtpHandler, receivedSize - RTP_HEADER_MIN_SIZE);
+			if (result == RTP_BUFFER_INPUT_OVERFLOW)
             {
                 //TODO some handling or simply discard?
-                std::cerr << "Input Buffer overflow" << std::endl;
+				std::cerr << "Input Buffer overflow" << std::endl;
             }
+			else if (result == RTP_BUFFER_PACKAGE_TO_OLD)
+			{
+				std::cerr << "Package was too old, discarding" << std::endl;
+			}
             else
             {
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);

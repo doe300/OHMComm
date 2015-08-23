@@ -113,7 +113,20 @@ void UDPWrapper::createSocket()
 
 int UDPWrapper::sendData(void *buffer, unsigned int bufferSize)
 {
+	#if TESTMODE
+	int i;
+	time_t t;
+
+	time(&t);
+	srand((unsigned int)t);	/* Zufallsgenerator initialisieren */
+	i = rand() % 100;
+
+	if (i <= PACKET_LOSS_CHANCE_IN_PERCENT)
+		return bufferSize;
+
+	#endif
     return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, &(this->remoteAddress), sizeof(remoteAddress));
+
 }
 
 int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
