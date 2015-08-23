@@ -2,10 +2,8 @@
 #include "Statistics.h"
 
 // constructor
-RtAudioWrapper::RtAudioWrapper()
+RtAudioWrapper::RtAudioWrapper() : AudioHandler(), bufferAudioOutput(nullptr), streamData(new StreamData())
 {
-    this->audioConfiguration = { 0 };
-    streamData = new StreamData();
 }
 
 // constructor
@@ -348,6 +346,7 @@ bool RtAudioWrapper::queryProcessorSupport()
     }
     audioConfiguration.bufferFrames = supportedBufferSize;
     
+    std::cout << "Using audio-format: " << AudioConfiguration::getAudioFormatDescription(audioConfiguration.audioFormatFlag, false) << std::endl;
     std::cout << "Using a sample-rate of " << audioConfiguration.sampleRate << " Hz" << std::endl;
     std::cout << "Using a buffer-size of " << supportedBufferSize << " samples (" << (supportedBufferSize * 1000 / audioConfiguration.sampleRate) << " ms)" << std::endl;
     

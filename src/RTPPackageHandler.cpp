@@ -126,7 +126,7 @@ auto RTPPackageHandler::getWorkBuffer() -> void*
 
 void RTPPackageHandler::createSilencePackage()
 {
-    RTPHeader silenceHeader;
+    RTPHeader silenceHeader{0};
     memcpy(workBuffer, &silenceHeader, sizeOfRTPHeader);
     memset((char *)(workBuffer) + sizeOfRTPHeader, 0, maximumPayloadSize);
 }

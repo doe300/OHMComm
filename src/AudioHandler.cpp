@@ -1,5 +1,10 @@
 #include "AudioHandler.h"
 
+AudioHandler::AudioHandler() : audioConfiguration({0})
+{
+    
+}
+
 AudioHandler::~AudioHandler()
 {
 }

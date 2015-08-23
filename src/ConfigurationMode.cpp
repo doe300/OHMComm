@@ -318,17 +318,18 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices()
     //configure whether to force audio-format and sample-rate
     std::vector<std::string> audioFormats = {
         "let audio-handler decide",
-        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT8),
-        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT16),
-        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT24),
-        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT32),
-        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT32),
-        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT64)
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT8, true),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT16, true),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT24, true),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT32, true),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT32, true),
+        AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT64, true)
     };
     unsigned int selectedAudioFormatIndex = UserInput::selectOptionIndex("Select audio-format", audioFormats, 0);
     if(selectedAudioFormatIndex != 0)
     {
-        audioConfig.forceAudioFormatFlag = 1 << selectedAudioFormatIndex;
+        //must deduct 1 before shifting, because 2^0 = 1 but in the input option 0 is default-value
+        audioConfig.forceAudioFormatFlag = 1 << (selectedAudioFormatIndex-1);
     }
     
     unsigned int selectedSampleRate = UserInput::inputNumber("Input a sample-rate [use 0 for default]", true, false);
@@ -495,7 +496,7 @@ bool PassiveConfiguration::runConfiguration()
     std::cout << "Passive Configuration received ... " << std::endl;
 
     //TODO force buffer frames? Should be distinct from combination of sample-rate and audio-processors
-    std::cout << "Received audio-format: " << AudioConfiguration::getAudioFormatDescription(receivedMessage.audioFormat) << std::endl;;
+    std::cout << "Received audio-format: " << AudioConfiguration::getAudioFormatDescription(receivedMessage.audioFormat, false) << std::endl;;
     audioConfig.forceAudioFormatFlag = receivedMessage.audioFormat;
     std::cout << "Received sample-rate: " << receivedMessage.sampleRate << std::endl;
     audioConfig.forceSampleRate = receivedMessage.sampleRate;
