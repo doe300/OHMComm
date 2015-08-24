@@ -27,8 +27,6 @@ private:
     int Socket;
     sockaddr localAddress;
     sockaddr remoteAddress;
-    unsigned int outputBufferSize = 0;
-    unsigned int inputBufferSize = 0;
 
     void startWinsock();
 

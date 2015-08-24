@@ -135,7 +135,7 @@ public:
      * \param audioHandlerName The name of the AudioHandler to use
      *
      * \param audioConfig The audio-configuration or a nullptr
-     * 
+     *
      */
     void configureAudio(const std::string audioHandlerName, const AudioConfiguration* audioConfig);
 
@@ -178,10 +178,9 @@ public:
 
     /*! The size of a configuration-message (without the vector) in bytes */
     static const uint8_t CONFIGURATION_MESSAGE_SIZE{12};
-    
+
     struct ConfigurationMessage
     {
-        //TODO there is currently no way to set this values in AudioHandler!!
         uint32_t sampleRate;
         uint32_t audioFormat;
         uint16_t bufferFrames;

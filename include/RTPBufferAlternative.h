@@ -75,11 +75,11 @@ public:
 		memcpy(this->rtpHeader, header, headerSize);
 		memcpy(this->packageContent, packageContent, contentSize);
 		this->creationTimestamp = 0; //TODO: get correct timestamp
-		
+
 		this->hasBeenRead = false;
 		this->hasBeenInitialized = true;
 	}
-	
+
 	/*!
 	 * Returns a pointer to the payload (audio) data. Package will be marked as read.
 	 * If a read package will be read again the underflow flag will be set. In this case
@@ -88,8 +88,8 @@ public:
 	void *getPacketContent()
 	{
 		// Reading a packet which has already been read? -> set the underflow flag
-		if (hasBeenRead == true) 
-			hasUnderflow = true;		
+		if (hasBeenRead == true)
+			hasUnderflow = true;
 		else
 			hasUnderflow = false;
 
@@ -171,6 +171,8 @@ public:
 	 * Returns zero on success or one if the RTPBufferStatus-codes listed in RTPBuffer.h
 	 */
 	RTPBufferStatus readPackage(RTPPackageHandler &package);
+
+	unsigned int getSize() const;
 private:
 	int isPowerOfTwo(unsigned int x);
 	void initializeRingBuffer(unsigned int contentSize, unsigned int rtpHeaderSize);
@@ -201,7 +203,7 @@ private:
 /*!
  * This is a helper class to determine the current and highest sequence number in the buffer
  * It considers when the sequence number starts at zero again or when packages (sequence numbers) gets lost on transmitting
- * 
+ *
  */
 class RTPBufferManagement
 {
