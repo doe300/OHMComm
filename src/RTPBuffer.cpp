@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   RTPBuffer.cpp
  * Author: daniel
- * 
+ *
  * Created on March 28, 2015, 12:27 PM
  */
 
@@ -44,7 +44,7 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int c
         unlockMutex();
         return RTP_BUFFER_ALL_OKAY;
     }
-    
+
     if(size == capacity)
     {
         //buffer is full
@@ -144,7 +144,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     return RTP_BUFFER_ALL_OKAY;
 }
 
-uint16_t RTPBuffer::getSize()
+unsigned int RTPBuffer::getSize() const
 {
     return size;
 }

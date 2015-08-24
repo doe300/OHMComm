@@ -54,7 +54,7 @@ public:
     /*!
      * Returns the size of the buffer, the number of stored elements
      */
-    uint16_t getSize();
+    unsigned int getSize() const;
 private:
 
     /*!
@@ -95,10 +95,10 @@ private:
          * The package data
          */
         void *packageContent;
-        
+
         RTPBufferPackage() : isValid(false), header({0}), receptionTimestamp(0), contentSize(0), bufferSize(0), packageContent(nullptr)
         {
-            
+
         }
 
         ~RTPBufferPackage()
