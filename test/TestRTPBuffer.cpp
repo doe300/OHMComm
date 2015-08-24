@@ -1,12 +1,14 @@
 #include "TestRTPBuffer.h"
 
-TestRTPBuffer::TestRTPBuffer() : payloadSize(511), maxCapacity(100), maxDelay(100), minBufferPackages(20),
-    handler(new RTPBuffer(maxCapacity, maxDelay,minBufferPackages)), package(payloadSize)
+TestRTPBuffer::TestRTPBuffer() : payloadSize(511), maxCapacity(128), maxDelay(100), minBufferPackages(20),
+    handler(new RTPBufferAlternative(maxCapacity, maxDelay,minBufferPackages)), package(payloadSize)
 {
     TEST_ADD(TestRTPBuffer::testMinBufferPackages);
     TEST_ADD(TestRTPBuffer::testWriteFullBuffer);
     TEST_ADD(TestRTPBuffer::testReadSuccessivePackages);
     TEST_ADD(TestRTPBuffer::testWriteOldPackage);
+    TEST_ADD(TestRTPBuffer::testPackageBlockLoss);
+    TEST_ADD(TestRTPBuffer::testContinousPackageLoss);
 }
 
 TestRTPBuffer::~TestRTPBuffer()
@@ -81,4 +83,98 @@ void TestRTPBuffer::testWriteOldPackage()
     TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY,handler->addPackage(package, 10));
     TEST_ASSERT_EQUALS(size, handler->getSize());
 
+}
+
+void TestRTPBuffer::testPackageBlockLoss()
+{
+    if(dynamic_cast<RTPBuffer*>(handler) != nullptr)
+    {
+        TEST_FAIL("RTPBuffer currently does not support this test!");
+        return;
+    }
+    //we first empty the buffer
+    while(handler->getSize() > 0)
+    {
+        TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
+    }
+    //we fill a few packages
+    for(int i = 0; i < 10; i++)
+    {
+        //write some package
+        void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
+        //copies the new-buffer into the work-buffer
+        package.getRTPPackageHeader(buf);
+        TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY,handler->addPackage(package, 10));
+    }
+    //skip a block (brute force)
+    for(int i = 0; i < 10; i++)
+    {
+        //getNewRTPPackage increases sequence-number
+        package.getNewRTPPackage((char*)"Dadadummi!", 10);
+    }
+    //fill with more packages
+    for(int i = 0; i < 10; i++)
+    {
+        //write some package
+        void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
+        //copies the new-buffer into the work-buffer
+        package.getRTPPackageHeader(buf);
+        TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY,handler->addPackage(package, 10));
+    }
+
+    //tests - we read 30 packages
+    TEST_ASSERT_EQUALS(20, handler->getSize());
+    for(int i = 0; i < 10; i++)
+    {
+        TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
+    }
+    for(int i = 0; i < 10; i++)
+    {
+        TEST_ASSERT_EQUALS(RTP_BUFFER_OUTPUT_UNDERFLOW, handler->readPackage(package));
+    }
+    for(int i = 0; i < 10; i++)
+    {
+        TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
+    }
+    TEST_ASSERT_EQUALS(0, handler->getSize());
+}
+
+void TestRTPBuffer::testContinousPackageLoss()
+{
+    if(dynamic_cast<RTPBuffer*>(handler) != nullptr)
+    {
+        TEST_FAIL("RTPBuffer currently does not support this test!");
+        return;
+    }
+    //we first empty the buffer
+    while(handler->getSize() > 0)
+    {
+        TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
+    }
+
+    TEST_ASSERT_EQUALS(0, handler->getSize());
+
+    unsigned int lastSeqNum;
+    //we loose every second package
+    for(int i = 0; i < 10; i++)
+    {
+        //skip this package
+        package.getNewRTPPackage((char*)"Dadadummi!", 10);
+        //write some package
+        void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
+        //copies the new-buffer into the work-buffer
+        package.getRTPPackageHeader(buf);
+        lastSeqNum = package.getRTPPackageHeader()->sequence_number;
+        TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY,handler->addPackage(package, 10));
+    }
+
+    TEST_ASSERT_EQUALS(10, handler->getSize());
+    //we need to be able to read 20 packages
+    for(int i = 0; i < 10; i++)
+    {
+        TEST_ASSERT_EQUALS(RTP_BUFFER_OUTPUT_UNDERFLOW, handler->readPackage(package));
+        TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
+    }
+    TEST_ASSERT_EQUALS(lastSeqNum, package.getRTPPackageHeader()->sequence_number);
+    TEST_ASSERT_EQUALS(0, handler->getSize());
 }

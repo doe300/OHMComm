@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   TestRTP.h
  * Author: daniel
  *
@@ -9,19 +9,14 @@
 #define	TESTRTP_H
 
 #include "cpptest.h"
-
-#include "RTCPPackageHandler.h"
 #include "RTPPackageHandler.h"
-#include "RTPBuffer.h"
 
 class TestRTP: public Test::Suite
 {
 public:
     TestRTP();
-    
+
     void testRTPPackage();
-    
-    void testRTPBuffer();
 };
 
 #endif	/* TESTRTP_H */

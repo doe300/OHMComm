@@ -4,6 +4,7 @@
 #include "cpptest.h"
 #include "RTPBufferHandler.h"
 #include "RTPBuffer.h"
+#include "RTPBufferAlternative.h"
 
 class TestRTPBuffer : public Test::Suite
 {
@@ -15,6 +16,8 @@ public:
     void testWriteFullBuffer();
     void testReadSuccessivePackages();
     void testWriteOldPackage();
+    void testPackageBlockLoss();
+    void testContinousPackageLoss();
 
 private:
     const unsigned int payloadSize;
