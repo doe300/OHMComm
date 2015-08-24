@@ -205,8 +205,6 @@ OHMComm.cbp
 
 # rtaudio local builds
 rtaudio_static.lib
-/documents/object_structure.dia
-/documents/class_structure.dia
 /recording.rtaudio
 /lib/**/Makefile
 /lib/**/config.log
