@@ -1,4 +1,3 @@
-sudo: false
 os:
   - linux
   - osx
@@ -8,17 +7,12 @@ compiler:
   - gcc
   - clang
 
-addons:
-  apt:
-    sources: ubuntu-toolchain-r-test
-    packages:
-      - gcc-4.8
-      - g++-4.8
-      - cmake
-      - libasound2-dev
-
 before_script:
-  - update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq > /dev/null
+  - sudo apt-get install -qq gcc-4.8 g++-4.8
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+  - sudo apt-get install -y -q cmake libasound2-dev
   - mkdir build
   - cd build
   - cmake ../
