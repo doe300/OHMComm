@@ -188,7 +188,7 @@ void Parameters::printHelpPage(const std::vector<std::string> allProcessorNames)
         }
     }
     std::cout << std::endl;
-    
+
     //print AudioProcessors
     std::cout << "Currently available audio-processors are: " << std::endl;
     for(const std::string& name : allProcessorNames)
@@ -196,20 +196,20 @@ void Parameters::printHelpPage(const std::vector<std::string> allProcessorNames)
        std::cout << std::setw(tabSize) << ' ' << name << std::endl;
     }
     std::cout << std::endl;
-    
+
     //print audio-formats
     std::cout << "Available audio-formats (use the number as parameter): " << std::endl;
-    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT8 
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT8
             << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT8, true) << std::endl;
-    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT16 
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT16
             << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT16, true) << std::endl;
-    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT24 
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT24
             << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT24, true) << std::endl;
-    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT32 
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_SINT32
             << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_SINT32, true) << std::endl;
-    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_FLOAT32 
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_FLOAT32
             << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT32, true) << std::endl;
-    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_FLOAT64 
+    std::cout << std::setw(tabSize) << ' ' << AudioConfiguration::AUDIO_FORMAT_FLOAT64
             << ": " << AudioConfiguration::getAudioFormatDescription(AudioConfiguration::AUDIO_FORMAT_FLOAT64, true) << std::endl;
 }
 
@@ -225,7 +225,7 @@ bool Parameters::isParameterSet(const Parameter& param) const
     return false;
 }
 
-std::string Parameters::getParameterValue(const Parameter& param) const
+const std::string Parameters::getParameterValue(const Parameter& param) const
 {
     for(const ParameterValue& val: readParameters)
     {

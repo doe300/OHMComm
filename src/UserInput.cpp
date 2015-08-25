@@ -8,8 +8,8 @@ inline void clearInput()
     cin.clear();
     cin.ignore(INT_MAX, '\n');
 }
-
-inline void printVector(vector<int> v, bool withIndex)
+template<typename T>
+inline void printVector(const vector<T> v, bool withIndex)
 {
     if(!withIndex)
     {
@@ -38,42 +38,13 @@ inline void printVector(vector<int> v, bool withIndex)
     }
 }
 
-inline void printVector(vector<std::string> v, bool withIndex)
-{
-    if(!withIndex)
-    {
-        cout << "(";
-    }
-    for (unsigned int i = 0; i < v.size(); i++)
-    {
-        if(withIndex)
-        {
-            cout << endl << i << ": ";
-        }
-        else if(i > 0)
-        {
-            cout << ", ";
-        }
-        cout << v[i];
-
-    }
-    if(!withIndex)
-    {
-        cout << ")";
-    }
-    else
-    {
-        cout << endl;
-    }
-}
-
-void UserInput::printSection(std::string title)
+void UserInput::printSection(const std::string title)
 {
     std::cout << std::endl;
     std::cout << "+++ " << title << " +++" << std::endl;
 }
 
-bool UserInput::inputBoolean(std::string message)
+bool UserInput::inputBoolean(const std::string message)
 {
     cout << message << " (Yes/No): ";
     string result;
@@ -90,7 +61,7 @@ bool UserInput::inputBoolean(std::string message)
     return inputBoolean(message);
 }
 
-std::string UserInput::inputString(std::string message)
+std::string UserInput::inputString(const std::string message)
 {
     cout << message << ": ";
     string result;
@@ -98,7 +69,7 @@ std::string UserInput::inputString(std::string message)
     return result;
 }
 
-std::string UserInput::selectOption(std::string message, std::vector<std::string> options, std::string defaultOption)
+std::string UserInput::selectOption(const std::string message, const std::vector<std::string> options, const std::string defaultOption)
 {
     cout << message;
     printVector(options, false);
@@ -116,7 +87,7 @@ std::string UserInput::selectOption(std::string message, std::vector<std::string
     return defaultOption;
 }
 
-unsigned int UserInput::selectOptionIndex(std::string message, std::vector<std::string> options, unsigned int defaultIndex)
+unsigned int UserInput::selectOptionIndex(const std::string message, const std::vector<std::string> options, unsigned int defaultIndex)
 {
     cout << message;
     cout << " [" << defaultIndex << "]";
@@ -136,7 +107,7 @@ unsigned int UserInput::selectOptionIndex(std::string message, std::vector<std::
     return defaultIndex;
 }
 
-int UserInput::inputNumber(std::string message, bool allowZero, bool allowNegative)
+int UserInput::inputNumber(const std::string message, bool allowZero, bool allowNegative)
 {
     cout << message << ": ";
     int result;
@@ -159,7 +130,7 @@ int UserInput::inputNumber(std::string message, bool allowZero, bool allowNegati
     return result;
 }
 
-int UserInput::selectOption(std::string message, std::vector<int> options, int defaultOption)
+int UserInput::selectOption(const std::string message, const std::vector<int> options, int defaultOption)
 {
     cout << message;
     printVector(options, false);
@@ -182,7 +153,7 @@ int UserInput::selectOption(std::string message, std::vector<int> options, int d
     return defaultOption;
 }
 
-unsigned int UserInput::selectOptionIndex(std::string message, std::vector<int> options, unsigned int defaultIndex)
+unsigned int UserInput::selectOptionIndex(const std::string message, const std::vector<int> options, unsigned int defaultIndex)
 {
     cout << message;
     cout << " [" << defaultIndex << "]";

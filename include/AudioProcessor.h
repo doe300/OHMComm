@@ -55,7 +55,7 @@ public:
     /*!
      * \return the unique name of this audio-processor
      */
-    const std::string getName();
+    const std::string getName() const;
 
     /*!
      * This method returns the OR'ed flags of the supported audio-formats
@@ -64,7 +64,7 @@ public:
      *
      * \return The supported audio-formats
      */
-    virtual unsigned int getSupportedAudioFormats() = 0;
+    virtual unsigned int getSupportedAudioFormats() const = 0;
 
     /*!
      * This method returns the OR'ed flags of the supported sample-rates
@@ -73,7 +73,7 @@ public:
      *
      * \return The supported sample-rates
      */
-    virtual unsigned int getSupportedSampleRates() = 0;
+    virtual unsigned int getSupportedSampleRates() const = 0;
 
     /*!
      * This method returns all supported buffer-sizes for the given sample-rate.
@@ -89,7 +89,7 @@ public:
      *
      * \return A list of buffer-sizes sorted in descending priority
      */
-    virtual std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) = 0;
+    virtual const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const = 0;
 
     /*!
      * Overwrite this method, if this AudioProcessor needs configuration
@@ -99,7 +99,7 @@ public:
      * Any implementation of this method can use the methods from UserInput.h
      */
     //TODO allow for non-interactive configuration
-    virtual bool configure(AudioConfiguration audioConfig);
+    virtual bool configure(const AudioConfiguration& audioConfig);
 
     /*!
      * Counterpart of configure(). This method is called, when the object is not needed any longer.

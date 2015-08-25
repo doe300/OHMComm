@@ -2,23 +2,23 @@
 #include "Statistics.h"
 #include "RTCPPackageHandler.h"
 
-ProcessorRTP::ProcessorRTP(std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, std::shared_ptr<RTPBufferHandler> buffer) : AudioProcessor(name)
+ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, std::shared_ptr<RTPBufferHandler> buffer) : AudioProcessor(name)
 {
 	this->networkObject = networkwrapper;
     this->rtpBuffer = buffer;
 }
 
-unsigned int ProcessorRTP::getSupportedAudioFormats()
+unsigned int ProcessorRTP::getSupportedAudioFormats() const
 {
     return AudioConfiguration::AUDIO_FORMAT_ALL;
 }
 
-unsigned int ProcessorRTP::getSupportedSampleRates()
+unsigned int ProcessorRTP::getSupportedSampleRates() const
 {
     return AudioConfiguration::SAMPLE_RATE_ALL;
 }
 
-std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sampleRate)
+const std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sampleRate) const
 {
     return std::vector<int>({BUFFER_SIZE_ANY});
 }

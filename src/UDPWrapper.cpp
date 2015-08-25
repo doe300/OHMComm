@@ -1,14 +1,14 @@
 #include "UDPWrapper.h"
 
-UDPWrapper::UDPWrapper(unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing) :
+UDPWrapper::UDPWrapper(unsigned short portIncoming, const std::string remoteIPAddress, unsigned short portOutgoing) :
     localAddress({0}), remoteAddress({0})
 {
 	initializeNetworkConfig(portIncoming, remoteIPAddress, portOutgoing);
 	initializeNetwork();
 }
 
-UDPWrapper::UDPWrapper(const struct NetworkConfiguration networkConfig) : 
-    UDPWrapper(networkConfig.portIncoming, networkConfig.addressOutgoing, networkConfig.portOutgoing) 
+UDPWrapper::UDPWrapper(const NetworkConfiguration& networkConfig) :
+    UDPWrapper(networkConfig.portIncoming, networkConfig.addressOutgoing, networkConfig.portOutgoing)
 {
 }
 
@@ -39,7 +39,7 @@ void UDPWrapper::startWinsock()
 	#endif
 }
 
-void UDPWrapper::initializeNetworkConfig(unsigned short localPort, std::string remoteAddress, unsigned short remotePort)
+void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::string remoteAddress, unsigned short remotePort)
 {
     if(NetworkWrapper::isIPv6(remoteAddress))
     {
@@ -140,7 +140,7 @@ int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
 }
 
 
-std::wstring UDPWrapper::getLastError()
+std::wstring UDPWrapper::getLastError() const
 {
     int error;
     #ifdef _WIN32

@@ -38,7 +38,7 @@ public:
     /*!
      * \return the name of the default audio-handler
      */
-    static std::string getDefaultAudioHandlerName();
+    static const std::string getDefaultAudioHandlerName();
 };
 
 #endif

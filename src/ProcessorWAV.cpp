@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   ProcessorWAV.cpp
  * Author: daniel
- * 
+ *
  * Created on July 22, 2015, 5:35 PM
  */
 
@@ -10,7 +10,7 @@
 
 using namespace wav;
 
-ProcessorWAV::ProcessorWAV() : AudioProcessor("WAV-Writer")
+ProcessorWAV::ProcessorWAV(const std::string name) : AudioProcessor(name)
 {
     writeInputFile = nullptr;
     writeOutputFile = nullptr;
@@ -28,7 +28,7 @@ ProcessorWAV::~ProcessorWAV()
     }
 }
 
-bool ProcessorWAV::configure(AudioConfiguration audioConfig)
+bool ProcessorWAV::configure(const AudioConfiguration& audioConfig)
 {
     if(audioConfig.audioFormatFlag != AudioConfiguration::AUDIO_FORMAT_SINT16)
     {
@@ -54,17 +54,17 @@ bool ProcessorWAV::configure(AudioConfiguration audioConfig)
     return true;
 }
 
-unsigned int ProcessorWAV::getSupportedAudioFormats()
+unsigned int ProcessorWAV::getSupportedAudioFormats() const
 {
     return AudioConfiguration::AUDIO_FORMAT_SINT16;
 }
 
-std::vector<int> ProcessorWAV::getSupportedBufferSizes(unsigned int sampleRate)
+const std::vector<int> ProcessorWAV::getSupportedBufferSizes(unsigned int sampleRate) const
 {
     return std::vector<int>{BUFFER_SIZE_ANY};
 }
 
-unsigned int ProcessorWAV::getSupportedSampleRates()
+unsigned int ProcessorWAV::getSupportedSampleRates() const
 {
     return AudioConfiguration::SAMPLE_RATE_44100;
 }

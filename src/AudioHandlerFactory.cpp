@@ -37,7 +37,7 @@ const std::vector<std::string> AudioHandlerFactory::getAudioHandlerNames()
     return handlerNames;
 }
 
-std::string AudioHandlerFactory::getDefaultAudioHandlerName()
+const std::string AudioHandlerFactory::getDefaultAudioHandlerName()
 {
     #ifdef RTAUDIOWRAPPER_H
     return RTAUDIO_WRAPPER;
