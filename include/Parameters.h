@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   Parameters.h
  * Author: daniel
  *
@@ -35,7 +35,7 @@ struct Parameter
     /*!
      * Short name for the parameter, a single character.
      * This character must be unique (case sensitive) within the list of available parameters
-     */ 
+     */
     const char shortName;
     //Long name for the parameter, consists of whole word(s)
     const std::string longName;
@@ -45,18 +45,18 @@ struct Parameter
     const std::string defaultValue;
     //Whether this parameter has a value
     const bool hasValue;
-    
-    Parameter(ParameterCategory category, bool required, char shortName, std::string fullName, 
+
+    Parameter(ParameterCategory category, bool required, char shortName, std::string fullName,
         std::string infoText, std::string defValue, bool hasValue) : category(category), required(required), shortName(shortName),
         longName(fullName), infoText(infoText), defaultValue(defValue), hasValue(hasValue)
     {
     }
-    
+
     /*!
      * Constructor for a simple flag without any value
      */
     Parameter(ParameterCategory category, char shortName, std::string fullName, std::string infoText) :
-        category(category), required(false), shortName(shortName), longName(fullName), infoText(infoText), 
+        category(category), required(false), shortName(shortName), longName(fullName), infoText(infoText),
         defaultValue(""), hasValue(false)
     {
     }
@@ -65,11 +65,11 @@ struct Parameter
      * Constructor for a parameter with value
      */
     Parameter(ParameterCategory category, char shortName, std::string fullName, std::string infoText,
-        std::string defValue) : category(category), required(false), shortName(shortName), longName(fullName), 
+        std::string defValue) : category(category), required(false), shortName(shortName), longName(fullName),
         infoText(infoText), defaultValue(defValue), hasValue(true)
     {
     }
-    
+
     //We don't want multiple instances of the same parameter
     Parameter(const Parameter& other)  = delete;
 
@@ -80,7 +80,7 @@ struct ParameterValue
 {
     const Parameter* parameter;
     const std::string value;
-    
+
     ParameterValue(const Parameter* parameter, const std::string value) :
         parameter(parameter), value(value)
     {
@@ -93,7 +93,7 @@ struct ParameterValue
 class Parameters
 {
 public:
-    
+
     static const Parameter HELP;
     static const Parameter PASSIVE_CONFIGURATION;
     static const Parameter LOG_TO_FILE;
@@ -106,29 +106,29 @@ public:
     static const Parameter LOCAL_PORT;
     static const Parameter AUDIO_PROCESSOR;
     static const Parameter PROFILE_PROCESSORS;
-    
+
     // A list of all available parameters
     static const std::vector<const Parameter*> availableParameters;
-    
+
     /*!
      * Default no-arg constructor
      */
     Parameters();
-    
+
     /*!
      * Parses the arguments passed to main(argc,argv) if there are any
-     * 
+     *
      * \param argc The argument count
      * \param argv The arguments
      * \param allProcessorNames The names of the audio-processors to print. This is only required for printing the help-page
-     * 
+     *
      * \return whether arguments have been set and parsed
      */
     bool parseParameters(int argc, char* argv[], const std::vector<std::string> allProcessorNames = {});
-    
+
     /*!
      * Prints the help-text to stdout
-     * 
+     *
      * \param allProcessorNames The names of all audio-processor to be printed
      */
     void printHelpPage(const std::vector<std::string> allProcessorNames) const;
@@ -137,27 +137,27 @@ public:
      * \return whether this specific parameter has been set
      */
     bool isParameterSet(const Parameter& param) const;
-    
+
     /*!
-     * NOTE: this method will return the default-value if the parameter has not been set explicitely
-     * 
+     * NOTE: this method will return the default-value if the parameter has not been set explicitly
+     *
      * \return the value for this parameter
      */
-    std::string getParameterValue(const Parameter& param) const;
-    
+    const std::string getParameterValue(const Parameter& param) const;
+
     /*!
      * \return a vector with all configured audio-processor names
      */
     const std::vector<std::string> getAudioProcessors() const;
-    
+
 private:
     static const unsigned int tabSize{5};
     //Returns the name of the given category
     std::string getCategoryName(const ParameterCategory& category) const;
-    
+
     //Prints a help-line for a single parameter
     void printParameterHelp(const Parameter* param) const;
-    
+
     std::vector<ParameterValue> readParameters;
     std::vector<std::string> processorNames;
 };

@@ -11,55 +11,55 @@ ProfilingAudioProcessor::~ProfilingAudioProcessor()
 }
 
 void ProfilingAudioProcessor::addTimeInputProcessing(long ms)
-{ 
-	count++; 
-	inputProcessingTime += ms; 
+{
+	count++;
+	inputProcessingTime += ms;
 };
 
-void ProfilingAudioProcessor::addTimeOutputProcessing(long ms) 
-{ 
-	count++; 
-	outputProcessingTime += ms; 
+void ProfilingAudioProcessor::addTimeOutputProcessing(long ms)
+{
+	count++;
+	outputProcessingTime += ms;
 }
 
-unsigned long ProfilingAudioProcessor::getTotalInputTime()
+unsigned long ProfilingAudioProcessor::getTotalInputTime() const
 {
     return inputProcessingTime;
 }
 
-unsigned long ProfilingAudioProcessor::getTotalOutputTime()
+unsigned long ProfilingAudioProcessor::getTotalOutputTime() const
 {
     return outputProcessingTime;
 }
 
-unsigned long ProfilingAudioProcessor::getTotalCount()
+unsigned long ProfilingAudioProcessor::getTotalCount() const
 {
     return count;
 }
 
-void ProfilingAudioProcessor::reset() 
-{ 
-	outputProcessingTime = 0; 
-	inputProcessingTime = 0; 
-	count = 0; 
+void ProfilingAudioProcessor::reset()
+{
+	outputProcessingTime = 0;
+	inputProcessingTime = 0;
+	count = 0;
 }
 
-bool ProfilingAudioProcessor::configure(AudioConfiguration audioConfig)
+bool ProfilingAudioProcessor::configure(const AudioConfiguration& audioConfig)
 {
     return profiledProcessor->configure(audioConfig);
 }
 
-unsigned int ProfilingAudioProcessor::getSupportedAudioFormats()
+unsigned int ProfilingAudioProcessor::getSupportedAudioFormats() const
 {
     return profiledProcessor->getSupportedAudioFormats();
 }
 
-std::vector<int> ProfilingAudioProcessor::getSupportedBufferSizes(unsigned int sampleRate)
+const std::vector<int> ProfilingAudioProcessor::getSupportedBufferSizes(unsigned int sampleRate) const
 {
     return profiledProcessor->getSupportedBufferSizes(sampleRate);
 }
 
-unsigned int ProfilingAudioProcessor::getSupportedSampleRates()
+unsigned int ProfilingAudioProcessor::getSupportedSampleRates() const
 {
     return profiledProcessor->getSupportedSampleRates();
 }

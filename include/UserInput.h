@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   UserInput.h
  * Author: daniel
  *
@@ -19,96 +19,96 @@
 class UserInput
 {
 public:
-    
+
     /*!
      * Prints a section-title in a common formatted way
-     * 
+     *
      * \param title The title to print
      */
-    static void printSection(std::string title);
+    static void printSection(const std::string title);
     /*!
      * Allows the user to input a bool-value.
      * Accepted values are 'Y', 'Yes' and 'N', 'No' (lower and mixed case)
-     * 
+     *
      * \param message The message to display
-     * 
+     *
      * Returns the input bool-value
      */
-    static bool inputBoolean(std::string message);
+    static bool inputBoolean(const std::string message);
 
     /*!
      * Allows the user to input a line of text
-     * 
+     *
      * \param message The message to display
-     * 
+     *
      * Returns the input line as string
      */
-    static std::string inputString(std::string message);
+    static std::string inputString(const std::string message);
 
     /*!
      * Allows the user to select an option from the given list. The option is selected by typing the option-text
-     * 
+     *
      * \param message The message to display
-     * 
+     *
      * \param options The options to choose one from
-     * 
+     *
      * \param defaultOption The value to return if none of the other options were selected
-     * 
+     *
      * Returns the option selected
      */
-    static std::string selectOption(std::string message, std::vector<std::string> options, std::string defaultOption);
+    static std::string selectOption(const std::string message, const std::vector<std::string> options, const std::string defaultOption);
 
     /*!
      * Allows the user to select an option from the given list. The option is selected by typing its index
-     * 
+     *
      * \param message The message to display
-     * 
+     *
      * \param options The options to choose from
-     * 
-     * \param defaultIndex The default index to select if no existing index was choosen
-     * 
+     *
+     * \param defaultIndex The default index to select if no existing index was chosen
+     *
      * Returns the selected index
      */
-    static unsigned int selectOptionIndex(std::string message, std::vector<std::string> options, unsigned int defaultIndex);
+    static unsigned int selectOptionIndex(const std::string message, const std::vector<std::string> options, unsigned int defaultIndex);
 
     /*!
      * Allows the user to input a integer number.
-     * 
+     *
      * \param message The message to display
-     * 
+     *
      * \param allowZero Whether the value zero '0' is allowed
-     * 
+     *
      * \param allowNegative Whether negative numbers are allowed
-     * 
+     *
      * Returns the number typed
      */
-    static int inputNumber(std::string message, bool allowZero, bool allowNegative);
+    static int inputNumber(const std::string message, bool allowZero, bool allowNegative);
 
     /*!
      * Allows the user to select an option from the given list. The option is selected by typing the option
-     * 
+     *
      * \param message The message to display
-     * 
+     *
      * \param options The options to choose from
-     * 
+     *
      * \param defaultOption The value to return if no option was selected
-     * 
+     *
      * Returns the selected option
      */
-    static int selectOption(std::string message, std::vector<int> options, int defaultOption);
+    static int selectOption(const std::string message, const std::vector<int> options, int defaultOption);
 
     /*!
      * Allows the user to select an option from the given list. The option is selected by typing its index
-     * 
+     *
      * \param message The message to display
-     * 
+     *
      * \param options The options to choose from
-     * 
-     * \param defaultIndex The index to return if no option was choosen
-     * 
+     *
+     * \param defaultIndex The index to return if no option was chosen
+     *
      * Returns the index of the selected option
      */
-    static unsigned int selectOptionIndex(std::string message, std::vector<int> options, unsigned int defaultIndex);
+    static unsigned int selectOptionIndex(const std::string message, const std::vector<int> options, unsigned int defaultIndex);
 };
 
 #endif	/* USERINPUT_H */

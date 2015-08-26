@@ -1,8 +1,8 @@
 #include "ProcessorOpus.h"
 
-ProcessorOpus::ProcessorOpus(std::string name, int opusApplication) : AudioProcessor(name)
+ProcessorOpus::ProcessorOpus(const std::string name, int opusApplication) : AudioProcessor(name)
 {
-	this->OpusApplication = opusApplication;	
+	this->OpusApplication = opusApplication;
 }
 
 ProcessorOpus::~ProcessorOpus()
@@ -11,18 +11,18 @@ ProcessorOpus::~ProcessorOpus()
 	opus_decoder_destroy(OpusDecoderObject);
 }
 
-unsigned int ProcessorOpus::getSupportedAudioFormats()
+unsigned int ProcessorOpus::getSupportedAudioFormats() const
 {
 	return AudioConfiguration::AUDIO_FORMAT_SINT16|AudioConfiguration::AUDIO_FORMAT_FLOAT32;
 }
 
-unsigned int ProcessorOpus::getSupportedSampleRates()
+unsigned int ProcessorOpus::getSupportedSampleRates() const
 {
 	unsigned int SupportedSampleRates = AudioConfiguration::SAMPLE_RATE_8000|AudioConfiguration::SAMPLE_RATE_12000|AudioConfiguration::SAMPLE_RATE_16000|AudioConfiguration::SAMPLE_RATE_24000|AudioConfiguration::SAMPLE_RATE_48000;
 	return SupportedSampleRates;
 }
 
-std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampleRate)
+const std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampleRate) const
 {
 	if (sampleRate == 8000)
 	{
@@ -51,7 +51,7 @@ std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampleRate)
 	}
 }
 
-bool ProcessorOpus::configure(AudioConfiguration audioConfig)
+bool ProcessorOpus::configure(const AudioConfiguration& audioConfig)
 {
 	outputDeviceChannels = audioConfig.outputDeviceChannels;
 	rtaudioFormat = audioConfig.audioFormatFlag;

@@ -2,12 +2,12 @@
 
 AudioProcessor::AudioProcessor(const std::string name) : name(name) {}
 
-const std::string AudioProcessor::getName()
+const std::string AudioProcessor::getName() const
 {
     return name;
 }
 
-bool AudioProcessor::configure(AudioConfiguration config)
+bool AudioProcessor::configure(const AudioConfiguration& config)
 {
     //dummy implementation, does nothing
     return true;

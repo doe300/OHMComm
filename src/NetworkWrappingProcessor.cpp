@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   NetworkWrappingProcessor.cpp
  * Author: daniel
- * 
+ *
  * Created on June 14, 2015, 10:05 AM
  */
 
@@ -16,20 +16,20 @@ NetworkWrappingProcessor::~NetworkWrappingProcessor()
     delete wrapper;
 }
 
-unsigned int NetworkWrappingProcessor::getSupportedAudioFormats()
+unsigned int NetworkWrappingProcessor::getSupportedAudioFormats() const
 {
     return AudioConfiguration::AUDIO_FORMAT_ALL;
 }
 
-unsigned int NetworkWrappingProcessor::getSupportedSampleRates()
+unsigned int NetworkWrappingProcessor::getSupportedSampleRates() const
 {
     return AudioConfiguration::SAMPLE_RATE_ALL;
 }
 
 unsigned int NetworkWrappingProcessor::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
-    wrapper->sendData(inputBuffer, inputBufferByteSize); 
-    
+    wrapper->sendData(inputBuffer, inputBufferByteSize);
+
     //no changes in buffer-size
     return inputBufferByteSize;
 }
@@ -37,7 +37,7 @@ unsigned int NetworkWrappingProcessor::processInputData(void* inputBuffer, const
 unsigned int NetworkWrappingProcessor::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
 {
     unsigned int receiveBufferSize = wrapper->receiveData(outputBuffer, outputBufferByteSize);
-    
+
     //set initial received buffer size
     return receiveBufferSize;
 }

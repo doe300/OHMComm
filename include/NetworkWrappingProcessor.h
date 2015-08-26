@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   NetworkWrappingProcessor.h
  * Author: daniel
  *
@@ -22,9 +22,9 @@ public:
      */
     NetworkWrappingProcessor(std::string name, NetworkWrapper *wrapper);
     ~NetworkWrappingProcessor();
-    
-    unsigned int getSupportedAudioFormats();
-    unsigned int getSupportedSampleRates();
+
+    unsigned int getSupportedAudioFormats() const;
+    unsigned int getSupportedSampleRates() const;
 
 
     unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);

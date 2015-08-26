@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   AudioProcessorFactory.cpp
  * Author: daniel
- * 
+ *
  * Created on June 27, 2015, 10:15 AM
  */
 
@@ -14,7 +14,7 @@
 const std::string AudioProcessorFactory::OPUS_CODEC = "Opus-Codec";
 const std::string AudioProcessorFactory::WAV_WRITER = "wav-Writer";
 
-AudioProcessor* AudioProcessorFactory::getAudioProcessor(std::string name, bool createProfiler)
+AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name, bool createProfiler)
 {
     AudioProcessor* processor = nullptr;
     #ifdef PROCESSOROPUS_H
@@ -26,7 +26,7 @@ AudioProcessor* AudioProcessorFactory::getAudioProcessor(std::string name, bool 
     #ifdef PROCESSORWAV_H
     if(name == WAV_WRITER)
     {
-        processor = new ProcessorWAV();
+        processor = new ProcessorWAV(WAV_WRITER);
     }
     #endif
     if(processor != nullptr)

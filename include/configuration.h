@@ -8,13 +8,14 @@
 #ifndef CONFIGURATION_H
 #define	CONFIGURATION_H
 
-#define TESTMODE 1
+#define TESTMODE 0
 #define PACKET_LOSS_CHANCE_IN_PERCENT 0
 
 #if TESTMODE
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <random>
 #endif
 
 #include <string>

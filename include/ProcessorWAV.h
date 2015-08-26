@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   ProcessorWAV.h
  * Author: daniel
  *
@@ -14,32 +14,32 @@
 
 /**
  * AudioProcessor which logs the audio-communication into WAV-files.
- * 
+ *
  * Both the audio-input and the audio-output can be logged separately, with the destination files
  * specified by user-input
  */
 class ProcessorWAV : public AudioProcessor
 {
 public:
-    ProcessorWAV();
+    ProcessorWAV(const std::string name);
     virtual ~ProcessorWAV();
-    
-    bool configure(AudioConfiguration audioConfig);
-    
+
+    bool configure(const AudioConfiguration& audioConfig);
+
     /*!
      * The wav implementation only supports 16bit signed integer PCM samples
      */
-    unsigned int getSupportedAudioFormats();
-    
+    unsigned int getSupportedAudioFormats() const;
+
     /*!
      * This writer supports all/any buffer-size
      */
-    std::vector<int> getSupportedBufferSizes(unsigned int sampleRate);
-    
+    const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
+
     /*!
      * The wav implementation only supports the 44.1kHz sample-rate
      */
-    unsigned int getSupportedSampleRates();
+    unsigned int getSupportedSampleRates() const;
 
     /*!
      * If input-logging is active, writes the audio-input to the input-logging file
@@ -53,7 +53,7 @@ public:
 private:
     FILE* writeInputFile;
     FILE* writeOutputFile;
-    
+
 };
 
 #endif	/* PROCESSORWAV_H */

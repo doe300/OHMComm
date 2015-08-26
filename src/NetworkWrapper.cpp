@@ -2,7 +2,7 @@
 
 #include "NetworkWrapper.h"
 
-bool NetworkWrapper::isIPv6(std::string ipAddress)
+bool NetworkWrapper::isIPv6(const std::string ipAddress)
 {
     if(ipAddress.find(':') != std::string::npos)
     {

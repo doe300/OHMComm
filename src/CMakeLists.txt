@@ -17,10 +17,12 @@ if(MSVC)
 	link_directories ("${PROJECT_BINARY_DIR}/build/opus/Release")
 endif()
 
-#Build OHMComm
-add_executable( OHMComm ${SRCS} ${HDRS} )
-#Build OHMCommLib for usage with Tests
+#Build OHMCommLib
 add_library( OHMCommLib STATIC ${SRCS} ${HDRS} )
+
+#Build OHMComm
+add_executable( OHMComm "OHMComm.cpp" "../include/OHMComm.h" )
+target_link_libraries(OHMComm OHMCommLib)
 
 if(MSVC) 
 # Visual Studio Compiler

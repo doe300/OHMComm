@@ -71,7 +71,7 @@ public:
     /*!
      * Prints the statistical information to the file specified by the given name
      */
-    static void printStatisticsToFile(std::string fileName);
+    static void printStatisticsToFile(const std::string fileName);
 
     /*!
      * Adds a processor to statistics array in order to record its statistic

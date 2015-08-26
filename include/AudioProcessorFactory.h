@@ -28,7 +28,7 @@ public:
      *
      * \param createProfiler whether to create a profiler for the audio-processor
      */
-    static AudioProcessor* getAudioProcessor(std::string name, bool createProfiler);
+    static AudioProcessor* getAudioProcessor(const std::string name, bool createProfiler);
 
     /*!
      * \return a list of the names of all available audio-processors

@@ -34,7 +34,7 @@ void Statistics::printStatistics()
     printStatistics(std::cout);
 }
 
-void Statistics::printStatisticsToFile(std::string fileName)
+void Statistics::printStatisticsToFile(const std::string fileName)
 {
     std::ofstream fileStream(fileName.c_str(), std::ios_base::out|std::ios_base::trunc);
     if(fileStream.is_open())

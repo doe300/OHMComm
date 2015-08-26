@@ -11,9 +11,9 @@
 class UDPWrapper : public NetworkWrapper
 {
 public:
-    UDPWrapper(unsigned short portIncoming, std::string remoteIPAddress, unsigned short portOutgoing);
+    UDPWrapper(unsigned short portIncoming, const std::string remoteIPAddress, unsigned short portOutgoing);
 
-    UDPWrapper(const struct NetworkConfiguration networkConfig);
+    UDPWrapper(const NetworkConfiguration& networkConfig);
 
     ~UDPWrapper();
 
@@ -21,7 +21,7 @@ public:
     int receiveData(void *buffer, unsigned int bufferSize = 0);
 
     void closeNetwork();
-    std::wstring getLastError();
+    std::wstring getLastError() const;
 private:
     bool isIPv6;
     int Socket;
@@ -34,7 +34,7 @@ private:
 
     void initializeNetwork();
 
-    void initializeNetworkConfig(unsigned short localPort, std::string remoteAddress, unsigned short remotePort);
+    void initializeNetworkConfig(unsigned short localPort, const std::string remoteAddress, unsigned short remotePort);
 };
 
 
