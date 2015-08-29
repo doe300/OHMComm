@@ -476,7 +476,10 @@ void LibraryConfiguration::configureProcessors(const std::vector<std::string>& p
 {
     this->profileProcessors = profileProcessors;
     this->processorNames.reserve(processorNames.size());
-    std::copy(processorNames.begin(), processorNames.end(), this->processorNames.begin());
+    for(const std::string& name : processorNames)
+    {
+        this->processorNames.push_back(name);
+    }
     this->profileProcessors = profileProcessors;
 
     isProcessorsConfigured = true;

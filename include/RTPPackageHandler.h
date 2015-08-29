@@ -267,7 +267,7 @@ public:
      *
      * Returns a pointer to the internal buffer storing the new package
      */
-    auto getNewRTPPackage(void* audioData, unsigned int payloadSize)->void*;
+    auto getNewRTPPackage(const void* audioData, unsigned int payloadSize)->void*;
 
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from,  defaults nullptr

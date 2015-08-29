@@ -32,16 +32,17 @@ void TestRTPBuffer::testMinBufferPackages()
 
 void TestRTPBuffer::testWriteFullBuffer()
 {
+    const char* someText = "This is some Text";
     //fill whole buffer
     while(handler->getSize() < maxCapacity)
     {
-        void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
+        void* buf = package.getNewRTPPackage(someText, 16);
         //copies the new-buffer into the work-buffer
         package.getRTPPackageHeader(buf);
         TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY,handler->addPackage(package, 10));
     }
     //write the next package -> should fail
-    void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
+    void* buf = package.getNewRTPPackage(someText, 16);
     //copies the new-buffer into the work-buffer
     package.getRTPPackageHeader(buf);
     TEST_ASSERT_EQUALS(RTP_BUFFER_INPUT_OVERFLOW,handler->addPackage(package, 10));
@@ -68,15 +69,16 @@ void TestRTPBuffer::testReadSuccessivePackages()
 
 void TestRTPBuffer::testWriteOldPackage()
 {
+    const char* someText = "This is some Text";
     //write some package
-    void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
+    void* buf = package.getNewRTPPackage(someText, 16);
     //copies the new-buffer into the work-buffer
     package.getRTPPackageHeader(buf);
     TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY,handler->addPackage(package, 10));
     unsigned int size = handler->getSize();
 
     //write a package which is far too old
-    buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
+    buf = package.getNewRTPPackage(someText, 16);
     ((RTPHeader*)buf)->sequence_number -= maxCapacity;
     //copies the new-buffer into the work-buffer
     package.getRTPPackageHeader(buf);

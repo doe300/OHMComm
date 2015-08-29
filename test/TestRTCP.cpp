@@ -127,7 +127,7 @@ void TestRTCP::testByePackage()
 
 void TestRTCP::testAppDefinedPackage()
 {
-    const char* name = std::string("TEXT").data();
+    const char* name = (const char*)"TEXT";
     std::string someText("This is some text padded to 32 bit!!");
     unsigned int someType = 9;
 

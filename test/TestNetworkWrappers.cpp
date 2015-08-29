@@ -14,7 +14,8 @@ TestNetworkWrappers::~TestNetworkWrappers()
 void TestNetworkWrappers::testUDPWrapper()
 {
     UDPWrapper wrapper(DEFAULT_NETWORK_PORT, "127.0.0.1", DEFAULT_NETWORK_PORT);
-    *sendBuffer = *"This is a test, Lorem ipsum! We fill this buffer with some random stuff ..... And send a arbitrary amount of bytes and compare them to this original string...";
+    const char* text = "This is a test, Lorem ipsum! We fill this buffer with some random stuff ..... And send a arbitrary amount of bytes and compare them to this original string...";
+    strncpy(sendBuffer, text, 150);
 
     //single package test
     int sendBytes = wrapper.sendData(sendBuffer, 150);
@@ -43,7 +44,7 @@ void TestNetworkWrappers::testUDPWrapper()
             std::wcerr << wrapper.getLastError() << std::endl;
         }
     }
-    for(unsigned int i = 1; i < 5; i++)
+    for(int i = 1; i < 5; i++)
     {
         int receivedBytes = wrapper.receiveData(receiveBuffer, bufferSize);
         TEST_ASSERT_EQUALS_MSG(i*30, receivedBytes, "Package sizes do no match!");
