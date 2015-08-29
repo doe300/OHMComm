@@ -27,22 +27,20 @@ static const std::string OHMCOMM_VERSION = "0.3";
 
 struct NetworkConfiguration
 {
-    //we don't need local IP, because we listen on any address
+    //we don't need local IP, because we listen on any address (of the local device)
     //Local port
-    unsigned short portIncoming;
+    unsigned short localPort;
     //Remote IP address
-    std::string addressOutgoing;
+    std::string remoteIPAddress;
     //Remote port
-    unsigned short portOutgoing;
+    unsigned short remotePort;
 };
 
 struct AudioConfiguration
 {
-    // These parameters are needed for the RtAudio::StreamParameter (Struct)
-
-    // Output Audio Device ID
+    // the library-specific ID of the audio output-device to use
     unsigned int outputDeviceID;
-    // input audio device ID
+    // the library-specific ID of the input-device
     unsigned int inputDeviceID;
 
     // number of maximum output channels supported by the output device
@@ -50,26 +48,19 @@ struct AudioConfiguration
     // number of maximum input channels supported by the input device
     unsigned int inputDeviceChannels;
 
-    // number of maximum output channels supported by the output device
-    unsigned int outputDeviceFirstChannel;
-    // number of maximum input channels supported by the input device
-    unsigned int inputDeviceFirstChannel;
-
-
-    // the name of the output audio device (optional)
-    std::string outputDeviceName;
-
-    // the name of the output audio device (optional)
-    std::string inputDeviceName;
-
-    // RtAudioformat, which is defined as: typedef unsigned long RtAudioFormat;
+    /*!
+     * flag for the used audio-format as specified in the AudioConfiguration::AUDIO_FORMAT_XXX-flags
+     * 
+     * Unless the forceAudioFormatFlag is set, the audio-format (and the sample-rate) is determined by the AudioHandler 
+     * by matching the supported audio-formats of the audio-processors
+     */ 
     unsigned long audioFormatFlag;
 
     // sample rate of the audio device
     unsigned int sampleRate;
 
-    // buffer frames
-    unsigned int bufferFrames;
+    // number of buffer frames to be sent in a single package
+    unsigned int framesPerPackage;
     
     // set if configuration forces a specific sample-rate
     unsigned int forceSampleRate;
@@ -87,19 +78,11 @@ struct AudioConfiguration
             return false;
         if (lhs.inputDeviceChannels != rhs.inputDeviceChannels)
             return false;
-        if (lhs.outputDeviceFirstChannel != rhs.outputDeviceFirstChannel)
-            return false;
-        if (lhs.inputDeviceFirstChannel != rhs.inputDeviceFirstChannel)
-            return false;
-        if (lhs.outputDeviceName != rhs.outputDeviceName)
-            return false;
-        if (lhs.inputDeviceName != rhs.inputDeviceName)
-            return false;
         if (lhs.audioFormatFlag != rhs.audioFormatFlag)
             return false;
         if (lhs.sampleRate != rhs.sampleRate)
             return false;
-        if (lhs.bufferFrames != rhs.bufferFrames)
+        if (lhs.framesPerPackage != rhs.framesPerPackage)
             return false;
 
         return true;

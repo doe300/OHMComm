@@ -67,7 +67,7 @@ void RtAudioWrapper::startRecordingMode()
 {
     if (this->flagPrepared)
     {
-        this->rtaudio.openStream(nullptr, &input, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
+        this->rtaudio.openStream(nullptr, &input, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
         this->rtaudio.startStream();
     }
     else
@@ -78,7 +78,7 @@ void RtAudioWrapper::startPlaybackMode()
 {
     if (this->flagPrepared)
     {
-            this->rtaudio.openStream(&output, nullptr, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
+            this->rtaudio.openStream(&output, nullptr, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
             this->rtaudio.startStream();
     }
     else
@@ -89,7 +89,7 @@ void RtAudioWrapper::startDuplexMode()
 {
     if (this->flagPrepared)
     {
-        this->rtaudio.openStream(&output, &input, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.bufferFrames, &RtAudioWrapper::callbackHelper, this);
+        this->rtaudio.openStream(&output, &input, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
         this->rtaudio.startStream();
     }
     else
@@ -137,8 +137,8 @@ void RtAudioWrapper::reset()
 auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
 {
     // calculate the input- and outputbuffer sizes
-    this->outputBufferByteSize = audioConfiguration.bufferFrames * audioConfiguration.outputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
-    this->inputBufferByteSize = audioConfiguration.bufferFrames * audioConfiguration.inputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
+    this->outputBufferByteSize = audioConfiguration.framesPerPackage * audioConfiguration.outputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
+    this->inputBufferByteSize = audioConfiguration.framesPerPackage * audioConfiguration.inputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
 
     /* internal buffer for playback data */
     this->bufferAudioOutput = new char[this->outputBufferByteSize];
@@ -148,8 +148,6 @@ auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
     this->output.deviceId = audioConfiguration.outputDeviceID;
     this->input.nChannels = audioConfiguration.inputDeviceChannels;
     this->output.nChannels = audioConfiguration.outputDeviceChannels;
-    this->input.firstChannel = audioConfiguration.inputDeviceFirstChannel;
-    this->output.firstChannel = audioConfiguration.outputDeviceFirstChannel;
 
     return true;
 }
@@ -171,7 +169,7 @@ void RtAudioWrapper::setDefaultAudioConfig()
     //audioFormat sampleRate and bufferFrames are overridden by queryProcessorSupport()
     audioConfig.audioFormatFlag = 0;
     audioConfig.sampleRate = 0;
-    audioConfig.bufferFrames = 0;
+    audioConfig.framesPerPackage = 0;
 
     this->setConfiguration(audioConfig);
 }
@@ -344,7 +342,7 @@ bool RtAudioWrapper::queryProcessorSupport()
         std::cerr << "Could not find a single buffer-size supported by all processors!" << std::endl;
         return false;
     }
-    audioConfiguration.bufferFrames = supportedBufferSize;
+    audioConfiguration.framesPerPackage = supportedBufferSize;
     
     std::cout << "Using audio-format: " << AudioConfiguration::getAudioFormatDescription(audioConfiguration.audioFormatFlag, false) << std::endl;
     std::cout << "Using a sample-rate of " << audioConfiguration.sampleRate << " Hz" << std::endl;

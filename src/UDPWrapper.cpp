@@ -8,7 +8,7 @@ UDPWrapper::UDPWrapper(unsigned short portIncoming, const std::string remoteIPAd
 }
 
 UDPWrapper::UDPWrapper(const NetworkConfiguration& networkConfig) :
-    UDPWrapper(networkConfig.portIncoming, networkConfig.addressOutgoing, networkConfig.portOutgoing)
+    UDPWrapper(networkConfig.localPort, networkConfig.remoteIPAddress, networkConfig.remotePort)
 {
 }
 

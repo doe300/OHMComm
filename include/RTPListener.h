@@ -51,7 +51,7 @@ public:
 private:
     std::function<void ()> stopCallback;
     std::shared_ptr<NetworkWrapper> wrapper;
-	std::shared_ptr<RTPBufferHandler> buffer;
+    std::shared_ptr<RTPBufferHandler> buffer;
     RTPPackageHandler rtpHandler;
     RTCPPackageHandler rtcpHandler;
     std::thread receiveThread;

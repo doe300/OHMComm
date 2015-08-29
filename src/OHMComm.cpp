@@ -87,9 +87,9 @@ void OHMComm::startAudioThreads()
         audioHandler->addProcessor(AudioProcessorFactory::getAudioProcessor(procName, profileProcessors));
     }
     configureRTPProcessor(profileProcessors);
-    
+
     //run threads
-    
+
     if(!audioHandler->prepare())
     {
         throw std::runtime_error("Failed to configure audio-handler!");
@@ -159,15 +159,15 @@ int main(int argc, char* argv[])
     ////
 
     OHMComm* ohmComm;
-    Parameters params;
-    if(params.parseParameters(argc, argv, AudioProcessorFactory::getAudioProcessorNames()))
+    Parameters params(AudioHandlerFactory::getAudioHandlerNames(), AudioProcessorFactory::getAudioProcessorNames());
+    if(params.parseParameters(argc, argv))
     {
         if(params.isParameterSet(Parameters::PASSIVE_CONFIGURATION))
         {
             NetworkConfiguration networkConfig{0};
-            networkConfig.addressOutgoing = params.getParameterValue(Parameters::REMOTE_ADDRESS);
-            networkConfig.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).data());
-            networkConfig.portIncoming = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
+            networkConfig.remoteIPAddress = params.getParameterValue(Parameters::REMOTE_ADDRESS);
+            networkConfig.remotePort = atoi(params.getParameterValue(Parameters::REMOTE_PORT).data());
+            networkConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
             ohmComm = new OHMComm(new PassiveConfiguration(networkConfig));
         }
         else

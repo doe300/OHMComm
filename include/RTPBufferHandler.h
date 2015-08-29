@@ -26,9 +26,9 @@ static const RTPBufferStatus RTP_BUFFER_OUTPUT_UNDERFLOW = 0x2;
 * Example: The last read sequence number was 55. If it now receives the sequence number 54 or lower it will be thrown away.
 * The received package is to old, therefore it will not be processed.
 */
-static const RTPBufferStatus RTP_BUFFER_PACKAGE_TO_OLD = 0x3;
+static const RTPBufferStatus RTP_BUFFER_PACKAGE_TO_OLD = 0x4;
 
-static const RTPBufferStatus RTP_BUFFER_IS_PUFFERING = 0x4;
+static const RTPBufferStatus RTP_BUFFER_IS_PUFFERING = 0x8;
 
 /*!
 * Abstract super-type for all classes used as RTPBuffer (Jitter-Buffer)
