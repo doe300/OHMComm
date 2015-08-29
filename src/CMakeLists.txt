@@ -21,7 +21,7 @@ endif()
 add_library( OHMCommLib STATIC ${SRCS} ${HDRS} )
 
 #Build OHMComm
-add_executable( OHMComm "OHMComm.cpp" "../include/OHMComm.h" )
+add_executable( OHMComm "OHMCommStandalone.cpp" )
 target_link_libraries(OHMComm OHMCommLib)
 
 if(MSVC) 

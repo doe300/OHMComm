@@ -16,7 +16,7 @@
 #include "RTPBufferAlternative.h"
 
 OHMComm::OHMComm(ConfigurationMode* mode)
-    : rtpBuffer(new RTPBufferAlternative(256, 1000, 32)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
+    : rtpBuffer(new RTPBuffer(256, 1000, 32)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
 {
 }
 
@@ -94,7 +94,7 @@ void OHMComm::startAudioThreads()
     {
         throw std::runtime_error("Failed to configure audio-handler!");
     }
-    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize(), createStopCallback()));
+    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize(), configurationMode, createStopCallback()));
 
     listener->startUp();
     audioHandler->startDuplexMode();
@@ -150,55 +150,4 @@ void OHMComm::configureRTPProcessor(bool profileProcessors)
 std::function<void ()> OHMComm::createStopCallback()
 {
     return std::bind(&OHMComm::stopAudioThreads,this);
-}
-
-int main(int argc, char* argv[])
-{
-    ////
-    // Configuration
-    ////
-
-    OHMComm* ohmComm;
-    Parameters params(AudioHandlerFactory::getAudioHandlerNames(), AudioProcessorFactory::getAudioProcessorNames());
-    if(params.parseParameters(argc, argv))
-    {
-        if(params.isParameterSet(Parameters::PASSIVE_CONFIGURATION))
-        {
-            NetworkConfiguration networkConfig{0};
-            networkConfig.remoteIPAddress = params.getParameterValue(Parameters::REMOTE_ADDRESS);
-            networkConfig.remotePort = atoi(params.getParameterValue(Parameters::REMOTE_PORT).data());
-            networkConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
-            ohmComm = new OHMComm(new PassiveConfiguration(networkConfig));
-        }
-        else
-        {
-            ohmComm = new OHMComm(new ParameterConfiguration(params));
-        }
-    }
-    else
-    {
-        ohmComm = new OHMComm(new InteractiveConfiguration());
-    }
-
-    ////
-    // Startup
-    ////
-
-    if(!ohmComm->isConfigurationDone(true))
-    {
-        std::cerr << "Failed to configure OHMComm!" << std::endl;
-        return 1;
-    }
-    ohmComm->startAudioThreads();
-
-    char input;
-    // wait for exit
-    std::cout << "Type Enter to exit" << std::endl;
-    std::cin >> input;
-
-    ohmComm->stopAudioThreads();
-
-    delete ohmComm;
-
-    return 0;
 }
