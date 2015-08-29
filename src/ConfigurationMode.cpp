@@ -82,6 +82,11 @@ const std::pair<bool, std::string> ConfigurationMode::getLogToFileConfiguration(
     return std::pair<bool, std::string>(logToFile, logFileName);
 }
 
+void ConfigurationMode::updateAudioConfiguration(const AudioConfiguration& audioConfig)
+{
+    this->audioConfig = audioConfig;
+}
+
 void ConfigurationMode::createDefaultNetworkConfiguration()
 {
     networkConfig.remoteIPAddress = "127.0.0.1";
@@ -511,11 +516,11 @@ void LibraryConfiguration::configureCustomValue(std::string key, bool value)
 ////
 
 PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors, std::string logFile) :
-        ConfigurationMode()
+        ConfigurationMode(), remoteConfigurationConfig(networkConfig)
 {
     this->useDefaultAudioConfig = false;
     this->audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
-    this->networkConfig = networkConfig;
+    this->networkConfig.remoteIPAddress = networkConfig.remoteIPAddress;
     this->profileProcessors = profileProcessors;
     if(!logFile.empty())
     {
@@ -533,6 +538,7 @@ bool PassiveConfiguration::runConfiguration()
     {
         return true;
     }
+    //TODO own class for this stuff
     UDPWrapper wrapper(networkConfig);
 
     RTCPPackageHandler handler;
@@ -541,6 +547,7 @@ bool PassiveConfiguration::runConfiguration()
 
     void* buffer = handler.createApplicationDefinedPackage(requestHeader, configRequest);
 
+    std::cout << "Sending request for passive configuration..." << std::endl;
     if(wrapper.sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(requestHeader.length)) < (int)RTCPPackageHandler::getRTCPPackageLength(requestHeader.length))
     {
         std::wcerr << wrapper.getLastError() << std::endl;
@@ -559,10 +566,12 @@ bool PassiveConfiguration::runConfiguration()
         //we didn't receive anything. Don't know if this can actually occur
         return false;
     }
+    //FIXME reception does not work, because this method will also receive a lot of RTP packages
+    //-> need extra port (extract whole configuration-handling to extra class -> need second port for passive side or send port and passive side reconnects?)
     RTCPHeader responseHeader = handler.readRTCPHeader(buffer, receivedSize);
     if(responseHeader.packageType != RTCP_PACKAGE_APPLICATION_DEFINED)
     {
-        std::cerr << "Invalid RTCP response package type: " << responseHeader.packageType << std::endl;
+        std::cerr << "Invalid RTCP response package type: " << (unsigned int)responseHeader.packageType << std::endl;
         return false;
     }
     ApplicationDefined configResponse = handler.readApplicationDefinedMessage(buffer, receivedSize, responseHeader);
@@ -576,6 +585,12 @@ bool PassiveConfiguration::runConfiguration()
 
     std::cout << "Passive Configuration received ... " << std::endl;
 
+    //TODO or send local port to remote host with request? (would be safer)
+    std::cout << "Received local port: " << receivedMessage.passiveDataPort << std::endl;
+    networkConfig.localPort = receivedMessage.passiveDataPort;
+    std::cout << "Received remote-port: " << receivedMessage.dataPort << std::endl;
+    networkConfig.remotePort = receivedMessage.dataPort;
+    
     //TODO force buffer frames? Should be distinct from combination of sample-rate and audio-processors
     std::cout << "Received audio-format: " << AudioConfiguration::getAudioFormatDescription(receivedMessage.audioFormat, false) << std::endl;;
     audioConfig.forceAudioFormatFlag = receivedMessage.audioFormat;

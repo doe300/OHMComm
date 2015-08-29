@@ -12,7 +12,6 @@
 #include <functional>
 
 #include "RTPBufferHandler.h"
-
 #include "NetworkWrapper.h"
 #include "RTCPPackageHandler.h"
 

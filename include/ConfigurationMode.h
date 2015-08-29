@@ -99,6 +99,11 @@ public:
      */
     virtual const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const = 0;
 
+    /*!
+     * This method is called by OHMComm to update the audio-configuration in this ConfigurationMode with the actual used configuration
+     */
+    void updateAudioConfiguration(const AudioConfiguration& audioConfig);
+    
 protected:
 
     void createDefaultNetworkConfiguration();
@@ -226,16 +231,25 @@ class PassiveConfiguration : public ConfigurationMode
 public:
 
     /*! The size of a configuration-message (without the vector) in bytes */
-    static const uint8_t CONFIGURATION_MESSAGE_SIZE{12};
+    static const uint8_t CONFIGURATION_MESSAGE_SIZE{16};
 
     struct ConfigurationMessage
     {
-        uint32_t sampleRate;
-        uint32_t audioFormat;
-        uint16_t bufferFrames;
-        uint8_t nChannels;
-        uint8_t numProcessorNames;
+        //data-port for the passive client (the requesting client)
+        unsigned short passiveDataPort;     // 2 bytes
+        //data-port for the responding client
+        unsigned short dataPort;            // 2 bytes
+        unsigned int sampleRate;            // 4 bytes
+        unsigned int audioFormat;           // 4 bytes
+        unsigned short bufferFrames;        // 2 bytes
+        unsigned int nChannels : 8;         // 1 byte
+        unsigned int numProcessorNames : 8; // 1 bytes
         std::vector<std::string> processorNames;
+        
+        ConfigurationMessage() : passiveDataPort(0), dataPort(0), sampleRate(0), audioFormat(0), bufferFrames(0), nChannels(0), numProcessorNames(0), processorNames({})
+        {
+            
+        }
     };
 
     PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors = false, std::string logFile = "");
@@ -248,6 +262,9 @@ public:
     static const ConfigurationMessage readConfigurationMessage(void* buffer, unsigned int bufferSize);
 
     static unsigned int writeConfigurationMessage(void* buffer, unsigned int maxBufferSize, ConfigurationMessage& configMessage);
+    
+private:
+    const NetworkConfiguration remoteConfigurationConfig;
 };
 
 /*!

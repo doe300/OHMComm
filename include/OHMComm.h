@@ -82,7 +82,7 @@ public:
      * \return Whether the audio-communication is running
      */
     bool isRunning() const;
-
+    
 private:
 
     std::shared_ptr<RTPBufferHandler> rtpBuffer;

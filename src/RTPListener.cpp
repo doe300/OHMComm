@@ -90,15 +90,6 @@ void RTPListener::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         //notify OHMComm to shut down
         stopCallback();
     }
-    else if(header.packageType == RTCP_PACKAGE_APPLICATION_DEFINED)
-    {
-        ApplicationDefined appDefined = rtcpHandler.readApplicationDefinedMessage(receiveBuffer, receivedSize, header);
-        if(appDefined.subType == ApplicationDefined::OHMCOMM_CONFIGURATION_REQUEST)
-        {
-            //TODO send audio-configuration (via RTPProcessor??)
-            //get audio-configuration (how?) -> send to remote
-        }
-    }
 }
 
 

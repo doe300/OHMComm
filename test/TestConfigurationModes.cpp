@@ -1,5 +1,6 @@
 #include "TestConfigurationModes.h"
 #include "AudioProcessorFactory.h"
+#include "OHMComm.h"
 
 #include <string>
 #include <vector>
@@ -109,19 +110,39 @@ void TestConfigurationModes::testLibraryConfiguration()
 
 void TestConfigurationModes::testPassiveConfiguration()
 {
+    //set up "remote"
+    LibraryConfiguration* remoteMode = new LibraryConfiguration();
+    NetworkConfiguration remoteNetwork;
+    remoteNetwork.remoteIPAddress = "127.0.0.1";
+    remoteNetwork.remotePort = DEFAULT_NETWORK_PORT+1;
+    remoteMode->configureAudio(AudioHandlerFactory::RTAUDIO_WRAPPER, nullptr);
+    remoteMode->configureNetwork(remoteNetwork);
+    std::vector<std::string> remoteProcessorNames = {AudioProcessorFactory::OPUS_CODEC};
+    remoteMode->configureProcessors(remoteProcessorNames, false);
+    OHMComm remote((ConfigurationMode*)remoteMode);
+    TEST_ASSERT_MSG(remote.isConfigurationDone(false), "Remote not configured!");
+    remote.startAudioThreads();
+    
+    //set up "client"
     NetworkConfiguration netConf;
     netConf.remoteIPAddress = "127.0.0.1";
+    netConf.localPort = DEFAULT_NETWORK_PORT+1;
 
     ConfigurationMode* mode = new PassiveConfiguration(netConf);
 
     TEST_ASSERT_EQUALS(netConf.remoteIPAddress, mode->getNetworkConfiguration().remoteIPAddress);
 
-    //TODO implementation of other side
     TEST_ASSERT_MSG(mode->runConfiguration(), "Failed to configure passively!");
 
     TEST_ASSERT_MSG(mode->getAudioConfiguration().forceAudioFormatFlag != 0, "Forcing audio-format was not set!");
     TEST_ASSERT_MSG(mode->getAudioConfiguration().forceSampleRate != 0, "Forcing sample-rate was not set!");
+    std::vector<std::string> passiveProcessorNames;
+    mode->getAudioProcessorsConfiguration(passiveProcessorNames);
+    TEST_ASSERT_EQUALS(1, passiveProcessorNames.size());
+    TEST_ASSERT_EQUALS(AudioProcessorFactory::OPUS_CODEC, passiveProcessorNames[0]);
 
+    remote.stopAudioThreads();
+    delete remoteMode;
     delete mode;
 }
 
