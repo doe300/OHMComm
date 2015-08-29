@@ -10,25 +10,28 @@ TestConfigurationModes::TestConfigurationModes()
     TEST_ADD(TestConfigurationModes::testInteractiveConfiguration);
     TEST_ADD(TestConfigurationModes::testLibraryConfiguration);
     TEST_ADD(TestConfigurationModes::testPassiveConfiguration);
+    TEST_ADD(TestConfigurationModes::testFileConfiguration);
+    //TODO extend tests for getCustomConfig
+    //TODO testFileConfiguration
 }
 
 void TestConfigurationModes::testParameterConfiguration()
 {
     char* args[] = {(char*)"Tests", (char*)"-r=127.0.0.1", (char*)"-l=33333", (char*)"-p=33333", (char*)"-a=Opus-Codec", (char*)"--log-file=test.log", (char*)"-S=48000", (char*)"-t"};
-    Parameters params;
-    TEST_ASSERT_MSG(params.parseParameters(8, args, AudioProcessorFactory::getAudioProcessorNames()), "Failed to parse parameters!");
+    Parameters params({},{});
+    TEST_ASSERT_MSG(params.parseParameters(8, args), "Failed to parse parameters!");
 
     ConfigurationMode* mode = new ParameterConfiguration(params);
 
     TEST_ASSERT_MSG(mode->isConfigured(), "Parameter-configuration not finished!");
     TEST_ASSERT_MSG(mode->runConfiguration(), "Parameter-configuration not finished!");
 
-    TEST_ASSERT_EQUALS("127.0.0.1", mode->getNetworkConfiguration().addressOutgoing);
-    TEST_ASSERT_EQUALS(33333, mode->getNetworkConfiguration().portOutgoing);
+    TEST_ASSERT_EQUALS("127.0.0.1", mode->getNetworkConfiguration().remoteIPAddress);
+    TEST_ASSERT_EQUALS(33333, mode->getNetworkConfiguration().remotePort);
 
     TEST_ASSERT_MSG(mode->getLogToFileConfiguration().first, "Log to file not configured!");
     TEST_ASSERT_EQUALS(48000, mode->getAudioConfiguration().forceSampleRate);
-    
+
     std::vector<std::string> tmp(0);
     TEST_ASSERT_MSG(mode->getAudioProcessorsConfiguration(tmp), "Profile processors not configured!");
     TEST_ASSERT_EQUALS(AudioProcessorFactory::OPUS_CODEC, tmp[0]);
@@ -72,7 +75,7 @@ void TestConfigurationModes::testInteractiveConfiguration()
     TEST_ASSERT(mode->isConfigured());
 
     TEST_ASSERT_MSG(false == mode->getAudioHandlerConfiguration().second, "default audio-config was not set!");
-    TEST_ASSERT_EQUALS(DEFAULT_NETWORK_PORT, mode->getNetworkConfiguration().portIncoming);
+    TEST_ASSERT_EQUALS(DEFAULT_NETWORK_PORT, mode->getNetworkConfiguration().localPort);
     TEST_ASSERT_MSG(mode->getLogToFileConfiguration().first, "Log to file was not configured!");
     TEST_ASSERT_EQUALS("test.log", mode->getLogToFileConfiguration().second);
     std::vector<std::string> tmp;
@@ -94,7 +97,7 @@ void TestConfigurationModes::testLibraryConfiguration()
     ((LibraryConfiguration*)mode)->configureLogToFile("test.log");
     TEST_ASSERT_EQUALS("test.log", mode->getLogToFileConfiguration().second);
 
-    TEST_ASSERT_EQUALS(DEFAULT_NETWORK_PORT, mode->getNetworkConfiguration().portIncoming);
+    TEST_ASSERT_EQUALS(DEFAULT_NETWORK_PORT, mode->getNetworkConfiguration().localPort);
 
     ((LibraryConfiguration*)mode)->configureProcessors({AudioProcessorFactory::OPUS_CODEC}, true);
     std::vector<std::string> tmp;
@@ -107,17 +110,26 @@ void TestConfigurationModes::testLibraryConfiguration()
 void TestConfigurationModes::testPassiveConfiguration()
 {
     NetworkConfiguration netConf;
-    netConf.addressOutgoing = "127.0.0.1";
+    netConf.remoteIPAddress = "127.0.0.1";
 
     ConfigurationMode* mode = new PassiveConfiguration(netConf);
 
-    TEST_ASSERT_EQUALS(netConf.addressOutgoing, mode->getNetworkConfiguration().addressOutgoing);
+    TEST_ASSERT_EQUALS(netConf.remoteIPAddress, mode->getNetworkConfiguration().remoteIPAddress);
 
     //TODO implementation of other side
     TEST_ASSERT_MSG(mode->runConfiguration(), "Failed to configure passively!");
-    
+
     TEST_ASSERT_MSG(mode->getAudioConfiguration().forceAudioFormatFlag != 0, "Forcing audio-format was not set!");
     TEST_ASSERT_MSG(mode->getAudioConfiguration().forceSampleRate != 0, "Forcing sample-rate was not set!");
 
+    delete mode;
+}
+
+void TestConfigurationModes::testFileConfiguration()
+{
+    ConfigurationMode* mode = new FileConfiguration("./test/test.config");
+    
+    TEST_ASSERT_MSG(mode->runConfiguration(), "Reading configuration-file failed!");
+    
     delete mode;
 }

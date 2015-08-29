@@ -96,6 +96,7 @@ void RTPListener::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         if(appDefined.subType == ApplicationDefined::OHMCOMM_CONFIGURATION_REQUEST)
         {
             //TODO send audio-configuration (via RTPProcessor??)
+            //get audio-configuration (how?) -> send to remote
         }
     }
 }

@@ -6,6 +6,10 @@
  */
 
 #include <algorithm>
+#include <fstream>
+#include <string>
+#include <cctype>
+#include <stdlib.h>
 
 #include "ConfigurationMode.h"
 #include "AudioHandlerFactory.h"
@@ -80,9 +84,9 @@ const std::pair<bool, std::string> ConfigurationMode::getLogToFileConfiguration(
 
 void ConfigurationMode::createDefaultNetworkConfiguration()
 {
-    networkConfig.addressOutgoing = "127.0.0.1";
-    networkConfig.portIncoming = DEFAULT_NETWORK_PORT;
-    networkConfig.portOutgoing = DEFAULT_NETWORK_PORT;
+    networkConfig.remoteIPAddress = "127.0.0.1";
+    networkConfig.localPort = DEFAULT_NETWORK_PORT;
+    networkConfig.remotePort = DEFAULT_NETWORK_PORT;
 }
 
 ////
@@ -96,6 +100,14 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params)
     //get device configuration from parameters
     int outputDeviceID = -1;
     int inputDeviceID = -1;
+    if(params.isParameterSet(Parameters::AUDIO_HANDLER))
+    {
+        audioHandlerName = params.getParameterValue(Parameters::AUDIO_HANDLER);
+    }
+    else
+    {
+        audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
+    }
     if(params.isParameterSet(Parameters::OUTPUT_DEVICE))
     {
         outputDeviceID = atoi(params.getParameterValue(Parameters::OUTPUT_DEVICE).c_str());
@@ -122,12 +134,11 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params)
     {
         audioConfig.forceSampleRate = atoi(params.getParameterValue(Parameters::FORCE_SAMPLE_RATE).c_str());
     }
-    audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
 
     //get network configuration from parameters
-    networkConfig.addressOutgoing = params.getParameterValue(Parameters::REMOTE_ADDRESS);
-    networkConfig.portIncoming = atoi(params.getParameterValue(Parameters::LOCAL_PORT).c_str());
-    networkConfig.portOutgoing = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
+    networkConfig.remoteIPAddress = params.getParameterValue(Parameters::REMOTE_ADDRESS);
+    networkConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).c_str());
+    networkConfig.remotePort = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
 
     //get audio-processors from parameters
     processorNames.reserve(params.getAudioProcessors().size());
@@ -164,10 +175,25 @@ void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inpu
     audioConfig.inputDeviceChannels = 2;
 
     audioConfig.outputDeviceID = outputDeviceID;
-    audioConfig.outputDeviceName = audioDevices.getDeviceInfo(outputDeviceID).name;
-
     audioConfig.inputDeviceID = inputDeviceID;
-    audioConfig.inputDeviceName = audioDevices.getDeviceInfo(inputDeviceID).name;
+}
+
+const std::string ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const
+{
+    //TODO read from parameters
+    return defaultValue;
+}
+
+const int ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+{
+    //TODO read from parameters
+    return defaultValue;
+}
+
+const bool ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+{
+    //TODO read from parameters
+    return defaultValue;
 }
 
 ////
@@ -217,6 +243,23 @@ bool InteractiveConfiguration::runConfiguration()
 
     isConfigurationDone = true;
     return true;
+}
+
+const std::string InteractiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const
+{
+    const unsigned char flags = defaultValue.empty() ? 0 : UserInput::INPUT_USE_DEFAULT;
+    return UserInput::inputString(message, defaultValue, flags);
+}
+
+const int InteractiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+{
+    const unsigned char flags = UserInput::INPUT_ALLOW_NEGATIVE | UserInput::INPUT_ALLOW_ZERO | UserInput::INPUT_USE_DEFAULT;
+    return UserInput::inputNumber(message, defaultValue, flags);
+}
+
+const bool InteractiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+{
+    return UserInput::inputBoolean(message, defaultValue, UserInput::INPUT_USE_DEFAULT);
 }
 
 void InteractiveConfiguration::interactivelyConfigureAudioDevices()
@@ -289,10 +332,7 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices()
     //Configure ID of the Output Audio Device
     audioConfig.outputDeviceID = OutputDeviceID;
     std::cout << "-> Using output Device ID: " << audioConfig.outputDeviceID << std::endl;
-
-    //Configure Name of the Output Audio Device
-    audioConfig.outputDeviceName = OutputDeviceInfo.name;
-    std::cout << "-> Using output Device Name: " << audioConfig.outputDeviceName << std::endl;
+    std::cout << "-> Using output Device Name: " << OutputDeviceInfo.name << std::endl;
 
     //Configure outputDeviceChannels (we always use stereo)
     audioConfig.outputDeviceChannels = 2;
@@ -307,14 +347,11 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices()
     //Configure ID of the Input Audio Device
     audioConfig.inputDeviceID = InputDeviceID;
     std::cout << "-> Using input Device ID " << audioConfig.inputDeviceID << std::endl;
-
-    //Configure Name of the Input Audio Device
-    audioConfig.inputDeviceName = InputDeviceInfo.name;
-    std::cout << "-> Using input Device Name: " << audioConfig.inputDeviceName << std::endl;
+    std::cout << "-> Using input Device Name: " << InputDeviceInfo.name << std::endl;
 
     //Configure inputDeviceChannels (we always use stereo)
     audioConfig.inputDeviceChannels = 2;
-    
+
     //configure whether to force audio-format and sample-rate
     std::vector<std::string> audioFormats = {
         "let audio-handler decide",
@@ -331,7 +368,7 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices()
         //must deduct 1 before shifting, because 2^0 = 1 but in the input option 0 is default-value
         audioConfig.forceAudioFormatFlag = 1 << (selectedAudioFormatIndex-1);
     }
-    
+
     unsigned int selectedSampleRate = UserInput::inputNumber("Input a sample-rate [use 0 for default]", true, false);
     if(selectedSampleRate > 0)
     {
@@ -345,13 +382,13 @@ void InteractiveConfiguration::interactivelyConfigureNetwork()
 
     //1. remote address
     std::string ipString = UserInput::inputString("1. Input destination IP address");
-    networkConfig.addressOutgoing = ipString;
+    networkConfig.remoteIPAddress = ipString;
 
     //2. remote and local ports
     int destPort = UserInput::inputNumber("2. Input destination port", false, false);
     int localPort = UserInput::inputNumber("3. Input local port", false, false);
-    networkConfig.portOutgoing = destPort;
-    networkConfig.portIncoming = localPort;
+    networkConfig.remotePort = destPort;
+    networkConfig.localPort = localPort;
 
     std::cout << "Network configuration set." << std::endl;
 }
@@ -391,6 +428,32 @@ bool LibraryConfiguration::isConfigured() const
     return isAudioConfigured && isNetworkConfigured && isProcessorsConfigured;
 }
 
+const std::string LibraryConfiguration::getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const
+{
+    if(customConfig.find(key) == customConfig.end())
+    {
+        return defaultValue;
+    }
+    return customConfig.at(key);
+}
+
+const int LibraryConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+{
+    if(customConfig.find(key) == customConfig.end())
+    {
+        return defaultValue;
+    }
+    return atoi(customConfig.at(key).data());
+}
+
+const bool LibraryConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+{
+    if(customConfig.find(key) == customConfig.end())
+    {
+        return defaultValue;
+    }
+    return atoi(customConfig.at(key).data());
+}
 
 void LibraryConfiguration::configureAudio(const std::string audioHandlerName, const AudioConfiguration* audioConfig)
 {
@@ -425,11 +488,26 @@ void LibraryConfiguration::configureLogToFile(const std::string logFileName)
     this->logFileName = logFileName;
 }
 
+void LibraryConfiguration::configureCustomValue(std::string key, std::string value)
+{
+    customConfig[key] = value;
+}
+
+void LibraryConfiguration::configureCustomValue(std::string key, int value)
+{
+    customConfig[key] = std::to_string(value);
+}
+
+void LibraryConfiguration::configureCustomValue(std::string key, bool value)
+{
+    customConfig[key] = std::to_string(value ? 1 : 0);
+}
+
 ////
 //  PassiveConfiguration
 ////
 
-PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors, std::string logFile) : 
+PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors, std::string logFile) :
         ConfigurationMode()
 {
     this->useDefaultAudioConfig = false;
@@ -492,7 +570,7 @@ bool PassiveConfiguration::runConfiguration()
     }
     //we need to receive audio-configuration and processor-names
     ConfigurationMessage receivedMessage = PassiveConfiguration::readConfigurationMessage(configResponse.data, configResponse.dataLength);
-    
+
     std::cout << "Passive Configuration received ... " << std::endl;
 
     //TODO force buffer frames? Should be distinct from combination of sample-rate and audio-processors
@@ -514,6 +592,21 @@ bool PassiveConfiguration::runConfiguration()
 
     this->isConfigurationDone = true;
     return true;
+}
+
+const std::string PassiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const
+{
+    return defaultValue;
+}
+
+const int PassiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+{
+    return defaultValue;
+}
+
+const bool PassiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+{
+    return defaultValue;
 }
 
 const PassiveConfiguration::ConfigurationMessage PassiveConfiguration::readConfigurationMessage(void* buffer, unsigned int bufferSize)
@@ -558,4 +651,156 @@ unsigned int PassiveConfiguration::writeConfigurationMessage(void* buffer, unsig
     return writtenBytes;
 }
 
+////
+//  FileConfiguration
+////
 
+FileConfiguration::FileConfiguration(const std::string fileName) : ConfigurationMode(), configFile(fileName)
+{
+
+}
+
+inline std::string trim(const std::string &s)
+{
+   auto wsfront=std::find_if_not(s.begin(),s.end(),[](int c){return std::isspace(c);});
+   return std::string(wsfront,std::find_if_not(s.rbegin(),std::string::const_reverse_iterator(wsfront),[](int c){return std::isspace(c);}).base());
+}
+
+inline std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
+}
+
+bool FileConfiguration::runConfiguration()
+{
+    if(isConfigurationDone)
+        return true;
+
+    //read configuration-file
+    std::fstream stream(configFile.data(), std::fstream::in);
+    stream.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
+    std::string line;
+    unsigned int index;
+    std::string key, value;
+    while(true)
+    {
+        line.clear();
+        std::getline(stream, line);
+        if(stream.eof()) break;
+        if(stream.gcount() == 0) continue;
+        if(line[0] == '#') continue;
+
+        //read key
+        index = line.find('=');
+        if(index == std::string::npos)
+        {
+            std::cerr << "Invalid configuration line: " << line << std::endl;
+            continue;
+        }
+        key = trim(line.substr(0, index));
+        index++;
+        //read value
+        value = trim(line.substr(index));
+        if(value[0] == '"')
+        {
+            value = value.substr(1, value.size()-2);
+            //unescape escapes
+            replaceAll(value, "\\\"", "\"");
+        }
+        else if(value.compare("true") == 0)
+            value = "1";
+        else if(value.compare("false") == 0)
+            value = "0";
+        //save value
+        if(key.compare(Parameters::AUDIO_PROCESSOR.longName) == 0)
+            processorNames.push_back(trim(value));
+        else
+            customConfig[key] = trim(value);
+    }
+    stream.close();
+
+    //interpret config
+    if(customConfig.find(Parameters::AUDIO_HANDLER.longName) != customConfig.end())
+    {
+        audioHandlerName = trim(customConfig.at(Parameters::AUDIO_HANDLER.longName));
+    }
+    else
+    {
+        audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
+    }
+    //audio-configuration
+    if(customConfig.find(Parameters::INPUT_DEVICE.longName) != customConfig.end())
+    {
+        useDefaultAudioConfig = false;
+        audioConfig.inputDeviceID = atoi(customConfig.at(Parameters::INPUT_DEVICE.longName).data());
+    }
+    if(customConfig.find(Parameters::OUTPUT_DEVICE.longName) != customConfig.end())
+    {
+        useDefaultAudioConfig = false;
+        audioConfig.outputDeviceID = atoi(customConfig.at(Parameters::OUTPUT_DEVICE.longName).data());
+    }
+    if(customConfig.find(Parameters::FORCE_AUDIO_FORMAT.longName) != customConfig.end())
+    {
+        useDefaultAudioConfig = false;
+        audioConfig.forceAudioFormatFlag = atoi(customConfig.at(Parameters::FORCE_AUDIO_FORMAT.longName).data());
+    }
+    if(customConfig.find(Parameters::FORCE_SAMPLE_RATE.longName) != customConfig.end())
+    {
+        useDefaultAudioConfig = false;
+        audioConfig.forceSampleRate = atoi(customConfig.at(Parameters::FORCE_SAMPLE_RATE.longName).data());
+    }
+    audioConfig.inputDeviceChannels = 2;
+    audioConfig.outputDeviceChannels = 2;
+
+    //network-configuration
+    networkConfig.remoteIPAddress = customConfig.at(Parameters::REMOTE_ADDRESS.longName);
+    if(customConfig.find(Parameters::REMOTE_PORT.longName) != customConfig.end())
+        networkConfig.remotePort = atoi(customConfig.at(Parameters::REMOTE_PORT.longName).data());
+    else
+        networkConfig.remotePort = DEFAULT_NETWORK_PORT;
+    if(customConfig.find(Parameters::LOCAL_PORT.longName) != customConfig.end())
+        networkConfig.localPort = atoi(customConfig.at(Parameters::LOCAL_PORT.longName).data());
+    else
+        networkConfig.localPort = DEFAULT_NETWORK_PORT;
+    //audio-processors are read above
+    profileProcessors = customConfig.find(Parameters::PROFILE_PROCESSORS.longName) != customConfig.end();
+    if(customConfig.find(Parameters::LOG_TO_FILE.longName) != customConfig.end())
+    {
+        logToFile = true;
+        logFileName = customConfig.at(Parameters::LOG_TO_FILE.longName);
+    }
+
+    isConfigurationDone = true;
+    return true;
+}
+
+const std::string FileConfiguration::getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const
+{
+    if(customConfig.find(key) == customConfig.end())
+    {
+        return defaultValue;
+    }
+    return customConfig.at(key);
+}
+
+const int FileConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+{
+    if(customConfig.find(key) == customConfig.end())
+    {
+        return defaultValue;
+    }
+    return atoi(customConfig.at(key).data());
+}
+
+const bool FileConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+{
+    if(customConfig.find(key) == customConfig.end())
+    {
+        return defaultValue;
+    }
+    return atoi(customConfig.at(key).data());
+}

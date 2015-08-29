@@ -1,13 +1,13 @@
-/* 
+/*
  * File:   TestParameters.cpp
  * Author: daniel
- * 
+ *
  * Created on July 24, 2015, 1:41 PM
  */
 
 #include "TestParameters.h"
 
-TestParameters::TestParameters() : params({})
+TestParameters::TestParameters() : params({},{})
 {
     TEST_ADD(TestParameters::testParseParameters);
     TEST_ADD(TestParameters::testIsParameterSet);

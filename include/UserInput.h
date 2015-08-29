@@ -20,30 +20,40 @@ class UserInput
 {
 public:
 
+    static constexpr unsigned char INPUT_USE_DEFAULT = 0x1;
+    static constexpr unsigned char INPUT_ALLOW_EMPTY = 0x2;
+    static constexpr unsigned char INPUT_ALLOW_ZERO = 0x2;  //duplicate 0x2 on purpose!
+    static constexpr unsigned char INPUT_ALLOW_NEGATIVE = 0x4;
+
     /*!
      * Prints a section-title in a common formatted way
      *
      * \param title The title to print
      */
     static void printSection(const std::string title);
+
     /*!
      * Allows the user to input a bool-value.
      * Accepted values are 'Y', 'Yes' and 'N', 'No' (lower and mixed case)
      *
      * \param message The message to display
+     * \param defaultValue The default value for an empty input, only active in conjunction with INPUT_USE_DEFAULT
+     * \param flags The flags (only INPUT_USE_DEFAULT)
      *
      * Returns the input bool-value
      */
-    static bool inputBoolean(const std::string message);
+    static bool inputBoolean(const std::string message, const bool defaultValue = false, const unsigned char flags = 0);
 
     /*!
      * Allows the user to input a line of text
      *
      * \param message The message to display
+     * \param defaultValue The default value to use an empty string is input, only active in conjunction with INPUT_USE_DEFAULT
+     * \param flags The flags (INPUT_USE_DEFAULT, INPUT_ALLOW_EMPTY) INPUT_ALLOW_EMPTY takes precedence
      *
      * Returns the input line as string
      */
-    static std::string inputString(const std::string message);
+    static std::string inputString(const std::string message, const std::string defaultValue = "", const unsigned char flags = 0);
 
     /*!
      * Allows the user to select an option from the given list. The option is selected by typing the option-text
@@ -75,14 +85,12 @@ public:
      * Allows the user to input a integer number.
      *
      * \param message The message to display
-     *
-     * \param allowZero Whether the value zero '0' is allowed
-     *
-     * \param allowNegative Whether negative numbers are allowed
+     * \param defaultValue The default value for an invalid input, only used in conjunction with INPUT_USE_DEFAULT
+     * \param flags The flags (INPUT_USE_DEFAULT, INPUT_ALLOW_ZERO, INPUT_ALLOW_NEGATIVE)
      *
      * Returns the number typed
      */
-    static int inputNumber(const std::string message, bool allowZero, bool allowNegative);
+    static int inputNumber(const std::string message, const int defaultValue = 0, const unsigned char flags = 0);
 
     /*!
      * Allows the user to select an option from the given list. The option is selected by typing the option

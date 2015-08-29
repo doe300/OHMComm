@@ -16,6 +16,8 @@ public:
     void testLibraryConfiguration();
 
     void testPassiveConfiguration();
+    
+    void testFileConfiguration();
 };
 
 #endif // TESTCONFIGURATIONMODES_H

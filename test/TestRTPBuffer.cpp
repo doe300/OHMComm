@@ -27,7 +27,7 @@ void TestRTPBuffer::testMinBufferPackages()
         TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->addPackage(package, 10));
     }
     //now we have to read a silent-package
-    TEST_ASSERT_EQUALS(RTP_BUFFER_OUTPUT_UNDERFLOW, handler->readPackage(package));
+    TEST_ASSERT(((RTP_BUFFER_OUTPUT_UNDERFLOW | RTP_BUFFER_IS_PUFFERING) & handler->readPackage(package)) != 0);
 }
 
 void TestRTPBuffer::testWriteFullBuffer()
@@ -92,6 +92,11 @@ void TestRTPBuffer::testPackageBlockLoss()
         TEST_FAIL("RTPBuffer currently does not support this test!");
         return;
     }
+    if(dynamic_cast<RTPBufferAlternative*>(handler) != nullptr)
+    {
+        TEST_FAIL("RTPBufferAlternative currently does not support this test!");
+        return;
+    }
     //we first empty the buffer
     while(handler->getSize() > 0)
     {
@@ -144,6 +149,11 @@ void TestRTPBuffer::testContinousPackageLoss()
     if(dynamic_cast<RTPBuffer*>(handler) != nullptr)
     {
         TEST_FAIL("RTPBuffer currently does not support this test!");
+        return;
+    }
+    if(dynamic_cast<RTPBufferAlternative*>(handler) != nullptr)
+    {
+        TEST_FAIL("RTPBufferAlternative currently does not support this test!");
         return;
     }
     //we first empty the buffer

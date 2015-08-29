@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <stdexcept>
+#include <map>
+#include <stdlib.h>
 
 #include "configuration.h"
 #include "UserInput.h"
@@ -64,6 +66,39 @@ public:
      */
     const std::pair<bool, std::string> getLogToFileConfiguration() const;
 
+    /*!
+     * Configuration-mode specific method to retrieve a value for the given key
+     *
+     * \param key The name of the configuration-value
+     * \param message An optional message to display (e.g. for interactive configuration)
+     * \param defaultValue The default value to use
+     *
+     * \return the value for this configuration-key, defaults to the defaultValue
+     */
+    virtual const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const = 0;
+
+    /*!
+     * Configuration-mode specific method to retrieve a value for the given key
+     *
+     * \param key The name of the configuration-value
+     * \param message An optional message to display (e.g. for interactive configuration)
+     * \param defaultValue The default value to use
+     *
+     * \return the value for this configuration-key, defaults to the defaultValue
+     */
+    virtual const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const = 0;
+
+    /*!
+     * Configuration-mode specific method to retrieve a value for the given key
+     *
+     * \param key The name of the configuration-value
+     * \param message An optional message to display (e.g. for interactive configuration)
+     * \param defaultValue The default value to use
+     *
+     * \return the value for this configuration-key, defaults to the defaultValue
+     */
+    virtual const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const = 0;
+
 protected:
 
     void createDefaultNetworkConfiguration();
@@ -88,6 +123,9 @@ public:
     ParameterConfiguration(const Parameters& params);
 
     virtual bool runConfiguration();
+    const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
+    const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+    const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
 
 private:
     void fillAudioConfiguration(int outputDeviceID, int inputDeviceID);
@@ -104,6 +142,9 @@ public:
     }
 
     virtual bool runConfiguration();
+    const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
+    const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+    const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
 
 private:
 
@@ -128,6 +169,9 @@ public:
     virtual bool runConfiguration();
 
     virtual bool isConfigured() const;
+    const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
+    const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+    const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
 
     /*!
      * Configures the audio-handler for the LIBRARY configuration-mode
@@ -163,7 +207,12 @@ public:
      */
     void configureLogToFile(const std::string logFileName);
 
+    void configureCustomValue(std::string key, std::string value);
+    void configureCustomValue(std::string key, int value);
+    void configureCustomValue(std::string key, bool value);
+
 private:
+    std::map<std::string, std::string> customConfig;
     bool isAudioConfigured = false;
     bool isNetworkConfigured = false;
     bool isProcessorsConfigured = false;
@@ -192,10 +241,45 @@ public:
     PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors = false, std::string logFile = "");
 
     virtual bool runConfiguration();
+    const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
+    const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+    const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
 
     static const ConfigurationMessage readConfigurationMessage(void* buffer, unsigned int bufferSize);
 
     static unsigned int writeConfigurationMessage(void* buffer, unsigned int maxBufferSize, ConfigurationMessage& configMessage);
+};
+
+/*!
+ * File-based configuration.
+ *
+ * The format for the configuration-file is following:
+ *
+ * - Lines starting with a '#' are ignored as comments
+ * - Every other non-empty line is interpreted as key-value pair
+ * - the key is an arbitrary string of digits (0-9), letters (a-z, A-Z), underscore (_) and minus (-)
+ *      Note: any other character may occur, but interpretation is undefined
+ * - the value is one of the following:
+ *      - a number (as understood by atoi())
+ *      - a boolean value ('true' or 'false'). Booleans can also be represented as numbers 0 for false, any other number for true
+ *      - a string (arbitrary list of characters enclosed by double-quotes '"')
+ *
+ * The names of the predefined configuration-keys are taken from the existing Parameter-constants in Parameters
+ */
+class FileConfiguration : public ConfigurationMode
+{
+public:
+    FileConfiguration(const std::string fileName);
+
+    virtual bool runConfiguration();
+
+    const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
+    const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+    const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+
+private:
+    const std::string configFile;
+    std::map<std::string, std::string> customConfig;
 };
 #endif	/* CONFIGURATIONMODE_H */
 

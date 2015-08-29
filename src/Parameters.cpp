@@ -12,6 +12,7 @@
 const Parameter Parameters::HELP(ParameterCategory::GENERAL, 'h', "help", "Print this help page and exit");
 const Parameter Parameters::PASSIVE_CONFIGURATION(ParameterCategory::GENERAL, 'P', "passive", "Enables passive configuration. The communication partner will decide the audio-configuration");
 const Parameter Parameters::LOG_TO_FILE(ParameterCategory::GENERAL, 'f', "log-file", "Log statistics and profiling-information to file.", "OHMComm.log");
+const Parameter Parameters::AUDIO_HANDLER(ParameterCategory::AUDIO, 'H', "audio-handler", "Use this specific audio-handler. Defaults to the program-default audio-handler", "");
 const Parameter Parameters::INPUT_DEVICE(ParameterCategory::AUDIO, 'i', "input-device-id", "The id of the device used for audio-input. This value will fall back to the library-default", "");
 const Parameter Parameters::OUTPUT_DEVICE(ParameterCategory::AUDIO, 'o', "output-device-id", "The id of the device used for audio-output. This value will fall back to the library-default", "");
 const Parameter Parameters::FORCE_AUDIO_FORMAT(ParameterCategory::AUDIO, 'A', "audio-format", "Forces the given audio-format to be used. For a list of audio-formats see below. Currently only works in conjunction with -i or -o.", "");
@@ -30,18 +31,19 @@ const std::vector<const Parameter*> Parameters::availableParameters = {
     //General
     &HELP, &LOG_TO_FILE, &PASSIVE_CONFIGURATION,
     //Audio-config
-    &INPUT_DEVICE, &OUTPUT_DEVICE, &FORCE_AUDIO_FORMAT, &FORCE_SAMPLE_RATE,
+    &AUDIO_HANDLER, &INPUT_DEVICE, &OUTPUT_DEVICE, &FORCE_AUDIO_FORMAT, &FORCE_SAMPLE_RATE,
     //Network-config
     &REMOTE_ADDRESS, &REMOTE_PORT, &LOCAL_PORT,
     //Processor-config
     &AUDIO_PROCESSOR, &PROFILE_PROCESSORS
 };
 
-Parameters::Parameters()
+Parameters::Parameters(const std::vector<std::string> availableHandlerNames, const std::vector<std::string> availableProcessorNames) :
+    allAudioHandlerNames(availableHandlerNames), allProcessorNames(availableProcessorNames)
 {
 }
 
-bool Parameters::parseParameters(int argc, char* argv[], const std::vector<std::string> allProcessorNames)
+bool Parameters::parseParameters(int argc, char* argv[])
 {
     //argv[0] is the name of the program
     if(argc <= 1)
@@ -125,7 +127,7 @@ bool Parameters::parseParameters(int argc, char* argv[], const std::vector<std::
     //print help page and exit if requested
     if(isParameterSet(HELP))
     {
-        printHelpPage(allProcessorNames);
+        printHelpPage();
         exit(0);
     }
     //check if all required parameters are set or at least have a default-value
@@ -148,7 +150,7 @@ const std::vector<std::string> Parameters::getAudioProcessors() const
     return processorNames;
 }
 
-void Parameters::printHelpPage(const std::vector<std::string> allProcessorNames) const
+void Parameters::printHelpPage() const
 {
     std::cout << "OHMComm peer-to-peer voice-over-IP communication program running in version " << OHMCOMM_VERSION << std::endl;
     std::cout << "Usage: OHMComm [option]" << std::endl;
@@ -186,6 +188,14 @@ void Parameters::printHelpPage(const std::vector<std::string> allProcessorNames)
         {
             printParameterHelp(param);
         }
+    }
+    std::cout << std::endl;
+
+    //print AudioHandlers
+    std::cout << "Currently available audio-handlers are: " << std::endl;
+    for(const std::string& name : allAudioHandlerNames)
+    {
+       std::cout << std::setw(tabSize) << ' ' << name << std::endl;
     }
     std::cout << std::endl;
 

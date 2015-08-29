@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   TestUserInput.h
  * Author: daniel
  *
@@ -19,23 +19,24 @@ public:
     TestUserInput();
 
     void testInputBoolean();
-    
+
     void testInputString();
-    
+
     void testInputNumber();
-    
+
     void testSelectStringOption();
-    
+
     void testSelectStringOptionIndex();
-    
+
     void testSelectIntOption();
-    
+
     void testSelectIntOptionIndex();
-    
+
     void redirectStdin();
-    
+
     void resetStdin();
 private:
+    void writeTestInput(std::string input);
     std::streambuf* origStdinBuf;
     std::stringstream testStream;
 };

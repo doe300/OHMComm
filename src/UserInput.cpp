@@ -44,9 +44,14 @@ void UserInput::printSection(const std::string title)
     std::cout << "+++ " << title << " +++" << std::endl;
 }
 
-bool UserInput::inputBoolean(const std::string message)
+bool UserInput::inputBoolean(const std::string message, const bool defaultValue, const unsigned char flags)
 {
-    cout << message << " (Yes/No): ";
+    cout << message << " (Yes/No)";
+    if((flags & INPUT_USE_DEFAULT) == INPUT_USE_DEFAULT)
+    {
+        cout << (defaultValue ? " [Yes]" : " [No]");
+    }
+    cout << ": ";
     string result;
     cin >> result;
     if(result == "Y" || result== "Yes" || result == "y" || result == "yes")
@@ -57,15 +62,34 @@ bool UserInput::inputBoolean(const std::string message)
     {
         return false;
     }
+    if((flags & INPUT_USE_DEFAULT) == INPUT_USE_DEFAULT)
+    {
+        return defaultValue;
+    }
     cout << "Invalid input: Please type 'Yes' or 'No'!" << endl;
     return inputBoolean(message);
 }
 
-std::string UserInput::inputString(const std::string message)
+std::string UserInput::inputString(const std::string message, const std::string defaultValue, const unsigned char flags)
 {
-    cout << message << ": ";
+    cout << message;
+    if((flags & INPUT_USE_DEFAULT) == INPUT_USE_DEFAULT)
+    {
+        cout << " [" << defaultValue << "]";
+    }
+    cout << ": ";
     string result;
     cin >> result;
+    if(result.empty())
+    {
+        if((flags & INPUT_ALLOW_EMPTY) == INPUT_ALLOW_EMPTY)
+            return "";
+        if((flags & INPUT_USE_DEFAULT) == INPUT_USE_DEFAULT)
+            return defaultValue;
+        //else rerun input
+        std::cout << "Invalid input: Empty string is not allowed!" << std::endl;
+        return UserInput::inputString(message, defaultValue, flags);
+    }
     return result;
 }
 
@@ -107,25 +131,36 @@ unsigned int UserInput::selectOptionIndex(const std::string message, const std::
     return defaultIndex;
 }
 
-int UserInput::inputNumber(const std::string message, bool allowZero, bool allowNegative)
+int UserInput::inputNumber(const std::string message, const int defaultValue, const unsigned char flags)
 {
-    cout << message << ": ";
+    cout << message;
+    if((flags & INPUT_USE_DEFAULT) == INPUT_USE_DEFAULT)
+    {
+        cout << " [" << defaultValue << "]";
+    }
+    cout << ": ";
     int result;
     if(!(cin >> result))
     {
         clearInput();
+        if((flags & INPUT_USE_DEFAULT) == INPUT_USE_DEFAULT)
+            return defaultValue;
         cout << "Invalid input: You must input a number!" << endl;
-        return inputNumber(message, allowZero, allowNegative);
+        return inputNumber(message, defaultValue, flags);
     }
-    if(!allowZero && result == 0)
+    if(result == 0 && (flags & INPUT_ALLOW_ZERO) != INPUT_ALLOW_ZERO)
     {
+        if((flags & INPUT_USE_DEFAULT) == INPUT_USE_DEFAULT)
+            return defaultValue;
         cout << "Invalid input: zero is not allowed!" << endl;
-        return inputNumber(message,allowZero,allowNegative);
+        return inputNumber(message, defaultValue, flags);
     }
-    if(!allowNegative && result < 0)
+    if(result < 0 && (flags & INPUT_ALLOW_NEGATIVE) != INPUT_ALLOW_NEGATIVE)
     {
+        if((flags & INPUT_USE_DEFAULT) == INPUT_USE_DEFAULT)
+            return defaultValue;
         cout << "Invalid input: only positive numbers are allowed!" << endl;
-        return inputNumber(message, allowZero, allowNegative);
+        return inputNumber(message, defaultValue, flags);
     }
     return result;
 }

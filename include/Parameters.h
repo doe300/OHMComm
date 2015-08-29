@@ -97,6 +97,7 @@ public:
     static const Parameter HELP;
     static const Parameter PASSIVE_CONFIGURATION;
     static const Parameter LOG_TO_FILE;
+    static const Parameter AUDIO_HANDLER;
     static const Parameter INPUT_DEVICE;
     static const Parameter OUTPUT_DEVICE;
     static const Parameter FORCE_AUDIO_FORMAT;
@@ -111,9 +112,12 @@ public:
     static const std::vector<const Parameter*> availableParameters;
 
     /*!
-     * Default no-arg constructor
+     * Default constructor accepting a list of all available audio-handlers and audio-processors
+     *
+     * \param availableHandlerNames The names of the audio-handlers to print. This is only required for printing the help-page
+     * \param availableProcessorNames The names of the audio-processors to print. This is only required for printing the help-page
      */
-    Parameters();
+    Parameters(const std::vector<std::string> availableHandlerNames, const std::vector<std::string> availableProcessorNames);
 
     /*!
      * Parses the arguments passed to main(argc,argv) if there are any
@@ -124,14 +128,14 @@ public:
      *
      * \return whether arguments have been set and parsed
      */
-    bool parseParameters(int argc, char* argv[], const std::vector<std::string> allProcessorNames = {});
+    bool parseParameters(int argc, char* argv[]);
 
     /*!
      * Prints the help-text to stdout
      *
      * \param allProcessorNames The names of all audio-processor to be printed
      */
-    void printHelpPage(const std::vector<std::string> allProcessorNames) const;
+    void printHelpPage() const;
 
     /*!
      * \return whether this specific parameter has been set
@@ -160,6 +164,9 @@ private:
 
     std::vector<ParameterValue> readParameters;
     std::vector<std::string> processorNames;
+
+    const std::vector<std::string> allAudioHandlerNames;
+    const std::vector<std::string> allProcessorNames;
 };
 
 #endif	/* PARAMETERS_H */
