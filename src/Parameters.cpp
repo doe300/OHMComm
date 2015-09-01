@@ -23,11 +23,7 @@ const Parameter Parameters::LOCAL_PORT(ParameterCategory::NETWORK, true, 'l', "l
 const Parameter Parameters::AUDIO_PROCESSOR(ParameterCategory::PROCESSORS, 'a', "add-processor", "The name of the audio-processor to add", "");
 const Parameter Parameters::PROFILE_PROCESSORS(ParameterCategory::PROCESSORS, 't', "profile-processors", "Enables profiling of the the execution time of audio-processors");
 
-//TODO allow for adding processor-specific parameters
-//they would need to be added before reading the command-line arguments.
-//Which means, before the processors are initialized.
-//Could they be added via global code?
-const std::vector<const Parameter*> Parameters::availableParameters = {
+std::vector<const Parameter*> Parameters::availableParameters = {
     //General
     &HELP, &LOG_TO_FILE, &PASSIVE_CONFIGURATION,
     //Audio-config
@@ -37,6 +33,30 @@ const std::vector<const Parameter*> Parameters::availableParameters = {
     //Processor-config
     &AUDIO_PROCESSOR, &PROFILE_PROCESSORS
 };
+
+const bool Parameters::registerParameter(const Parameter* param)
+{
+    if(param == nullptr)
+    {
+        return false;
+    }
+    //make sure, neither short name nor long name are reused
+    for(const Parameter* p : availableParameters)
+    {
+        if(p->shortName == param->shortName)
+        {
+            std::cerr << "Short parameter name '" << param->shortName << "' already in use for parameter '" << p->longName << "'!" << std::endl;
+            return false;
+        }
+        if(p->longName == param->longName)
+        {
+            std::cerr << "Long parameter name '" << param->longName << "' already in use!" << std::endl;
+            return false;
+        }
+    }
+    availableParameters.push_back(param);
+    return false;
+}
 
 Parameters::Parameters(const std::vector<std::string> availableHandlerNames, const std::vector<std::string> availableProcessorNames) :
     allAudioHandlerNames(availableHandlerNames), allProcessorNames(availableProcessorNames)

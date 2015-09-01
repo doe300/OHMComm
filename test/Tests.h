@@ -6,10 +6,10 @@
 #include "TestRTP.h"
 
 class TestAudioIO : public Test::Suite {
-	void testAudioHandlerInstances(); // getNewAudioIO(..)
-	void testAudioProcessorInterface(); // add, remove, reset
+    void testAudioHandlerInstances(); // getNewAudioIO(..)
+    void testAudioProcessorInterface(); // add, remove, reset
 public:
-	TestAudioIO();
+    TestAudioIO();
 };
 
 #endif

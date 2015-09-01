@@ -108,8 +108,16 @@ public:
     static const Parameter AUDIO_PROCESSOR;
     static const Parameter PROFILE_PROCESSORS;
 
-    // A list of all available parameters
-    static const std::vector<const Parameter*> availableParameters;
+    /*!
+     * This method can be used to add processor-specific parameters to the list of available (and parsed parameters).
+     * For Parameters to be used in parameterized configuration-mode, this method must be called in a static context.
+     * For that, it must be used to initialize a static constant value.
+     * 
+     * \param param The new parameter to add. This should be a newly created Parameter-object
+     * 
+     * \return True, if the parameter was successfully registered, false otherwise
+     */
+    static const bool registerParameter(const Parameter* param);
 
     /*!
      * Default constructor accepting a list of all available audio-handlers and audio-processors
@@ -155,6 +163,8 @@ public:
     const std::vector<std::string> getAudioProcessors() const;
 
 private:
+    // A list of all available parameters
+    static std::vector<const Parameter*> availableParameters;
     static const unsigned int tabSize{5};
     //Returns the name of the given category
     std::string getCategoryName(const ParameterCategory& category) const;

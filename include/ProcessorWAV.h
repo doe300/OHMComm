@@ -11,6 +11,7 @@
 #include "AudioProcessor.h"
 #include <stdio.h>
 #include "wavfile.h"
+#include "Parameters.h"
 
 /**
  * AudioProcessor which logs the audio-communication into WAV-files.
@@ -21,6 +22,8 @@
 class ProcessorWAV : public AudioProcessor
 {
 public:
+    static const Parameter WAV_FILE_NAME;
+    
     ProcessorWAV(const std::string name);
     virtual ~ProcessorWAV();
 
