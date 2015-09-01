@@ -118,6 +118,13 @@ public:
      * \return True, if the parameter was successfully registered, false otherwise
      */
     static const bool registerParameter(const Parameter* param);
+    
+    /*!
+     * \param paramName The long-name for the parameter to be returned
+     * 
+     * Returns a pointer to the parameter for the given name or a nullptr if no such parameter was registered
+     */
+    static const Parameter* getParameter(const std::string paramName);
 
     /*!
      * Default constructor accepting a list of all available audio-handlers and audio-processors

@@ -185,7 +185,11 @@ void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inpu
 
 const std::string ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const
 {
-    //TODO read from parameters
+    const Parameter* param = Parameters::getParameter(key);
+    if(param != nullptr)
+    {
+        //TODO
+    }
     return defaultValue;
 }
 

@@ -58,6 +58,17 @@ const bool Parameters::registerParameter(const Parameter* param)
     return false;
 }
 
+const Parameter* Parameters::getParameter(const std::string paramName)
+{
+    for(const Parameter* p : availableParameters)
+    {
+        if(p->longName == paramName)
+            return p;
+    }
+    return nullptr;
+}
+
+
 Parameters::Parameters(const std::vector<std::string> availableHandlerNames, const std::vector<std::string> availableProcessorNames) :
     allAudioHandlerNames(availableHandlerNames), allProcessorNames(availableProcessorNames)
 {

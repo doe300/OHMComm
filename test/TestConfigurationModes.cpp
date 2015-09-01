@@ -13,7 +13,6 @@ TestConfigurationModes::TestConfigurationModes()
     TEST_ADD(TestConfigurationModes::testPassiveConfiguration);
     TEST_ADD(TestConfigurationModes::testFileConfiguration);
     //TODO extend tests for getCustomConfig
-    //TODO testFileConfiguration
 }
 
 void TestConfigurationModes::testParameterConfiguration()
@@ -151,6 +150,18 @@ void TestConfigurationModes::testFileConfiguration()
     ConfigurationMode* mode = new FileConfiguration("./test/test.config");
     
     TEST_ASSERT_MSG(mode->runConfiguration(), "Reading configuration-file failed!");
+    TEST_ASSERT_EQUALS(true, mode->getLogToFileConfiguration().first);
+    TEST_ASSERT_EQUALS(std::string("somelog.log"), mode->getLogToFileConfiguration().second);
+    std::vector<std::string> procNames;
+    TEST_ASSERT_MSG(mode->getAudioProcessorsConfiguration(procNames), "Profiling-processors not configured");
+    TEST_ASSERT_EQUALS(AudioProcessorFactory::OPUS_CODEC, procNames[0]);
+    TEST_ASSERT_EQUALS(AudioProcessorFactory::WAV_WRITER, procNames[1]);
+    const NetworkConfiguration netConf = mode->getNetworkConfiguration();
+    TEST_ASSERT_EQUALS(std::string("127.0.0.1"), netConf.remoteIPAddress);
+    TEST_ASSERT_EQUALS(54321, netConf.localPort);
+    const AudioConfiguration audioConf = mode->getAudioConfiguration();
+    TEST_ASSERT_EQUALS(44100, audioConf.sampleRate);
+    TEST_ASSERT_EQUALS(2, audioConf.audioFormatFlag);
     
     delete mode;
 }
