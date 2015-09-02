@@ -8,6 +8,9 @@ compiler:
   - clang
 
 before_script:
+  - cmake --version
+  - gcc --version
+  - clang --version
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq > /dev/null
   - sudo apt-get install -qq gcc-4.8 g++-4.8
