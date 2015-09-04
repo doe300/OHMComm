@@ -82,6 +82,11 @@ const std::pair<bool, std::string> ConfigurationMode::getLogToFileConfiguration(
     return std::pair<bool, std::string>(logToFile, logFileName);
 }
 
+const bool ConfigurationMode::isWaitForConfigurationRequest() const
+{
+    return waitForConfigurationRequest;
+}
+
 void ConfigurationMode::updateAudioConfiguration(const AudioConfiguration& audioConfig)
 {
     this->audioConfig = audioConfig;
@@ -155,6 +160,7 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params)
     logToFile = params.isParameterSet(Parameters::LOG_TO_FILE);
     logFileName = params.getParameterValue(Parameters::LOG_TO_FILE);
 
+    waitForConfigurationRequest = params.isParameterSet(Parameters::WAIT_FOR_PASSIVE_CONFIG);
     //we completely configured OHMComm
     isConfigurationDone = true;
 }
@@ -248,6 +254,8 @@ bool InteractiveConfiguration::runConfiguration()
     {
         createDefaultNetworkConfiguration();
     }
+    waitForConfigurationRequest = UserInput::inputBoolean("Enable configuration-requests?", false);
+
     interactivelyConfigureProcessors();
 
     isConfigurationDone = true;
@@ -500,6 +508,11 @@ void LibraryConfiguration::configureLogToFile(const std::string logFileName)
     this->logFileName = logFileName;
 }
 
+void LibraryConfiguration::configureWaitForConfigurationRequest(bool waitForConfig)
+{
+    waitForConfigurationRequest = waitForConfig;
+}
+
 void LibraryConfiguration::configureCustomValue(std::string key, std::string value)
 {
     customConfig[key] = value;
@@ -526,6 +539,7 @@ PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkCo
     this->audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
     this->networkConfig.remoteIPAddress = networkConfig.remoteIPAddress;
     this->profileProcessors = profileProcessors;
+    this->waitForConfigurationRequest = false;
     if(!logFile.empty())
     {
         this->logToFile = true;
@@ -702,100 +716,110 @@ bool FileConfiguration::runConfiguration()
     if(isConfigurationDone)
         return true;
 
-    //read configuration-file
-    std::fstream stream(configFile.data(), std::fstream::in);
-    stream.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
-    std::string line;
-    unsigned int index;
-    std::string key, value;
-    while(true)
+    try
     {
-        line.clear();
-        std::getline(stream, line);
-        if(stream.eof()) break;
-        if(stream.gcount() == 0) continue;
-        if(line[0] == '#') continue;
+        //read configuration-file
+        std::fstream stream(configFile.data(), std::fstream::in);
+        stream.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
+        std::string line;
+        unsigned int index;
+        std::string key, value;
+        while(true)
+        {
+            line.clear();
+            std::getline(stream, line);
+            if(stream.eof()) break;
+            if(stream.gcount() == 0) continue;
+            if(line[0] == '#') continue;
 
-        //read key
-        index = line.find('=');
-        if(index == std::string::npos)
-        {
-            std::cerr << "Invalid configuration line: " << line << std::endl;
-            continue;
+            //read key
+            index = line.find('=');
+            if(index == std::string::npos)
+            {
+                std::cerr << "Invalid configuration line: " << line << std::endl;
+                continue;
+            }
+            key = trim(line.substr(0, index));
+            index++;
+            //read value
+            value = trim(line.substr(index));
+            if(value[0] == '"')
+            {
+                value = value.substr(1, value.size()-2);
+                //unescape escapes
+                replaceAll(value, "\\\"", "\"");
+            }
+            else if(value.compare("true") == 0)
+                value = "1";
+            else if(value.compare("false") == 0)
+                value = "0";
+            //save value
+            if(key.compare(Parameters::AUDIO_PROCESSOR.longName) == 0)
+                processorNames.push_back(trim(value));
+            else
+                customConfig[key] = trim(value);
         }
-        key = trim(line.substr(0, index));
-        index++;
-        //read value
-        value = trim(line.substr(index));
-        if(value[0] == '"')
+        stream.close();
+
+        //interpret config
+        if(customConfig.find(Parameters::AUDIO_HANDLER.longName) != customConfig.end())
         {
-            value = value.substr(1, value.size()-2);
-            //unescape escapes
-            replaceAll(value, "\\\"", "\"");
+            audioHandlerName = trim(customConfig.at(Parameters::AUDIO_HANDLER.longName));
         }
-        else if(value.compare("true") == 0)
-            value = "1";
-        else if(value.compare("false") == 0)
-            value = "0";
-        //save value
-        if(key.compare(Parameters::AUDIO_PROCESSOR.longName) == 0)
-            processorNames.push_back(trim(value));
         else
-            customConfig[key] = trim(value);
-    }
-    stream.close();
+        {
+            audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
+        }
+        //audio-configuration
+        if(customConfig.find(Parameters::INPUT_DEVICE.longName) != customConfig.end())
+        {
+            useDefaultAudioConfig = false;
+            audioConfig.inputDeviceID = atoi(customConfig.at(Parameters::INPUT_DEVICE.longName).data());
+        }
+        if(customConfig.find(Parameters::OUTPUT_DEVICE.longName) != customConfig.end())
+        {
+            useDefaultAudioConfig = false;
+            audioConfig.outputDeviceID = atoi(customConfig.at(Parameters::OUTPUT_DEVICE.longName).data());
+        }
+        if(customConfig.find(Parameters::FORCE_AUDIO_FORMAT.longName) != customConfig.end())
+        {
+            useDefaultAudioConfig = false;
+            audioConfig.forceAudioFormatFlag = atoi(customConfig.at(Parameters::FORCE_AUDIO_FORMAT.longName).data());
+        }
+        if(customConfig.find(Parameters::FORCE_SAMPLE_RATE.longName) != customConfig.end())
+        {
+            useDefaultAudioConfig = false;
+            audioConfig.forceSampleRate = atoi(customConfig.at(Parameters::FORCE_SAMPLE_RATE.longName).data());
+        }
+        audioConfig.inputDeviceChannels = 2;
+        audioConfig.outputDeviceChannels = 2;
 
-    //interpret config
-    if(customConfig.find(Parameters::AUDIO_HANDLER.longName) != customConfig.end())
-    {
-        audioHandlerName = trim(customConfig.at(Parameters::AUDIO_HANDLER.longName));
+        //network-configuration
+        networkConfig.remoteIPAddress = customConfig.at(Parameters::REMOTE_ADDRESS.longName);
+        if(customConfig.find(Parameters::REMOTE_PORT.longName) != customConfig.end())
+            networkConfig.remotePort = atoi(customConfig.at(Parameters::REMOTE_PORT.longName).data());
+        else
+            networkConfig.remotePort = DEFAULT_NETWORK_PORT;
+        if(customConfig.find(Parameters::LOCAL_PORT.longName) != customConfig.end())
+            networkConfig.localPort = atoi(customConfig.at(Parameters::LOCAL_PORT.longName).data());
+        else
+            networkConfig.localPort = DEFAULT_NETWORK_PORT;
+        //audio-processors are read above
+        profileProcessors = customConfig.find(Parameters::PROFILE_PROCESSORS.longName) != customConfig.end();
+        if(customConfig.find(Parameters::LOG_TO_FILE.longName) != customConfig.end())
+        {
+            logToFile = true;
+            logFileName = customConfig.at(Parameters::LOG_TO_FILE.longName);
+        }
+        waitForConfigurationRequest = customConfig.find(Parameters::WAIT_FOR_PASSIVE_CONFIG.longName) != customConfig.end();
     }
-    else
+    catch(std::ios_base::failure f)
     {
-        audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
+        std::cerr << "Failed to read configuration-file!" << std::endl;
+        std::cerr << f.what() << std::endl;
+        return false;
     }
-    //audio-configuration
-    if(customConfig.find(Parameters::INPUT_DEVICE.longName) != customConfig.end())
-    {
-        useDefaultAudioConfig = false;
-        audioConfig.inputDeviceID = atoi(customConfig.at(Parameters::INPUT_DEVICE.longName).data());
-    }
-    if(customConfig.find(Parameters::OUTPUT_DEVICE.longName) != customConfig.end())
-    {
-        useDefaultAudioConfig = false;
-        audioConfig.outputDeviceID = atoi(customConfig.at(Parameters::OUTPUT_DEVICE.longName).data());
-    }
-    if(customConfig.find(Parameters::FORCE_AUDIO_FORMAT.longName) != customConfig.end())
-    {
-        useDefaultAudioConfig = false;
-        audioConfig.forceAudioFormatFlag = atoi(customConfig.at(Parameters::FORCE_AUDIO_FORMAT.longName).data());
-    }
-    if(customConfig.find(Parameters::FORCE_SAMPLE_RATE.longName) != customConfig.end())
-    {
-        useDefaultAudioConfig = false;
-        audioConfig.forceSampleRate = atoi(customConfig.at(Parameters::FORCE_SAMPLE_RATE.longName).data());
-    }
-    audioConfig.inputDeviceChannels = 2;
-    audioConfig.outputDeviceChannels = 2;
-
-    //network-configuration
-    networkConfig.remoteIPAddress = customConfig.at(Parameters::REMOTE_ADDRESS.longName);
-    if(customConfig.find(Parameters::REMOTE_PORT.longName) != customConfig.end())
-        networkConfig.remotePort = atoi(customConfig.at(Parameters::REMOTE_PORT.longName).data());
-    else
-        networkConfig.remotePort = DEFAULT_NETWORK_PORT;
-    if(customConfig.find(Parameters::LOCAL_PORT.longName) != customConfig.end())
-        networkConfig.localPort = atoi(customConfig.at(Parameters::LOCAL_PORT.longName).data());
-    else
-        networkConfig.localPort = DEFAULT_NETWORK_PORT;
-    //audio-processors are read above
-    profileProcessors = customConfig.find(Parameters::PROFILE_PROCESSORS.longName) != customConfig.end();
-    if(customConfig.find(Parameters::LOG_TO_FILE.longName) != customConfig.end())
-    {
-        logToFile = true;
-        logFileName = customConfig.at(Parameters::LOG_TO_FILE.longName);
-    }
-
+            
     isConfigurationDone = true;
     return true;
 }

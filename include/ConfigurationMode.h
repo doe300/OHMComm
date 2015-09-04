@@ -65,6 +65,11 @@ public:
      * \return a pair containing (first) a flag whether to write a log to file and (second) the file-name for the log-file
      */
     const std::pair<bool, std::string> getLogToFileConfiguration() const;
+    
+    /*!
+     * \return whether the program will wait on startup for the communication partner to request a passive configuration before starting audio-playback
+     */
+    const bool isWaitForConfigurationRequest() const;
 
     /*!
      * Configuration-mode specific method to retrieve a value for the given key
@@ -108,6 +113,7 @@ protected:
 
     void createDefaultNetworkConfiguration();
 
+    bool waitForConfigurationRequest = false;
     bool isConfigurationDone = false;
     bool useDefaultAudioConfig = true;
     std::string audioHandlerName;
@@ -211,6 +217,13 @@ public:
      *
      */
     void configureLogToFile(const std::string logFileName);
+    
+    /*!
+     * (Optional) Configures whether this instance will wait for a passive configuration-request
+     * 
+     * \param waitForConfig Whether to wait for passive configuration-request
+     */
+    void configureWaitForConfigurationRequest(bool waitForConfig);
 
     void configureCustomValue(std::string key, std::string value);
     void configureCustomValue(std::string key, int value);

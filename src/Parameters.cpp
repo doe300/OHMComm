@@ -11,6 +11,8 @@
 
 const Parameter Parameters::HELP(ParameterCategory::GENERAL, 'h', "help", "Print this help page and exit");
 const Parameter Parameters::PASSIVE_CONFIGURATION(ParameterCategory::GENERAL, 'P', "passive", "Enables passive configuration. The communication partner will decide the audio-configuration");
+const Parameter Parameters::WAIT_FOR_PASSIVE_CONFIG(ParameterCategory::GENERAL, 'W', "wait-for-passive", "Enables waiting for the remote to request passive-configuration. This flag must be set for passive configuration to work");
+const Parameter Parameters::CONFIGURATION_FILE(ParameterCategory::GENERAL, 'c', "configuration-file", "Enables the file-based configuration-mode. All configuration-values will be read from the file specified", "");
 const Parameter Parameters::LOG_TO_FILE(ParameterCategory::GENERAL, 'f', "log-file", "Log statistics and profiling-information to file.", "OHMComm.log");
 const Parameter Parameters::AUDIO_HANDLER(ParameterCategory::AUDIO, 'H', "audio-handler", "Use this specific audio-handler. Defaults to the program-default audio-handler", "");
 const Parameter Parameters::INPUT_DEVICE(ParameterCategory::AUDIO, 'i', "input-device-id", "The id of the device used for audio-input. This value will fall back to the library-default", "");
@@ -25,7 +27,7 @@ const Parameter Parameters::PROFILE_PROCESSORS(ParameterCategory::PROCESSORS, 't
 
 std::vector<const Parameter*> Parameters::availableParameters = {
     //General
-    &HELP, &LOG_TO_FILE, &PASSIVE_CONFIGURATION,
+    &HELP, &LOG_TO_FILE, &PASSIVE_CONFIGURATION, &WAIT_FOR_PASSIVE_CONFIG, &CONFIGURATION_FILE,
     //Audio-config
     &AUDIO_HANDLER, &INPUT_DEVICE, &OUTPUT_DEVICE, &FORCE_AUDIO_FORMAT, &FORCE_SAMPLE_RATE,
     //Network-config
@@ -76,6 +78,7 @@ Parameters::Parameters(const std::vector<std::string> availableHandlerNames, con
 
 bool Parameters::parseParameters(int argc, char* argv[])
 {
+    //TODO make required-parameters not required, if other configuration-mode is set (or make them completely optional??)
     //argv[0] is the name of the program
     if(argc <= 1)
     {

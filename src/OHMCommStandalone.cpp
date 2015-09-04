@@ -6,6 +6,7 @@ int main(int argc, char* argv[])
     ////
     // Configuration
     ////
+    //TODO if called with single parameter -> use as configuration-file
 
     OHMComm* ohmComm;
     Parameters params(AudioHandlerFactory::getAudioHandlerNames(), AudioProcessorFactory::getAudioProcessorNames());
@@ -18,6 +19,11 @@ int main(int argc, char* argv[])
             networkConfig.remotePort = atoi(params.getParameterValue(Parameters::REMOTE_PORT).data());
             networkConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
             ohmComm = new OHMComm(new PassiveConfiguration(networkConfig));
+        }
+        else if(params.isParameterSet(Parameters::CONFIGURATION_FILE))
+        {
+            const std::string configFile = params.getParameterValue(Parameters::CONFIGURATION_FILE);
+            ohmComm = new OHMComm(new FileConfiguration(configFile));
         }
         else
         {
