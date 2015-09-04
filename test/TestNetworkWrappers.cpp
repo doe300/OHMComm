@@ -2,7 +2,8 @@
 
 TestNetworkWrappers::TestNetworkWrappers() : bufferSize(511), sendBuffer(new char[bufferSize]), receiveBuffer(new char[bufferSize])
 {
-    TEST_ADD(TestNetworkWrappers::testUDPWrapper);
+    TEST_ADD(TestNetworkWrappers::testUDPWrapperIPv4);
+    TEST_ADD(TestNetworkWrappers::testUDPWrapperIPv6);
 }
 
 TestNetworkWrappers::~TestNetworkWrappers()
@@ -11,9 +12,20 @@ TestNetworkWrappers::~TestNetworkWrappers()
     delete[] receiveBuffer;
 }
 
-void TestNetworkWrappers::testUDPWrapper()
+void TestNetworkWrappers::testUDPWrapperIPv4()
 {
     UDPWrapper wrapper(DEFAULT_NETWORK_PORT, "127.0.0.1", DEFAULT_NETWORK_PORT);
+    testUDPWrapper(wrapper);
+}
+
+void TestNetworkWrappers::testUDPWrapperIPv6()
+{
+    UDPWrapper wrapper(DEFAULT_NETWORK_PORT, "::1", DEFAULT_NETWORK_PORT);
+    testUDPWrapper(wrapper);
+}
+
+void TestNetworkWrappers::testUDPWrapper(UDPWrapper& wrapper)
+{
     const char* text = "This is a test, Lorem ipsum! We fill this buffer with some random stuff ..... And send a arbitrary amount of bytes and compare them to this original string...";
     strncpy(sendBuffer, text, 150);
 

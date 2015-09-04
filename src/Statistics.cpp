@@ -186,7 +186,7 @@ void Statistics::printStatistics(std::ostream& outputStream)
             << "% compression)" << std::endl;
     outputStream << "Decompressed " << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_OUTPUT]) << " of audio-data out of "
             << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECEIVED]) << " ("
-            << prettifyPercentage((counters[COUNTER_PAYLOAD_BYTES_OUTPUT] / (double) counters[COUNTER_PAYLOAD_BYTES_RECEIVED]))
+            << prettifyPercentage(1.0 - (counters[COUNTER_PAYLOAD_BYTES_RECEIVED] / (double) counters[COUNTER_PAYLOAD_BYTES_OUTPUT]))
             << "% decompression)" << std::endl;
 
     // AudioProcessor statistics

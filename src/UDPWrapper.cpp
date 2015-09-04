@@ -76,18 +76,16 @@ void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
 
 void UDPWrapper::createSocket()
 {
-    unsigned int addressLength;
+    unsigned int addressLength = getSocketAddressLength();
     // AF_INET - creating an IPv4 based socket
     // AF_INET6 - creating an IPv6 based socket
     if(isIPv6)
     {
         this->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-        addressLength = sizeof(sockaddr_in6);
     }
     else
     {
         this->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-        addressLength = sizeof(sockaddr_in);
     }
     if (Socket == INVALID_SOCKET)
     {
@@ -98,9 +96,9 @@ void UDPWrapper::createSocket()
     {
         std::cout << "Socket created." << std::endl;
     }
-
+    
     //FIXME bind doesn't work yet for IPv6 -- EADDRNOTAVAIL
-    if (bind(Socket, &(this->localAddress), addressLength) == SOCKET_ERROR)
+    if (bind(Socket, (sockaddr*)&(this->localAddress), addressLength) == SOCKET_ERROR)
     {
         std::wcerr << "Error binding the socket: " << getLastError() << std::endl;
         return;
@@ -122,7 +120,7 @@ int UDPWrapper::sendData(void *buffer, unsigned int bufferSize)
 		return bufferSize;
 
 	#endif
-    return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, &(this->remoteAddress), sizeof(remoteAddress));
+    return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->remoteAddress), getSocketAddressLength());
 
 }
 
@@ -131,9 +129,9 @@ int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
     #ifdef _WIN32
     int localAddrLen = sizeof(localAddress);
     #else
-    unsigned int localAddrLen = sizeof(localAddress);
+    unsigned int localAddrLen = getSocketAddressLength();
     #endif
-    int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, &(this->localAddress), &localAddrLen);
+    int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->localAddress), &localAddrLen);
     if (result == -1)
         std::wcerr << this->getLastError();
     return result;
@@ -165,4 +163,13 @@ void UDPWrapper::closeNetwork()
     close(Socket);
     #endif
     Socket = INVALID_SOCKET;
+}
+
+const int UDPWrapper::getSocketAddressLength()
+{
+    if(isIPv6)
+    {
+        return sizeof(sockaddr_in6);
+    }
+    return sizeof(sockaddr_in);
 }
