@@ -244,14 +244,10 @@ class PassiveConfiguration : public ConfigurationMode
 public:
 
     /*! The size of a configuration-message (without the vector) in bytes */
-    static const uint8_t CONFIGURATION_MESSAGE_SIZE{16};
+    static const uint8_t CONFIGURATION_MESSAGE_SIZE{12};
 
     struct ConfigurationMessage
     {
-        //data-port for the passive client (the requesting client)
-        unsigned short passiveDataPort;     // 2 bytes
-        //data-port for the responding client
-        unsigned short dataPort;            // 2 bytes
         unsigned int sampleRate;            // 4 bytes
         unsigned int audioFormat;           // 4 bytes
         unsigned short bufferFrames;        // 2 bytes
@@ -259,7 +255,7 @@ public:
         unsigned int numProcessorNames : 8; // 1 bytes
         std::vector<std::string> processorNames;
         
-        ConfigurationMessage() : passiveDataPort(0), dataPort(0), sampleRate(0), audioFormat(0), bufferFrames(0), nChannels(0), numProcessorNames(0), processorNames({})
+        ConfigurationMessage() : sampleRate(0), audioFormat(0), bufferFrames(0), nChannels(0), numProcessorNames(0), processorNames({})
         {
             
         }
@@ -275,9 +271,6 @@ public:
     static const ConfigurationMessage readConfigurationMessage(void* buffer, unsigned int bufferSize);
 
     static unsigned int writeConfigurationMessage(void* buffer, unsigned int maxBufferSize, ConfigurationMessage& configMessage);
-    
-private:
-    const NetworkConfiguration remoteConfigurationConfig;
 };
 
 /*!

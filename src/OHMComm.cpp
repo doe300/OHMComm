@@ -14,6 +14,7 @@
 #include "RtAudio.h"
 #include "ConfigurationMode.h"
 #include "RTPBufferAlternative.h"
+#include "PassiveConfigurationHandler.h"
 
 OHMComm::OHMComm(ConfigurationMode* mode)
     : rtpBuffer(new RTPBuffer(256, 100, 0)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
@@ -94,14 +95,19 @@ void OHMComm::startAudioThreads()
     {
         throw std::runtime_error("Failed to configure audio-handler!");
     }
+    //write configuration back to ConfigurationMode
+    configurationMode->updateAudioConfiguration(audioHandler->getAudioConfiguration());
+    
+    if(configurationMode->isWaitForConfigurationRequest())
+    {
+        PassiveConfigurationHandler handler(networkWrapper, configurationMode);
+        handler.waitForConfigurationRequest();
+    }
+    
     listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize(), createStopCallback()));
-
     listener->startUp();
     audioHandler->startDuplexMode();
     
-    //write configuration back to ConfigurationMode
-    configurationMode->updateAudioConfiguration(audioHandler->getAudioConfiguration());
-
     std::cout << "OHMComm started!" << std::endl;
     running = true;
 }

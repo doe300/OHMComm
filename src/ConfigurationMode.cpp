@@ -533,11 +533,11 @@ void LibraryConfiguration::configureCustomValue(std::string key, bool value)
 ////
 
 PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors, std::string logFile) :
-        ConfigurationMode(), remoteConfigurationConfig(networkConfig)
+        ConfigurationMode()
 {
     this->useDefaultAudioConfig = false;
     this->audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
-    this->networkConfig.remoteIPAddress = networkConfig.remoteIPAddress;
+    this->networkConfig = networkConfig;
     this->profileProcessors = profileProcessors;
     this->waitForConfigurationRequest = false;
     if(!logFile.empty())
@@ -556,7 +556,6 @@ bool PassiveConfiguration::runConfiguration()
     {
         return true;
     }
-    //TODO own class for this stuff
     UDPWrapper wrapper(networkConfig);
 
     RTCPPackageHandler handler;
@@ -584,8 +583,6 @@ bool PassiveConfiguration::runConfiguration()
         //we didn't receive anything. Don't know if this can actually occur
         return false;
     }
-    //FIXME reception does not work, because this method will also receive a lot of RTP packages
-    //-> need extra port (extract whole configuration-handling to extra class -> need second port for passive side or send port and passive side reconnects?)
     RTCPHeader responseHeader = handler.readRTCPHeader(buffer, receivedSize);
     if(responseHeader.packageType != RTCP_PACKAGE_APPLICATION_DEFINED)
     {
@@ -602,12 +599,6 @@ bool PassiveConfiguration::runConfiguration()
     ConfigurationMessage receivedMessage = PassiveConfiguration::readConfigurationMessage(configResponse.data, configResponse.dataLength);
 
     std::cout << "Passive Configuration received ... " << std::endl;
-
-    //TODO or send local port to remote host with request? (would be safer)
-    std::cout << "Received local port: " << receivedMessage.passiveDataPort << std::endl;
-    networkConfig.localPort = receivedMessage.passiveDataPort;
-    std::cout << "Received remote-port: " << receivedMessage.dataPort << std::endl;
-    networkConfig.remotePort = receivedMessage.dataPort;
     
     //TODO force buffer frames? Should be distinct from combination of sample-rate and audio-processors
     std::cout << "Received audio-format: " << AudioConfiguration::getAudioFormatDescription(receivedMessage.audioFormat, false) << std::endl;;
@@ -617,14 +608,14 @@ bool PassiveConfiguration::runConfiguration()
     std::cout << "Received channels: " << receivedMessage.nChannels << std::endl;
     audioConfig.inputDeviceChannels = receivedMessage.nChannels;
     audioConfig.outputDeviceChannels = receivedMessage.nChannels;
-    std::cout << "\tReceived audio-processors: ";
+    std::cout << "Received audio-processors: ";
+    processorNames.reserve(receivedMessage.processorNames.size());
     for(std::string& procName : receivedMessage.processorNames)
     {
         std::cout << procName << ' ';
+        processorNames.push_back(procName);
     }
     std::cout << std::endl;
-    processorNames.reserve(receivedMessage.processorNames.size());
-    std::copy(receivedMessage.processorNames.begin(), receivedMessage.processorNames.end(), processorNames.begin());
 
     this->isConfigurationDone = true;
     return true;
@@ -647,9 +638,13 @@ const bool PassiveConfiguration::getCustomConfiguration(const std::string key, c
 
 const PassiveConfiguration::ConfigurationMessage PassiveConfiguration::readConfigurationMessage(void* buffer, unsigned int bufferSize)
 {
-    ConfigurationMessage message = *((ConfigurationMessage*)buffer);
+    ConfigurationMessage message;
+    message.audioFormat = ((ConfigurationMessage*)buffer)->audioFormat;
+    message.bufferFrames = ((ConfigurationMessage*)buffer)->bufferFrames;
+    message.nChannels = ((ConfigurationMessage*)buffer)->nChannels;
+    message.numProcessorNames = ((ConfigurationMessage*)buffer)->numProcessorNames;
+    message.sampleRate = ((ConfigurationMessage*)buffer)->sampleRate;
     //we filled the vector with trash, so we initialize a new one
-    message.processorNames = {};
     message.processorNames.reserve(message.numProcessorNames);
     //get the pointer to the first processor-name
     char* procNamePtr = (char*)buffer + CONFIGURATION_MESSAGE_SIZE;

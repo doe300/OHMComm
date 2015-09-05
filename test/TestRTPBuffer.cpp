@@ -19,7 +19,7 @@ TestRTPBuffer::~TestRTPBuffer()
 void TestRTPBuffer::testMinBufferPackages()
 {
     //fill with less packages than minBufferSize
-    for(unsigned int i = 0; i < minBufferPackages-1; i++)
+    for(int i = 0; i < minBufferPackages-1; i++)
     {
         void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
         //copies the new-buffer into the work-buffer
