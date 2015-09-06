@@ -19,14 +19,14 @@
 class PassiveConfigurationHandler
 {
 public:
-    PassiveConfigurationHandler(std::shared_ptr<NetworkWrapper> networkWrapper, const ConfigurationMode* configMode);
+    PassiveConfigurationHandler(std::shared_ptr<NetworkWrapper> networkWrapper, const std::shared_ptr<ConfigurationMode> configMode);
     
     ~PassiveConfigurationHandler();
     
     void waitForConfigurationRequest();
 private:
     std::thread listenerThread;
-    const ConfigurationMode* configMode;
+    const std::shared_ptr<ConfigurationMode> configMode;
     std::shared_ptr<NetworkWrapper> networkWrapper;
     
     void runThread();

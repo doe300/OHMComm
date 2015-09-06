@@ -27,10 +27,10 @@ OHMComm::~OHMComm()
     listener.reset(nullptr);
     networkWrapper.reset();
     rtpBuffer.reset();
-    delete configurationMode;
+    configurationMode.reset();
 }
 
-ConfigurationMode* OHMComm::getConfigurationMode() const
+std::shared_ptr<ConfigurationMode> OHMComm::getConfigurationMode() const
 {
     return configurationMode;
 }

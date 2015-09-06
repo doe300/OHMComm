@@ -10,7 +10,7 @@
 #include "RTCPPackageHandler.h"
 #include "UDPWrapper.h"
 
-PassiveConfigurationHandler::PassiveConfigurationHandler(std::shared_ptr<NetworkWrapper> networkWrapper,const ConfigurationMode* config) : 
+PassiveConfigurationHandler::PassiveConfigurationHandler(std::shared_ptr<NetworkWrapper> networkWrapper,const std::shared_ptr<ConfigurationMode> config) : 
     configMode(config), networkWrapper(networkWrapper)
 {
     listenerThread = std::thread(&PassiveConfigurationHandler::runThread, this);

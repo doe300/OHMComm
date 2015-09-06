@@ -52,7 +52,7 @@ public:
     /*!
      * \return The configuration mode of this OHMComm object
      */
-    ConfigurationMode* getConfigurationMode() const;
+    std::shared_ptr<ConfigurationMode> getConfigurationMode() const;
 
     /*!
      * Once this OHMComm-object has been started, all calls to any configuration will not change any configuration-values
@@ -87,7 +87,7 @@ private:
 
     std::shared_ptr<RTPBufferHandler> rtpBuffer;
     /*! Overall mode of configuration */
-    ConfigurationMode* configurationMode;
+    std::shared_ptr<ConfigurationMode> configurationMode;
     /*! Flag, whether this object can be configured */
     bool configurationActive = true;
     /*! Flag, whether this OHMComm is currently being executed */
