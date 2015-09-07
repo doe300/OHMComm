@@ -5,6 +5,8 @@
 #include "TestConfigurationModes.h"
 #include "TestNetworkWrappers.h"
 #include "TestRTPBuffer.h"
+#include <iostream>
+#include <fstream>
 
 TestAudioIO::TestAudioIO() {
 	TEST_ADD(TestAudioIO::testAudioHandlerInstances);
@@ -42,7 +44,10 @@ void TestAudioIO::testAudioProcessorInterface()
 
 int main(int argc, char** argv)
 {
-    Test::TextOutput output(Test::TextOutput::Verbose);
+	std::ofstream file;
+	file.open("testResult.log", std::ios_base::out | std::ios_base::trunc);
+
+	Test::TextOutput output(Test::TextOutput::Verbose, file);
     TestAudioIO testaudio;
     testaudio.run(output);
 
