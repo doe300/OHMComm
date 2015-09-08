@@ -181,9 +181,11 @@ private:
 	bool copyNextPackageIntoPackage(RTPPackageHandler &package);
 	void copySilencePackageIntoPackage(RTPPackageHandler &package);
 	void incrementReadPos();
+	void setCurrentReadPos();
 	void lockMutex();
 	void unlockMutex();
 
+	bool isCurrentReadPosSet = false;
 	uint16_t currentReadPos = 0;
 	uint16_t lastReadSeqNr = 0;
 	uint16_t amountOfUnderflowsInRow = 0;
@@ -198,53 +200,6 @@ private:
 	uint16_t maxDelay;
 	uint16_t minBufferPackages;
 	uint16_t log;
-};
-
-/*!
- * This is a helper class to determine the current and highest sequence number in the buffer
- * It considers when the sequence number starts at zero again or when packages (sequence numbers) gets lost on transmitting
- *
- */
-class RTPBufferManagement
-{
-public:
-	void addSeqNr(unsigned int sequenceNumber)
-	{
-		lastReceivedSequenceNumbers[currentPos] = sequenceNumber;
-		sortedSequenceNumbers[currentPos] = sequenceNumber;
-		currentPos++;
-		if (currentPos >= COUNT_OF_RTP_SEQ_NR)
-			currentPos = 0;
-	}
-
-	void sortSeqNr()
-	{
-		//Now we call the sort function
-		std::sort(sortedSequenceNumbers, sortedSequenceNumbers + COUNT_OF_RTP_SEQ_NR);
-	}
-
-	void calcDistances()
-	{
-		for (size_t i = 0; i < COUNT_OF_RTP_SEQ_NR-1; i++)
-			distancesBetweenSeqNrs[i] = sortedSequenceNumbers[i + 1] - sortedSequenceNumbers[i];
-	}
-
-	unsigned int findHighestValidSeqNr()
-	{
-		sortSeqNr();
-		calcDistances();
-		for (size_t i = 0; i < COUNT_OF_RTP_SEQ_NR - 1; i++)
-		{
-			if (distancesBetweenSeqNrs[i] >= 2000) // TODO: Another magic number
-				return sortedSequenceNumbers[i];
-		}
-		return sortedSequenceNumbers[COUNT_OF_RTP_SEQ_NR - 2];
-	}
-private:
-	unsigned int lastReceivedSequenceNumbers[COUNT_OF_RTP_SEQ_NR];
-	unsigned int sortedSequenceNumbers[COUNT_OF_RTP_SEQ_NR];
-	unsigned int distancesBetweenSeqNrs[COUNT_OF_RTP_SEQ_NR-1];
-	unsigned int currentPos = 0;
 };
 
 #endif

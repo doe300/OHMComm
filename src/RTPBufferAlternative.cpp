@@ -5,7 +5,7 @@ maxCapacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackage
 {
 	log = log2(maxCapacity);
 	if (isPowerOfTwo(maxCapacity) == 0)
-		throw "macCapacity must be a of power of two"; // TODO throw a real exception
+		throw "macCapacity must be a of power of two"; // TODO throw a OHMComm-Exception-Object
 
 	#ifdef _WIN32
 		bufferMutex = CreateMutex(nullptr, false, L"BufferMutex");
@@ -32,6 +32,7 @@ RTPBufferStatus RTPBufferAlternative::addPackage(RTPPackageHandler &package, uns
 		initializeRingBuffer(package.getMaximumPayloadSize(), package.getRTPHeaderSize());
 		currentReadPos = packetPositionRingBuffer;
 		lastReadSeqNr = 0;
+		amountOfPackages = 0;
 	}
 
 	// add packages to the buffer, which are not older than the current sequence number
@@ -44,7 +45,9 @@ RTPBufferStatus RTPBufferAlternative::addPackage(RTPPackageHandler &package, uns
 
 	// Add the packet to the ringBuffer
 	lockMutex();
-	ringBuffer[packetPositionRingBuffer]->addPacket(package.getRTPPackageHeader(), package.getRTPPackageData());
+	auto headerBuffer = package.getRTPPackageHeader();
+	auto rtpPackageDataBuffer = package.getRTPPackageData();
+	ringBuffer[packetPositionRingBuffer]->addPacket(headerBuffer, rtpPackageDataBuffer);
 	unlockMutex();
 
 	// Overflow-Detection (check if the addPacket()-function did set the overflow flag)
@@ -73,6 +76,10 @@ RTPBufferStatus RTPBufferAlternative::readPackage(RTPPackageHandler &package)
 	// Copy audio data from next package into the playbackBuffer of &package
 	// return value indicates a underflow status (no new data/package has been read)
 	bool underflow;
+
+	if (isCurrentReadPosSet == false)
+		setCurrentReadPos();
+
 	if (amountOfUnderflowsInRow >= 20) // TODO magic number
 	{
 		underflow = copyNextPossiblePackageIntoPackage(package);
@@ -85,6 +92,7 @@ RTPBufferStatus RTPBufferAlternative::readPackage(RTPPackageHandler &package)
 
 	if (underflow)
 	{
+		lastReadSeqNr++;
 		copySilencePackageIntoPackage(package);
 		amountOfUnderflowsInRow++;
 		return RTP_BUFFER_OUTPUT_UNDERFLOW;
@@ -93,8 +101,12 @@ RTPBufferStatus RTPBufferAlternative::readPackage(RTPPackageHandler &package)
 	// If there was no underflow, then data has been read from the buffer -> decrement currentPackagesCount
 	if (amountOfPackages > 0)
 		amountOfPackages--;
-	else
+	if (amountOfPackages == 0) 
+	{
 		bufferContainsPackages = false;
+		isCurrentReadPosSet = false;
+	}
+		
 
 	amountOfUnderflowsInRow = 0;
 	return RTP_BUFFER_ALL_OKAY;
@@ -108,10 +120,14 @@ unsigned int RTPBufferAlternative::getSize() const
 void RTPBufferAlternative::copySilencePackageIntoPackage(RTPPackageHandler &package)
 {
 	char* packageBuffer = (char*)package.getWorkBuffer();
+	RTPHeader *currentHeaderData = package.getRTPPackageHeader();
+	currentHeaderData->sequence_number = lastReadSeqNr;
 	unsigned int rtpHeaderSize = package.getRTPHeaderSize();
 	unsigned int payloadSize = package.getMaximumPayloadSize();
-	// Write zeros into the buffer (silence package)
-	memset(packageBuffer + rtpHeaderSize, 0, payloadSize);
+
+	// Copy data from buffer into package
+	memcpy((char*)packageBuffer, currentHeaderData, rtpHeaderSize);
+	memset((char*)packageBuffer + rtpHeaderSize, 0, payloadSize);
 }
 
 bool RTPBufferAlternative::copyNextPackageIntoPackage(RTPPackageHandler &package)
@@ -121,6 +137,9 @@ bool RTPBufferAlternative::copyNextPackageIntoPackage(RTPPackageHandler &package
 	incrementReadPos();
 	// Get the audioData from that selected package
 	void *currentDataInBuffer = currentReadPackage->getPacketContent();
+	// Get the header data from that selected package
+	RTPHeader* currentHeaderData = currentReadPackage->getHeader();
+
 	// Check if a underflow was detected (Package has already been read )
 	bool underflow = currentReadPackage->underflow();
 	// If underflow was detected -> abort
@@ -130,10 +149,12 @@ bool RTPBufferAlternative::copyNextPackageIntoPackage(RTPPackageHandler &package
 	// Copy data from buffer into package
 	void* packageBuffer = package.getWorkBuffer();
 	int rtpHeaderSize = package.getRTPHeaderSize();
-	memcpy((char*)packageBuffer + rtpHeaderSize, currentDataInBuffer, currentReadPackage->getPacketContentSize());
+	int payloadSize = package.getMaximumPayloadSize();
+	memcpy((char*)packageBuffer, currentHeaderData, rtpHeaderSize);
+	memcpy((char*)packageBuffer + rtpHeaderSize, currentDataInBuffer, payloadSize);
 
 	// set last read sequence number
-	lastReadSeqNr = currentReadPackage->getHeader()->sequence_number;
+	lastReadSeqNr = currentHeaderData->sequence_number;
 	return underflow;
 }
 
@@ -147,7 +168,6 @@ bool RTPBufferAlternative::copyNextPossiblePackageIntoPackage(RTPPackageHandler 
 	for (int i = 0; i < this->maxCapacity; i++)
 	{
 		lastReadSeqNr++;
-
 		tmpPackage = ringBuffer[currentReadPos];
 		incrementReadPos();
 
@@ -159,10 +179,12 @@ bool RTPBufferAlternative::copyNextPossiblePackageIntoPackage(RTPPackageHandler 
 		if (underflow == false)
 		{
 			lastReadSeqNr = tmpPackage->getHeader()->sequence_number;
+			copyNextPackageIntoPackage(package);
 			break;
 		}
 	}
-	// When we reach this codeline there are two cases:
+
+	// When we reach here there are two cases:
 	// underflow = true: This means we ran through the buffer once and I could not find a unread package
 	// underflow = false: We have found a unread package
 
@@ -171,9 +193,25 @@ bool RTPBufferAlternative::copyNextPossiblePackageIntoPackage(RTPPackageHandler 
 		amountOfPackages = 0;
 		lastReadSeqNr = 0;
 		bufferContainsPackages = false;
+		isCurrentReadPosSet = false;
 	}
 
 	return underflow;
+}
+
+void RTPBufferAlternative::setCurrentReadPos() 
+{
+	unsigned int smallestSeq = UINT_MAX;
+	for (size_t i = 0; i < maxCapacity; i++)
+	{
+		int seqNr = ringBuffer[i]->getHeader()->sequence_number;
+		if (seqNr < smallestSeq)
+		{
+			smallestSeq = seqNr;
+			currentReadPos = i;
+		}
+	}
+	isCurrentReadPosSet = true;
 }
 
 // Initialize the whole buffer
