@@ -715,7 +715,8 @@ bool FileConfiguration::runConfiguration()
     {
         //read configuration-file
         std::fstream stream(configFile.data(), std::fstream::in);
-        stream.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
+        //XXX somehow an error with error-code SUCCESS is thrown
+        //stream.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
         std::string line;
         unsigned int index;
         std::string key, value;
@@ -811,6 +812,7 @@ bool FileConfiguration::runConfiguration()
     catch(std::ios_base::failure f)
     {
         std::cerr << "Failed to read configuration-file!" << std::endl;
+        std::cerr << strerror(errno) << std::endl;
         std::cerr << f.what() << std::endl;
         return false;
     }

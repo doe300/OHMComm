@@ -1,7 +1,7 @@
 #include "TestRTPBuffer.h"
 
 TestRTPBuffer::TestRTPBuffer() : payloadSize(511), maxCapacity(128), maxDelay(100), minBufferPackages(20),
-    handler(new RTPBufferAlternative(maxCapacity, maxDelay, minBufferPackages)), package(payloadSize)
+    handler(new RTPBuffer(maxCapacity, maxDelay, minBufferPackages)), package(payloadSize)
 {
     TEST_ADD(TestRTPBuffer::testMinBufferPackages);
     TEST_ADD(TestRTPBuffer::testWriteFullBuffer);
@@ -24,42 +24,37 @@ void TestRTPBuffer::testMinBufferPackages()
         void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
         //copies the new-buffer into the work-buffer
         package.getRTPPackageHeader(buf);
-		auto result = handler->addPackage(package, 10);
-		std::cout << i << "Add " << package.getRTPPackageHeader()->sequence_number << std::endl;
+        RTPBufferStatus result = handler->addPackage(package, 10);
         TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, result);
     }
     //now we have to read a silent-package
-	auto result = handler->readPackage(package);
-	std::cout << "Read " << package.getRTPPackageHeader()->sequence_number << std::endl;
-	switch (result) 
-	{
-		case(RTP_BUFFER_OUTPUT_UNDERFLOW) : break;
-		case(RTP_BUFFER_IS_PUFFERING) : break;
-		case(RTP_BUFFER_ALL_OKAY): TEST_FAIL("Unexpected return value (RTP_BUFFER_ALL_OKAY) from buffer->readPackage().\n");
-		default: TEST_FAIL("Unexpected return value from buffer->readPackage().\n");
-	}
+    RTPBufferStatus result = handler->readPackage(package);
+    switch (result) 
+    {
+        case(RTP_BUFFER_OUTPUT_UNDERFLOW) : break;
+        case(RTP_BUFFER_IS_PUFFERING) : break;
+        case(RTP_BUFFER_ALL_OKAY): TEST_FAIL("Unexpected return value (RTP_BUFFER_ALL_OKAY) from buffer->readPackage().\n");
+        default: TEST_FAIL("Unexpected return value from buffer->readPackage().\n");
+    }
 }
 
 void TestRTPBuffer::testWriteFullBuffer()
 {
     const char* someText = "This is some Text";
-	int i = 19;
     //fill whole buffer
     while(handler->getSize() < maxCapacity)
     {
         void* buf = package.getNewRTPPackage(someText, 16);
-		//copies the new-buffer into the work-buffer
-		package.getRTPPackageHeader(buf);
-		auto result = handler->addPackage(package, 10);
-		std::cout << i++ << "Add " << package.getRTPPackageHeader()->sequence_number << std::endl;
+        //copies the new-buffer into the work-buffer
+        package.getRTPPackageHeader(buf);
+        RTPBufferStatus result = handler->addPackage(package, 10);
         TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, result);
     }
     //write the next package -> should fail
     void* buf = package.getNewRTPPackage(someText, 16);
     //copies the new-buffer into the work-buffer
     package.getRTPPackageHeader(buf);
-	auto result = handler->addPackage(package, 10);
-	std::cout << "Add " << package.getRTPPackageHeader()->sequence_number << std::endl;
+    RTPBufferStatus result = handler->addPackage(package, 10);
     TEST_ASSERT_EQUALS(RTP_BUFFER_INPUT_OVERFLOW, result);
 }
 
@@ -70,7 +65,6 @@ void TestRTPBuffer::testReadSuccessivePackages()
     for(unsigned int i = 0; i < maxCapacity / 2; i++)
     {
         handler->readPackage(package);
-		std::cout << "Read " << package.getRTPPackageHeader()->sequence_number << std::endl;
         if(seqNumber == 0)
         {
             seqNumber = package.getRTPPackageHeader()->sequence_number;

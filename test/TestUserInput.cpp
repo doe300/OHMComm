@@ -90,10 +90,11 @@ void TestUserInput::testSelectIntOption()
 {
     std::vector<int> options = {5,8,7,9};
     writeTestInput("8");
-	auto result = UserInput::selectOption("Type '8'", options, 5); // Returns the default value
+    //TODO something is wrong here, does not receive correct number
+    int result = UserInput::selectOption("Type '8'", options, 5); // Returns first value of options
     TEST_ASSERT_EQUALS_MSG(8, result, "Int selection failed for: 8");
     writeTestInput("10");
-    result = UserInput::selectOption("Type '10'", options, 9); // Returns first value of options
+    result = UserInput::selectOption("Type '10'", options, 9); // Returns the default value
     TEST_ASSERT_EQUALS_MSG(9, result, "Int selection failed for default value");
 }
 
