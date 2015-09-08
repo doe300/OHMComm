@@ -124,6 +124,10 @@ public:
 	bool underflow() { return hasUnderflow; }
 
 	/*!
+	* Returns the underflow status
+	*/
+	bool hasBeenReadAlready() { return hasBeenRead; }
+	/*!
 	 * Indicates wheater the instance contains any readable package data
 	 */
 	bool isInitialized() { return hasBeenInitialized; }

@@ -205,7 +205,7 @@ void RTPBufferAlternative::setCurrentReadPos()
 	for (size_t i = 0; i < maxCapacity; i++)
 	{
 		int seqNr = ringBuffer[i]->getHeader()->sequence_number;
-		if (seqNr < smallestSeq)
+		if (seqNr < smallestSeq && ringBuffer[i]->hasBeenReadAlready() == false)
 		{
 			smallestSeq = seqNr;
 			currentReadPos = i;
