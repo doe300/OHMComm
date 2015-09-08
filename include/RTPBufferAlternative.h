@@ -11,7 +11,7 @@
 #include "RTPBufferHandler.h"
 #include <math.h>           // log2
 #include <algorithm>
-
+#include <limits>
 
 #define COUNT_OF_RTP_SEQ_NR 64 // TODO: Another magic number
 
