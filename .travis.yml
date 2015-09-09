@@ -24,7 +24,7 @@ before_script:
   # - gcc is linked to clang, which is in appropriate version
   - mkdir build
   - cd build
-  - cmake ../
+  - cmake -DTEST_OUTPUT_CONSOLE=ON ../
   
 script: make
 
