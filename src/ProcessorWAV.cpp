@@ -10,8 +10,7 @@
 
 using namespace wav;
 
-const Parameter ProcessorWAV::WAV_FILE_NAME(ParameterCategory::PROCESSORS, 'w', "wav-file", "wav-Writer. The name of the wav-file", "");
-const bool paramRegistered = Parameters::registerParameter(&ProcessorWAV::WAV_FILE_NAME);
+const Parameter* ProcessorWAV::WAV_FILE_NAME = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'w', "wav-file", "wav-Writer. The name of the wav-file", ""));
 
 ProcessorWAV::ProcessorWAV(const std::string name) : AudioProcessor(name)
 {

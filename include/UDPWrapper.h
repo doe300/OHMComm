@@ -31,7 +31,7 @@ private:
 
     void startWinsock();
 
-    void createSocket();
+    bool createSocket();
 
     void initializeNetwork();
 

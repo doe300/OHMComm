@@ -74,7 +74,7 @@ void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
 }
 
 
-void UDPWrapper::createSocket()
+bool UDPWrapper::createSocket()
 {
     unsigned int addressLength = getSocketAddressLength();
     // AF_INET - creating an IPv4 based socket
@@ -90,7 +90,7 @@ void UDPWrapper::createSocket()
     if (Socket == INVALID_SOCKET)
     {
         std::wcerr << "Error on creating socket: " << getLastError() << std::endl;
-        return;
+        return false;
     }
     else
     {
@@ -101,12 +101,13 @@ void UDPWrapper::createSocket()
     if (bind(Socket, (sockaddr*)&(this->localAddress), addressLength) == SOCKET_ERROR)
     {
         std::wcerr << "Error binding the socket: " << getLastError() << std::endl;
-        return;
+        return false;
     }
     else
     {
         std::cout << "Local port bound." << std::endl;
     }
+    return true;
 }
 
 int UDPWrapper::sendData(void *buffer, unsigned int bufferSize)

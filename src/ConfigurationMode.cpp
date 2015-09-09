@@ -715,8 +715,8 @@ bool FileConfiguration::runConfiguration()
     {
         //read configuration-file
         std::fstream stream(configFile.data(), std::fstream::in);
-        //XXX somehow an error with error-code SUCCESS is thrown
-        //stream.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
+        //FIXME somehow an error with error-code SUCCESS is thrown
+        stream.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
         std::string line;
         unsigned int index;
         std::string key, value;
@@ -750,7 +750,7 @@ bool FileConfiguration::runConfiguration()
             else if(value.compare("false") == 0)
                 value = "0";
             //save value
-            if(key.compare(Parameters::AUDIO_PROCESSOR.longName) == 0)
+            if(key.compare(Parameters::AUDIO_PROCESSOR->longName) == 0)
                 processorNames.push_back(trim(value));
             else
                 customConfig[key] = trim(value);
@@ -758,56 +758,56 @@ bool FileConfiguration::runConfiguration()
         stream.close();
 
         //interpret config
-        if(customConfig.find(Parameters::AUDIO_HANDLER.longName) != customConfig.end())
+        if(customConfig.find(Parameters::AUDIO_HANDLER->longName) != customConfig.end())
         {
-            audioHandlerName = trim(customConfig.at(Parameters::AUDIO_HANDLER.longName));
+            audioHandlerName = trim(customConfig.at(Parameters::AUDIO_HANDLER->longName));
         }
         else
         {
             audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
         }
         //audio-configuration
-        if(customConfig.find(Parameters::INPUT_DEVICE.longName) != customConfig.end())
+        if(customConfig.find(Parameters::INPUT_DEVICE->longName) != customConfig.end())
         {
             useDefaultAudioConfig = false;
-            audioConfig.inputDeviceID = atoi(customConfig.at(Parameters::INPUT_DEVICE.longName).data());
+            audioConfig.inputDeviceID = atoi(customConfig.at(Parameters::INPUT_DEVICE->longName).data());
         }
-        if(customConfig.find(Parameters::OUTPUT_DEVICE.longName) != customConfig.end())
+        if(customConfig.find(Parameters::OUTPUT_DEVICE->longName) != customConfig.end())
         {
             useDefaultAudioConfig = false;
-            audioConfig.outputDeviceID = atoi(customConfig.at(Parameters::OUTPUT_DEVICE.longName).data());
+            audioConfig.outputDeviceID = atoi(customConfig.at(Parameters::OUTPUT_DEVICE->longName).data());
         }
-        if(customConfig.find(Parameters::FORCE_AUDIO_FORMAT.longName) != customConfig.end())
+        if(customConfig.find(Parameters::FORCE_AUDIO_FORMAT->longName) != customConfig.end())
         {
             useDefaultAudioConfig = false;
-            audioConfig.forceAudioFormatFlag = atoi(customConfig.at(Parameters::FORCE_AUDIO_FORMAT.longName).data());
+            audioConfig.forceAudioFormatFlag = atoi(customConfig.at(Parameters::FORCE_AUDIO_FORMAT->longName).data());
         }
-        if(customConfig.find(Parameters::FORCE_SAMPLE_RATE.longName) != customConfig.end())
+        if(customConfig.find(Parameters::FORCE_SAMPLE_RATE->longName) != customConfig.end())
         {
             useDefaultAudioConfig = false;
-            audioConfig.forceSampleRate = atoi(customConfig.at(Parameters::FORCE_SAMPLE_RATE.longName).data());
+            audioConfig.forceSampleRate = atoi(customConfig.at(Parameters::FORCE_SAMPLE_RATE->longName).data());
         }
         audioConfig.inputDeviceChannels = 2;
         audioConfig.outputDeviceChannels = 2;
 
         //network-configuration
-        networkConfig.remoteIPAddress = customConfig.at(Parameters::REMOTE_ADDRESS.longName);
-        if(customConfig.find(Parameters::REMOTE_PORT.longName) != customConfig.end())
-            networkConfig.remotePort = atoi(customConfig.at(Parameters::REMOTE_PORT.longName).data());
+        networkConfig.remoteIPAddress = customConfig.at(Parameters::REMOTE_ADDRESS->longName);
+        if(customConfig.find(Parameters::REMOTE_PORT->longName) != customConfig.end())
+            networkConfig.remotePort = atoi(customConfig.at(Parameters::REMOTE_PORT->longName).data());
         else
             networkConfig.remotePort = DEFAULT_NETWORK_PORT;
-        if(customConfig.find(Parameters::LOCAL_PORT.longName) != customConfig.end())
-            networkConfig.localPort = atoi(customConfig.at(Parameters::LOCAL_PORT.longName).data());
+        if(customConfig.find(Parameters::LOCAL_PORT->longName) != customConfig.end())
+            networkConfig.localPort = atoi(customConfig.at(Parameters::LOCAL_PORT->longName).data());
         else
             networkConfig.localPort = DEFAULT_NETWORK_PORT;
         //audio-processors are read above
-        profileProcessors = customConfig.find(Parameters::PROFILE_PROCESSORS.longName) != customConfig.end();
-        if(customConfig.find(Parameters::LOG_TO_FILE.longName) != customConfig.end())
+        profileProcessors = customConfig.find(Parameters::PROFILE_PROCESSORS->longName) != customConfig.end();
+        if(customConfig.find(Parameters::LOG_TO_FILE->longName) != customConfig.end())
         {
             logToFile = true;
-            logFileName = customConfig.at(Parameters::LOG_TO_FILE.longName);
+            logFileName = customConfig.at(Parameters::LOG_TO_FILE->longName);
         }
-        waitForConfigurationRequest = customConfig.find(Parameters::WAIT_FOR_PASSIVE_CONFIG.longName) != customConfig.end();
+        waitForConfigurationRequest = customConfig.find(Parameters::WAIT_FOR_PASSIVE_CONFIG->longName) != customConfig.end();
     }
     catch(std::ios_base::failure f)
     {

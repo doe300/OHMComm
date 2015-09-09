@@ -22,7 +22,7 @@
 class ProcessorWAV : public AudioProcessor
 {
 public:
-    static const Parameter WAV_FILE_NAME;
+    static const Parameter* WAV_FILE_NAME;
     
     ProcessorWAV(const std::string name);
     virtual ~ProcessorWAV();
