@@ -4,6 +4,12 @@ include_directories(../include)
 #Include the source files
 file( GLOB SRCS *.cpp *.h)
 
+option(TEST_OUTPUT_CONSOLE "Prints the test-output to console" OFF)
+if(TEST_OUTPUT_CONSOLE)
+	#Create macro-definition to enable output to console
+	add_definitions(-DTEST_OUTPUT_CONSOLE=1)
+endif()
+
 #Visual Studio specific settings
 if(MSVC)
 	link_directories ("${PROJECT_BINARY_DIR}/build/rtaudio/Debug")

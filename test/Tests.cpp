@@ -44,10 +44,15 @@ void TestAudioIO::testAudioProcessorInterface()
 
 int main(int argc, char** argv)
 {
-	std::ofstream file;
-	file.open("testResult.log", std::ios_base::out | std::ios_base::trunc);
+    #if TEST_OUTPUT_CONSOLE == 1
+    Test::TextOutput output(Test::TextOutput::Verbose);
+    #else
+    std::ofstream file;
+    file.open("testResult.log", std::ios_base::out | std::ios_base::trunc);
 
-	Test::TextOutput output(Test::TextOutput::Verbose, file);
+    Test::TextOutput output(Test::TextOutput::Verbose, file);
+    #endif
+    
     TestAudioIO testaudio;
     testaudio.run(output);
 
