@@ -30,7 +30,7 @@ const Parameter* Parameters::PROFILE_PROCESSORS = Parameters::registerParameter(
 const Parameter* Parameters::registerParameter(Parameter&& param)
 {
     //make sure, neither short name nor long name are reused
-    std::list<Parameter>::const_iterator insertPos = availableParameters.begin();
+    std::list<Parameter>::iterator insertPos = availableParameters.begin();
     while(insertPos != availableParameters.end())
     {
         if((*insertPos).shortName == param.shortName)
