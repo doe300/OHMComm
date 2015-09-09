@@ -76,12 +76,17 @@ Parameters::Parameters(const std::vector<std::string> availableHandlerNames, con
 
 bool Parameters::parseParameters(int argc, char* argv[])
 {
-    //TODO make required-parameters not required, if other configuration-mode is set (or make them completely optional??)
     //argv[0] is the name of the program
     if(argc <= 1)
     {
         //no parameters to handle
         return false;
+    }
+    //if run with a single parameter not starting with '-', use it as configuration-file
+    if(argc == 2 && argv[1][0] != '-')
+    {
+        readParameters.push_back(ParameterValue(CONFIGURATION_FILE, std::string(argv[1])));
+        return true;
     }
     readParameters.reserve(argc-1);
     processorNames.reserve(5);
@@ -164,6 +169,14 @@ bool Parameters::parseParameters(int argc, char* argv[])
     {
         printHelpPage();
         exit(0);
+    }
+    //if we set another configuration-mode, we can skip the required-parameter check
+    for(const ParameterValue& paramValue : readParameters)
+    {
+        if(paramValue.parameter->isConfigurationMode())
+        {
+            return true;
+        }
     }
     //check if all required parameters are set or at least have a default-value
     for(const Parameter& avParam :availableParameters)

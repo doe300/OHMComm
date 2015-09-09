@@ -1,12 +1,12 @@
 #include "OHMComm.h"
 #include "AudioProcessorFactory.h"
+#include "AudioHandlerFactory.h"
 
 int main(int argc, char* argv[])
 {
     ////
     // Configuration
     ////
-    //TODO if called with single parameter -> use as configuration-file
 
     OHMComm* ohmComm;
     Parameters params(AudioHandlerFactory::getAudioHandlerNames(), AudioProcessorFactory::getAudioProcessorNames());

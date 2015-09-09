@@ -23,11 +23,7 @@
 /*!
  * Main class containing all required methods to start and control the P2P communication.
  *
- * There are 3 modes, the OHMComm can run in:
- *
- * 1. parameterized: all necessary configurations are passed via the second constructor
- * 2. programmatically: the configurations have to be set via the corresponding configure-methods
- * 3. interactive: upon start, the OHMComm will ask the user for the configuration via stdout/stdin
+ * There are several modes, the OHMComm can run in. For a full list, see the ConfigurationMode subclasses
  */
 class OHMComm
 {
