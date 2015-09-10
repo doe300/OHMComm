@@ -267,7 +267,7 @@ unsigned int RtAudioWrapper::autoSelectSampleRate(unsigned int supportedRatesFla
 }
 
 
-bool RtAudioWrapper::prepare()
+bool RtAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMode)
 {
     /* If there is no config set, then load the default */
     if (this->flagAudioConfigSet == false)
@@ -281,7 +281,7 @@ bool RtAudioWrapper::prepare()
     }
     
     bool resultA = this->initRtAudioStreamParameters();
-    bool resultB = this->configureAudioProcessors();
+    bool resultB = this->configureAudioProcessors(configMode);
 
     if (resultA && resultB) {
         this->flagPrepared = true;

@@ -1,5 +1,6 @@
 #include "TestConfigurationModes.h"
 #include "AudioProcessorFactory.h"
+#include "AudioHandlerFactory.h"
 #include "OHMComm.h"
 
 #include <string>

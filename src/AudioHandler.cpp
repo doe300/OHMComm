@@ -71,12 +71,12 @@ auto AudioHandler::clearAudioProcessors() -> bool
     return true;
 }
 
-auto AudioHandler::configureAudioProcessors() -> bool
+auto AudioHandler::configureAudioProcessors(const std::shared_ptr<ConfigurationMode> configMode) -> bool
 {
     for (const auto& processor : audioProcessors)
     {
         std::cout << "Configuring audio-processor '" << processor->getName() << "'..." << std::endl;
-        bool result = processor->configure(audioConfiguration);
+        bool result = processor->configure(audioConfiguration, configMode);
         if (result == false) // Configuration failed
             return false;
     }

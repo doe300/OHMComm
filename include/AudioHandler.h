@@ -4,6 +4,7 @@
 #include "AudioProcessor.h"
 #include "Statistics.h"
 #include "configuration.h"
+#include "ConfigurationMode.h"
 #include <vector>
 #include <memory> //for std::unique_ptr
 #include <iostream>
@@ -73,7 +74,7 @@ public:
      *
      * This includes allocating memory, configuring the audio-processors or the audio-library, etc.
      */
-    virtual auto prepare() -> bool = 0;
+    virtual auto prepare(const std::shared_ptr<ConfigurationMode> configMode) -> bool = 0;
 
 	/*!
 	* Returns the actual buffer size, which can be different than in the audio configuration (
@@ -174,7 +175,7 @@ protected:
     /*!
      * Calls AudioProcessor#configure() for all registered processors
      */
-    auto configureAudioProcessors() -> bool;
+    auto configureAudioProcessors(const std::shared_ptr<ConfigurationMode> configMode) -> bool;
     auto cleanUpAudioProcessors() -> bool;
 };
 

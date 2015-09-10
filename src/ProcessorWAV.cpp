@@ -6,11 +6,11 @@
  */
 
 #include "ProcessorWAV.h"
-#include "UserInput.h"
 
 using namespace wav;
 
-const Parameter* ProcessorWAV::WAV_FILE_NAME = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'w', "wav-file", "wav-Writer. The name of the wav-file", ""));
+const Parameter* ProcessorWAV::INPUT_FILE_NAME = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'I', "input-wav-file", "wav-Writer. The name of the wav-file to log the audio-input", ""));
+const Parameter* ProcessorWAV::OUTPUT_FILE_NAME = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'O', "output-wav-file", "wav-Writer. The name of the wav-file to log the audio-output", ""));
 
 ProcessorWAV::ProcessorWAV(const std::string name) : AudioProcessor(name)
 {
@@ -30,7 +30,7 @@ ProcessorWAV::~ProcessorWAV()
     }
 }
 
-bool ProcessorWAV::configure(const AudioConfiguration& audioConfig)
+bool ProcessorWAV::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
 {
     if(audioConfig.audioFormatFlag != AudioConfiguration::AUDIO_FORMAT_SINT16)
     {
@@ -42,15 +42,14 @@ bool ProcessorWAV::configure(const AudioConfiguration& audioConfig)
         std::cerr << "Unsupported sample-rate!" << std::endl;
         return false;
     }
-    UserInput::printSection("Configure WAV-Writer");
-    if(UserInput::inputBoolean("Log audio-input?"))
+    if(configMode->isCustomConfigurationSet(INPUT_FILE_NAME->longName, "Log audio-input?"))
     {
-        std::string fileName = UserInput::inputString("Type audio-input file-name");
+        std::string fileName = configMode->getCustomConfiguration(INPUT_FILE_NAME->longName, "Type audio-input file-name", std::string(""));
         writeInputFile = wavfile_open(fileName.c_str());
     }
-    if(UserInput::inputBoolean("Log audio-output?"))
+    if(configMode->isCustomConfigurationSet(OUTPUT_FILE_NAME->longName, "Log audio-output?"))
     {
-        std::string fileName = UserInput::inputString("Type audio-output file-name");
+        std::string fileName = configMode->getCustomConfiguration(OUTPUT_FILE_NAME->longName, "Type audio-output file-name", std::string(""));
         writeOutputFile = wavfile_open(fileName.c_str());
     }
     return true;

@@ -29,3 +29,4 @@ This will build the library/executable into `<project-directory>/build/` by defa
 	$ cd <executable-directory>	
 	$ ./OHMComm		# To run in interactive mode
 	$ ./OHMComm	-h	# Prints all command-line arguments
+	$ ./OHMComm path/to/config-file	# Runs in file-configuration mode

@@ -11,6 +11,7 @@
 #include <cctype>
 #include <stdlib.h>
 
+#include "UserInput.h"
 #include "ConfigurationMode.h"
 #include "AudioHandlerFactory.h"
 #include "AudioProcessorFactory.h"
@@ -104,7 +105,7 @@ void ConfigurationMode::createDefaultNetworkConfiguration()
 ////
 
 
-ParameterConfiguration::ParameterConfiguration(const Parameters& params)
+ParameterConfiguration::ParameterConfiguration(const Parameters& params) : ConfigurationMode(), params(params)
 {
     //convert configuration
     //get device configuration from parameters
@@ -194,21 +195,39 @@ const std::string ParameterConfiguration::getCustomConfiguration(const std::stri
     const Parameter* param = Parameters::getParameter(key);
     if(param != nullptr)
     {
-        //TODO
+        return params.getParameterValue(param);
     }
     return defaultValue;
 }
 
 const int ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
 {
-    //TODO read from parameters
+    const Parameter* param = Parameters::getParameter(key);
+    if(param != nullptr)
+    {
+        return atoi(params.getParameterValue(param).data());
+    }
     return defaultValue;
 }
 
 const bool ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
-    //TODO read from parameters
+    const Parameter* param = Parameters::getParameter(key);
+    if(param != nullptr)
+    {
+        return atoi(params.getParameterValue(param).data());
+    }
     return defaultValue;
+}
+
+const bool ParameterConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+{
+    const Parameter* param = Parameters::getParameter(key);
+    if(param != nullptr)
+    {
+        return params.isParameterSet(param);
+    }
+    return false;
 }
 
 ////
@@ -277,6 +296,11 @@ const int InteractiveConfiguration::getCustomConfiguration(const std::string key
 const bool InteractiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
     return UserInput::inputBoolean(message, defaultValue, UserInput::INPUT_USE_DEFAULT);
+}
+
+const bool InteractiveConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+{
+    return UserInput::inputBoolean(message, false, 0);
 }
 
 void InteractiveConfiguration::interactivelyConfigureAudioDevices()
@@ -435,6 +459,13 @@ void InteractiveConfiguration::interactivelyConfigureProcessors()
 //  LibraryConfiguration
 ////
 
+LibraryConfiguration::LibraryConfiguration()
+{
+    //initialize configuration with default values as far as possible
+    audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
+    createDefaultNetworkConfiguration();
+}
+
 bool LibraryConfiguration::runConfiguration()
 {
     return isConfigured();
@@ -470,6 +501,11 @@ const bool LibraryConfiguration::getCustomConfiguration(const std::string key, c
         return defaultValue;
     }
     return atoi(customConfig.at(key).data());
+}
+
+const bool LibraryConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+{
+    return customConfig.find(key) != customConfig.end();
 }
 
 void LibraryConfiguration::configureAudio(const std::string audioHandlerName, const AudioConfiguration* audioConfig)
@@ -635,6 +671,12 @@ const bool PassiveConfiguration::getCustomConfiguration(const std::string key, c
 {
     return defaultValue;
 }
+
+const bool PassiveConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+{
+    return false;
+}
+
 
 const PassiveConfiguration::ConfigurationMessage PassiveConfiguration::readConfigurationMessage(void* buffer, unsigned int bufferSize)
 {
@@ -846,4 +888,9 @@ const bool FileConfiguration::getCustomConfiguration(const std::string key, cons
         return defaultValue;
     }
     return atoi(customConfig.at(key).data());
+}
+
+const bool FileConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+{
+    return customConfig.find(key) != customConfig.end();
 }

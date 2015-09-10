@@ -51,7 +51,7 @@ const std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampl
 	}
 }
 
-bool ProcessorOpus::configure(const AudioConfiguration& audioConfig)
+bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
 {
 	outputDeviceChannels = audioConfig.outputDeviceChannels;
 	rtaudioFormat = audioConfig.audioFormatFlag;

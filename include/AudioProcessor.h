@@ -4,8 +4,10 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <memory>   //std::shared_ptr
 
 #include "configuration.h"
+#include "ConfigurationMode.h"
 
 /*!
  * This AudioProcessor supports any buffer-length
@@ -93,14 +95,14 @@ public:
 
     /*!
      * Overwrite this method, if this AudioProcessor needs configuration
+     * 
+     * NOTE: the audio-configuration in the configuration-mode is not valid, use the audioConfig-parameter!
      *
      * \param audioConfig The valid AudioConfiguration
+     * \param configMode The ConfigurationMode to retrieve custom configuration-values from
      *
-     * Any implementation of this method can use the methods from UserInput.h
      */
-    //TODO allow for non-interactive configuration (how to pass parameters?)
-    //pass ConfigurationMode and let processor ask it for configuration-values?
-    virtual bool configure(const AudioConfiguration& audioConfig);
+    virtual bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode);
 
     /*!
      * Counterpart of configure(). This method is called, when the object is not needed any longer.

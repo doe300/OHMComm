@@ -97,7 +97,6 @@ bool UDPWrapper::createSocket()
         std::cout << "Socket created." << std::endl;
     }
     
-    //FIXME bind doesn't work yet for IPv6 -- EADDRNOTAVAIL
     if (bind(Socket, (sockaddr*)&(this->localAddress), addressLength) == SOCKET_ERROR)
     {
         std::wcerr << "Error binding the socket: " << getLastError() << std::endl;

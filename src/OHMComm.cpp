@@ -91,7 +91,7 @@ void OHMComm::startAudioThreads()
 
     //run threads
 
-    if(!audioHandler->prepare())
+    if(!audioHandler->prepare(configurationMode))
     {
         throw std::runtime_error("Failed to configure audio-handler!");
     }

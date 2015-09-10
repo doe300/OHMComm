@@ -7,7 +7,7 @@ const std::string AudioProcessor::getName() const
     return name;
 }
 
-bool AudioProcessor::configure(const AudioConfiguration& config)
+bool AudioProcessor::configure(const AudioConfiguration& config, std::shared_ptr<ConfigurationMode> configMode)
 {
     //dummy implementation, does nothing
     return true;

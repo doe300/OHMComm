@@ -44,9 +44,9 @@ void ProfilingAudioProcessor::reset()
 	count = 0;
 }
 
-bool ProfilingAudioProcessor::configure(const AudioConfiguration& audioConfig)
+bool ProfilingAudioProcessor::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
 {
-    return profiledProcessor->configure(audioConfig);
+    return profiledProcessor->configure(audioConfig, configMode);
 }
 
 unsigned int ProfilingAudioProcessor::getSupportedAudioFormats() const

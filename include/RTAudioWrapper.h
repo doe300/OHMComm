@@ -42,7 +42,7 @@ public:
     void reset();
     /* sets default audio config */
     void setDefaultAudioConfig();
-    auto prepare() -> bool;
+    auto prepare(const std::shared_ptr<ConfigurationMode> configMode) -> bool;
     auto getBufferSize() -> unsigned int;
 
     /* Callbacks */

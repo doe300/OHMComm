@@ -22,12 +22,10 @@
 class ProcessorWAV : public AudioProcessor
 {
 public:
-    static const Parameter* WAV_FILE_NAME;
-    
     ProcessorWAV(const std::string name);
     virtual ~ProcessorWAV();
 
-    bool configure(const AudioConfiguration& audioConfig);
+    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode);
 
     /*!
      * The wav implementation only supports 16bit signed integer PCM samples
@@ -56,6 +54,9 @@ public:
 private:
     FILE* writeInputFile;
     FILE* writeOutputFile;
+    
+    static const Parameter* INPUT_FILE_NAME;
+    static const Parameter* OUTPUT_FILE_NAME;
 
 };
 

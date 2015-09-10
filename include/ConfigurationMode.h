@@ -14,9 +14,7 @@
 #include <stdlib.h>
 
 #include "configuration.h"
-#include "UserInput.h"
 #include "Parameters.h"
-#include "AudioHandlerFactory.h"
 
 /*!
  * Abstract super-class for the various kinds of configuration-modes
@@ -103,6 +101,17 @@ public:
      * \return the value for this configuration-key, defaults to the defaultValue
      */
     virtual const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const = 0;
+    
+    /*!
+     * Configuration-mode specific method to check whether a configuration-value is set.
+     * Implementations are allowed to ask the user whether this key should be set.
+     * 
+     * \param key The name of the configuration-value
+     * \param message An optional message to display (e.g. for interactive configuration)
+     * 
+     * \return whether this configuration-key is set
+     */
+    virtual const bool isCustomConfigurationSet(const std::string key, const std::string message) const = 0;
 
     /*!
      * This method is called by OHMComm to update the audio-configuration in this ConfigurationMode with the actual used configuration
@@ -137,8 +146,10 @@ public:
     const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
     const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
     const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+    const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
 private:
+    const Parameters params;
     void fillAudioConfiguration(int outputDeviceID, int inputDeviceID);
 };
 
@@ -156,6 +167,7 @@ public:
     const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
     const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
     const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+    const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
 private:
 
@@ -170,12 +182,7 @@ private:
 class LibraryConfiguration : public ConfigurationMode
 {
 public:
-    LibraryConfiguration()
-    {
-        //initialize configuration with default values as far as possible
-        audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
-        createDefaultNetworkConfiguration();
-    }
+    LibraryConfiguration();
 
     virtual bool runConfiguration();
 
@@ -183,6 +190,7 @@ public:
     const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
     const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
     const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+    const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
     /*!
      * Configures the audio-handler for the LIBRARY configuration-mode
@@ -267,6 +275,7 @@ public:
     const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
     const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
     const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+    const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
     static const ConfigurationMessage readConfigurationMessage(void* buffer, unsigned int bufferSize);
 
@@ -299,6 +308,7 @@ public:
     const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
     const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
     const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+    const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
 private:
     const std::string configFile;
