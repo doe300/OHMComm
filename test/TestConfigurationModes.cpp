@@ -150,7 +150,7 @@ void TestConfigurationModes::testPassiveConfiguration()
 
 void TestConfigurationModes::testFileConfiguration()
 {
-    ConfigurationMode* mode = new FileConfiguration("./test/test.config");
+    ConfigurationMode* mode = new FileConfiguration("../test/test.config");
     
     TEST_ASSERT_MSG(mode->runConfiguration(), "Reading configuration-file failed!");
     TEST_ASSERT_EQUALS(true, mode->getLogToFileConfiguration().first);

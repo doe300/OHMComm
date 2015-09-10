@@ -755,19 +755,22 @@ bool FileConfiguration::runConfiguration()
 
     try
     {
+        std::cout << "Reading configuration file... " << configFile << std::endl;
         //read configuration-file
-        std::fstream stream(configFile.data(), std::fstream::in);
-        //FIXME somehow an error with error-code SUCCESS is thrown
-        stream.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
+        std::fstream stream(configFile, std::fstream::in);
+        stream.exceptions ( std::ios::badbit );
         std::string line;
         unsigned int index;
         std::string key, value;
+        if(!stream.is_open())
+        {
+            throw std::ios::failure("Could not open file!");
+        }
         while(true)
         {
-            line.clear();
             std::getline(stream, line);
             if(stream.eof()) break;
-            if(stream.gcount() == 0) continue;
+            if(stream.gcount() == 0 || line.empty()) continue;
             if(line[0] == '#') continue;
 
             //read key
@@ -858,7 +861,7 @@ bool FileConfiguration::runConfiguration()
         std::cerr << f.what() << std::endl;
         return false;
     }
-            
+    std::cout << "Configuration-file read" << std::endl;
     isConfigurationDone = true;
     return true;
 }
