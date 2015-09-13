@@ -29,7 +29,7 @@ ConfigurationMode::~ConfigurationMode()
 
 const std::pair<std::string, bool> ConfigurationMode::getAudioHandlerConfiguration() const
 {
-    if(!isConfigurationDone)
+    if(!isConfigured())
     {
         throw std::runtime_error("Configuration was not finished!");
     }
@@ -39,7 +39,7 @@ const std::pair<std::string, bool> ConfigurationMode::getAudioHandlerConfigurati
 
 const AudioConfiguration ConfigurationMode::getAudioConfiguration() const
 {
-    if(!isConfigurationDone)
+    if(!isConfigured())
     {
         throw std::runtime_error("Configuration was not finished!");
     }
@@ -48,7 +48,7 @@ const AudioConfiguration ConfigurationMode::getAudioConfiguration() const
 
 const NetworkConfiguration ConfigurationMode::getNetworkConfiguration() const
 {
-    if(!isConfigurationDone)
+    if(!isConfigured())
     {
         throw std::runtime_error("Configuration was not finished!");
     }
@@ -62,7 +62,7 @@ bool ConfigurationMode::isConfigured() const
 
 bool ConfigurationMode::getAudioProcessorsConfiguration(std::vector<std::string>& processorNames) const
 {
-    if(!isConfigurationDone)
+    if(!isConfigured())
     {
         throw std::runtime_error("Configuration was not finished!");
     }
@@ -76,7 +76,7 @@ bool ConfigurationMode::getAudioProcessorsConfiguration(std::vector<std::string>
 
 const std::pair<bool, std::string> ConfigurationMode::getLogToFileConfiguration() const
 {
-    if(!isConfigurationDone)
+    if(!isConfigured())
     {
         throw std::runtime_error("Configuration was not finished!");
     }
@@ -464,6 +464,8 @@ LibraryConfiguration::LibraryConfiguration()
     //initialize configuration with default values as far as possible
     audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
     createDefaultNetworkConfiguration();
+    //XXX we should move away from using loopback as valid configuration
+    isNetworkConfigured = true;
 }
 
 bool LibraryConfiguration::runConfiguration()
@@ -730,7 +732,7 @@ unsigned int PassiveConfiguration::writeConfigurationMessage(void* buffer, unsig
 
 FileConfiguration::FileConfiguration(const std::string fileName) : ConfigurationMode(), configFile(fileName)
 {
-
+    createDefaultNetworkConfiguration();
 }
 
 inline std::string trim(const std::string &s)
@@ -772,6 +774,7 @@ bool FileConfiguration::runConfiguration()
             if(stream.eof()) break;
             if(stream.gcount() == 0 || line.empty()) continue;
             if(line[0] == '#') continue;
+            //FIXME possibly this loop is never executed (all beneath this line)
 
             //read key
             index = line.find('=');
@@ -786,6 +789,7 @@ bool FileConfiguration::runConfiguration()
             value = trim(line.substr(index));
             if(value[0] == '"')
             {
+                //TODO "escaped" strings do not work ?!
                 value = value.substr(1, value.size()-2);
                 //unescape escapes
                 replaceAll(value, "\\\"", "\"");
@@ -836,15 +840,12 @@ bool FileConfiguration::runConfiguration()
         audioConfig.outputDeviceChannels = 2;
 
         //network-configuration
-        networkConfig.remoteIPAddress = customConfig.at(Parameters::REMOTE_ADDRESS->longName);
+        if(customConfig.find(Parameters::REMOTE_ADDRESS->longName) != customConfig.end())
+            networkConfig.remoteIPAddress = customConfig.at(Parameters::REMOTE_ADDRESS->longName);
         if(customConfig.find(Parameters::REMOTE_PORT->longName) != customConfig.end())
             networkConfig.remotePort = atoi(customConfig.at(Parameters::REMOTE_PORT->longName).data());
-        else
-            networkConfig.remotePort = DEFAULT_NETWORK_PORT;
         if(customConfig.find(Parameters::LOCAL_PORT->longName) != customConfig.end())
             networkConfig.localPort = atoi(customConfig.at(Parameters::LOCAL_PORT->longName).data());
-        else
-            networkConfig.localPort = DEFAULT_NETWORK_PORT;
         //audio-processors are read above
         profileProcessors = customConfig.find(Parameters::PROFILE_PROCESSORS->longName) != customConfig.end();
         if(customConfig.find(Parameters::LOG_TO_FILE->longName) != customConfig.end())

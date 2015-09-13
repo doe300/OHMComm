@@ -36,7 +36,7 @@ void TestConfigurationModes::testParameterConfiguration()
     std::vector<std::string> tmp(0);
     TEST_ASSERT_MSG(mode->getAudioProcessorsConfiguration(tmp), "Profile processors not configured!");
     TEST_ASSERT_EQUALS(AudioProcessorFactory::OPUS_CODEC, tmp[0]);
-
+    
     delete mode;
 }
 
@@ -95,23 +95,24 @@ void TestConfigurationModes::testLibraryConfiguration()
     TEST_ASSERT_MSG(!mode->isConfigured(), "Library-configuration wrongly finished!");
 
     ((LibraryConfiguration*)mode)->configureAudio(AudioHandlerFactory::RTAUDIO_WRAPPER, nullptr);
-    TEST_ASSERT_MSG(!mode->getAudioHandlerConfiguration().second, "default audio-configuration was not used!");
-
     ((LibraryConfiguration*)mode)->configureLogToFile("test.log");
-    TEST_ASSERT_EQUALS("test.log", mode->getLogToFileConfiguration().second);
-
-    TEST_ASSERT_EQUALS(DEFAULT_NETWORK_PORT, mode->getNetworkConfiguration().localPort);
-
     ((LibraryConfiguration*)mode)->configureProcessors({AudioProcessorFactory::OPUS_CODEC}, true);
     std::vector<std::string> tmp;
     TEST_ASSERT_MSG(mode->getAudioProcessorsConfiguration(tmp), "Processor-profiling not set!");
     TEST_ASSERT_EQUALS(AudioProcessorFactory::OPUS_CODEC, tmp[0]);
+    
+    TEST_ASSERT_MSG(!mode->getAudioHandlerConfiguration().second, "default audio-configuration was not used!");
+    TEST_ASSERT_EQUALS("test.log", mode->getLogToFileConfiguration().second);
+    TEST_ASSERT_EQUALS(DEFAULT_NETWORK_PORT, mode->getNetworkConfiguration().localPort);
 
     delete mode;
 }
 
 void TestConfigurationModes::testPassiveConfiguration()
 {
+    //TODO rewrite to create new thread!
+    TEST_FAIL("Currently disabled on purpose!");
+    return;
     //set up "remote"
     LibraryConfiguration* remoteMode = new LibraryConfiguration();
     NetworkConfiguration remoteNetwork;
@@ -123,6 +124,7 @@ void TestConfigurationModes::testPassiveConfiguration()
     remoteMode->configureProcessors(remoteProcessorNames, false);
     OHMComm remote((ConfigurationMode*)remoteMode);
     TEST_ASSERT_MSG(remote.isConfigurationDone(false), "Remote not configured!");
+    //FIXME won't work, thread stalls until request is done
     remote.startAudioThreads();
     
     //set up "client"

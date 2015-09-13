@@ -7,6 +7,8 @@ project (OHMComm)
 ####
 # build as shared libraries
 SET(BUILD_SHARED_LIBS ON)
+# Option to enable/disable test-program
+option(BUILD_TESTING "Build testing program" ON)
 
 # append usage of C++ to compiler flags, also optimize for speed and enable all warnings
 if(NOT MSVC)
@@ -23,12 +25,10 @@ endif()
 ####
 # Set output copy path
 add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
-add_subdirectory(lib/cpptest-1.1.2 build/cpptest)
 add_subdirectory(lib/opus-1.1 build/opus)
 
 #Include headers in the project settings (as search-path for header-files)
 include_directories ("${PROJECT_SOURCE_DIR}/lib/rtaudio-4.1.1")
-include_directories ("${PROJECT_SOURCE_DIR}/lib/cpptest-1.1.2/src")
 include_directories ("${PROJECT_SOURCE_DIR}/lib/opus-1.1/include")
 
 ####
@@ -37,6 +37,8 @@ include_directories ("${PROJECT_SOURCE_DIR}/lib/opus-1.1/include")
 #build all from ./src into ./build
 add_subdirectory(src build)
 
-#if (BUILD_TESTING)
+if (BUILD_TESTING)
+	add_subdirectory(lib/cpptest-1.1.2 build/cpptest)
+	#add_subdirectory(lib/cpptest-lite build/cpptest-lite)
     add_subdirectory(test build/test)
-#endif (BUILD_TESTING)
+endif (BUILD_TESTING)

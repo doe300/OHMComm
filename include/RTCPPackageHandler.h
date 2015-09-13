@@ -407,7 +407,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createSenderReportPackage(RTCPHeader &header, SenderInformation &senderInfo, std::vector<ReceptionReport> reports);
+    void *createSenderReportPackage(RTCPHeader &header, SenderInformation &senderInfo, const std::vector<ReceptionReport>& reports);
 
     /*!
      * Creates a new receiver report (RR) package
@@ -418,7 +418,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createReceiverReportPackage(RTCPHeader &header, std::vector<ReceptionReport> reports);
+    void *createReceiverReportPackage(RTCPHeader &header, const std::vector<ReceptionReport>& reports);
 
     /*!
      * Creates a new source description (DES) package
@@ -429,7 +429,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createSourceDescriptionPackage(RTCPHeader &header, std::vector<SourceDescription> descriptions);
+    void *createSourceDescriptionPackage(RTCPHeader &header, const std::vector<SourceDescription>& descriptions);
 
     /*!
      * Creates a new BYE package
@@ -440,7 +440,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createByePackage(RTCPHeader &header, std::string byeMessage);
+    void *createByePackage(RTCPHeader &header, const std::string& byeMessage);
 
     /*!
      * Creates a new APP package
