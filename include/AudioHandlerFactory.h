@@ -33,12 +33,22 @@ public:
     /*!
      * \return a list of all available audio-handler names
      */
-    static auto getAudioHandlerNames() -> const std::vector<std::string>;
+    static inline const std::vector<std::string> getAudioHandlerNames()
+    {
+        return allAudioHandlerNames;
+    }
 
     /*!
      * \return the name of the default audio-handler
      */
-    static const std::string getDefaultAudioHandlerName();
+    static inline const std::string getDefaultAudioHandlerName()
+    {
+        return allAudioHandlerNames[0];
+    }
+    
+private:
+    //! A list of all registered audio-handlers, the first audio-handler is used as default
+    static const std::vector<std::string>allAudioHandlerNames;
 };
 
 #endif
