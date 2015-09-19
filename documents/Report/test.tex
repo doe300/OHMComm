@@ -1,0 +1,152 @@
+\documentclass[11pt,a4paper]{report} 
+\usepackage[ngerman]{babel} % deutsch und deutsche Rechtschreibung
+\usepackage[utf8]{inputenc} % Unicode Text 
+\usepackage[T1]{fontenc} % Umlaute und deutsches Trennen
+\usepackage{textcomp} % Sonderzeichen wie Euro, Copyright, etc.
+\usepackage[hyphens]{url} % Hyperlinks, eMail-Adressen, Pfadangaben
+\usepackage{amssymb} % mathmatische Symbole
+\usepackage{microtype} % reguliert Abstände zwischen Buchenstaben
+\usepackage{graphicx} % wir wollen Bilder einfügen
+\usepackage{float} % Umgebung die sich automatisch im Dokument an passenden Positionen bewegen (floaten)
+\usepackage{emptypage} % Wirklich leer bei leeren Seiten
+
+\usepackage{listings} % schöne Quellcode-Listings
+% ein paar Einstellungen für akzeptable Listings
+\lstset{basicstyle=\ttfamily, columns=[l]flexible, mathescape=true, showstringspaces=false, numbers=left, numberstyle=\tiny}
+\lstset{language=C++} % Set your language (you can change the language for each code-block optionally)
+% more information about listings: https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings
+
+% Spezialpakete
+\usepackage{epigraph} % Zum Positionieren von Bemerkungen links, rechts, oben und unten vom Text
+\setlength{\epigraphrule}{0pt} % kein Trennstrich
+
+% Seitenlayout
+\usepackage[paper=a4paper,width=14cm,left=35mm,height=22cm]{geometry}
+\usepackage{setspace}
+\linespread{1.15}
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0em} % im Deutschen Einrückung nicht üblich, leider
+
+\newcommand{\phv}{\fontfamily{phv}\fontseries{m}\fontsize{9}{11}\selectfont}
+\usepackage{fancyhdr} % ermöglicht schickere Header und Footer
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\fancyhead[L]{\phv \leftmark}
+\fancyhead[RE,LO]{\phv \nouppercase{\leftmark}}
+\fancyhead[LE,RO]{\phv \thepage}
+% Unten besser auf alles Verzichten
+%\fancyfoot[L]{\textsf{\small \kurztitel}}
+\fancyfoot[C]{\ } % keine Seitenzahl unten
+%\fancyfoot[R]{\textsf{\small Medieninformatik}}
+
+% Quellen aufteilen z.B. in Online-Quellen und Literaturverzeichnis
+\usepackage{bibtopic} 
+
+% Config 1: Times New Roman, gewohnter Font, ok tt und serifenlos
+%\usepackage{mathptmx} 
+%\usepackage[scaled=.95]{helvet}
+%\usepackage{courier}
+
+% Config 2: Palatino mit guten Fonts für tt und serifenlos
+\usepackage{mathpazo} % Palatino, mal was anderes
+\usepackage[scaled=.95]{helvet}
+\usepackage{palatino }
+
+% Config 3: New Century Schoolbook sieht auch nett aus (macht auch tt und serifenlos)
+%\usepackage{newcent}
+
+% Mehr Informationen zu Fonts: https://de.sharelatex.com/learn/Font_typefaces
+
+
+% Zum Zeigen von Fehlern
+\usepackage{soulutf8}
+\newcommand*\falsch{\st}
+
+% damit wir nicht so viel tippen müssen, nur für Demo 
+\usepackage{blindtext} 
+
+% Float-Objekte sollen die Section nicht verlassen in der sie eingefügt worden sind
+\usepackage[section]{placeins}
+
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+    % Kopf der Seite
+    \parbox[t]{8cm}{
+      % \textsf würde das Aussehen der ersten Seite ruinieren, 
+      % wer will, soll das selbst außen rum machen...
+      TH Nürnberg Georg Simon Ohm\\
+      Fakultät Informatik \\
+	}
+    \vfill    
+    {\LARGE Projektbericht} \\[0.5cm]
+    {\large im Rahmen des Moduls IT-Projekt} \\[5mm]
+    \rule{\textwidth}{1pt}\\[0.5cm]
+    {\begin{spacing}{1.15} \huge \bfseries OHMComm \\Plattformunabhängiges Framework zur Audioübertragung \\ \end{spacing}}
+    \rule{\textwidth}{1pt}    
+    \vfill    
+    \begin{tabular}{ll} % Mitte der Seite
+      Vorgelegt von & Daniel, Jonas, Kamal \\
+      am & bald \\
+      Betreuer & Prof. Dr. M. Tessmann \\
+    \end{tabular}    
+    \vfill
+\end{center}
+\end{titlepage}
+\cleardoublepage
+
+% Zusammenfassung
+\begin{abstract} 
+Hier können wir eine kurze Zusammenfassung verfassen. Der restliche Text ist ein Blindtext. \blindtext
+\end{abstract}
+
+\tableofcontents
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% Content hier hin :)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\bibliographystyle{apalike} % Literaturverzeichnis
+\begin{btSect}{thesis} % mit bibtopic Quellen trennen
+\section*{Literaturverzeichnis}
+\btPrintCited
+\end{btSect}
+\begin{btSect}{online}
+\section*{Online-Quellen}
+\btPrintCited
+\end{btSect}
+
+\end{document}
