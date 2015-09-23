@@ -15,7 +15,7 @@
 #include <list>
 #include <iostream>
 
-enum class ParameterCategory
+enum class ParameterCategory : char
 {
     //General configuration
     GENERAL,

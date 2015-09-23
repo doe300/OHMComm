@@ -39,37 +39,33 @@ void UDPWrapper::startWinsock()
 	#endif
 }
 
-void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::string remoteAddress, unsigned short remotePort)
+void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::string remoteIPAddress, unsigned short remotePort)
 {
-    if(NetworkWrapper::isIPv6(remoteAddress))
+    if(NetworkWrapper::isIPv6(remoteIPAddress))
     {
         std::cout << "Using IPv6 ..." << std::endl;
         isIPv6 = true;
-        sockaddr_in6* localAdr = reinterpret_cast<sockaddr_in6*>(&(this->localAddress));
-        sockaddr_in6* remoteAdr = reinterpret_cast<sockaddr_in6*>(&(this->remoteAddress));
-        localAdr->sin6_family = AF_INET6;
+        localAddress.ipv6.sin6_family = AF_INET6;
         //listen on any address of this computer (localhost, local IP, ...)
-        localAdr->sin6_addr = in6addr_any;
-        localAdr->sin6_port = htons(localPort);
-        localAdr->sin6_flowinfo = {0};
-        localAdr->sin6_scope_id = {0};
-        remoteAdr->sin6_family = AF_INET6;
-        inet_pton(AF_INET6, remoteAddress.c_str(), &(remoteAdr->sin6_addr));
-        remoteAdr->sin6_port = htons(remotePort);
+        localAddress.ipv6.sin6_addr = in6addr_any;
+        localAddress.ipv6.sin6_port = htons(localPort);
+        localAddress.ipv6.sin6_flowinfo = {0};
+        localAddress.ipv6.sin6_scope_id = {0};
+        remoteAddress.ipv6.sin6_family = AF_INET6;
+        inet_pton(AF_INET6, remoteIPAddress.c_str(), &(remoteAddress.ipv6.sin6_addr));
+        remoteAddress.ipv6.sin6_port = htons(remotePort);
     }
     else
     {
         std::cout << "Using IPv4 ..." << std::endl;
         isIPv6 = false;
-        sockaddr_in* localAdr = reinterpret_cast<sockaddr_in*>(&(this->localAddress));
-        sockaddr_in* remoteAdr = reinterpret_cast<sockaddr_in*>(&(this->remoteAddress));
-        localAdr->sin_family = AF_INET;
+        localAddress.ipv4.sin_family = AF_INET;
         //listen on any address of this computer (localhost, local IP, ...)
-        localAdr->sin_addr.s_addr = INADDR_ANY;
-        localAdr->sin_port = htons(localPort);
-        remoteAdr->sin_family = AF_INET;
-        inet_pton(AF_INET, remoteAddress.c_str(), &(remoteAdr->sin_addr));
-        remoteAdr->sin_port = htons(remotePort);
+        localAddress.ipv4.sin_addr.s_addr = INADDR_ANY;
+        localAddress.ipv4.sin_port = htons(localPort);
+        remoteAddress.ipv4.sin_family = AF_INET;
+        inet_pton(AF_INET, remoteIPAddress.c_str(), &(remoteAddress.ipv4.sin_addr));
+        remoteAddress.ipv4.sin_port = htons(remotePort);
     }
 }
 

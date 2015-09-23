@@ -25,9 +25,16 @@ public:
 private:
     bool isIPv6;
     int Socket;
-    //we define them as IPv6-addresses, because it is the greater container-format (24 instead of 16 bytes) and is guaranteed to hold IPv4 addresses
-    sockaddr_in6 localAddress;
-    sockaddr_in6 remoteAddress;
+    //we define a union of an IPv4 and an IPv6 address
+    //because the two addresses have different size(16 bytes and 24 bytes) and therefore we can guarantee to hold enough space
+    //for either of the IP protocol versions
+    union socketAddress
+    {
+        sockaddr_in6 ipv6;
+        sockaddr_in ipv4;
+    };
+    socketAddress localAddress;
+    socketAddress remoteAddress;
 
     void startWinsock();
 
@@ -35,7 +42,7 @@ private:
 
     void initializeNetwork();
 
-    void initializeNetworkConfig(unsigned short localPort, const std::string remoteAddress, unsigned short remotePort);
+    void initializeNetworkConfig(unsigned short localPort, const std::string remoteIPAddress, unsigned short remotePort);
     
     /*!
      * \returns the size of the socket-address depending on the IP-version used
