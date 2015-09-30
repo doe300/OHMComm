@@ -638,7 +638,6 @@ bool PassiveConfiguration::runConfiguration()
 
     std::cout << "Passive Configuration received ... " << std::endl;
     
-    //TODO force buffer frames? Should be distinct from combination of sample-rate and audio-processors
     std::cout << "Received audio-format: " << AudioConfiguration::getAudioFormatDescription(receivedMessage.audioFormat, false) << std::endl;;
     audioConfig.forceAudioFormatFlag = receivedMessage.audioFormat;
     std::cout << "Received sample-rate: " << receivedMessage.sampleRate << std::endl;
@@ -772,9 +771,8 @@ bool FileConfiguration::runConfiguration()
         {
             std::getline(stream, line);
             if(stream.eof()) break;
-            if(stream.gcount() == 0 || line.empty()) continue;
+            if(line.empty()) continue;
             if(line[0] == '#') continue;
-            //FIXME possibly this loop is never executed (all beneath this line)
 
             //read key
             index = line.find('=');
@@ -789,7 +787,6 @@ bool FileConfiguration::runConfiguration()
             value = trim(line.substr(index));
             if(value[0] == '"')
             {
-                //TODO "escaped" strings do not work ?!
                 value = value.substr(1, value.size()-2);
                 //unescape escapes
                 replaceAll(value, "\\\"", "\"");
@@ -805,7 +802,7 @@ bool FileConfiguration::runConfiguration()
                 customConfig[key] = trim(value);
         }
         stream.close();
-
+        
         //interpret config
         if(customConfig.find(Parameters::AUDIO_HANDLER->longName) != customConfig.end())
         {
@@ -830,11 +827,13 @@ bool FileConfiguration::runConfiguration()
         {
             useDefaultAudioConfig = false;
             audioConfig.forceAudioFormatFlag = atoi(customConfig.at(Parameters::FORCE_AUDIO_FORMAT->longName).data());
+            audioConfig.audioFormatFlag = atoi(customConfig.at(Parameters::FORCE_AUDIO_FORMAT->longName).data());
         }
         if(customConfig.find(Parameters::FORCE_SAMPLE_RATE->longName) != customConfig.end())
         {
             useDefaultAudioConfig = false;
             audioConfig.forceSampleRate = atoi(customConfig.at(Parameters::FORCE_SAMPLE_RATE->longName).data());
+            audioConfig.sampleRate = atoi(customConfig.at(Parameters::FORCE_SAMPLE_RATE->longName).data());
         }
         audioConfig.inputDeviceChannels = 2;
         audioConfig.outputDeviceChannels = 2;
