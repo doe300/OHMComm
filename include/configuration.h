@@ -8,22 +8,12 @@
 #ifndef CONFIGURATION_H
 #define	CONFIGURATION_H
 
-#define TESTMODE 0
-#define PACKET_LOSS_CHANCE_IN_PERCENT 0
-
-#if TESTMODE
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <random>
-#endif
-
 #include <string>
 
 //the port should be a number greater than 1024
 static const int DEFAULT_NETWORK_PORT = 12345;
 //The program's current version as string
-static const std::string OHMCOMM_VERSION = "0.3";
+static const std::string OHMCOMM_VERSION = "0.5";
 
 struct NetworkConfiguration
 {

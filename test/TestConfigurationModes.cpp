@@ -13,7 +13,6 @@ TestConfigurationModes::TestConfigurationModes()
     TEST_ADD(TestConfigurationModes::testLibraryConfiguration);
     TEST_ADD(TestConfigurationModes::testPassiveConfiguration);
     TEST_ADD(TestConfigurationModes::testFileConfiguration);
-    //TODO extend tests for getCustomConfig
 }
 
 void TestConfigurationModes::testParameterConfiguration()
@@ -104,6 +103,9 @@ void TestConfigurationModes::testLibraryConfiguration()
     TEST_ASSERT_MSG(!mode->getAudioHandlerConfiguration().second, "default audio-configuration was not used!");
     TEST_ASSERT_EQUALS("test.log", mode->getLogToFileConfiguration().second);
     TEST_ASSERT_EQUALS(DEFAULT_NETWORK_PORT, mode->getNetworkConfiguration().localPort);
+    
+    ((LibraryConfiguration*)mode)->configureCustomValue("someKey", 123);
+    TEST_ASSERT_EQUALS(123, mode->getCustomConfiguration("someKey", "", 42));
 
     delete mode;
 }

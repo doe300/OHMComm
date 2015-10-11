@@ -107,17 +107,7 @@ bool UDPWrapper::createSocket()
 
 int UDPWrapper::sendData(void *buffer, unsigned int bufferSize)
 {
-	#if TESTMODE
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(1, 100);
-	int i = dis(gen);
-	if (i <= PACKET_LOSS_CHANCE_IN_PERCENT)
-		return bufferSize;
-
-	#endif
     return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->remoteAddress), getSocketAddressLength());
-
 }
 
 int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
