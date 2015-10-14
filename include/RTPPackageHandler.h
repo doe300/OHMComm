@@ -238,6 +238,11 @@ enum PayloadType
     DVI4_88 = 17,
     //ITU-T G.729(a) - https://en.wikipedia.org/wiki/G.729
     G729 = 18,
+    //OPUS variable bandwidth - https://en.wikipedia.org/wiki/Opus_%28audio_format%29
+    //RFC 7587 (RTP Payload Format for Opus, see: https://ietf.org/rfc/rfc7587.txt) defines the opus payload-type as dynamic
+    OPUS,
+    //dummy payload-type to accept all types
+    ALL = -1
 
 };
 

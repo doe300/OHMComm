@@ -41,6 +41,8 @@ public:
      * The wav implementation only supports the 44.1kHz sample-rate
      */
     unsigned int getSupportedSampleRates() const;
+    
+    PayloadType getSupportedPlayloadType() const;
 
     /*!
      * If input-logging is active, writes the audio-input to the input-logging file

@@ -2,9 +2,10 @@
 #include "Statistics.h"
 #include "RTCPPackageHandler.h"
 
-ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, std::shared_ptr<RTPBufferHandler> buffer) : AudioProcessor(name)
+ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
+                           std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType)
 {
-	this->networkObject = networkwrapper;
+    this->networkObject = networkwrapper;
     this->rtpBuffer = buffer;
 }
 
@@ -28,7 +29,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     // pack data into a rtp-package
     if (rtpPackage == nullptr)
     {
-        rtpPackage = new RTPPackageHandler(userData->maxBufferSize);
+        rtpPackage = new RTPPackageHandler(userData->maxBufferSize, payloadType);
     }
     void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer, inputBufferByteSize);
     //only send the number of bytes really required: header + actual payload-size
@@ -48,7 +49,7 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
     // unpack data from a rtp-package
     if (rtpPackage == nullptr)
     {
-        rtpPackage = new RTPPackageHandler(userData->maxBufferSize);
+        rtpPackage = new RTPPackageHandler(userData->maxBufferSize, payloadType);
     }
     //read package from buffer
     auto result = rtpBuffer->readPackage(*rtpPackage);

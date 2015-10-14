@@ -94,7 +94,7 @@ private:
     std::shared_ptr<NetworkWrapper> networkWrapper;
     std::unique_ptr<RTPListener> listener;
 
-    void configureRTPProcessor(bool profileProcessors);
+    void configureRTPProcessor(bool profileProcessors, const PayloadType payloadType);
     std::function<void ()> createStopCallback();
 };
 

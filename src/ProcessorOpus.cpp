@@ -54,6 +54,11 @@ const std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampl
     }
 }
 
+PayloadType ProcessorOpus::getSupportedPlayloadType() const
+{
+    return PayloadType::OPUS;
+}
+
 bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
 {
     outputDeviceChannels = audioConfig.outputDeviceChannels;

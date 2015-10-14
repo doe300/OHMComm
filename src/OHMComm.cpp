@@ -83,11 +83,15 @@ void OHMComm::startAudioThreads()
     networkWrapper = std::move(tmp);
     std::vector<std::string> procNames(0);
     bool profileProcessors = configurationMode->getAudioProcessorsConfiguration(procNames);
+    PayloadType payloadType = PayloadType::L16_2;
     for(const std::string& procName : procNames)
     {
-        audioHandler->addProcessor(AudioProcessorFactory::getAudioProcessor(procName, profileProcessors));
+        AudioProcessor* proc = AudioProcessorFactory::getAudioProcessor(procName, profileProcessors);
+        audioHandler->addProcessor(proc);
+        //only the last non-default payload-type is required
+        payloadType = proc->getSupportedPlayloadType() == PayloadType::ALL ? payloadType : proc->getSupportedPlayloadType();
     }
-    configureRTPProcessor(profileProcessors);
+    configureRTPProcessor(profileProcessors, payloadType);
 
     //run threads
 
@@ -142,9 +146,9 @@ bool OHMComm::isRunning() const
     return running;
 }
 
-void OHMComm::configureRTPProcessor(bool profileProcessors)
+void OHMComm::configureRTPProcessor(bool profileProcessors, const PayloadType payloadType)
 {
-    ProcessorRTP* rtpProcessor = new ProcessorRTP("RTP-Processor", networkWrapper, rtpBuffer);
+    ProcessorRTP* rtpProcessor = new ProcessorRTP("RTP-Processor", networkWrapper, rtpBuffer, payloadType);
     if(profileProcessors)
     {
         //enabled profiling of the RTP processor

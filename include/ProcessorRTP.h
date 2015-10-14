@@ -24,8 +24,11 @@ public:
      * \param networkwrapper The NetworkWrapper to use sending packages
      *
      * \param buffer The RTPBuffer to read packages from
+     * 
+     * \param payloadType The payload-type for the RTP packages
      */
-    ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, std::shared_ptr<RTPBufferHandler> buffer);
+    ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
+                 std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType);
 
     unsigned int getSupportedAudioFormats() const;
     unsigned int getSupportedSampleRates() const;
@@ -38,6 +41,7 @@ public:
 private:
     std::shared_ptr<NetworkWrapper> networkObject;
     RTPPackageHandler *rtpPackage = nullptr;
-	std::shared_ptr<RTPBufferHandler> rtpBuffer;
+    std::shared_ptr<RTPBufferHandler> rtpBuffer;
+    const PayloadType payloadType;
 };
 #endif

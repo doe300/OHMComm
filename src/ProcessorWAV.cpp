@@ -70,6 +70,11 @@ unsigned int ProcessorWAV::getSupportedSampleRates() const
     return AudioConfiguration::SAMPLE_RATE_44100;
 }
 
+PayloadType ProcessorWAV::getSupportedPlayloadType() const
+{
+    return PayloadType::L16_2;
+}
+
 unsigned int ProcessorWAV::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
     if(writeInputFile != nullptr)

@@ -7,6 +7,11 @@ const std::string AudioProcessor::getName() const
     return name;
 }
 
+PayloadType AudioProcessor::getSupportedPlayloadType() const
+{
+    return PayloadType::ALL;
+}
+
 bool AudioProcessor::configure(const AudioConfiguration& config, std::shared_ptr<ConfigurationMode> configMode)
 {
     //dummy implementation, does nothing

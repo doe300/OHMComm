@@ -8,6 +8,7 @@
 
 #include "configuration.h"
 #include "ConfigurationMode.h"
+#include "RTPPackageHandler.h"
 
 /*!
  * This AudioProcessor supports any buffer-length
@@ -92,6 +93,17 @@ public:
      * \return A list of buffer-sizes sorted in descending priority
      */
     virtual const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const = 0;
+    
+    /*!
+     * The payload-type returned by this method has no decision value. 
+     * It is only used to set the correct payload-type to the RTP packages.
+     * 
+     * Additionally, only the payload-type of the last processor in the chain is used.
+     * Because this processor determines the actual type of the payload
+     * 
+     * \return The supported payload-type
+     */
+    virtual PayloadType getSupportedPlayloadType() const;
 
     /*!
      * Overwrite this method, if this AudioProcessor needs configuration
