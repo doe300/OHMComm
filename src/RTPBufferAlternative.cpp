@@ -41,7 +41,7 @@ RTPBufferStatus RTPBufferAlternative::addPackage(RTPPackageHandler &package, uns
 	unsigned int currentSeqNr = package.getRTPPackageHeader()->sequence_number;
 
 	if (currentSeqNr <= lastReadSeqNr)
-		return RTP_BUFFER_PACKAGE_TO_OLD;
+		return RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD;
 
 	// Add the packet to the ringBuffer
 	lockMutex();
@@ -52,7 +52,7 @@ RTPBufferStatus RTPBufferAlternative::addPackage(RTPPackageHandler &package, uns
 
 	// Overflow-Detection (check if the addPacket()-function did set the overflow flag)
 	if (ringBuffer[packetPositionRingBuffer]->overflow())
-		return RTP_BUFFER_INPUT_OVERFLOW;
+		return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
 
 	// A new packet was added successfully, count the amount of added packets in the buffer
 	amountOfPackages++;
@@ -60,7 +60,7 @@ RTPBufferStatus RTPBufferAlternative::addPackage(RTPPackageHandler &package, uns
 	if (amountOfPackages >= minBufferPackages)
 		bufferContainsPackages = true;
 
-	return RTP_BUFFER_ALL_OKAY;
+	return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }
 
 RTPBufferStatus RTPBufferAlternative::readPackage(RTPPackageHandler &package)
@@ -69,7 +69,7 @@ RTPBufferStatus RTPBufferAlternative::readPackage(RTPPackageHandler &package)
 	if (bufferContainsPackages == false)
 	{
 		copySilencePackageIntoPackage(package);
-		return RTP_BUFFER_IS_PUFFERING;
+		return RTPBufferStatus::RTP_BUFFER_IS_PUFFERING;
 	}
 
 	lockMutex();
@@ -95,7 +95,7 @@ RTPBufferStatus RTPBufferAlternative::readPackage(RTPPackageHandler &package)
 		lastReadSeqNr++;
 		copySilencePackageIntoPackage(package);
 		amountOfUnderflowsInRow++;
-		return RTP_BUFFER_OUTPUT_UNDERFLOW;
+		return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
 	}
 
 	// If there was no underflow, then data has been read from the buffer -> decrement currentPackagesCount
@@ -109,7 +109,7 @@ RTPBufferStatus RTPBufferAlternative::readPackage(RTPPackageHandler &package)
 		
 
 	amountOfUnderflowsInRow = 0;
-	return RTP_BUFFER_ALL_OKAY;
+	return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }
 
 unsigned int RTPBufferAlternative::getSize() const

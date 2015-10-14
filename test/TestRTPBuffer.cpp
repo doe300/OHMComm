@@ -25,15 +25,15 @@ void TestRTPBuffer::testMinBufferPackages()
 		//copies the new-buffer into the work-buffer
 		package.getRTPPackageHeader(buf);
 		RTPBufferStatus result = handler->addPackage(package, 10);
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, result);
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 	//now we have to read a silent-package
 	RTPBufferStatus result = handler->readPackage(package);
 	switch (result)
 	{
-	case(RTP_BUFFER_OUTPUT_UNDERFLOW) : break;
-	case(RTP_BUFFER_IS_PUFFERING) : break;
-	case(RTP_BUFFER_ALL_OKAY) : TEST_FAIL("Unexpected return value (RTP_BUFFER_ALL_OKAY) from buffer->readPackage().\n");
+	case(RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW) : break;
+	case(RTPBufferStatus::RTP_BUFFER_IS_PUFFERING) : break;
+	case(RTPBufferStatus::RTP_BUFFER_ALL_OKAY) : TEST_FAIL("Unexpected return value (RTP_BUFFER_ALL_OKAY) from buffer->readPackage().\n");
 	default: TEST_FAIL("Unexpected return value from buffer->readPackage().\n");
 	}
 }
@@ -48,14 +48,14 @@ void TestRTPBuffer::testWriteFullBuffer()
 		//copies the new-buffer into the work-buffer
 		package.getRTPPackageHeader(buf);
 		RTPBufferStatus result = handler->addPackage(package, 10);
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, result);
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 	//write the next package -> should fail
 	void* buf = package.getNewRTPPackage(someText, 16);
 	//copies the new-buffer into the work-buffer
 	package.getRTPPackageHeader(buf);
 	RTPBufferStatus result = handler->addPackage(package, 10);
-	TEST_ASSERT_EQUALS(RTP_BUFFER_INPUT_OVERFLOW, result);
+	TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW, result);
 }
 
 void TestRTPBuffer::testReadSuccessivePackages()
@@ -84,7 +84,7 @@ void TestRTPBuffer::testWriteOldPackage()
 	void* buf = package.getNewRTPPackage(someText, 16);
 	//copies the new-buffer into the work-buffer
 	package.getRTPPackageHeader(buf);
-	TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->addPackage(package, 10));
+	TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, handler->addPackage(package, 10));
 	unsigned int size = handler->getSize();
 
 	//write a package which is far too old
@@ -96,8 +96,8 @@ void TestRTPBuffer::testWriteOldPackage()
 	auto result = handler->addPackage(package, 10);
 	switch (result)
 	{
-	case(RTP_BUFFER_ALL_OKAY) : break;
-	case(RTP_BUFFER_PACKAGE_TO_OLD) : break;
+	case(RTPBufferStatus::RTP_BUFFER_ALL_OKAY) : break;
+	case(RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD) : break;
 	default: TEST_FAIL("Unexpected return value from buffer->addPackage().\n");
 	}
 
@@ -118,7 +118,7 @@ void TestRTPBuffer::testPackageBlockLoss()
 	while (handler->getSize() > 0)
 	{
 		auto result = handler->readPackage(package);
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, result);
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 
 	auto test = handler->getSize();
@@ -131,7 +131,7 @@ void TestRTPBuffer::testPackageBlockLoss()
 		//copies the new-buffer into the work-buffer
 		package.getRTPPackageHeader(buf);
 		auto result = handler->addPackage(package, 10);
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, result);
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 	//skip a block (brute force)
 	for (int i = 0; i < 10; i++)
@@ -147,7 +147,7 @@ void TestRTPBuffer::testPackageBlockLoss()
 		//copies the new-buffer into the work-buffer
 		package.getRTPPackageHeader(buf);
 		auto result = handler->addPackage(package, 10);
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, result);
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 
 	//tests - we read 30 packages
@@ -155,17 +155,17 @@ void TestRTPBuffer::testPackageBlockLoss()
 	for (int i = 0; i < 10; i++)
 	{
 		auto result = handler->readPackage(package);
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, result);
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 	for (int i = 0; i < 10; i++)
 	{
 		auto result = handler->readPackage(package);
-		TEST_ASSERT_EQUALS(RTP_BUFFER_OUTPUT_UNDERFLOW, result);
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW, result);
 	}
 	for (int i = 0; i < 10; i++)
 	{
 		auto result = handler->readPackage(package);
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, result);
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 	auto resultSize = handler->getSize();
 	TEST_ASSERT_EQUALS(0, resultSize);
@@ -186,7 +186,7 @@ void TestRTPBuffer::testContinousPackageLoss()
 	//we first empty the buffer
 	while (handler->getSize() > 0)
 	{
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
 	}
 
 	TEST_ASSERT_EQUALS(0, handler->getSize());
@@ -202,15 +202,15 @@ void TestRTPBuffer::testContinousPackageLoss()
 		//copies the new-buffer into the work-buffer
 		package.getRTPPackageHeader(buf);
 		lastSeqNum = package.getRTPPackageHeader()->sequence_number;
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->addPackage(package, 10));
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, handler->addPackage(package, 10));
 	}
 
 	TEST_ASSERT_EQUALS(10, handler->getSize());
 	//we need to be able to read 20 packages
 	for (int i = 0; i < 10; i++)
 	{
-		TEST_ASSERT_EQUALS(RTP_BUFFER_OUTPUT_UNDERFLOW, handler->readPackage(package));
-		TEST_ASSERT_EQUALS(RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW, handler->readPackage(package));
+		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
 	}
 	TEST_ASSERT_EQUALS(lastSeqNum, package.getRTPPackageHeader()->sequence_number);
 	TEST_ASSERT_EQUALS(0, handler->getSize());

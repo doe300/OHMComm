@@ -42,20 +42,20 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int c
     {
         //discard package, because it is older than the minimum sequence number to hold
         unlockMutex();
-        return RTP_BUFFER_ALL_OKAY;
+        return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
     }
 
     if(size == capacity)
     {
         //buffer is full
         unlockMutex();
-        return RTP_BUFFER_INPUT_OVERFLOW;
+        return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
     }
     if(receivedHeader->sequence_number - minSequenceNumber >= capacity)
     {
         //should never occur: package is far too new -> we have now choice but to discard it without getting into an undetermined state
         unlockMutex();
-        return RTP_BUFFER_INPUT_OVERFLOW;
+        return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
     }
     uint16_t newWriteIndex = calculateIndex(nextReadIndex, receivedHeader->sequence_number-minSequenceNumber);
     //write package-data into buffer
@@ -81,7 +81,7 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int c
     size++;
     Statistics::maxCounter(Statistics::RTP_BUFFER_MAXIMUM_USAGE, size);
     unlockMutex();
-    return RTP_BUFFER_ALL_OKAY;
+    return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }
 
 RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
@@ -94,7 +94,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         package.createSilencePackage();
         package.setActualPayloadSize(package.getMaximumPackageSize());
         unlockMutex();
-        return RTP_BUFFER_OUTPUT_UNDERFLOW;
+        return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
     //need to search for oldest valid package, newer than minSequenceNumber and newer than currentTimestamp - maxDelay
     uint16_t index = nextReadIndex;
@@ -123,7 +123,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         package.createSilencePackage();
         package.setActualPayloadSize(package.getMaximumPackageSize());
         unlockMutex();
-        return RTP_BUFFER_OUTPUT_UNDERFLOW;
+        return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
 
     char *packageBuffer = (char *)package.getWorkBuffer();
@@ -141,7 +141,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     //only accept newer packages (at least one sequence number more than last read package)
     minSequenceNumber = (bufferPack->header.sequence_number + 1) % UINT16_MAX;
     unlockMutex();
-    return RTP_BUFFER_ALL_OKAY;
+    return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }
 
 unsigned int RTPBuffer::getSize() const

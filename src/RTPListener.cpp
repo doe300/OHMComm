@@ -57,12 +57,12 @@ void RTPListener::runThread()
         {
             //2. write package to buffer
             auto result = buffer->addPackage(rtpHandler, receivedSize - RTP_HEADER_MIN_SIZE);
-            if (result == RTP_BUFFER_INPUT_OVERFLOW)
+            if (result == RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW)
             {
                 //TODO some handling or simply discard?
                 std::cerr << "Input Buffer overflow" << std::endl;
             }
-                else if (result == RTP_BUFFER_PACKAGE_TO_OLD)
+                else if (result == RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD)
                 {
                     std::cerr << "Package was too old, discarding" << std::endl;
             }

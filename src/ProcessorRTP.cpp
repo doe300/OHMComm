@@ -54,11 +54,11 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
     //read package from buffer
     auto result = rtpBuffer->readPackage(*rtpPackage);
 
-	if (result == RTP_BUFFER_IS_PUFFERING)
+	if (result == RTPBufferStatus::RTP_BUFFER_IS_PUFFERING)
 	{
 		std::cerr <<  "Buffer is puffering" << std::endl;
 	}
-	else if (result == RTP_BUFFER_OUTPUT_UNDERFLOW)
+	else if (result == RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW)
 	{
 		std::cerr << "Output Buffer underflow" << std::endl;
 	}
