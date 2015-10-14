@@ -7,7 +7,7 @@
 
 #include "TestRTP.h"
 
-TestRTP::TestRTP()
+TestRTP::TestRTP() : Test::Suite()
 {
     TEST_ADD(TestRTP::testRTPPackage);
 }

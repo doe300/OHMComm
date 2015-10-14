@@ -35,6 +35,8 @@ public:
     void redirectStdin();
 
     void resetStdin();
+    
+    bool before(const std::string& methodName);
 private:
     void writeTestInput(std::string input);
     std::streambuf* origStdinBuf;

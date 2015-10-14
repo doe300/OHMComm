@@ -20,6 +20,14 @@ TestUserInput::TestUserInput()
     TEST_ADD(TestUserInput::resetStdin);
 }
 
+bool TestUserInput::before(const std::string& methodName)
+{
+    testStream.flush();
+    testStream.clear();
+    std::cin.clear();
+    return true;
+}
+
 inline void TestUserInput::writeTestInput(std::string input)
 {
     std::cout.flush();
@@ -90,7 +98,6 @@ void TestUserInput::testSelectIntOption()
 {
     std::vector<int> options = {5,8,7,9};
     writeTestInput("8");
-    //TODO something is wrong here, does not receive correct number
     int result = UserInput::selectOption("Type '8'", options, 5); // Returns first value of options
     TEST_ASSERT_EQUALS_MSG(8, result, "Int selection failed for: 8");
     writeTestInput("10");
