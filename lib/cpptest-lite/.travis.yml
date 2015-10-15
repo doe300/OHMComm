@@ -1,0 +1,33 @@
+os:
+  - linux
+  - osx
+
+language: cpp
+compiler: 
+  - gcc
+  - clang
+
+matrix:
+  exclude:
+    - os: osx
+      compiler: gcc # GCC is linked to clang, so we don't need to compile twice for same compiler/platform
+
+before_script:
+  - echo $TRAVIS_OS_NAME
+  # LINUX
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq > /dev/null; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-4.8; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90; fi
+  #OSX
+  # - gcc is linked to clang, which is in appropriate version
+  - mkdir build
+  - cd build
+  - cmake -DCPPTEST_LITE_CREATE_TESTS=ON ../
+  
+script: make
+
+after_script:
+  - cd build
+  - chmod +x testCppTestLite
+  - ./testCppTestLite
