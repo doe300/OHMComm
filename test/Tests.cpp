@@ -1,4 +1,5 @@
 #include "Tests.h"
+#include "TestAudioProcessors.h"
 #include "TestUserInput.h"
 #include "TestParameters.h"
 #include "TestRTCP.h"
@@ -76,4 +77,7 @@ int main(int argc, char** argv)
 
     TestRTPBuffer testBuffer;
     testBuffer.run(output);
+    
+    TestAudioProcessors testProcessors;
+    testProcessors.run(output);
 }
