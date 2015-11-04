@@ -136,3 +136,24 @@ unsigned int RTPPackageHandler::getSSRC()
     return ssrc;
 }
 
+bool RTPPackageHandler::isRTPPackage(void* packageBuffer, unsigned int packageLength)
+{
+    //1. check for package size, if large enough
+    if(packageLength < RTP_HEADER_MIN_SIZE)
+    {
+        return false;
+    }
+    //2. we assume, it is an RTP package
+    RTPHeader *readHeader = (RTPHeader* )packageBuffer;
+
+    //3. check for header-fields
+    if(readHeader->version != 2)
+    {
+        //version is always 2 per specification
+        return false;
+    }
+    //we have no more fields to eliminate the package as RTP-package, so we accept it
+    return true;
+}
+
+

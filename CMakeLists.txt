@@ -38,7 +38,6 @@ include_directories ("${PROJECT_SOURCE_DIR}/lib/opus-1.1/include")
 add_subdirectory(src build)
 
 if (BUILD_TESTING)
-	#add_subdirectory(lib/cpptest-1.1.2 build/cpptest)
 	add_subdirectory(lib/cpptest-lite build/cpptest-lite)
     add_subdirectory(test build/test)
 endif (BUILD_TESTING)

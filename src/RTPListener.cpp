@@ -45,7 +45,7 @@ void RTPListener::runThread()
             //socket was already closed
             shutdown();
         }
-        else if (rtcpHandler.isRTCPPackage(rtpHandler.getWorkBuffer(), receivedSize))
+        else if (RTCPPackageHandler::isRTCPPackage(rtpHandler.getWorkBuffer(), receivedSize))
         {
             handleRTCPPackage(rtpHandler.getWorkBuffer(), (unsigned int)receivedSize);
         }
@@ -53,7 +53,7 @@ void RTPListener::runThread()
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
-        else if(threadRunning)
+        else if(threadRunning && RTPPackageHandler::isRTPPackage(rtpHandler.getWorkBuffer(), (unsigned int)receivedSize))
         {
             //2. write package to buffer
             auto result = buffer->addPackage(rtpHandler, receivedSize - RTP_HEADER_MIN_SIZE);

@@ -335,6 +335,19 @@ public:
      * Returns this device SSRC
      */
     unsigned int getSSRC();
+    
+    /*!
+     * This method tries to determine whether the received buffer holds an RTP package.
+     *
+     * NOTE: There may be some type of packages, which are not distinguished and falsely accepted as valid RTP-package.
+     *
+     * \param packageBuffer The buffer storing the package-data
+     *
+     * \param packageLength The length of the package in bytes
+     *
+     * \return Whether this buffer COULD be holding hold an RTP package
+     */
+    static bool isRTPPackage(void* packageBuffer, unsigned int packageLength );
 
 private:
     // When a new RTP-Package is created, it will be written in this buffer
