@@ -73,7 +73,7 @@ void PassiveConfigurationHandler::runThread()
                 std::cerr << "Buffer not large enough!" << std::endl;
                 return;
             }
-            std::cout << "Sending configuration-response: audio-format = " << msg.audioFormat << ", sample-rate = " 
+            std::cout << "Sending configuration-response: audio-format = " << AudioConfiguration::getAudioFormatDescription(msg.audioFormat, false) << ", sample-rate = " 
                     << msg.sampleRate << ", channels = " << msg.nChannels << ", number of audio-processors = " << msg.numProcessorNames << std::endl;
             RTCPPackageHandler handler;
             RTCPHeader responseHeader(0);  //SSID doesn't really matter

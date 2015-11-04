@@ -54,14 +54,14 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
     //read package from buffer
     auto result = rtpBuffer->readPackage(*rtpPackage);
 
-	if (result == RTPBufferStatus::RTP_BUFFER_IS_PUFFERING)
-	{
-		std::cerr <<  "Buffer is puffering" << std::endl;
-	}
-	else if (result == RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW)
-	{
-		std::cerr << "Output Buffer underflow" << std::endl;
-	}
+    if (result == RTPBufferStatus::RTP_BUFFER_IS_PUFFERING)
+    {
+        std::cerr <<  "Buffer is buffering" << std::endl;
+    }
+    else if (result == RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW)
+    {
+        std::cerr << "Output Buffer underflow" << std::endl;
+    }
 
     void* recvAudioData = rtpPackage->getRTPPackageData();
     unsigned int receivedPayloadSize = rtpPackage->getActualPayloadSize();
