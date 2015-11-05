@@ -55,6 +55,19 @@ const NetworkConfiguration ConfigurationMode::getNetworkConfiguration() const
     return networkConfig;
 }
 
+const NetworkConfiguration ConfigurationMode::getRTCPNetworkConfiguration() const
+{
+    if(!isConfigured())
+    {
+        throw std::runtime_error("Configuration was not finished!");
+    }
+    NetworkConfiguration rtcpConfig;
+    rtcpConfig.localPort = networkConfig.localPort+1;
+    rtcpConfig.remoteIPAddress = networkConfig.remoteIPAddress;
+    rtcpConfig.remotePort = networkConfig.remotePort+1;
+    return rtcpConfig;
+}
+
 bool ConfigurationMode::isConfigured() const
 {
     return isConfigurationDone;
@@ -594,7 +607,8 @@ bool PassiveConfiguration::runConfiguration()
     {
         return true;
     }
-    UDPWrapper wrapper(networkConfig);
+    //we need to connect to remote RTCP port
+    UDPWrapper wrapper(getRTCPNetworkConfiguration());
 
     RTCPPackageHandler handler;
     RTCPHeader requestHeader(0);  //we do not have a SSID and it doesn't really matter

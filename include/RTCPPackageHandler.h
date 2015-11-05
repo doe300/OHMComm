@@ -304,6 +304,55 @@ struct SourceDescription
 
     //variable length value
     std::string value;
+    
+    /*!
+     * \return The name of the source-description type
+     */
+    const std::string getTypeName() const
+    {
+        switch(type)
+        {
+            case RTCP_SOURCE_CNAME:
+                return "Endpoint";
+            case RTCP_SOURCE_EMAIL:
+                return "Email";
+            case RTCP_SOURCE_LOC:
+                return "Location";
+            case RTCP_SOURCE_NAME:
+                return "Name";
+            case RTCP_SOURCE_NOTE:
+                return "Note";
+            case RTCP_SOURCE_PHONE:
+                return "Phone";
+            case RTCP_SOURCE_TOOL:
+                return "Application";
+        }
+        return "";
+    }
+    
+    /*!
+     * \param typeName The name of the source-description
+     * 
+     * \return The type for the given source-description name
+     */
+    const static RTCPSourceDescriptionType getType(const std::string& typeName)
+    {
+        if(typeName.compare("Endpoint") == 0)
+            return RTCP_SOURCE_CNAME;
+        if(typeName.compare("Email") == 0)
+            return RTCP_SOURCE_EMAIL;
+        if(typeName.compare("Location") == 0)
+            return RTCP_SOURCE_LOC;
+        if(typeName.compare("Name") == 0)
+            return RTCP_SOURCE_NAME;
+        if(typeName.compare("Note") == 0)
+            return RTCP_SOURCE_NOTE;
+        if(typeName.compare("Phone") == 0)
+            return RTCP_SOURCE_PHONE;
+        if(typeName.compare("Application") == 0)
+            return RTCP_SOURCE_TOOL;
+        return 0;
+    }
 };
 
 /*!
@@ -553,6 +602,7 @@ public:
     static const unsigned int getRTCPPackageLength(unsigned int lengthHeaderField);
 
 private:
+    const unsigned int maxPackageSize;
     char *rtcpPackageBuffer;
 
     /*!
@@ -561,6 +611,8 @@ private:
      * Specification: "The length of this RTCP packet in 32-bit words minus one, including the header and any padding"
      */
     static const uint8_t calculateLengthField(uint16_t length);
+    
+    friend class RTCPHandler;
 };
 
 #endif	/* RTCPPACKAGEHANDLER_H */

@@ -1,6 +1,5 @@
 #include "ProcessorRTP.h"
 #include "Statistics.h"
-#include "RTCPPackageHandler.h"
 
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
                            std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType)
@@ -78,11 +77,6 @@ bool ProcessorRTP::cleanUp()
         //if we never sent a RTP-package, there is no need to end the communication
         return true;
     }
-    // Send a RTCP BYE-packet, to tell the other side that communication has been stopped
-    RTCPPackageHandler rtcpHandler;
-    RTCPHeader byeHeader(rtpPackage->getSSRC());
-    void* packageBuffer = rtcpHandler.createByePackage(byeHeader, "Program exit");
-    this->networkObject->sendData(packageBuffer, RTCPPackageHandler::getRTCPPackageLength(byeHeader.length));
     std::cout << "Communication terminated." << std::endl;
     //clean up send-buffer
     delete rtpPackage;

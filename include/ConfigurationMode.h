@@ -53,6 +53,11 @@ public:
      * \return the configured NetworkConfiguration
      */
     const NetworkConfiguration getNetworkConfiguration() const;
+    
+    /*!
+     * \return the configured NetworkConfiguration for the RTCP-port
+     */
+    const NetworkConfiguration getRTCPNetworkConfiguration() const;
 
     /*!
      * \return a pair containing (first) all configured processor-names and (second) a flag whether to profile the processors

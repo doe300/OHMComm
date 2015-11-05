@@ -9,13 +9,13 @@
 
 #include "RTCPPackageHandler.h"
 
-RTCPPackageHandler::RTCPPackageHandler()
+RTCPPackageHandler::RTCPPackageHandler() : maxPackageSize(8000)
 {
     //maximal SR size: 8 (header) + 20 (sender-info) + 31 (5 bit RC count) * 24 (reception report) = 772
     //maximal RR size: 8 (header) + 31 (5 bit RC count) * 24 (reception report) = 752
     //maximal SDES size: 8 (header) + 31 (5 bit SDES count) * (1 (SDES type) + 1 (SDES length) + 255 (max 255 characters)) = 7975
     //maximal BYE size: 8 (header) + 1 (length) + 255 (max 255 characters) = 264
-    rtcpPackageBuffer = new char[8000];
+    rtcpPackageBuffer = new char[maxPackageSize];
 }
 
 RTCPPackageHandler::~RTCPPackageHandler()

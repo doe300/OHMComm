@@ -13,6 +13,7 @@
 #include "RTPBuffer.h"
 #include "NetworkWrapper.h"
 #include "RTPListener.h"
+#include "RTCPHandler.h"
 
 #include <functional>
 #include <memory> // unique_ptr
@@ -93,9 +94,12 @@ private:
     std::unique_ptr<AudioHandler> audioHandler;
     std::shared_ptr<NetworkWrapper> networkWrapper;
     std::unique_ptr<RTPListener> listener;
+    std::unique_ptr<RTCPHandler> rtcpHandler;
 
     void configureRTPProcessor(bool profileProcessors, const PayloadType payloadType);
     std::function<void ()> createStopCallback();
+    
+    void startAudio();
 };
 
 #endif	/* OHMCOMM_H */

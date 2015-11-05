@@ -45,10 +45,6 @@ void RTPListener::runThread()
             //socket was already closed
             shutdown();
         }
-        else if (RTCPPackageHandler::isRTCPPackage(rtpHandler.getWorkBuffer(), receivedSize))
-        {
-            handleRTCPPackage(rtpHandler.getWorkBuffer(), (unsigned int)receivedSize);
-        }
         else if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
         {
             //just continue to next loop iteration, checking if thread should continue running
@@ -76,22 +72,6 @@ void RTPListener::runThread()
     }
     std::cout << "RTP-Listener shut down" << std::endl;
 }
-
-void RTPListener::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSize)
-{
-    //handle RTCP-packages
-    RTCPHeader header = rtcpHandler.readRTCPHeader(receiveBuffer, receivedSize);
-    if(header.packageType == RTCP_PACKAGE_GOODBYE)
-    {
-        //other side sent an BYE-package, shutting down
-        std::cout << "Received Goodbye-message: " << rtcpHandler.readByeMessage(receiveBuffer, receivedSize, header) << std::endl;
-        std::cout << "Dialog partner requested end of communication, shutting down!" << std::endl;
-        shutdown();
-        //notify OHMComm to shut down
-        stopCallback();
-    }
-}
-
 
 void RTPListener::shutdown()
 {

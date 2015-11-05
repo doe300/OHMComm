@@ -13,7 +13,6 @@
 
 #include "RTPBufferHandler.h"
 #include "NetworkWrapper.h"
-#include "RTCPPackageHandler.h"
 
 /*!
  * Listening-thread for incoming RTP-packages
@@ -52,7 +51,6 @@ private:
     std::shared_ptr<NetworkWrapper> wrapper;
     std::shared_ptr<RTPBufferHandler> buffer;
     RTPPackageHandler rtpHandler;
-    RTCPPackageHandler rtcpHandler;
     std::thread receiveThread;
     bool threadRunning = false;
 
@@ -60,11 +58,6 @@ private:
      * Method called in the parallel thread, receiving packages and writing them into RTPBuffer
      */
     void runThread();
-
-    /*!
-     * This method handles received RTCP packages and is called only from #runThread()
-     */
-    void handleRTCPPackage(void* receiveBuffer, unsigned int receivedSize);
 };
 
 #endif	/* RTPLISTENER_H */
