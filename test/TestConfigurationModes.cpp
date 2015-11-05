@@ -170,7 +170,7 @@ void TestConfigurationModes::testFileConfiguration()
     TEST_ASSERT_EQUALS(44100, audioConf.sampleRate);
     TEST_ASSERT_EQUALS(2, audioConf.audioFormatFlag);
     
-    TEST_ASSERT_EQUALS(std::string("value"), mode->getCustomConfiguration("key", "", std::string("empty")));
+    TEST_ASSERT_EQUALS(std::string("value"), mode->getCustomConfiguration("key", "", "empty"));
     
     delete mode;
 }

@@ -27,6 +27,13 @@ const Parameter* Parameters::LOCAL_PORT = Parameters::registerParameter(Paramete
 const Parameter* Parameters::AUDIO_PROCESSOR = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'a', "add-processor", "The name of the audio-processor to add", ""));
 const Parameter* Parameters::PROFILE_PROCESSORS = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 't', "profile-processors", "Enables profiling of the the execution time of audio-processors"));
 
+const Parameter* Parameters::SDES_CNAME = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'C', "sdes-cname", "The SDES CNAME (device name)", ""));
+const Parameter* Parameters::SDES_EMAIL = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'E', "sdes-email", "The SDES EMAIL (email-address)", ""));
+const Parameter* Parameters::SDES_LOC = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'L', "sdes-location", "The SDES LOC (geographic location)", ""));
+const Parameter* Parameters::SDES_NAME = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'N', "sdes-name", "The SDES NAME (participant name)", ""));
+const Parameter* Parameters::SDES_NOTE = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'M', "sdes-note", "The SDES NOTE (some arbitrary note)", ""));
+const Parameter* Parameters::SDES_PHONE = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'T', "sdes-phone", "The SDES PHONE (participant phone number)", ""));
+
 const Parameter* Parameters::registerParameter(Parameter&& param)
 {
     //make sure, neither short name nor long name are reused
@@ -237,6 +244,14 @@ void Parameters::printHelpPage() const
             printParameterHelp(param);
         }
     }
+    std::cout << "Source Description values:" << std::endl;
+    for(const Parameter& param : availableParameters)
+    {
+        if(param.category == ParameterCategory::SOURCE_DESCRIPTION)
+        {
+            printParameterHelp(param);
+        }
+    }
     std::cout << std::endl;
 
     //print AudioHandlers
@@ -293,24 +308,6 @@ const std::string Parameters::getParameterValue(const Parameter* param) const
         }
     }
     return param->defaultValue;
-}
-
-
-
-std::string Parameters::getCategoryName(const ParameterCategory& category) const
-{
-    switch(category)
-    {
-        case ParameterCategory::GENERAL:
-            return "General";
-        case ParameterCategory::AUDIO:
-            return "Audio";
-        case ParameterCategory::NETWORK:
-            return "Network";
-        case ParameterCategory::PROCESSORS:
-        return "Processors";
-    }
-    return "Other";
 }
 
 void Parameters::printParameterHelp(const Parameter& param) const

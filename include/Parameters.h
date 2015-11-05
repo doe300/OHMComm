@@ -24,7 +24,9 @@ enum class ParameterCategory : char
     //Any parameter setting a value for NetworkWrapper
     NETWORK,
     //Parameters which set the active processors or processor-specific values
-    PROCESSORS
+    PROCESSORS,
+    //Parameter to fill the SDES-values for this instance
+    SOURCE_DESCRIPTION
 };
 
 struct Parameter
@@ -147,6 +149,13 @@ public:
     static const Parameter* LOCAL_PORT;
     static const Parameter* AUDIO_PROCESSOR;
     static const Parameter* PROFILE_PROCESSORS;
+    
+    static const Parameter* SDES_CNAME;
+    static const Parameter* SDES_EMAIL;
+    static const Parameter* SDES_LOC;
+    static const Parameter* SDES_NAME;
+    static const Parameter* SDES_PHONE;
+    static const Parameter* SDES_NOTE;
 
     /*!
      * This method can be used to add processor-specific parameters to the list of available (and parsed parameters).
@@ -214,8 +223,6 @@ private:
     //we use list for easier sorting
     static std::list<Parameter> availableParameters;
     static const unsigned int tabSize{5};
-    //Returns the name of the given category
-    std::string getCategoryName(const ParameterCategory& category) const;
 
     //Prints a help-line for a single parameter
     void printParameterHelp(const Parameter& param) const;

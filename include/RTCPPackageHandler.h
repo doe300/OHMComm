@@ -305,6 +305,16 @@ struct SourceDescription
     //variable length value
     std::string value;
     
+    SourceDescription() : type(0), value("")
+    {
+    }
+
+    SourceDescription(RTCPSourceDescriptionType type, std::string value) :
+        type(type), value(value)
+    {
+    }
+
+    
     /*!
      * \return The name of the source-description type
      */

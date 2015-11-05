@@ -51,12 +51,42 @@ void RTCPHandler::shutdownInternal()
 void RTCPHandler::runThread()
 {
     std::cout << "RTCP-Handler started ..." << std::endl;
-    const std::vector<SourceDescription> sdes = {
+    std::vector<SourceDescription> sdes = {
         {RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION}
-        //TODO CNAME, name, etc.
     };
+    //TODO clashes with interactive configuration
+    if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr)
+    {
+        //add user configured values
+        if(configMode->isCustomConfigurationSet(Parameters::SDES_CNAME->longName, "SDES CNAME?"))
+        {
+            sdes.emplace_back(RTCP_SOURCE_CNAME, configMode->getCustomConfiguration(Parameters::SDES_CNAME->longName, "Enter SDES CNAME", "Generic device"));
+        }
+        if(configMode->isCustomConfigurationSet(Parameters::SDES_EMAIL->longName, "SDES EMAIL?"))
+        {
+            sdes.emplace_back(RTCP_SOURCE_EMAIL, configMode->getCustomConfiguration(Parameters::SDES_EMAIL->longName, "Enter SDES EMAIL", "anon@noreply.com"));
+        }
+        if(configMode->isCustomConfigurationSet(Parameters::SDES_LOC->longName, "SDES LOCATION?"))
+        {
+            sdes.emplace_back(RTCP_SOURCE_LOC, configMode->getCustomConfiguration(Parameters::SDES_LOC->longName, "Enter SDES LOCATION", "earth"));
+        }
+        if(configMode->isCustomConfigurationSet(Parameters::SDES_NAME->longName, "SDES NAME?"))
+        {
+            sdes.emplace_back(RTCP_SOURCE_NAME, configMode->getCustomConfiguration(Parameters::SDES_NAME->longName, "Enter SDES NAME", "anon"));
+        }
+        if(configMode->isCustomConfigurationSet(Parameters::SDES_NOTE->longName, "SDES NOTE?"))
+        {
+            sdes.emplace_back(RTCP_SOURCE_NOTE, configMode->getCustomConfiguration(Parameters::SDES_NOTE->longName, "Enter SDES NOTE", ""));
+        }
+        if(configMode->isCustomConfigurationSet(Parameters::SDES_PHONE->longName, "SDES PHONE?"))
+        {
+            sdes.emplace_back(RTCP_SOURCE_PHONE, configMode->getCustomConfiguration(Parameters::SDES_PHONE->longName, "Enter SDES PHONE", ""));
+        }
+    }
+    std::cout << 3 << std::endl;
+    std::cout << sdes.rbegin()->value << std::endl;
     //on startup, send SDES
-    std::cout << "RTC: SDES sent" << std::endl;
+    std::cout << "RTC: sending SDES ..." << std::endl;
     RTCPHeader sdesHeader(0);
     void* buffer = rtcpHandler.createSourceDescriptionPackage(sdesHeader, sdes);
     wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(sdesHeader.length));
