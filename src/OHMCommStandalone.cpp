@@ -1,3 +1,5 @@
+
+#include <memory>
 #include "OHMComm.h"
 #include "AudioProcessorFactory.h"
 #include "AudioHandlerFactory.h"
@@ -8,7 +10,7 @@ int main(int argc, char* argv[])
     // Configuration
     ////
 
-    OHMComm* ohmComm;
+    std::unique_ptr<OHMComm> ohmComm;
     Parameters params(AudioHandlerFactory::getAudioHandlerNames(), AudioProcessorFactory::getAudioProcessorNames());
     if(params.parseParameters(argc, argv))
     {
@@ -18,21 +20,21 @@ int main(int argc, char* argv[])
             networkConfig.remoteIPAddress = params.getParameterValue(Parameters::REMOTE_ADDRESS);
             networkConfig.remotePort = atoi(params.getParameterValue(Parameters::REMOTE_PORT).data());
             networkConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
-            ohmComm = new OHMComm(new PassiveConfiguration(networkConfig));
+            ohmComm.reset(new OHMComm(new PassiveConfiguration(networkConfig)));
         }
         else if(params.isParameterSet(Parameters::CONFIGURATION_FILE))
         {
             const std::string configFile = params.getParameterValue(Parameters::CONFIGURATION_FILE);
-            ohmComm = new OHMComm(new FileConfiguration(configFile));
+            ohmComm.reset(new OHMComm(new FileConfiguration(configFile)));
         }
         else
         {
-            ohmComm = new OHMComm(new ParameterConfiguration(params));
+            ohmComm.reset(new OHMComm(new ParameterConfiguration(params)));
         }
     }
     else
     {
-        ohmComm = new OHMComm(new InteractiveConfiguration());
+        ohmComm.reset(new OHMComm(new InteractiveConfiguration()));
     }
 
     ////
@@ -52,8 +54,6 @@ int main(int argc, char* argv[])
     std::cin >> input;
 
     ohmComm->stopAudioThreads();
-
-    delete ohmComm;
 
     return 0;
 }

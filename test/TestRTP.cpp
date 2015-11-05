@@ -25,4 +25,9 @@ void TestRTP::testRTPPackage()
 
     void *contentBuffer = pack.getRTPPackageData(packageBuffer);
     TEST_ASSERT_EQUALS_MSG(memcmp(payload.c_str(), contentBuffer, payload.size()), 0, "Payloads don't match! 02");
+    
+    pack.setActualPayloadSize(payload.length());
+    TEST_ASSERT(pack.getMaximumPackageSize() >= pack.getRTPHeaderSize() + pack.getMaximumPayloadSize());
+    TEST_ASSERT(pack.getActualPayloadSize() <= pack.getMaximumPayloadSize());
+    TEST_ASSERT(RTPPackageHandler::isRTPPackage(pack.getWorkBuffer(), pack.getActualPayloadSize()));
 }
