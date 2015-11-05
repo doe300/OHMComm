@@ -12,6 +12,7 @@
 
 #include "asserts.h"
 #include "TestSuite.h"
+#include "ParallelSuite.h"
 //Outputs
 #include "TextOutput.h"
 #include "CompilerOutput.h"
