@@ -57,6 +57,11 @@ private:
     void handleRTCPPackage(void* receiveBuffer, unsigned int receivedSize);
     
     void shutdownInternal();
+    
+    /*!
+     * Sends a Source Description-package, only called from #runThread()
+     */
+    void sendSourceDescription();
 };
 
 #endif	/* RTCPHANDLER_H */
