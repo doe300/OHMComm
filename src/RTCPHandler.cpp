@@ -8,7 +8,6 @@
 #include "RTCPHandler.h"
 
 //TODO somehow make SSRC known to RTCPHandler (create in OHMComm??)
-//TODO test passive configuration + BYE for multiple devices
 
 RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const std::function<void()> stopCallback):
@@ -133,6 +132,9 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
             
             //remote device has connected, so send SDES
             sendSourceDescription();
+            
+            //start audio-playback
+            startAudioCallback();
         }
     }
     else
@@ -146,8 +148,8 @@ void RTCPHandler::sendSourceDescription()
     std::vector<SourceDescription> sdes = {
         {RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION}
     };
-    //TODO clashes with interactive configuration
-    if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr)
+    //TODO clashes with interactive configuration (with input to shutdown server)
+    if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr && configMode->isConfigured())
     {
         //add user configured values
         if(configMode->isCustomConfigurationSet(Parameters::SDES_CNAME->longName, "SDES CNAME?"))
@@ -175,10 +177,7 @@ void RTCPHandler::sendSourceDescription()
             sdes.emplace_back(RTCP_SOURCE_PHONE, configMode->getCustomConfiguration(Parameters::SDES_PHONE->longName, "Enter SDES PHONE", ""));
         }
     }
-    std::cout << 3 << std::endl;
-    std::cout << sdes.rbegin()->value << std::endl;
-    
-    std::cout << "RTC: sending SDES ..." << std::endl;
+    std::cout << "RTCP: sending SDES ..." << std::endl;
     RTCPHeader sdesHeader(0);
     void* buffer = rtcpHandler.createSourceDescriptionPackage(sdesHeader, sdes);
     wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(sdesHeader.length));

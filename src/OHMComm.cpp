@@ -149,6 +149,9 @@ void OHMComm::stopAudioThreads()
     }
     //print statistics to stdout anyway
     Statistics::printStatistics();
+    
+    //if this method was called from one of the background-tasks, only the main-thread (waiting for input) remains.
+    std::cout << "Type Enter to exit..." << std::endl;
 }
 
 bool OHMComm::isRunning() const

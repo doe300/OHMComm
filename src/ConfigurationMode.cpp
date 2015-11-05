@@ -583,6 +583,8 @@ void LibraryConfiguration::configureCustomValue(std::string key, bool value)
 //  PassiveConfiguration
 ////
 
+//TODO add fallback configuration-mode, because currently, it doesn't support custom-config (and therefore no SDES config)
+
 PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors, std::string logFile) :
         ConfigurationMode()
 {
@@ -608,7 +610,10 @@ bool PassiveConfiguration::runConfiguration()
         return true;
     }
     //we need to connect to remote RTCP port
-    UDPWrapper wrapper(getRTCPNetworkConfiguration());
+    NetworkConfiguration rtcpConfig = networkConfig;
+    rtcpConfig.localPort += 1;
+    rtcpConfig.remotePort += 1;
+    UDPWrapper wrapper(rtcpConfig);
 
     RTCPPackageHandler handler;
     RTCPHeader requestHeader(0);  //we do not have a SSID and it doesn't really matter

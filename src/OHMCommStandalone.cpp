@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 
     char input;
     // wait for exit
-    std::cout << "Type Enter to exit" << std::endl;
+    std::cout << "Type Enter to exit..." << std::endl;
     std::cin >> input;
 
     ohmComm->stopAudioThreads();
