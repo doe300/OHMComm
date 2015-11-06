@@ -34,6 +34,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     //only send the number of bytes really required: header + actual payload-size
     this->networkObject->sendData(newRTPPackage, rtpPackage->getRTPHeaderSize() + inputBufferByteSize);
 
+    Statistics::setCounter(Statistics::RTP_LOCAL_SSRC, rtpPackage->getRTPPackageHeader()->getSSRC());
     Statistics::incrementCounter(Statistics::COUNTER_FRAMES_SENT, userData->nBufferFrames);
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_SENT, 1);
     Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTP_HEADER_MIN_SIZE);

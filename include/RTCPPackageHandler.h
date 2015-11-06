@@ -13,6 +13,8 @@
 #include <vector>
 #include <string>
 
+//TODO use network byte-order
+
 /*!
  * RTCP package type
  */
@@ -466,7 +468,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createSenderReportPackage(RTCPHeader &header, SenderInformation &senderInfo, const std::vector<ReceptionReport>& reports);
+    const void *createSenderReportPackage(RTCPHeader &header, SenderInformation &senderInfo, const std::vector<ReceptionReport>& reports);
 
     /*!
      * Creates a new receiver report (RR) package
@@ -477,7 +479,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createReceiverReportPackage(RTCPHeader &header, const std::vector<ReceptionReport>& reports);
+    const void *createReceiverReportPackage(RTCPHeader &header, const std::vector<ReceptionReport>& reports);
 
     /*!
      * Creates a new source description (DES) package
@@ -488,7 +490,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createSourceDescriptionPackage(RTCPHeader &header, const std::vector<SourceDescription>& descriptions);
+    const void *createSourceDescriptionPackage(RTCPHeader &header, const std::vector<SourceDescription>& descriptions);
 
     /*!
      * Creates a new BYE package
@@ -499,7 +501,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createByePackage(RTCPHeader &header, const std::string& byeMessage);
+    const void *createByePackage(RTCPHeader &header, const std::string& byeMessage);
 
     /*!
      * Creates a new APP package
@@ -510,7 +512,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createApplicationDefinedPackage(RTCPHeader &header, ApplicationDefined &appDefined);
+    const void *createApplicationDefinedPackage(RTCPHeader &header, ApplicationDefined &appDefined);
 
     /*!
      * Reads a sender report (SR) package
@@ -525,7 +527,7 @@ public:
      *
      * \return a list of read reception-reports, may be empty
      */
-    std::vector<ReceptionReport> readSenderReport(void *senderReportPackage, uint16_t packageLength, RTCPHeader &header, SenderInformation &senderInfo);
+    std::vector<ReceptionReport> readSenderReport(const void *senderReportPackage, uint16_t packageLength, RTCPHeader &header, SenderInformation &senderInfo);
 
     /*!
      * Reads a receiver report (RR) package
@@ -538,7 +540,7 @@ public:
      *
      * \return a list of read reception-reports, may be empty
      */
-    std::vector<ReceptionReport> readReceiverReport(void *receiverReportPackage, uint16_t packageLength, RTCPHeader &header);
+    std::vector<ReceptionReport> readReceiverReport(const void *receiverReportPackage, uint16_t packageLength, RTCPHeader &header);
 
     /*!
      * Reads a source description (SDES) package
@@ -551,7 +553,7 @@ public:
      *
      * \return the read descriptions
      */
-    std::vector<SourceDescription> readSourceDescription(void *sourceDescriptionPackage, uint16_t packageLength, RTCPHeader &header);
+    std::vector<SourceDescription> readSourceDescription(const void *sourceDescriptionPackage, uint16_t packageLength, RTCPHeader &header);
 
     /*!
      * Reads a BYE package
@@ -564,7 +566,7 @@ public:
      *
      * \return the bye-message attached to the package, may be empty
      */
-    std::string readByeMessage(void *byePackage, uint16_t packageLength, RTCPHeader &header);
+    std::string readByeMessage(const void *byePackage, uint16_t packageLength, RTCPHeader &header);
 
     /*!
      * Reads a APP package
@@ -577,7 +579,7 @@ public:
      *
      * \return the read ApplicationDefined data
      */
-    ApplicationDefined readApplicationDefinedMessage(void *appDefinedPackage, uint16_t packageLength, RTCPHeader &header);
+    ApplicationDefined readApplicationDefinedMessage(const void *appDefinedPackage, uint16_t packageLength, RTCPHeader &header);
 
     /*!
      * Reads an RTCP-header and returns whether the package was an RTCP-package
@@ -588,7 +590,7 @@ public:
      *
      * \return Whether the RTCP-header was successfully read
      */
-    RTCPHeader readRTCPHeader(void* rtcpPackage, unsigned int packageLength);
+    RTCPHeader readRTCPHeader(const void* rtcpPackage, unsigned int packageLength);
 
     /*!
      * This method tries to determine whether the received buffer holds an RTCP package.

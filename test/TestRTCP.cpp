@@ -25,7 +25,7 @@ void TestRTCP::testSenderReportPackage()
     //create package
     RTCPHeader header(testSSRC);
     SenderInformation info(1000, packageCount, 2048);
-    void* package = handler.createSenderReportPackage(header, info, {});
+    const void* package = handler.createSenderReportPackage(header, info, {});
 
     //read package
     RTCPHeader readHeader(0);
@@ -55,7 +55,7 @@ void TestRTCP::testReceiverReportPackage()
     ReceptionReport info2;
     info2.ssrc = testSSRC;
     info2.cumulativePackageLoss = packageLoss;
-    void* package = handler.createReceiverReportPackage(header, {info, info2});
+    const void* package = handler.createReceiverReportPackage(header, {info, info2});
 
     //read package
     RTCPHeader readHeader(0);
@@ -85,7 +85,7 @@ void TestRTCP::testSourceDescriptionPacakge()
     SourceDescription descr2;
     descr2.type = RTCP_SOURCE_TOOL;
     descr2.value = tool;
-    void* package = handler.createSourceDescriptionPackage(header, {descr1, descr2});
+    const void* package = handler.createSourceDescriptionPackage(header, {descr1, descr2});
 
     //read package
     RTCPHeader readHeader(0);
@@ -110,7 +110,7 @@ void TestRTCP::testByePackage()
 
     //create package
     RTCPHeader header(testSSRC);
-    void* package = handler.createByePackage(header, testMessage);
+    const void* package = handler.createByePackage(header, testMessage);
 
     //read package
     RTCPHeader readHeader(0);
@@ -134,7 +134,7 @@ void TestRTCP::testAppDefinedPackage()
     //create package
     RTCPHeader header(testSSRC);
     ApplicationDefined appDefined(name, someText.size(), (char*)someText.data(), someType);
-    void* package = handler.createApplicationDefinedPackage(header, appDefined);
+    const void* package = handler.createApplicationDefinedPackage(header, appDefined);
 
     //read package
     RTCPHeader readHeader(0);
@@ -154,7 +154,7 @@ void TestRTCP::testIsRTCPPackage()
 {
     //positive test
     RTCPHeader rtcpHeader(testSSRC);
-    void* rtcpPackage = handler.createByePackage(rtcpHeader, "Goodbye!");
+    const void* rtcpPackage = handler.createByePackage(rtcpHeader, "Goodbye!");
     //negative test
     RTPPackageHandler h(2048);
     void* someData = (void*)(std::string("Some Data!").data());

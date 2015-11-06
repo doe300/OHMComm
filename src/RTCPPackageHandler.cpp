@@ -24,7 +24,7 @@ RTCPPackageHandler::~RTCPPackageHandler()
 }
 
 
-void* RTCPPackageHandler::createSenderReportPackage(RTCPHeader& header, SenderInformation& senderInfo, const std::vector<ReceptionReport>& reports)
+const void* RTCPPackageHandler::createSenderReportPackage(RTCPHeader& header, SenderInformation& senderInfo, const std::vector<ReceptionReport>& reports)
 {
     //adjust header
     header.packageType = RTCP_PACKAGE_SENDER_REPORT;
@@ -40,7 +40,7 @@ void* RTCPPackageHandler::createSenderReportPackage(RTCPHeader& header, SenderIn
     return rtcpPackageBuffer;
 }
 
-void* RTCPPackageHandler::createReceiverReportPackage(RTCPHeader& header, const std::vector<ReceptionReport>& reports)
+const void* RTCPPackageHandler::createReceiverReportPackage(RTCPHeader& header, const std::vector<ReceptionReport>& reports)
 {
     //adjust header
     header.packageType = RTCP_PACKAGE_RECEIVER_REPORT;
@@ -55,7 +55,7 @@ void* RTCPPackageHandler::createReceiverReportPackage(RTCPHeader& header, const 
     return rtcpPackageBuffer;
 }
 
-void* RTCPPackageHandler::createSourceDescriptionPackage(RTCPHeader& header, const std::vector<SourceDescription>& descriptions)
+const void* RTCPPackageHandler::createSourceDescriptionPackage(RTCPHeader& header, const std::vector<SourceDescription>& descriptions)
 {
     //adjust header
     header.packageType = RTCP_PACKAGE_SOURCE_DESCRIPTION;
@@ -92,7 +92,7 @@ void* RTCPPackageHandler::createSourceDescriptionPackage(RTCPHeader& header, con
     return rtcpPackageBuffer;
 }
 
-void* RTCPPackageHandler::createByePackage(RTCPHeader& header, const std::string& byeMessage)
+const void* RTCPPackageHandler::createByePackage(RTCPHeader& header, const std::string& byeMessage)
 {
     header.packageType = RTCP_PACKAGE_GOODBYE;
     uint8_t length = byeMessage.size();
@@ -115,7 +115,7 @@ void* RTCPPackageHandler::createByePackage(RTCPHeader& header, const std::string
     return rtcpPackageBuffer;
 }
 
-void* RTCPPackageHandler::createApplicationDefinedPackage(RTCPHeader& header, ApplicationDefined& appDefined)
+const void* RTCPPackageHandler::createApplicationDefinedPackage(RTCPHeader& header, ApplicationDefined& appDefined)
 {
     header.packageType = RTCP_PACKAGE_APPLICATION_DEFINED;
     //the length is the header-size, the data-length and 4 bytes for the app-defined name
@@ -138,7 +138,7 @@ void* RTCPPackageHandler::createApplicationDefinedPackage(RTCPHeader& header, Ap
 }
 
 
-std::vector<ReceptionReport> RTCPPackageHandler::readSenderReport(void* senderReportPackage, uint16_t packageLength, RTCPHeader& header, SenderInformation& senderInfo)
+std::vector<ReceptionReport> RTCPPackageHandler::readSenderReport(const void* senderReportPackage, uint16_t packageLength, RTCPHeader& header, SenderInformation& senderInfo)
 {
     RTCPHeader *readHeader = (RTCPHeader *)senderReportPackage;
     //copy header to out-parameter
@@ -157,7 +157,7 @@ std::vector<ReceptionReport> RTCPPackageHandler::readSenderReport(void* senderRe
     return reports;
 }
 
-std::vector<ReceptionReport> RTCPPackageHandler::readReceiverReport(void* receiverReportPackage, uint16_t packageLength, RTCPHeader& header)
+std::vector<ReceptionReport> RTCPPackageHandler::readReceiverReport(const void* receiverReportPackage, uint16_t packageLength, RTCPHeader& header)
 {
     RTCPHeader *readHeader = (RTCPHeader *)receiverReportPackage;
     //copy header to out-parameter
@@ -174,7 +174,7 @@ std::vector<ReceptionReport> RTCPPackageHandler::readReceiverReport(void* receiv
     return reports;
 }
 
-std::vector<SourceDescription> RTCPPackageHandler::readSourceDescription(void* sourceDescriptionPackage, uint16_t packageLength, RTCPHeader& header)
+std::vector<SourceDescription> RTCPPackageHandler::readSourceDescription(const void* sourceDescriptionPackage, uint16_t packageLength, RTCPHeader& header)
 {
     RTCPHeader *readHeader = (RTCPHeader *)sourceDescriptionPackage;
     //copy header to out-parameter
@@ -197,7 +197,7 @@ std::vector<SourceDescription> RTCPPackageHandler::readSourceDescription(void* s
 }
 
 
-std::string RTCPPackageHandler::readByeMessage(void* byePackage, uint16_t packageLength, RTCPHeader& header)
+std::string RTCPPackageHandler::readByeMessage(const void* byePackage, uint16_t packageLength, RTCPHeader& header)
 {
     RTCPHeader *readHeader = (RTCPHeader *)byePackage;
     //copy header to out-parameter
@@ -208,7 +208,7 @@ std::string RTCPPackageHandler::readByeMessage(void* byePackage, uint16_t packag
     return std::string(byeMessage, length);
 }
 
-ApplicationDefined RTCPPackageHandler::readApplicationDefinedMessage(void* appDefinedPackage, uint16_t packageLength, RTCPHeader& header)
+ApplicationDefined RTCPPackageHandler::readApplicationDefinedMessage(const void* appDefinedPackage, uint16_t packageLength, RTCPHeader& header)
 {
     RTCPHeader *readHeader = (RTCPHeader *)appDefinedPackage;
     //copy header to out-parameter
@@ -224,7 +224,7 @@ ApplicationDefined RTCPPackageHandler::readApplicationDefinedMessage(void* appDe
     return result;
 }
 
-RTCPHeader RTCPPackageHandler::readRTCPHeader(void* rtcpPackage, unsigned int packageLength)
+RTCPHeader RTCPPackageHandler::readRTCPHeader(const void* rtcpPackage, unsigned int packageLength)
 {
     RTCPHeader *readHeader = (RTCPHeader *)rtcpPackage;
     RTCPHeader headerCopy = *readHeader;

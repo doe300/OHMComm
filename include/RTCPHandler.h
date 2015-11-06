@@ -10,9 +10,11 @@
 
 #include <memory>
 #include <thread>
+#include <chrono> // clock, tick
 #include "NetworkWrapper.h"
 #include "RTCPPackageHandler.h"
 #include "ConfigurationMode.h"
+#include "Statistics.h"
 
 /*!
  * The RTCPHandler manages a thread for RTCP-communication.
@@ -46,6 +48,11 @@ private:
     std::thread listenerThread;
     bool threadRunning = false;
     
+    //send SR every 20 seconds
+    static const std::chrono::seconds sendSRInterval;
+    std::chrono::system_clock::time_point lastSRReceived;
+    std::chrono::system_clock::time_point lastSRSent;
+    
     /*!
      * Method called in the parallel thread, receiving RTCP-packages and handling them
      */
@@ -62,6 +69,11 @@ private:
      * Sends a Source Description-package, only called from #runThread()
      */
     void sendSourceDescription();
+
+    /*!
+     * Creates and sends a Sender Report (SR)-package, only called from #runThread()
+     */
+    void sendSenderReport();
 };
 
 #endif	/* RTCPHANDLER_H */

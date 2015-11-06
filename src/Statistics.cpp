@@ -29,6 +29,11 @@ void Statistics::maxCounter(int counterIndex, long newValue)
     }
 }
 
+long Statistics::readCounter(int counterIndex)
+{
+    return counters[counterIndex];
+}
+
 void Statistics::printStatistics()
 {
     printStatistics(std::cout);

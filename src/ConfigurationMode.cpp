@@ -620,7 +620,7 @@ bool PassiveConfiguration::runConfiguration()
     RTCPHeader requestHeader(0);  //we do not have a SSID and it doesn't really matter
     ApplicationDefined configRequest("REQC", 0, nullptr, ApplicationDefined::OHMCOMM_CONFIGURATION_REQUEST);
 
-    void* buffer = handler.createApplicationDefinedPackage(requestHeader, configRequest);
+    void* buffer = (void*)handler.createApplicationDefinedPackage(requestHeader, configRequest);
 
     std::cout << "Sending request for passive configuration..." << std::endl;
     if(wrapper.sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(requestHeader.length)) < (int)RTCPPackageHandler::getRTCPPackageLength(requestHeader.length))

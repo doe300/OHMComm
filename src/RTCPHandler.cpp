@@ -5,13 +5,16 @@
  * Created on November 5, 2015, 11:04 AM
  */
 
+#include <chrono>
+
 #include "RTCPHandler.h"
 
-//TODO somehow make SSRC known to RTCPHandler (create in OHMComm??)
+const std::chrono::seconds RTCPHandler::sendSRInterval{20};
 
 RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const std::function<void()> stopCallback):
-    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), stopCallback(stopCallback), rtcpHandler()
+    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), stopCallback(stopCallback), rtcpHandler(),
+        lastSRReceived(std::chrono::milliseconds::zero()), lastSRSent(std::chrono::milliseconds::zero())
 {
 }
 
@@ -30,8 +33,8 @@ void RTCPHandler::startUp()
 void RTCPHandler::shutdown()
 {
     // Send a RTCP BYE-packet, to tell the other side that communication has been stopped
-    RTCPHeader byeHeader(0); //SSID doesn't really matter, at least for two-user communication
-    void* packageBuffer = rtcpHandler.createByePackage(byeHeader, "Program exit");
+    RTCPHeader byeHeader(Statistics::readCounter(Statistics::RTP_LOCAL_SSRC));
+    const void* packageBuffer = rtcpHandler.createByePackage(byeHeader, "Program exit");
     wrapper->sendData(packageBuffer, RTCPPackageHandler::getRTCPPackageLength(byeHeader.length));
     std::cout << "RTCP: BYE-Package sent." << std::endl;
     
@@ -70,6 +73,12 @@ void RTCPHandler::runThread()
         {
             handleRTCPPackage(rtcpHandler.rtcpPackageBuffer, (unsigned int)receivedSize);
         }
+        if(std::chrono::system_clock::now() - sendSRInterval >= lastSRSent)
+        {
+            //send sender report (SR) every X seconds
+            lastSRSent = std::chrono::system_clock::now();
+            sendSenderReport();
+        }
     }
     std::cout << "RTCP-Handler shut down!" << std::endl;
 }
@@ -86,6 +95,22 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         shutdownInternal();
         //notify OHMComm to shut down
         stopCallback();
+    }
+    else if(header.packageType == RTCP_PACKAGE_SENDER_REPORT)
+    {
+        //other side sent SR, so print output
+        lastSRReceived = std::chrono::system_clock::now();
+        SenderInformation senderReport(0, 0,0);
+        std::vector<ReceptionReport> receptionReports = rtcpHandler.readSenderReport(receiveBuffer, receivedSize, header, senderReport);
+        std::cout << "RTCP: Received Sender Report: " << std::endl;
+        std::cout << "\tTotal package sent: " << senderReport.packetCount << std::endl;
+        std::cout << "\tTotal bytes sent: " << senderReport.octetCount << std::endl;
+        std::cout << "RTCP: Received Reception Reports:" << std::endl;
+        for(const ReceptionReport& report : receptionReports)
+        {
+            std::cout << "\tReception Report for: " << report.ssrc << std::endl;
+            std::cout << "\t\tTotal package loss: " << report.cumulativePackageLoss << std::endl;
+        }
     }
     else if(header.packageType == RTCP_PACKAGE_SOURCE_DESCRIPTION)
     {
@@ -127,7 +152,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
                     << msg.sampleRate << ", channels = " << msg.nChannels << ", number of audio-processors = " << msg.numProcessorNames << std::endl;
             RTCPPackageHandler handler;
             RTCPHeader responseHeader(0);  //SSID doesn't really matter
-            void* responseBuffer = handler.createApplicationDefinedPackage(responseHeader, configResponse);
+            const void* responseBuffer = handler.createApplicationDefinedPackage(responseHeader, configResponse);
             wrapper->sendData(responseBuffer, RTCPPackageHandler::getRTCPPackageLength(responseHeader.length));
             
             //remote device has connected, so send SDES
@@ -178,7 +203,28 @@ void RTCPHandler::sendSourceDescription()
         }
     }
     std::cout << "RTCP: sending SDES ..." << std::endl;
-    RTCPHeader sdesHeader(0);
-    void* buffer = rtcpHandler.createSourceDescriptionPackage(sdesHeader, sdes);
+    RTCPHeader sdesHeader(Statistics::readCounter(Statistics::RTP_LOCAL_SSRC));
+    const void* buffer = rtcpHandler.createSourceDescriptionPackage(sdesHeader, sdes);
     wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(sdesHeader.length));
+}
+
+void RTCPHandler::sendSenderReport()
+{
+    RTCPHeader srHeader(Statistics::readCounter(Statistics::RTP_LOCAL_SSRC));
+    
+    //TODO timestamps are wrong
+    SenderInformation senderReport(0, Statistics::readCounter(Statistics::COUNTER_PACKAGES_SENT), Statistics::readCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT));
+    //we currently have only one reception report
+    ReceptionReport receptionReport = {
+        (uint32_t)Statistics::readCounter(Statistics::RTP_REMOTE_SSRC), //ssrc
+        0, //fraction lost - not supported
+        (uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST), //cummulative package loss
+        0, //extended highest sequence-number - not supported
+        0, //interarrival-jitter - not supported
+        (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>(lastSRReceived.time_since_epoch()).count(), //last SR received
+        0, //delay since last SR - not supported
+    };
+    std::cout << "RTCP: Sending SR ..." << std::endl;
+    const void* buffer = rtcpHandler.createSenderReportPackage(srHeader, senderReport, {receptionReport});
+    wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(srHeader.length));
 }

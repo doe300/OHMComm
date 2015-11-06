@@ -58,12 +58,13 @@ void RTPListener::runThread()
                 //TODO some handling or simply discard?
                 std::cerr << "Input Buffer overflow" << std::endl;
             }
-                else if (result == RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD)
-                {
-                    std::cerr << "Package was too old, discarding" << std::endl;
+            else if (result == RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD)
+            {
+                std::cerr << "Package was too old, discarding" << std::endl;
             }
             else
             {
+                Statistics::setCounter(Statistics::RTP_REMOTE_SSRC, rtpHandler.getRTPPackageHeader()->getSSRC());
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
                 Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTP_HEADER_MIN_SIZE);
                 Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedSize - RTP_HEADER_MIN_SIZE);
