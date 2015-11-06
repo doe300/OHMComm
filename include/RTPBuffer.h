@@ -41,7 +41,7 @@ public:
      *
      * Returns zero on success or one of the RTPBufferStatus-codes listed in RTPBuffer.h
      */
-    RTPBufferStatus addPackage(RTPPackageHandler &package, unsigned int contentSize);
+    RTPBufferStatus addPackage(const RTPPackageHandler &package, unsigned int contentSize);
 
     /*!
      * Reads the oldest package in the buffer and writes it into the package-variable
@@ -96,7 +96,7 @@ private:
          */
         void *packageContent;
 
-        RTPBufferPackage() : isValid(false), header({0}), receptionTimestamp(0), contentSize(0), bufferSize(0), packageContent(nullptr)
+        RTPBufferPackage() : isValid(false), header(), receptionTimestamp(0), contentSize(0), bufferSize(0), packageContent(nullptr)
         {
 
         }

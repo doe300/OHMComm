@@ -61,11 +61,11 @@ void TestRTPBuffer::testReadSuccessivePackages()
 		handler->readPackage(package);
 		if (seqNumber == 0)
 		{
-			seqNumber = package.getRTPPackageHeader()->sequence_number;
+			seqNumber = package.getRTPPackageHeader()->getSequenceNumber();
 		}
 		else
 		{
-			TEST_ASSERT_EQUALS(seqNumber + 1, package.getRTPPackageHeader()->sequence_number);
+			TEST_ASSERT_EQUALS(seqNumber + 1, package.getRTPPackageHeader()->getSequenceNumber());
 			seqNumber = (seqNumber + 1) % UINT16_MAX;
 		}
 	}
@@ -81,7 +81,7 @@ void TestRTPBuffer::testWriteOldPackage()
 
 	//write a package which is far too old
 	buf = package.createNewRTPPackage(someText, 16);
-	((RTPHeader*)buf)->sequence_number -= maxCapacity;
+	((RTPHeader*)buf)->setSequenceNumber(((RTPHeader*)buf)->getSequenceNumber() - maxCapacity);
 
 	auto result = handler->addPackage(package, 10);
 	switch (result)
@@ -183,7 +183,7 @@ void TestRTPBuffer::testContinousPackageLoss()
 		package.createNewRTPPackage((char*)"Dadadummi!", 10);
 		//write some package
 		package.createNewRTPPackage((char*)"Dadadummi!", 10);
-		lastSeqNum = package.getRTPPackageHeader()->sequence_number;
+		lastSeqNum = package.getRTPPackageHeader()->getSequenceNumber();
 		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, handler->addPackage(package, 10));
 	}
 
@@ -194,6 +194,6 @@ void TestRTPBuffer::testContinousPackageLoss()
 		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW, handler->readPackage(package));
 		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, handler->readPackage(package));
 	}
-	TEST_ASSERT_EQUALS(lastSeqNum, package.getRTPPackageHeader()->sequence_number);
+	TEST_ASSERT_EQUALS(lastSeqNum, package.getRTPPackageHeader()->getSequenceNumber());
 	TEST_ASSERT_EQUALS(0, handler->getSize());
 }

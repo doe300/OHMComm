@@ -51,7 +51,7 @@ public:
      *
      * \param contentSize The size of the audio data in the package
      */
-    virtual RTPBufferStatus addPackage(RTPPackageHandler &package, unsigned int contentSize) = 0;
+    virtual RTPBufferStatus addPackage(const RTPPackageHandler &package, unsigned int contentSize) = 0;
 
     /*!
      * Reads a package from the buffer and writes its content into the given parameter

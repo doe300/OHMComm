@@ -166,7 +166,7 @@ public:
 	 *
 	 * Returns zero on success or one of the RTPBufferStatus-codes listed in RTPBuffer.h
 	 */
-	RTPBufferStatus addPackage(RTPPackageHandler &package, unsigned int contentSize);
+	RTPBufferStatus addPackage(const RTPPackageHandler &package, unsigned int contentSize);
 
 	/*!
 	 * Reads the current package in the buffer and writes it into the package-variable

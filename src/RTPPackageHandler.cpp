@@ -40,12 +40,12 @@ const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsign
 	newRTPHeader.csrc_count = 0;
 	newRTPHeader.marker = 0;
 	newRTPHeader.payload_type = this->payloadType;
-	newRTPHeader.sequence_number = (this->sequenceNr++) % UINT16_MAX;
+	newRTPHeader.setSequenceNumber((this->sequenceNr++) % UINT16_MAX);
         //we need steady clock so it will always change monotonically (etc. no change to/from daylight savings time)
         //additionally, we need to count with milliseconds precision
         //we add the random starting timestamp to meet the condition specified in the RTP standard
-	newRTPHeader.timestamp = this->timestamp + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-	newRTPHeader.ssrc = this->ssrc;
+	newRTPHeader.setTimestamp(this->timestamp + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+	newRTPHeader.setSSRC(this->ssrc);
 
 	// Copy RTPHeader and Audiodata in the buffer
 	memcpy((char*)workBuffer, &newRTPHeader, this->sizeOfRTPHeader);
@@ -114,7 +114,7 @@ void* RTPPackageHandler::getWorkBuffer()
 
 void RTPPackageHandler::createSilencePackage()
 {
-    RTPHeader silenceHeader{0};
+    RTPHeader silenceHeader;
     memcpy(workBuffer, &silenceHeader, sizeOfRTPHeader);
     memset((char *)(workBuffer) + sizeOfRTPHeader, 0, maximumPayloadSize);
 }

@@ -12,6 +12,14 @@
 #include <chrono> // clock, tick
 #include <string.h> //memcpy
 
+
+//For htons/htonl and ntohs/ntohl
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <netinet/in.h>
+#endif
+
 /*!
  * Minimum size of a RTP-Header in bytes, without any CSRCs set
  */
@@ -22,7 +30,6 @@ static const unsigned int RTP_HEADER_MIN_SIZE = 12;
  */
 static const unsigned int RTP_HEADER_MAX_SIZE = 72;
 
-//TODO byte-order (network-order)??
 //TODO add support (at least recognizing and skipping) for extensions
 
 /*!
@@ -50,6 +57,7 @@ static const unsigned int RTP_HEADER_MAX_SIZE = 72;
  */
 struct RTPHeaderExtension
 {
+    //XXX is in host byte-order
     //16 bit defined by profile
     unsigned int profile_field : 16;
 
@@ -164,6 +172,7 @@ struct RTPHeaderExtension
  */
 struct RTPHeader
 {
+public:
     //2 bit version field
     unsigned int version : 2;
 
@@ -182,6 +191,11 @@ struct RTPHeader
     //7 bit payload type field
     unsigned int payload_type : 7;
 
+private:
+    //The following RTP header-fields are stored in network byte-order,
+    //so sending and receiving over network does not require any special handling
+    //for access in host byte-order, use the getter/setter beneath
+    
     //16 bit sequence number field
     unsigned int sequence_number : 16;
 
@@ -194,6 +208,43 @@ struct RTPHeader
     //list of 32 bit CSRCs
     //TODO adding this requires correct handling of RTPHeader (depending on the csrc_count, like it was before)
     //uint32_t csrc_list[15];
+public:
+    
+    RTPHeader() : version{0}, padding{0}, extension{0}, csrc_count{0}, marker{0}, payload_type{0},
+        sequence_number{0}, timestamp{0}, ssrc{0}
+    {
+    }
+
+    
+    inline uint16_t getSequenceNumber() const
+    {
+        return ntohs(sequence_number);
+    }
+    
+    inline void setSequenceNumber(const uint16_t sequenceNumber)
+    {
+        sequence_number = htons(sequenceNumber);
+    }
+    
+    inline uint32_t getTimestamp() const
+    {
+        return ntohl(timestamp);
+    }
+    
+    inline void setTimestamp(const uint32_t timstamp)
+    {
+        this->timestamp = htonl(timstamp);
+    }
+    
+    inline uint32_t getSSRC() const
+    {
+        return ntohl(ssrc);
+    }
+    
+    inline void setSSRC(const uint32_t ssrc)
+    {
+        this->ssrc = htonl(ssrc);
+    }
 };
 
 /*!

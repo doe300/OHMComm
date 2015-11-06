@@ -17,11 +17,11 @@ int RTPBufferAlternative::isPowerOfTwo(unsigned int x)
 	return ((x != 0) && ((x & (~x + 1)) == x));
 }
 
-RTPBufferStatus RTPBufferAlternative::addPackage(RTPPackageHandler &package, unsigned int contentSize)
+RTPBufferStatus RTPBufferAlternative::addPackage(const RTPPackageHandler &package, unsigned int contentSize)
 {
 	// Calculate position in the ringBuffer for the package
 	const RTPHeader *rtpHeader = package.getRTPPackageHeader();
-	unsigned int packetPositionRingBuffer = rtpHeader->sequence_number;
+	unsigned int packetPositionRingBuffer = rtpHeader->getSequenceNumber();
 	// modulo operation by bit shifting
 	if (packetPositionRingBuffer >= maxCapacity)
 		packetPositionRingBuffer = (packetPositionRingBuffer << 32 - log) >> 32 - log;
@@ -38,7 +38,7 @@ RTPBufferStatus RTPBufferAlternative::addPackage(RTPPackageHandler &package, uns
 	// add packages to the buffer, which are not older than the current sequence number
 	// For example the lastReadSeqNr was 55, then the package 52 or 51 are too old
 	// These package will not be added to the buffer anymore
-	unsigned int currentSeqNr = package.getRTPPackageHeader()->sequence_number;
+	unsigned int currentSeqNr = package.getRTPPackageHeader()->getSequenceNumber();
 
 	if (currentSeqNr <= lastReadSeqNr)
 		return RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD;
@@ -121,7 +121,7 @@ void RTPBufferAlternative::copySilencePackageIntoPackage(RTPPackageHandler &pack
 {
 	char* packageBuffer = (char*)package.getWorkBuffer();
 	RTPHeader *currentHeaderData = (RTPHeader*)package.getRTPPackageHeader();
-	currentHeaderData->sequence_number = lastReadSeqNr;
+	currentHeaderData->setSequenceNumber(lastReadSeqNr);
 	unsigned int rtpHeaderSize = package.getRTPHeaderSize();
 	unsigned int payloadSize = package.getMaximumPayloadSize();
 
@@ -154,7 +154,7 @@ bool RTPBufferAlternative::copyNextPackageIntoPackage(RTPPackageHandler &package
 	memcpy((char*)packageBuffer + rtpHeaderSize, currentDataInBuffer, payloadSize);
 
 	// set last read sequence number
-	lastReadSeqNr = currentHeaderData->sequence_number;
+	lastReadSeqNr = currentHeaderData->getSequenceNumber();
 	return underflow;
 }
 
@@ -178,7 +178,7 @@ bool RTPBufferAlternative::copyNextPossiblePackageIntoPackage(RTPPackageHandler 
 
 		if (underflow == false)
 		{
-			lastReadSeqNr = tmpPackage->getHeader()->sequence_number;
+			lastReadSeqNr = tmpPackage->getHeader()->getSequenceNumber();
 			copyNextPackageIntoPackage(package);
 			break;
 		}
@@ -204,7 +204,7 @@ void RTPBufferAlternative::setCurrentReadPos()
 	unsigned int smallestSeq = UINT_MAX;
 	for (size_t i = 0; i < maxCapacity; i++)
 	{
-		int seqNr = ringBuffer[i]->getHeader()->sequence_number;
+		unsigned int seqNr = ringBuffer[i]->getHeader()->getSequenceNumber();
 		if (seqNr < smallestSeq && ringBuffer[i]->hasBeenReadAlready() == false)
 		{
 			smallestSeq = seqNr;
