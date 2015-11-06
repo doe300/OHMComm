@@ -45,7 +45,7 @@ void RTPListener::runThread()
             //socket was already closed
             shutdown();
         }
-        else if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
+        else if(receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
         {
             //just continue to next loop iteration, checking if thread should continue running
         }

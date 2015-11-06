@@ -20,6 +20,7 @@
 #define SHUTDOWN_BOTH SHUT_RDWR // 2
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
+#define WSAETIMEDOUT 10060  //Dummy-support for WSAPI timeout-error
 #endif
 
 /*!
@@ -31,6 +32,8 @@
 class NetworkWrapper
 {
 public:
+    
+    const static int RECEIVE_TIMEOUT{-2};
 
     virtual ~NetworkWrapper()
     {
@@ -47,6 +50,8 @@ public:
     virtual int sendData(const void *buffer, const unsigned int bufferSize = 0) = 0;
 
     /*!
+     * In case of an error, this method returns INVALID_SOCKET. In case of a blocking-timeout, this method returns RECEIVE_TIMEOUT
+     * 
      * \param buffer The buffer to receive into
      *
      * \param bufferSize The maximum number of bytes to receive
@@ -72,6 +77,11 @@ protected:
      * \return Whether the address given is an IPv6 address
      */
     static bool isIPv6(const std::string ipAddress);
+    
+    /*!
+     * \return whether the recv()-method has returned because of a timeout
+     */
+    bool hasTimedOut() const;
 };
 
 #endif

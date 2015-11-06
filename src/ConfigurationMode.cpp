@@ -584,6 +584,7 @@ void LibraryConfiguration::configureCustomValue(std::string key, bool value)
 ////
 
 //TODO add fallback configuration-mode, because currently, it doesn't support custom-config (and therefore no SDES config)
+//problem: fallback config-mode is not fully configured and may throw errors!
 
 PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors, std::string logFile) :
         ConfigurationMode()
@@ -630,6 +631,11 @@ bool PassiveConfiguration::runConfiguration()
 
     //we can reuse buffer, because it is large enough (as of RTCPPackageHandler)
     int receivedSize = wrapper.receiveData(buffer, 6000);
+    while(receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
+    {
+        //we timed out - repeat
+        receivedSize = wrapper.receiveData(buffer, 6000);
+    }
     if(receivedSize < 0)
     {
         std::wcerr << wrapper.getLastError() << std::endl;

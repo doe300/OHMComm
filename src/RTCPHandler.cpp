@@ -62,13 +62,13 @@ void RTCPHandler::runThread()
             //socket was already closed
             shutdownInternal();
         }
+        else if(receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
+        {
+            //just continue to next loop iteration, checking if thread should continue running
+        }
         else if (RTCPPackageHandler::isRTCPPackage(rtcpHandler.rtcpPackageBuffer, receivedSize))
         {
             handleRTCPPackage(rtcpHandler.rtcpPackageBuffer, (unsigned int)receivedSize);
-        }
-        else if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
-        {
-            //just continue to next loop iteration, checking if thread should continue running
         }
     }
     std::cout << "RTCP-Handler shut down!" << std::endl;
