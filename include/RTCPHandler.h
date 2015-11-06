@@ -48,7 +48,7 @@ private:
     std::thread listenerThread;
     bool threadRunning = false;
     
-    //send SR every 20 seconds
+    //send SR every X seconds
     static const std::chrono::seconds sendSRInterval;
     std::chrono::system_clock::time_point lastSRReceived;
     std::chrono::system_clock::time_point lastSRSent;

@@ -13,7 +13,12 @@
 #include <vector>
 #include <string>
 
-//TODO use network byte-order
+//For htons/htonl and ntohs/ntohl
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <netinet/in.h>
+#endif
 
 /*!
  * RTCP package type
@@ -82,6 +87,7 @@ static const RTCPSourceDescriptionType RTCP_SOURCE_NOTE = 7;
  */
 struct RTCPHeader
 {
+public:
     //2 bit version field
     unsigned int version : 2;
 
@@ -94,18 +100,20 @@ struct RTCPHeader
     //8 bit package-type field
     RTCPPackageType packageType;
 
+private:    //uses network byte-order
     //16 bit length field
     unsigned int length : 16;
 
     //32 bit ssrc field
     unsigned int ssrc : 32;
 
+public:
     /*!
      * Creates a new RTCPHeader
      *
      * \param ssrc The SSRC, the only parameter not written by the create*Package-methods
      */
-    RTCPHeader(uint32_t ssrc) : ssrc(ssrc)
+    RTCPHeader(uint32_t ssrc) : ssrc(htonl(ssrc))
     {
         //version is always 2 per specification
         version = 2;
@@ -115,6 +123,20 @@ struct RTCPHeader
         receptionReportOrSourceCount = 0;
     }
 
+    inline uint32_t getSSRC() const
+    {
+        return ntohl(ssrc);
+    }
+    
+    inline uint16_t getLength() const
+    {
+        return ntohs(length);
+    }
+    
+    inline void setLength(uint16_t length)
+    {
+        this->length = htons(length);
+    }
 };
 
 /*!
@@ -169,6 +191,7 @@ struct RTCPHeader
  */
 struct SenderInformation
 {
+private:    //uses network byte-order
     //64 bit NTP timestamp field
     uint64_t NTPTimestamp: 64;
 
@@ -181,11 +204,27 @@ struct SenderInformation
     //32 bit sender's octet count field
     unsigned int octetCount : 32;
 
+public:
     SenderInformation(uint32_t rtpTimestamp, uint32_t packageCount, uint32_t octetCount) :
-    RTPTimestamp(rtpTimestamp), packetCount(packageCount), octetCount(octetCount)
+    RTPTimestamp(htonl(rtpTimestamp)), packetCount(htonl(packageCount)), octetCount(htonl(octetCount))
     {
         //default NTP timestamp
         NTPTimestamp = 0;
+    }
+    
+    inline uint32_t getRTPTimestamp() const
+    {
+        return ntohl(RTPTimestamp);
+    }
+    
+    inline uint32_t getPacketCount() const
+    {
+        return ntohl(packetCount);
+    }
+    
+    inline uint32_t getOctetCount() const
+    {
+        return ntohl(octetCount);
     }
 };
 
@@ -266,6 +305,7 @@ struct SenderInformation
  */
 struct ReceptionReport
 {
+    //TODO network byte-order
     //32 bit SSRC field
     unsigned int ssrc : 32;
 
@@ -427,7 +467,7 @@ struct ApplicationDefined
     uint16_t dataLength;
 
     //variable length application specific data
-    char *data;
+    const char *data;
 
     //5 bit application defined sub-type -> is stored in RTCPHeader.receptionReportOrSourceCount
     unsigned int subType : 5;

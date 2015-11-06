@@ -35,7 +35,7 @@ void RTCPHandler::shutdown()
     // Send a RTCP BYE-packet, to tell the other side that communication has been stopped
     RTCPHeader byeHeader(Statistics::readCounter(Statistics::RTP_LOCAL_SSRC));
     const void* packageBuffer = rtcpHandler.createByePackage(byeHeader, "Program exit");
-    wrapper->sendData(packageBuffer, RTCPPackageHandler::getRTCPPackageLength(byeHeader.length));
+    wrapper->sendData(packageBuffer, RTCPPackageHandler::getRTCPPackageLength(byeHeader.getLength()));
     std::cout << "RTCP: BYE-Package sent." << std::endl;
     
     shutdownInternal();
@@ -103,8 +103,8 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         SenderInformation senderReport(0, 0,0);
         std::vector<ReceptionReport> receptionReports = rtcpHandler.readSenderReport(receiveBuffer, receivedSize, header, senderReport);
         std::cout << "RTCP: Received Sender Report: " << std::endl;
-        std::cout << "\tTotal package sent: " << senderReport.packetCount << std::endl;
-        std::cout << "\tTotal bytes sent: " << senderReport.octetCount << std::endl;
+        std::cout << "\tTotal package sent: " << senderReport.getPacketCount() << std::endl;
+        std::cout << "\tTotal bytes sent: " << senderReport.getOctetCount() << std::endl;
         std::cout << "RTCP: Received Reception Reports:" << std::endl;
         for(const ReceptionReport& report : receptionReports)
         {
@@ -153,7 +153,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
             RTCPPackageHandler handler;
             RTCPHeader responseHeader(0);  //SSID doesn't really matter
             const void* responseBuffer = handler.createApplicationDefinedPackage(responseHeader, configResponse);
-            wrapper->sendData(responseBuffer, RTCPPackageHandler::getRTCPPackageLength(responseHeader.length));
+            wrapper->sendData(responseBuffer, RTCPPackageHandler::getRTCPPackageLength(responseHeader.getLength()));
             
             //remote device has connected, so send SDES
             sendSourceDescription();
@@ -205,7 +205,7 @@ void RTCPHandler::sendSourceDescription()
     std::cout << "RTCP: sending SDES ..." << std::endl;
     RTCPHeader sdesHeader(Statistics::readCounter(Statistics::RTP_LOCAL_SSRC));
     const void* buffer = rtcpHandler.createSourceDescriptionPackage(sdesHeader, sdes);
-    wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(sdesHeader.length));
+    wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(sdesHeader.getLength()));
 }
 
 void RTCPHandler::sendSenderReport()
@@ -226,5 +226,5 @@ void RTCPHandler::sendSenderReport()
     };
     std::cout << "RTCP: Sending SR ..." << std::endl;
     const void* buffer = rtcpHandler.createSenderReportPackage(srHeader, senderReport, {receptionReport});
-    wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(srHeader.length));
+    wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(srHeader.getLength()));
 }

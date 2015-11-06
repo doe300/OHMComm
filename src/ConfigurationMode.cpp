@@ -623,7 +623,7 @@ bool PassiveConfiguration::runConfiguration()
     void* buffer = (void*)handler.createApplicationDefinedPackage(requestHeader, configRequest);
 
     std::cout << "Sending request for passive configuration..." << std::endl;
-    if(wrapper.sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(requestHeader.length)) < (int)RTCPPackageHandler::getRTCPPackageLength(requestHeader.length))
+    if(wrapper.sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(requestHeader.getLength())) < (int)RTCPPackageHandler::getRTCPPackageLength(requestHeader.getLength()))
     {
         std::wcerr << wrapper.getLastError() << std::endl;
         return false;
@@ -704,7 +704,7 @@ const bool PassiveConfiguration::isCustomConfigurationSet(const std::string key,
 }
 
 
-const PassiveConfiguration::ConfigurationMessage PassiveConfiguration::readConfigurationMessage(void* buffer, unsigned int bufferSize)
+const PassiveConfiguration::ConfigurationMessage PassiveConfiguration::readConfigurationMessage(const void* buffer, unsigned int bufferSize)
 {
     ConfigurationMessage message;
     message.audioFormat = ((ConfigurationMessage*)buffer)->audioFormat;
