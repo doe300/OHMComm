@@ -20,7 +20,7 @@ int RTPBufferAlternative::isPowerOfTwo(unsigned int x)
 RTPBufferStatus RTPBufferAlternative::addPackage(RTPPackageHandler &package, unsigned int contentSize)
 {
 	// Calculate position in the ringBuffer for the package
-	RTPHeader *rtpHeader = package.getRTPPackageHeader();
+	const RTPHeader *rtpHeader = package.getRTPPackageHeader();
 	unsigned int packetPositionRingBuffer = rtpHeader->sequence_number;
 	// modulo operation by bit shifting
 	if (packetPositionRingBuffer >= maxCapacity)
@@ -120,7 +120,7 @@ unsigned int RTPBufferAlternative::getSize() const
 void RTPBufferAlternative::copySilencePackageIntoPackage(RTPPackageHandler &package)
 {
 	char* packageBuffer = (char*)package.getWorkBuffer();
-	RTPHeader *currentHeaderData = package.getRTPPackageHeader();
+	RTPHeader *currentHeaderData = (RTPHeader*)package.getRTPPackageHeader();
 	currentHeaderData->sequence_number = lastReadSeqNr;
 	unsigned int rtpHeaderSize = package.getRTPHeaderSize();
 	unsigned int payloadSize = package.getMaximumPayloadSize();

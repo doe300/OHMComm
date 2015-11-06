@@ -602,7 +602,7 @@ public:
      *
      * \return Whether this buffer COULD be holding hold an RTCP package
      */
-    static bool isRTCPPackage(void* packageBuffer, unsigned int packageLength );
+    static bool isRTCPPackage(const void* packageBuffer, const unsigned int packageLength );
 
     /*!
      * \param lengthHeaderField The value of the RTCP header-field "length"

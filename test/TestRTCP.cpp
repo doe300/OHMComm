@@ -158,7 +158,7 @@ void TestRTCP::testIsRTCPPackage()
     //negative test
     RTPPackageHandler h(2048);
     void* someData = (void*)(std::string("Some Data!").data());
-    void* rtpPackage = h.getNewRTPPackage(someData, 10);
+    const void* rtpPackage = h.createNewRTPPackage(someData, 10);
 
     //tests
     TEST_ASSERT(true == handler.isRTCPPackage(rtcpPackage, handler.getRTCPPackageLength(rtcpHeader.length)));

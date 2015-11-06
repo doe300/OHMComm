@@ -21,9 +21,7 @@ void TestRTPBuffer::testMinBufferPackages()
 	//fill with less packages than minBufferSize
 	for (int i = 0; i < minBufferPackages - 1; i++)
 	{
-		void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
-		//copies the new-buffer into the work-buffer
-		package.getRTPPackageHeader(buf);
+		package.createNewRTPPackage((char*)"Dadadummi!", 10);
 		RTPBufferStatus result = handler->addPackage(package, 10);
 		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
@@ -44,16 +42,12 @@ void TestRTPBuffer::testWriteFullBuffer()
 	//fill whole buffer
 	while (handler->getSize() < maxCapacity)
 	{
-		void* buf = package.getNewRTPPackage(someText, 16);
-		//copies the new-buffer into the work-buffer
-		package.getRTPPackageHeader(buf);
+		package.createNewRTPPackage(someText, 16);
 		RTPBufferStatus result = handler->addPackage(package, 10);
 		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 	//write the next package -> should fail
-	void* buf = package.getNewRTPPackage(someText, 16);
-	//copies the new-buffer into the work-buffer
-	package.getRTPPackageHeader(buf);
+	package.createNewRTPPackage(someText, 16);
 	RTPBufferStatus result = handler->addPackage(package, 10);
 	TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW, result);
 }
@@ -81,17 +75,13 @@ void TestRTPBuffer::testWriteOldPackage()
 {
 	const char* someText = "This is some Text";
 	//write some package
-	void* buf = package.getNewRTPPackage(someText, 16);
-	//copies the new-buffer into the work-buffer
-	package.getRTPPackageHeader(buf);
+	const void* buf = package.createNewRTPPackage(someText, 16);
 	TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, handler->addPackage(package, 10));
 	unsigned int size = handler->getSize();
 
 	//write a package which is far too old
-	buf = package.getNewRTPPackage(someText, 16);
+	buf = package.createNewRTPPackage(someText, 16);
 	((RTPHeader*)buf)->sequence_number -= maxCapacity;
-	//copies the new-buffer into the work-buffer
-	package.getRTPPackageHeader(buf);
 
 	auto result = handler->addPackage(package, 10);
 	switch (result)
@@ -121,31 +111,25 @@ void TestRTPBuffer::testPackageBlockLoss()
 		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 
-	auto test = handler->getSize();
-
 	//we fill a few packages
 	for (int i = 0; i < 10; i++)
 	{
 		//write some package
-		void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
-		//copies the new-buffer into the work-buffer
-		package.getRTPPackageHeader(buf);
+		package.createNewRTPPackage((char*)"Dadadummi!", 10);
 		auto result = handler->addPackage(package, 10);
 		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
 	//skip a block (brute force)
 	for (int i = 0; i < 10; i++)
 	{
-		//getNewRTPPackage increases sequence-number
-		package.getNewRTPPackage((char*)"Dadadummi!", 10);
+		//createNewRTPPackage increases sequence-number
+		package.createNewRTPPackage((char*)"Dadadummi!", 10);
 	}
 	//fill with more packages
 	for (int i = 0; i < 10; i++)
 	{
 		//write some package
-		void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
-		//copies the new-buffer into the work-buffer
-		package.getRTPPackageHeader(buf);
+		package.createNewRTPPackage((char*)"Dadadummi!", 10);
 		auto result = handler->addPackage(package, 10);
 		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, result);
 	}
@@ -196,11 +180,9 @@ void TestRTPBuffer::testContinousPackageLoss()
 	for (int i = 0; i < 10; i++)
 	{
 		//skip this package
-		package.getNewRTPPackage((char*)"Dadadummi!", 10);
+		package.createNewRTPPackage((char*)"Dadadummi!", 10);
 		//write some package
-		void* buf = package.getNewRTPPackage((char*)"Dadadummi!", 10);
-		//copies the new-buffer into the work-buffer
-		package.getRTPPackageHeader(buf);
+		package.createNewRTPPackage((char*)"Dadadummi!", 10);
 		lastSeqNum = package.getRTPPackageHeader()->sequence_number;
 		TEST_ASSERT_EQUALS(RTPBufferStatus::RTP_BUFFER_ALL_OKAY, handler->addPackage(package, 10));
 	}

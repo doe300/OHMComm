@@ -30,7 +30,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     {
         rtpPackage = new RTPPackageHandler(userData->maxBufferSize, payloadType);
     }
-    void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer, inputBufferByteSize);
+    const void* newRTPPackage = rtpPackage->createNewRTPPackage(inputBuffer, inputBufferByteSize);
     //only send the number of bytes really required: header + actual payload-size
     this->networkObject->sendData(newRTPPackage, rtpPackage->getRTPHeaderSize() + inputBufferByteSize);
 
@@ -62,7 +62,7 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
         std::cerr << "Output Buffer underflow" << std::endl;
     }
 
-    void* recvAudioData = rtpPackage->getRTPPackageData();
+    const void* recvAudioData = rtpPackage->getRTPPackageData();
     unsigned int receivedPayloadSize = rtpPackage->getActualPayloadSize();
     memcpy(outputBuffer, recvAudioData, outputBufferByteSize);
 

@@ -29,7 +29,7 @@ RTPBuffer::~RTPBuffer()
 RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int contentSize)
 {
     lockMutex();
-    RTPHeader *receivedHeader = package.getRTPPackageHeader();
+    const RTPHeader *receivedHeader = package.getRTPPackageHeader();
     if(minSequenceNumber == 0)
     {
         //if we receive our first package, we need to set minSequenceNumber

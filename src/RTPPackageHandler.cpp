@@ -14,7 +14,6 @@ RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadTyp
 	this->maximumBufferSize = maximumPayloadSize + sizeOfRTPHeader;
 	this->payloadType = payloadType;
 
-	newRTPPackageBuffer = new char[maximumBufferSize];
 	workBuffer = new char[maximumBufferSize];
 
 	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -28,11 +27,10 @@ RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadTyp
 
 RTPPackageHandler::~RTPPackageHandler()
 {
-    delete[] (char*)newRTPPackageBuffer;
     delete[] (char*)workBuffer;
 }
 
-auto RTPPackageHandler::getNewRTPPackage(const void* audioData, unsigned int payloadSize) -> void*
+const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsigned int payloadSize)
 {
 	RTPHeader newRTPHeader;
 
@@ -50,32 +48,22 @@ auto RTPPackageHandler::getNewRTPPackage(const void* audioData, unsigned int pay
 	newRTPHeader.ssrc = this->ssrc;
 
 	// Copy RTPHeader and Audiodata in the buffer
-	memcpy((char*)newRTPPackageBuffer, &newRTPHeader, this->sizeOfRTPHeader);
-	memcpy((char*)(newRTPPackageBuffer)+sizeOfRTPHeader, audioData, payloadSize);
+	memcpy((char*)workBuffer, &newRTPHeader, this->sizeOfRTPHeader);
+	memcpy((char*)(workBuffer)+sizeOfRTPHeader, audioData, payloadSize);
+        actualPayloadSize = payloadSize;
 
-	return newRTPPackageBuffer;
+	return workBuffer;
 }
 
-auto RTPPackageHandler::getRTPPackageData(void *rtpPackage) -> void*
+const void* RTPPackageHandler::getRTPPackageData() const
 {
-	if (rtpPackage == nullptr)
-	{
-		return (char*)workBuffer + sizeOfRTPHeader;
-	}
-	memcpy((char*)(workBuffer) + sizeOfRTPHeader, (char*)rtpPackage + sizeOfRTPHeader, maximumPayloadSize);
-	return (char*)(workBuffer)+sizeOfRTPHeader;
+    return (char*)(workBuffer) + sizeOfRTPHeader;
 }
 
-auto RTPPackageHandler::getRTPPackageHeader(void *rtpPackage) -> RTPHeader*
+const RTPHeader* RTPPackageHandler::getRTPPackageHeader() const
 {
-	if (rtpPackage == nullptr)
-	{
-		return (RTPHeader*)workBuffer;
-	}
-	memcpy((char*)(workBuffer), (char*)rtpPackage, sizeOfRTPHeader);
-	return (RTPHeader*)workBuffer;
+    return (RTPHeader*)workBuffer;
 }
-
 
 unsigned int RTPPackageHandler::getRandomNumber()
 {
@@ -94,22 +82,22 @@ unsigned int RTPPackageHandler::getAudioSourceId()
     return this->randomGenerator();
 }
 
-auto RTPPackageHandler::getMaximumPackageSize() -> unsigned int const
+unsigned int RTPPackageHandler::getMaximumPackageSize() const
 {
-	return maximumBufferSize;
+    return maximumBufferSize;
 }
 
-auto RTPPackageHandler::getRTPHeaderSize() -> unsigned int const
+unsigned int RTPPackageHandler::getRTPHeaderSize() const
 {
-	return sizeOfRTPHeader;
+    return sizeOfRTPHeader;
 }
 
-auto RTPPackageHandler::getMaximumPayloadSize() -> unsigned int const
+unsigned int RTPPackageHandler::getMaximumPayloadSize() const
 {
-	return maximumPayloadSize;
+    return maximumPayloadSize;
 }
 
-auto RTPPackageHandler::getActualPayloadSize() -> unsigned int const
+unsigned int RTPPackageHandler::getActualPayloadSize() const
 {
     return actualPayloadSize;
 }
@@ -119,9 +107,9 @@ void RTPPackageHandler::setActualPayloadSize(unsigned int payloadSize)
     this->actualPayloadSize = payloadSize;
 }
 
-auto RTPPackageHandler::getWorkBuffer() -> void*
+void* RTPPackageHandler::getWorkBuffer()
 {
-	return this->workBuffer;
+    return this->workBuffer;
 }
 
 void RTPPackageHandler::createSilencePackage()
@@ -131,12 +119,12 @@ void RTPPackageHandler::createSilencePackage()
     memset((char *)(workBuffer) + sizeOfRTPHeader, 0, maximumPayloadSize);
 }
 
-unsigned int RTPPackageHandler::getSSRC()
+unsigned int RTPPackageHandler::getSSRC() const
 {
     return ssrc;
 }
 
-bool RTPPackageHandler::isRTPPackage(void* packageBuffer, unsigned int packageLength)
+bool RTPPackageHandler::isRTPPackage(const void* packageBuffer, unsigned int packageLength)
 {
     //1. check for package size, if large enough
     if(packageLength < RTP_HEADER_MIN_SIZE)
@@ -144,7 +132,7 @@ bool RTPPackageHandler::isRTPPackage(void* packageBuffer, unsigned int packageLe
         return false;
     }
     //2. we assume, it is an RTP package
-    RTPHeader *readHeader = (RTPHeader* )packageBuffer;
+    const RTPHeader* readHeader = (const RTPHeader* )packageBuffer;
 
     //3. check for header-fields
     if(readHeader->version != 2)

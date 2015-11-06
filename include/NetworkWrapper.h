@@ -44,7 +44,7 @@ public:
      *
      * Returns the number of bytes sent
      */
-    virtual int sendData(void *buffer, unsigned int bufferSize = 0) = 0;
+    virtual int sendData(const void *buffer, const unsigned int bufferSize = 0) = 0;
 
     /*!
      * \param buffer The buffer to receive into

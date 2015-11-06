@@ -105,7 +105,7 @@ bool UDPWrapper::createSocket()
     return true;
 }
 
-int UDPWrapper::sendData(void *buffer, unsigned int bufferSize)
+int UDPWrapper::sendData(const void *buffer, const unsigned int bufferSize)
 {
     return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->remoteAddress), getSocketAddressLength());
 }

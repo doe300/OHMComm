@@ -64,7 +64,7 @@ public:
 	 * \param header A pointer to a RTPHeader
 	 * \param packageContent A pointer to the payloadContent (AudioData)
 	 */
-	void addPacket(RTPHeader *header, void *packageContent)
+	void addPacket(const RTPHeader *header, const void *packageContent)
 	{
 		// Adding a new packet while the old one was not read? -> set the overflow flag
 		if (hasBeenInitialized && hasBeenRead == false)

@@ -231,7 +231,7 @@ RTCPHeader RTCPPackageHandler::readRTCPHeader(void* rtcpPackage, unsigned int pa
     return headerCopy;
 }
 
-bool RTCPPackageHandler::isRTCPPackage(void* packageBuffer, unsigned int packageLength)
+bool RTCPPackageHandler::isRTCPPackage(const void* packageBuffer, const unsigned int packageLength)
 {
     //1. check for package size, if large enough
     if(packageLength < RTCP_HEADER_SIZE)
