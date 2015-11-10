@@ -1,6 +1,6 @@
-1. OHMComm - Projektinformationen
+﻿1. OHMComm - Projektinformationen (Kaayy)
 2. RTAudio (J0n8s)
-3. CMake
+3. CMake (Kaayy)
 4. Architektur (Kaayy)
 5. RTPBuffer
 6. NetworkWrapper
@@ -10,3 +10,25 @@
 10. Opus (J0n8s)
 11. Statistiken
 12. RTCP-Protokoll(?)
+
+
+
+
+Mögliche Ablaufreihenfolge
+1. OHMComm - Projektinformationen
+	Anforderungen und Ziele des Projekts
+2. CMake
+	Aus den Zielen (Plattformunabhängigkeit) folgt die Notwendigkeit für CMake
+3. RTAudio
+	RTAudio sollte vor der Architektur erklärt werden, weil diese auf RTAudio aufbaut?
+4. Architektur
+X. Alle AudioProcessors-Klassen
+	5. Opus
+	6. NetworkWrapper
+7. RTP-Protokoll
+	RTPBuffer setzt wissen aus RTP-Protkoll voraus, deshalb zuerst RTP-Protokoll
+	8. RTCP-Protokoll
+9. RTPBuffer
+10. Configurations-Modi / Bedienmöglichkeiten
+11. Statistiken
+12. CPPTest-lite
