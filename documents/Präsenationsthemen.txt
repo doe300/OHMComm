@@ -4,8 +4,9 @@
 4. Architektur (Kaayy)
 5. RTPBuffer
 6. NetworkWrapper
-7. CPPTest
+7. CPPTest-lite
 8. RTP-Protokoll
-9. Bedienmöglichkeiten - Per Konsoleeingabe oder per Parameterübergabe in die Konsole
+9. Configurations-Modi / BedienmÃ¶glichkeiten (doe300)
 10. Opus
 11. Statistiken
+12. RTCP-Protokoll(?)
