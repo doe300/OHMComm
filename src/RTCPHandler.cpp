@@ -100,7 +100,8 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
     {
         //other side sent SR, so print output
         lastSRReceived = std::chrono::system_clock::now();
-        SenderInformation senderReport(0, 0,0);
+        NTPTimestamp ntpTime;
+        SenderInformation senderReport(ntpTime, 0, 0,0);
         std::vector<ReceptionReport> receptionReports = rtcpHandler.readSenderReport(receiveBuffer, receivedSize, header, senderReport);
         std::cout << "RTCP: Received Sender Report: " << std::endl;
         std::cout << "\tTotal package sent: " << senderReport.getPacketCount() << std::endl;
@@ -109,7 +110,9 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         for(const ReceptionReport& report : receptionReports)
         {
             std::cout << "\tReception Report for: " << report.ssrc << std::endl;
+            std::cout << "\t\tFraction Lost (1/256): " << report.fraction_lost << std::endl;
             std::cout << "\t\tTotal package loss: " << report.cumulativePackageLoss << std::endl;
+            std::cout << "\t\tInterarrival Jitter: " << report.interarrivalJitter << std::endl;
         }
     }
     else if(header.packageType == RTCP_PACKAGE_SOURCE_DESCRIPTION)
@@ -212,15 +215,16 @@ void RTCPHandler::sendSenderReport()
 {
     RTCPHeader srHeader(Statistics::readCounter(Statistics::RTP_LOCAL_SSRC));
     
-    //TODO timestamps are wrong
-    SenderInformation senderReport(0, Statistics::readCounter(Statistics::COUNTER_PACKAGES_SENT), Statistics::readCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT));
+    NTPTimestamp ntpTime = NTPTimestamp::now();
+    //TODO RTP-Timestamp is wrong, need to get from sending RTPHandler
+    SenderInformation senderReport(ntpTime, 0, Statistics::readCounter(Statistics::COUNTER_PACKAGES_SENT), Statistics::readCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT));
     //we currently have only one reception report
     ReceptionReport receptionReport = {
         (uint32_t)Statistics::readCounter(Statistics::RTP_REMOTE_SSRC), //ssrc
-        0, //fraction lost - not supported
+        calculateFractionLost(), //fraction lost
         (uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST), //cummulative package loss
         0, //extended highest sequence-number - not supported
-        0, //interarrival-jitter - not supported
+        (uint32_t)Statistics::readCounter(Statistics::RTP_INTERARRIVAL_JITTER), //interarrival-jitter
         (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>(lastSRReceived.time_since_epoch()).count(), //last SR received
         0, //delay since last SR - not supported
     };
@@ -228,3 +232,11 @@ void RTCPHandler::sendSenderReport()
     const void* buffer = rtcpHandler.createSenderReportPackage(srHeader, senderReport, {receptionReport});
     wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(srHeader.getLength()));
 }
+
+inline uint8_t RTCPHandler::calculateFractionLost()
+{
+    double c = Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST);
+    double d = Statistics::readCounter(Statistics::COUNTER_PACKAGES_RECEIVED);
+    return (long)((c/d) * 256);
+}
+

@@ -9,13 +9,13 @@
 #include "Statistics.h"
 
 RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize, std::function<void()> stopCallback) :
-    stopCallback(stopCallback), rtpHandler(receiveBufferSize)
+    stopCallback(stopCallback), rtpHandler(receiveBufferSize), lastDelay(0)
 {
     this->wrapper = wrapper;
     this->buffer = buffer;
 }
 
-RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler)
+RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler), lastDelay(orig.lastDelay)
 {
     this->wrapper = orig.wrapper;
     this->buffer = orig.buffer;
@@ -64,6 +64,10 @@ void RTPListener::runThread()
             }
             else
             {
+                Statistics::setCounter(Statistics::RTP_INTERARRIVAL_JITTER, calculateInterarrivalJitter(
+                    Statistics::readCounter(Statistics::RTP_INTERARRIVAL_JITTER),
+                    rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp())
+                );
                 Statistics::setCounter(Statistics::RTP_REMOTE_SSRC, rtpHandler.getRTPPackageHeader()->getSSRC());
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
                 Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTP_HEADER_MIN_SIZE);
@@ -72,6 +76,21 @@ void RTPListener::runThread()
         }
     }
     std::cout << "RTP-Listener shut down" << std::endl;
+}
+
+uint32_t RTPListener::calculateInterarrivalJitter(uint32_t lastJitter, uint32_t sentTimestamp, uint32_t receptionTimestamp)
+{
+    //as of RFC 3550:
+    //D(i, j)=(Rj - Sj) - (Ri - Si)
+    //with (Ri - Si) = lastDelay
+    uint32_t currentDelay = receptionTimestamp - sentTimestamp;
+    uint32_t currentDifference = currentDelay - lastDelay;
+    
+    //Ji = Ji-1 + (|D(i-1, 1)| i Ji-1)/16
+    uint32_t currentJitter = lastJitter + (abs(currentDifference) - lastJitter)/16;
+    
+    lastDelay = currentDelay;
+    return currentJitter;
 }
 
 void RTPListener::shutdown()

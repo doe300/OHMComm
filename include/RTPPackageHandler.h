@@ -70,7 +70,7 @@ struct RTPHeaderExtension
 
 /*!
  *
- * The RTP header has the following format:
+ * The RTP header is specified in RFC 3550 has the following format:
  *
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -384,6 +384,11 @@ public:
      * Returns this device SSRC
      */
     unsigned int getSSRC() const;
+    
+    /*!
+     * Returns the current RTP timestamp for the internal clock
+     */
+    uint32_t getCurrentRTPTimestamp() const;
     
     /*!
      * This method tries to determine whether the received buffer holds an RTP package.

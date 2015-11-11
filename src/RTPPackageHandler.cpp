@@ -44,7 +44,7 @@ const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsign
         //we need steady clock so it will always change monotonically (etc. no change to/from daylight savings time)
         //additionally, we need to count with milliseconds precision
         //we add the random starting timestamp to meet the condition specified in the RTP standard
-	newRTPHeader.setTimestamp(this->timestamp + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+	newRTPHeader.setTimestamp(getCurrentRTPTimestamp());
 	newRTPHeader.setSSRC(this->ssrc);
 
 	// Copy RTPHeader and Audiodata in the buffer
@@ -122,6 +122,11 @@ void RTPPackageHandler::createSilencePackage()
 unsigned int RTPPackageHandler::getSSRC() const
 {
     return ssrc;
+}
+
+uint32_t RTPPackageHandler::getCurrentRTPTimestamp() const
+{
+    return timestamp + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
 bool RTPPackageHandler::isRTPPackage(const void* packageBuffer, unsigned int packageLength)

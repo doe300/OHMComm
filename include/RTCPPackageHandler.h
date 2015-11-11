@@ -8,6 +8,7 @@
 #ifndef RTCPPACKAGEHANDLER_H
 #define	RTCPPACKAGEHANDLER_H
 
+#include <chrono> // clock, tick
 #include <string.h> // memcpy
 #include <stdint.h> //uint8_t for Windows
 #include <vector>
@@ -45,7 +46,62 @@ static const RTCPSourceDescriptionType RTCP_SOURCE_TOOL = 6;
 static const RTCPSourceDescriptionType RTCP_SOURCE_NOTE = 7;
 
 /*!
- * The RTCP header has the following format:
+ * The NTP timestamp is specified in RFC 1305 and has the following format:
+ * 
+ * 1                   2                   3
+ * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                          Seconds                             |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                 Seconds Fraction (0-padded)                  |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * 
+ * Seconds:
+ *  Seconds since 01.01.1900 00:00:00. Also the equivalent in UNIX timestamps
+ * 
+ * Seconds Fraction:
+ *  Fraction of seconds, zero-padded
+ * 
+ * The NTP timestamp will overflow sometime in 2036
+ */
+struct NTPTimestamp
+{
+private:    //fields in network byte-order
+    unsigned int seconds : 32;
+    unsigned int fraction : 32;
+    //the difference between epoch (01.01.1970) and 01.01.1900 in seconds
+    const static uint32_t difToEpoch{2208988800}; 
+    
+public:
+    NTPTimestamp(): seconds(0), fraction(0)
+    {}
+    
+    NTPTimestamp(uint32_t seconds, uint32_t fraction = 0) : seconds(htonl(seconds)), fraction(htonl(fraction))
+    {}
+    
+    uint32_t getSeconds() const
+    {
+        return ntohl(seconds);
+    }
+    
+    uint32_t getFraction() const
+    {
+        return ntohl(fraction);
+    }
+    
+    /*!
+     * \return a NTP timestamp of this instance
+     */
+    static NTPTimestamp now()
+    {
+        std::chrono::high_resolution_clock::duration sinceEpoch = std::chrono::high_resolution_clock::now().time_since_epoch();
+        std::chrono::seconds secondsSinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(sinceEpoch);
+        //XXX we currently don't care about fractions of seconds
+        return NTPTimestamp(secondsSinceEpoch.count() + difToEpoch, 0);
+    }
+};
+/*!
+ * The RTCP header is specified in RFC 3551 has the following format:
  *
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -193,7 +249,7 @@ struct SenderInformation
 {
 private:    //uses network byte-order
     //64 bit NTP timestamp field
-    uint64_t NTPTimestamp: 64;
+    NTPTimestamp ntpTimestamp;
 
     //32 bit RTP timestamp field
     unsigned int RTPTimestamp : 32;
@@ -205,11 +261,9 @@ private:    //uses network byte-order
     unsigned int octetCount : 32;
 
 public:
-    SenderInformation(uint32_t rtpTimestamp, uint32_t packageCount, uint32_t octetCount) :
-    RTPTimestamp(htonl(rtpTimestamp)), packetCount(htonl(packageCount)), octetCount(htonl(octetCount))
+    SenderInformation(const NTPTimestamp& ntpTimestamp, uint32_t rtpTimestamp, uint32_t packageCount, uint32_t octetCount) :
+    ntpTimestamp(ntpTimestamp), RTPTimestamp(htonl(rtpTimestamp)), packetCount(htonl(packageCount)), octetCount(htonl(octetCount))
     {
-        //default NTP timestamp
-        NTPTimestamp = 0;
     }
     
     inline uint32_t getRTPTimestamp() const

@@ -37,6 +37,7 @@ public:
     static const int RTP_BUFFER_LIMIT{15};
     static const int RTP_LOCAL_SSRC{16};
     static const int RTP_REMOTE_SSRC{17};
+    static const int RTP_INTERARRIVAL_JITTER{18};
 
     /*!
      * Increments the given counter by the value provided

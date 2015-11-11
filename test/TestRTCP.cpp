@@ -24,12 +24,13 @@ void TestRTCP::testSenderReportPackage()
 
     //create package
     RTCPHeader header(testSSRC);
-    SenderInformation info(1000, packageCount, 2048);
+    NTPTimestamp ntpTime;
+    SenderInformation info(ntpTime, 1000, packageCount, 2048);
     const void* package = handler.createSenderReportPackage(header, info, {});
 
     //read package
     RTCPHeader readHeader(0);
-    SenderInformation readInfo(0,0,0);
+    SenderInformation readInfo(ntpTime, 0,0,0);
     std::vector<ReceptionReport> reports = handler.readSenderReport(package, RTCPPackageHandler::getRTCPPackageLength(header.getLength()), readHeader, readInfo);
 
     //tests

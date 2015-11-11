@@ -74,6 +74,11 @@ private:
      * Creates and sends a Sender Report (SR)-package, only called from #runThread()
      */
     void sendSenderReport();
+    
+    /*!
+     * \return the fraction of lost-packages as 1/256
+     */
+    uint8_t calculateFractionLost();
 };
 
 #endif	/* RTCPHANDLER_H */
