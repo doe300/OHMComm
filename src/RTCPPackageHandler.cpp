@@ -24,7 +24,7 @@ RTCPPackageHandler::~RTCPPackageHandler()
 }
 
 
-const void* RTCPPackageHandler::createSenderReportPackage(RTCPHeader& header, SenderInformation& senderInfo, const std::vector<ReceptionReport>& reports)
+const void* RTCPPackageHandler::createSenderReportPackage(RTCPHeader& header, const SenderInformation& senderInfo, const std::vector<ReceptionReport>& reports)
 {
     //adjust header
     header.packageType = RTCP_PACKAGE_SENDER_REPORT;
@@ -144,15 +144,18 @@ std::vector<ReceptionReport> RTCPPackageHandler::readSenderReport(const void* se
     //copy header to out-parameter
     header = *readHeader;
 
-    SenderInformation *readInfo = (SenderInformation*)((char *)senderReportPackage + RTCP_HEADER_SIZE);
+    char* startPtr = (char*)senderReportPackage + RTCP_HEADER_SIZE;
+    SenderInformation *readInfo = (SenderInformation*)startPtr;
     //copy sender-info to out-parameter
     senderInfo = *readInfo;
 
+    startPtr += RTCP_SENDER_INFO_SIZE;
     std::vector<ReceptionReport> reports(header.receptionReportOrSourceCount);
     for(unsigned int i = 0; i < header.receptionReportOrSourceCount; i++)
     {
-        ReceptionReport *readReport = (ReceptionReport *)senderReportPackage + RTCP_HEADER_SIZE + RTCP_SENDER_INFO_SIZE + i * RTCP_RECEPTION_REPORT_SIZE;
+        ReceptionReport *readReport = (ReceptionReport *)startPtr;
         reports[i] = *readReport;
+        startPtr += RTCP_RECEPTION_REPORT_SIZE;
     }
     return reports;
 }

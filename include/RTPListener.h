@@ -55,6 +55,7 @@ private:
     bool threadRunning = false;
     //for jitter-calculation
     uint32_t lastDelay;
+    float lastJitter;
 
     /*!
      * Method called in the parallel thread, receiving packages and writing them into RTPBuffer
@@ -64,15 +65,13 @@ private:
     /*!
      * NOTE: is only called from #runThread()
      * 
-     * \param lastJitter the previous value of the interarrival-jitter
-     * 
      * \param sentTimestamp the RTP-timestamp of the remote device read from the RTPHeader
      * 
      * \param receptionTimestamp the RTP-timestamp of this device of the moment of reception
      * 
      * \return the interarrival-jitter for RTP-packages
      */
-    uint32_t calculateInterarrivalJitter(uint32_t lastJitter, uint32_t sentTimestamp, uint32_t receptionTimestamp);
+    float calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp);
 };
 
 #endif	/* RTPLISTENER_H */

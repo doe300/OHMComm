@@ -112,7 +112,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
             std::cout << "\tReception Report for: " << report.ssrc << std::endl;
             std::cout << "\t\tFraction Lost (1/256): " << report.fraction_lost << std::endl;
             std::cout << "\t\tTotal package loss: " << report.cumulativePackageLoss << std::endl;
-            std::cout << "\t\tInterarrival Jitter: " << report.interarrivalJitter << std::endl;
+            std::cout << "\t\tInterarrival Jitter (in ms): " << report.interarrivalJitter << std::endl;
         }
     }
     else if(header.packageType == RTCP_PACKAGE_SOURCE_DESCRIPTION)

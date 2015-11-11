@@ -562,7 +562,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    const void *createSenderReportPackage(RTCPHeader &header, SenderInformation &senderInfo, const std::vector<ReceptionReport>& reports);
+    const void *createSenderReportPackage(RTCPHeader &header, const SenderInformation &senderInfo, const std::vector<ReceptionReport>& reports);
 
     /*!
      * Creates a new receiver report (RR) package
