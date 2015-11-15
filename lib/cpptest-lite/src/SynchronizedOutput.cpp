@@ -12,7 +12,7 @@ using namespace Test;
 SynchronizedOutput::SynchronizedOutput(Output& realOutput) : realOutput(realOutput)
 {
     #ifdef _WIN32
-    bufferMutex = CreateMutex(nullptr, false, L"OutputMutex");
+    outputMutex = CreateMutex(nullptr, false, L"OutputMutex");
     #endif
 }
 
