@@ -174,7 +174,8 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
 void RTCPHandler::sendSourceDescription()
 {
     std::vector<SourceDescription> sdes = {
-        {RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION}
+        {RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION},
+		{RTCP_SOURCE_CNAME, (getUserName() + '@') + getDomainName()}
     };
     //TODO clashes with interactive configuration (with input to shutdown server)
     if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr && configMode->isConfigured())
