@@ -37,6 +37,7 @@ static const RTCPPackageType RTCP_PACKAGE_APPLICATION_DEFINED = 204;
  */
 typedef uint8_t RTCPSourceDescriptionType;
 
+static const RTCPSourceDescriptionType RTCP_SOURCE_END = 0;
 static const RTCPSourceDescriptionType RTCP_SOURCE_CNAME = 1;
 static const RTCPSourceDescriptionType RTCP_SOURCE_NAME = 2;
 static const RTCPSourceDescriptionType RTCP_SOURCE_EMAIL = 3;
@@ -143,55 +144,102 @@ public:
  */
 struct RTCPHeader
 {
-public:
-    //2 bit version field
-    unsigned int version : 2;
-
-    //1 bit padding flag
-    unsigned int padding : 1;
-
-    //5 bit reception report count (RC) or source count (SC) field
-    unsigned int receptionReportOrSourceCount : 5;
-
-    //8 bit package-type field
-    RTCPPackageType packageType;
-
 private:    //uses network byte-order
+    
+    //data[0]
+    //2 bit version field
+    //1 bit padding flag
+    //5 bit reception report count (RC) or source count (SC) field
+    
+    //data[1]
+    //8 bit package-type field
+    
+    //data[2-3]
     //16 bit length field
-    unsigned int length : 16;
-
+    
+    //data[4-7]
     //32 bit ssrc field
-    unsigned int ssrc : 32;
-
+    uint8_t data[8];
+    
+    static const unsigned int shiftVersion = 6;
+    static const unsigned int shiftPadding = 5;
 public:
+    
+    /*!
+     * The version-flag of a RTCP package is always 2
+     */
+    static const unsigned int VERSION = 2;
+    
     /*!
      * Creates a new RTCPHeader
      *
      * \param ssrc The SSRC, the only parameter not written by the create*Package-methods
      */
-    RTCPHeader(uint32_t ssrc) : ssrc(htonl(ssrc))
+    RTCPHeader(uint32_t ssrc) : data{0}
     {
         //version is always 2 per specification
-        version = 2;
-        //padding is 0 by default
-        padding = 0;
-        //RC/SC is zero by default
-        receptionReportOrSourceCount = 0;
+        data[0] = VERSION << shiftVersion;
+        setSSRC(ssrc);
     }
-
-    inline uint32_t getSSRC() const
+    
+    inline uint8_t getVersion() const
     {
-        return ntohl(ssrc);
+        return (data[0] >> shiftVersion) & 0x3;
+    }
+    
+    inline bool isPadded() const
+    {
+        return (data[0] >> shiftPadding) & 0x1;
+    }
+    
+    inline void setPadding(bool padded)
+    {
+        data[0] = data[0] | (padded << shiftPadding);
+    }
+    
+    inline uint8_t getCount() const
+    {
+        return data[0] & 0x1F;
+    }
+    
+    inline void setCount(uint8_t count)
+    {
+        data[0] = data[0] | (count & 0x1F);
+    }
+    
+    inline RTCPPackageType getType() const
+    {
+        return data[1];
+    }
+    
+    inline void setType(RTCPPackageType type)
+    {
+        data[1] = type;
     }
     
     inline uint16_t getLength() const
     {
-        return ntohs(length);
+        return ntohs((data[3] << 8) | data[2]);
     }
     
     inline void setLength(uint16_t length)
     {
-        this->length = htons(length);
+        data[3] = (uint8_t) (htons(length) >> 8);
+        data[2] = (uint8_t) (htons(length) & 0xFF);
+    }
+    
+    inline uint32_t getSSRC() const
+    {
+        return ntohl(data[7] << 24 | data[6] << 16 | data[5] << 8 | data[4]);
+    }
+    
+    inline void setSSRC(const uint32_t ssrc)
+    {
+        uint32_t tmp = htonl(ssrc);
+        data[7] = (uint8_t) (tmp >> 24);
+        data[6] = (uint8_t) (tmp >> 16);
+        data[5] = (uint8_t) (tmp >> 8);
+        data[4] = (uint8_t) (tmp & 0xFF);
     }
 };
 
@@ -359,27 +407,103 @@ public:
  */
 struct ReceptionReport
 {
-    //TODO network byte-order
+private:
+    //data[0]
     //32 bit SSRC field
-    unsigned int ssrc : 32;
-
+    
+    //data[1]
     //8 bit fraction lost field
-    unsigned int fraction_lost : 8;
-
     //24 bit cumulative number of packages lost field
-    unsigned int cumulativePackageLoss : 24;
-
+    
+    //data[2]
     //32 bit extended highest sequence number received field
-    unsigned int extendedHighestSequenceNumberReceived : 32;
-
+    
+    //data[3]
     //32 bit interarrival jitter field
-    unsigned int interarrivalJitter : 32;
-
+    
+    //data[4]
     //32 bit last SR timestamp field
-    unsigned int lastSRTimestamp : 32;
-
+    
+    //data[5]
     //32 bit delay since last SR field
-    unsigned int delaySinceLastSR : 32;
+    uint32_t data[6];
+    
+    static const unsigned int shiftFractionLost = 24;
+public:
+    
+    ReceptionReport() : data{0}
+    {
+    }
+    
+    inline uint32_t getSSRC() const
+    {
+        return ntohl(data[0]);
+    }
+    
+    inline void setSSRC(const uint32_t ssrc)
+    {
+        data[0] = htonl(ssrc);
+    }
+    
+    inline uint8_t getFractionLost() const
+    {
+        return (uint8_t)(data[1] >> shiftFractionLost);
+    }
+    
+    inline void setFractionLost(uint8_t fractionLost)
+    {
+        data[1] = data[1] | (fractionLost << shiftFractionLost);
+    }
+    
+    inline uint32_t getCummulativePackageLoss() const
+    {
+        return data[1] & 0xFFFFFF;
+    }
+    
+    inline void setCummulativePackageLoss(uint32_t packageLoss)
+    {
+        data[1] = data[1] | (packageLoss & 0xFFFFFF);
+    }
+    
+    inline uint32_t getExtendedHighestSequenceNumber() const
+    {
+        return ntohl(data[2]);
+    }
+    
+    inline void setExtendedHighestSequenceNumber(uint32_t seqNum)
+    {
+        data[2] = htonl(seqNum);
+    }
+    
+    inline uint32_t getInterarrivalJitter() const
+    {
+        return ntohl(data[3]);
+    }
+    
+    inline void setInterarrivalJitter(uint32_t jitter)
+    {
+        data[3] = htonl(jitter);
+    }
+    
+    inline uint32_t getLastSRTimestamp() const
+    {
+        return ntohl(data[4]);
+    }
+    
+    inline void setLastSRTimestamp(uint32_t timstamp)
+    {
+        data[4] = htonl(timstamp);
+    }
+    
+    inline uint32_t getDelaySinceLastSR() const
+    {
+        return ntohl(data[5]);
+    }
+    
+    inline void setDelaySinceLastSR(uint32_t delay)
+    {
+        data[5] = htonl(delay);
+    }
 };
 
 /*!
@@ -559,10 +683,12 @@ public:
      * \param senderInfo The SenderInformation
      *
      * \param reports A (possible empty) list of reception reports
+     * 
+     * \param offset An optional offset to create an element of a RTCP compound package
      *
      * \return A pointer to the created package
      */
-    const void *createSenderReportPackage(RTCPHeader &header, const SenderInformation &senderInfo, const std::vector<ReceptionReport>& reports);
+    const void *createSenderReportPackage(RTCPHeader &header, const SenderInformation &senderInfo, const std::vector<ReceptionReport>& reports, const unsigned int offset = 0);
 
     /*!
      * Creates a new receiver report (RR) package
@@ -570,10 +696,12 @@ public:
      * \param header The package-header
      *
      * \param reports A (possible empty) list of reception reports
+     * 
+     * \param offset An optional offset to create an element of a RTCP compound package
      *
      * \return A pointer to the created package
      */
-    const void *createReceiverReportPackage(RTCPHeader &header, const std::vector<ReceptionReport>& reports);
+    const void *createReceiverReportPackage(RTCPHeader &header, const std::vector<ReceptionReport>& reports, const unsigned int offset = 0);
 
     /*!
      * Creates a new source description (DES) package
@@ -581,10 +709,12 @@ public:
      * \param header The header of this package
      *
      * \param descriptions The vector of SourceDescription
+     * 
+     * \param offset An optional offset to create an element of a RTCP compound package
      *
      * \return A pointer to the created package
      */
-    const void *createSourceDescriptionPackage(RTCPHeader &header, const std::vector<SourceDescription>& descriptions);
+    const void *createSourceDescriptionPackage(RTCPHeader &header, const std::vector<SourceDescription>& descriptions, const unsigned int offset = 0);
 
     /*!
      * Creates a new BYE package
@@ -592,10 +722,12 @@ public:
      * \param header The header
      *
      * \param byeMessage The message to send with this package (possible empty)
+     * 
+     * \param offset An optional offset to create an element of a RTCP compound package
      *
      * \return A pointer to the created package
      */
-    const void *createByePackage(RTCPHeader &header, const std::string& byeMessage);
+    const void *createByePackage(RTCPHeader &header, const std::string& byeMessage, const unsigned int offset = 0);
 
     /*!
      * Creates a new APP package
@@ -603,10 +735,12 @@ public:
      * \param header The header
      *
      * \param appData The application specific data
+     * 
+     * \param offset An optional offset to create an element of a RTCP compound package
      *
      * \return A pointer to the created package
      */
-    const void *createApplicationDefinedPackage(RTCPHeader &header, ApplicationDefined &appDefined);
+    const void *createApplicationDefinedPackage(RTCPHeader &header, ApplicationDefined &appDefined, const unsigned int offset = 0);
 
     /*!
      * Reads a sender report (SR) package
@@ -706,10 +840,18 @@ public:
      * \return the length of the RTCP-package in bytes
      */
     static const unsigned int getRTCPPackageLength(unsigned int lengthHeaderField);
+    
+    /*!
+     * \param rtcpCompoundBuffer The buffer containing the (possible) compound package
+     * 
+     * \param maxPackageLength The maximum length of the package
+     * 
+     * \return The number of RTCP packages currently in this buffer
+     */
+    static const unsigned int getRTCPCompoundPackagesCount(const void* rtcpCompoundBuffer, const unsigned int maxPackageLength);
 
 private:
-    const unsigned int maxPackageSize;
-    char *rtcpPackageBuffer;
+    std::vector<char> rtcpPackageBuffer;
 
     /*!
      * Calculates the length-field from the given length in bytes
@@ -717,6 +859,8 @@ private:
      * Specification: "The length of this RTCP packet in 32-bit words minus one, including the header and any padding"
      */
     static const uint8_t calculateLengthField(uint16_t length);
+    
+    void assertCapacity(unsigned int newCapacity);
     
     friend class RTCPHandler;
 };

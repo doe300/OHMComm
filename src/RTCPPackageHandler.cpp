@@ -9,132 +9,149 @@
 
 #include "RTCPPackageHandler.h"
 
-RTCPPackageHandler::RTCPPackageHandler() : maxPackageSize(8000)
+RTCPPackageHandler::RTCPPackageHandler() : rtcpPackageBuffer(8000)
 {
     //maximal SR size: 8 (header) + 20 (sender-info) + 31 (5 bit RC count) * 24 (reception report) = 772
     //maximal RR size: 8 (header) + 31 (5 bit RC count) * 24 (reception report) = 752
     //maximal SDES size: 8 (header) + 31 (5 bit SDES count) * (1 (SDES type) + 1 (SDES length) + 255 (max 255 characters)) = 7975
     //maximal BYE size: 8 (header) + 1 (length) + 255 (max 255 characters) = 264
-    rtcpPackageBuffer = new char[maxPackageSize];
 }
 
 RTCPPackageHandler::~RTCPPackageHandler()
 {
-    delete[] rtcpPackageBuffer;
 }
 
 
-const void* RTCPPackageHandler::createSenderReportPackage(RTCPHeader& header, const SenderInformation& senderInfo, const std::vector<ReceptionReport>& reports)
+const void* RTCPPackageHandler::createSenderReportPackage(RTCPHeader& header, const SenderInformation& senderInfo, const std::vector<ReceptionReport>& reports, const unsigned int offset)
 {
+    char* bufferStart = rtcpPackageBuffer.data() + offset;
     //adjust header
-    header.packageType = RTCP_PACKAGE_SENDER_REPORT;
-    header.receptionReportOrSourceCount = reports.size();
+    header.setType(RTCP_PACKAGE_SENDER_REPORT);
+    header.setCount(reports.size());
     header.setLength(calculateLengthField(RTCP_HEADER_SIZE + RTCP_SENDER_INFO_SIZE + reports.size() * RTCP_RECEPTION_REPORT_SIZE));
+    assertCapacity(offset + RTCP_HEADER_SIZE + RTCP_SENDER_INFO_SIZE + reports.size() * RTCP_RECEPTION_REPORT_SIZE);
 
-    memcpy(rtcpPackageBuffer, &header, RTCP_HEADER_SIZE);
-    memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE, &senderInfo, RTCP_SENDER_INFO_SIZE);
+    memcpy(bufferStart, &header, RTCP_HEADER_SIZE);
+    memcpy(bufferStart + RTCP_HEADER_SIZE, &senderInfo, RTCP_SENDER_INFO_SIZE);
     for(unsigned int i = 0; i < reports.size(); i++)
     {
-        memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE + RTCP_SENDER_INFO_SIZE + i * RTCP_RECEPTION_REPORT_SIZE, &reports[i], RTCP_RECEPTION_REPORT_SIZE);
+        memcpy(bufferStart + RTCP_HEADER_SIZE + RTCP_SENDER_INFO_SIZE + i * RTCP_RECEPTION_REPORT_SIZE, &reports[i], RTCP_RECEPTION_REPORT_SIZE);
     }
-    return rtcpPackageBuffer;
+    return bufferStart;
 }
 
-const void* RTCPPackageHandler::createReceiverReportPackage(RTCPHeader& header, const std::vector<ReceptionReport>& reports)
+const void* RTCPPackageHandler::createReceiverReportPackage(RTCPHeader& header, const std::vector<ReceptionReport>& reports, const unsigned int offset)
 {
+    char* bufferStart = rtcpPackageBuffer.data() + offset;
     //adjust header
-    header.packageType = RTCP_PACKAGE_RECEIVER_REPORT;
-    header.receptionReportOrSourceCount = reports.size();
+    header.setType(RTCP_PACKAGE_RECEIVER_REPORT);
+    header.setCount(reports.size());
     header.setLength(calculateLengthField(RTCP_HEADER_SIZE + reports.size() * RTCP_RECEPTION_REPORT_SIZE));
+    assertCapacity(offset + RTCP_HEADER_SIZE + reports.size() * RTCP_RECEPTION_REPORT_SIZE);
 
-    memcpy(rtcpPackageBuffer, &header, RTCP_HEADER_SIZE);
+    memcpy(bufferStart, &header, RTCP_HEADER_SIZE);
     for(unsigned int i = 0; i < reports.size(); i++)
     {
-        memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE + i * RTCP_RECEPTION_REPORT_SIZE, &reports[i], RTCP_RECEPTION_REPORT_SIZE);
+        memcpy(bufferStart + RTCP_HEADER_SIZE + i * RTCP_RECEPTION_REPORT_SIZE, &reports[i], RTCP_RECEPTION_REPORT_SIZE);
     }
-    return rtcpPackageBuffer;
+    return bufferStart;
 }
 
-const void* RTCPPackageHandler::createSourceDescriptionPackage(RTCPHeader& header, const std::vector<SourceDescription>& descriptions)
+const void* RTCPPackageHandler::createSourceDescriptionPackage(RTCPHeader& header, const std::vector<SourceDescription>& descriptions, const unsigned int bufferOffset)
 {
+    char* bufferStart = rtcpPackageBuffer.data() + bufferOffset;
     //adjust header
-    header.packageType = RTCP_PACKAGE_SOURCE_DESCRIPTION;
-    header.receptionReportOrSourceCount = descriptions.size();
+    header.setType(RTCP_PACKAGE_SOURCE_DESCRIPTION);
+    //we only carry a SDES for one SSRC
+    header.setCount(1);
 
     uint16_t offset = RTCP_HEADER_SIZE;
     for(unsigned int i = 0; i < descriptions.size(); i++)
     {
+        assertCapacity(bufferOffset + offset + 32);
         //set type
-        memcpy(rtcpPackageBuffer + offset, &descriptions[i].type, 1);
+        memcpy(bufferStart + offset, &descriptions[i].type, 1);
         offset++;
         //set length
         uint8_t size = descriptions[i].value.size();
-        memcpy(rtcpPackageBuffer + offset, &size, 1);
+        memcpy(bufferStart + offset, &size, 1);
         offset++;
         //set value
-        memcpy(rtcpPackageBuffer + offset, descriptions[i].value.c_str(), size);
+        memcpy(bufferStart + offset, descriptions[i].value.c_str(), size);
         offset+=size;
     }
-    //now offset is the same as the payload length
-    //padding to the next multiple of 4 bytes
+
+    //padding (!= the header padding-flag) to the next multiple of 4 bytes
     uint8_t padding = 4 - ((1 + offset) % 4);
-    header.setLength(calculateLengthField(offset));
-    header.padding = padding != 0;
-
-     if(padding != 0)
-    {
-        //apply padding - fill with number of padded bytes
-        memset(rtcpPackageBuffer + offset, padding, padding);
-    }
-
-    //we need to copy the header last, because of the length- and padding-fields
-    memcpy(rtcpPackageBuffer, &header, RTCP_HEADER_SIZE);
-    return rtcpPackageBuffer;
-}
-
-const void* RTCPPackageHandler::createByePackage(RTCPHeader& header, const std::string& byeMessage)
-{
-    header.packageType = RTCP_PACKAGE_GOODBYE;
-    uint8_t length = byeMessage.size();
-    //padding to the next multiple of 4 bytes
-    uint8_t padding = 4 - ((1 + length) % 4);
-    header.setLength(calculateLengthField(RTCP_HEADER_SIZE + 1 + length));
-    header.padding = padding != 0;
-
-    memcpy(rtcpPackageBuffer, &header, RTCP_HEADER_SIZE);
-    memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE, &length, 1);
-    if(length > 0)
-    {
-        memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE + 1, byeMessage.c_str(), length);
-    }
+    offset+= padding;
     if(padding != 0)
     {
-        //apply padding - fill with number of padded bytes
-        memset(rtcpPackageBuffer + RTCP_HEADER_SIZE + 1 + length, padding, padding);
+        //RFC 3550 specifies a list of SDES items to be padded until the next 32bit block
+        //apply padding - fill with zero-bytes
+        memset(bufferStart + offset, RTCP_SOURCE_END, padding);
     }
-    return rtcpPackageBuffer;
+
+    //now offset is the same as the payload length
+    header.setLength(calculateLengthField(offset));
+    
+    //we need to copy the header last, because of the length-field
+    memcpy(bufferStart, &header, RTCP_HEADER_SIZE);
+    return bufferStart;
 }
 
-const void* RTCPPackageHandler::createApplicationDefinedPackage(RTCPHeader& header, ApplicationDefined& appDefined)
+const void* RTCPPackageHandler::createByePackage(RTCPHeader& header, const std::string& byeMessage, const unsigned int offset)
 {
-    header.packageType = RTCP_PACKAGE_APPLICATION_DEFINED;
+    char* bufferStart = rtcpPackageBuffer.data() + offset;
+    //adjust header
+    header.setType(RTCP_PACKAGE_GOODBYE);
+    //we have one source, our SSRC
+    header.setCount(1);
+    
+    uint8_t length = byeMessage.size();
+    //header + length + text + padding
+    header.setLength(calculateLengthField(RTCP_HEADER_SIZE + 1 + length + 1));
+    assertCapacity(offset + RTCP_HEADER_SIZE + 1 + length + 1);
+
+    memcpy(bufferStart, &header, RTCP_HEADER_SIZE);
+    memcpy(bufferStart + RTCP_HEADER_SIZE, &length, 1);
+    if(length > 0)
+    {
+        memcpy(bufferStart + RTCP_HEADER_SIZE + 1, byeMessage.c_str(), length);
+        
+        //padding to the next multiple of 4 bytes - this is not the RTCP header padding flag!
+        uint8_t padding = 4 - ((1 + length) % 4);
+        if(padding != 0)
+        {
+            //apply padding - fill with zeroes
+            memset(bufferStart + RTCP_HEADER_SIZE + 1 + length, 0, padding);
+        }
+    }
+    return bufferStart;
+}
+
+const void* RTCPPackageHandler::createApplicationDefinedPackage(RTCPHeader& header, ApplicationDefined& appDefined, const unsigned int offset)
+{
+    char* bufferStart = rtcpPackageBuffer.data() + offset;
+    //adjust header
+    header.setType(RTCP_PACKAGE_APPLICATION_DEFINED);
     //the length is the header-size, the data-length and 4 bytes for the app-defined name
     header.setLength(calculateLengthField(RTCP_HEADER_SIZE + sizeof(appDefined.name) + appDefined.dataLength));
+    assertCapacity(offset + RTCP_HEADER_SIZE + sizeof(appDefined.name) + appDefined.dataLength);
     //application defined data must be already padded to 32bit
     if((appDefined.dataLength % 4) != 0)
     {
         throw std::invalid_argument("Length of Application Defined data must be a multiple of 32 bits (4 bytes)!");
     }
-    header.padding = 0;
-    header.receptionReportOrSourceCount = appDefined.subType;
+    header.setPadding(0);
+    header.setCount(appDefined.subType);
 
-    memcpy(rtcpPackageBuffer, &header, RTCP_HEADER_SIZE);
-    memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE, appDefined.name, sizeof(appDefined.name));
+    memcpy(bufferStart, &header, RTCP_HEADER_SIZE);
+    memcpy(bufferStart + RTCP_HEADER_SIZE, appDefined.name, sizeof(appDefined.name));
     if(appDefined.dataLength > 0)
     {
-        memcpy(rtcpPackageBuffer + RTCP_HEADER_SIZE + sizeof(appDefined.name), appDefined.data, appDefined.dataLength);
+        memcpy(bufferStart + RTCP_HEADER_SIZE + sizeof(appDefined.name), appDefined.data, appDefined.dataLength);
     }
-    return rtcpPackageBuffer;
+    return bufferStart;
 }
 
 
@@ -150,8 +167,8 @@ std::vector<ReceptionReport> RTCPPackageHandler::readSenderReport(const void* se
     senderInfo = *readInfo;
 
     startPtr += RTCP_SENDER_INFO_SIZE;
-    std::vector<ReceptionReport> reports(header.receptionReportOrSourceCount);
-    for(unsigned int i = 0; i < header.receptionReportOrSourceCount; i++)
+    std::vector<ReceptionReport> reports(header.getCount());
+    for(unsigned int i = 0; i < header.getCount(); i++)
     {
         ReceptionReport *readReport = (ReceptionReport *)startPtr;
         reports[i] = *readReport;
@@ -166,9 +183,9 @@ std::vector<ReceptionReport> RTCPPackageHandler::readReceiverReport(const void* 
     //copy header to out-parameter
     header = *readHeader;
 
-    std::vector<ReceptionReport> reports(header.receptionReportOrSourceCount);
+    std::vector<ReceptionReport> reports(header.getCount());
     char* startPtr = (char*)receiverReportPackage + RTCP_HEADER_SIZE;
-    for(unsigned int i = 0; i < header.receptionReportOrSourceCount; i++)
+    for(unsigned int i = 0; i < header.getCount(); i++)
     {
         startPtr += i * RTCP_RECEPTION_REPORT_SIZE;
         ReceptionReport *readReport = (ReceptionReport *)startPtr;
@@ -183,19 +200,28 @@ std::vector<SourceDescription> RTCPPackageHandler::readSourceDescription(const v
     //copy header to out-parameter
     header = *readHeader;
 
-    std::vector<SourceDescription> descriptions(header.receptionReportOrSourceCount);
+    std::vector<SourceDescription> descriptions;
+    descriptions.reserve(8);
     uint16_t offset = RTCP_HEADER_SIZE;
-    for(uint8_t i = 0; i < header.receptionReportOrSourceCount; i++)
+    //we don't know how many SDES items there are for a SSRC
+    while(offset < packageLength)
     {
         RTCPSourceDescriptionType *type = (RTCPSourceDescriptionType*)sourceDescriptionPackage + offset;
+        if(*type == RTCP_SOURCE_END)
+        {
+            //RFC 3550 specifies, the SDES items are trailed by zeros, which are to be tested for type == 0
+            break;
+        }
         offset++;
         uint8_t *valueLength = (uint8_t *)sourceDescriptionPackage + offset;
         offset++;
         char *value = (char*)sourceDescriptionPackage + offset;
-        descriptions[i].type = *type;
-        descriptions[i].value = std::string(value, *valueLength);
+        descriptions.push_back({*type, std::string(value, *valueLength)});
         offset += *valueLength;
     }
+    
+    //here would be reading SDES of the CSRCs
+    
     return descriptions;
 }
 
@@ -205,9 +231,11 @@ std::string RTCPPackageHandler::readByeMessage(const void* byePackage, uint16_t 
     RTCPHeader *readHeader = (RTCPHeader *)byePackage;
     //copy header to out-parameter
     header = *readHeader;
-    uint8_t length = *((char*)byePackage + RTCP_HEADER_SIZE);
+    //skip the header and all SSRC/CSRCs - the SSRC is part of the header and counted in #count, so don't skip it twice
+    unsigned int offset = RTCP_HEADER_SIZE + (readHeader->getCount() - 1) * sizeof(uint32_t);
+    uint8_t length = *((char*)byePackage + offset);
 
-    const char *byeMessage = (const char*)byePackage + RTCP_HEADER_SIZE + 1;
+    const char *byeMessage = (const char*)byePackage + offset + 1;
     return std::string(byeMessage, length);
 }
 
@@ -223,7 +251,7 @@ ApplicationDefined RTCPPackageHandler::readApplicationDefinedMessage(const void*
     uint16_t dataLength = getRTCPPackageLength(readHeader->getLength()) - RTCP_HEADER_SIZE - sizeof(name);
     char* data = (char*)appDefinedPackage + RTCP_HEADER_SIZE + sizeof(name);
 
-    ApplicationDefined result(name, dataLength, data, readHeader->receptionReportOrSourceCount);
+    ApplicationDefined result(name, dataLength, data, readHeader->getCount());
     return result;
 }
 
@@ -245,12 +273,12 @@ bool RTCPPackageHandler::isRTCPPackage(const void* packageBuffer, const unsigned
     RTCPHeader *readHeader = (RTCPHeader* )packageBuffer;
 
     //3. check for header-fields
-    if(readHeader->version != 2)
+    if(readHeader->getVersion() != 2)
     {
         //version is always 2 per specification
         return false;
     }
-    switch(readHeader->packageType)
+    switch(readHeader->getType())
     {
         //the packageType must be one of those values per specification
         //this comparison makes sure, RTP-packages are not accepted, because of the different bit-pattern in the headers
@@ -279,6 +307,22 @@ const unsigned int RTCPPackageHandler::getRTCPPackageLength(unsigned int lengthH
     return (lengthHeaderField + 1) * 4;
 }
 
+const unsigned int RTCPPackageHandler::getRTCPCompoundPackagesCount(const void* rtcpCompoundBuffer, const unsigned int maxPackageLength)
+{
+    unsigned int remainingPackageLength = maxPackageLength;
+    unsigned int numPackages = 0;
+    const void* packagePointer = rtcpCompoundBuffer;
+    //we iterate through the buffer checking for RTCP packages until the test fails
+    while(isRTCPPackage(packagePointer, remainingPackageLength))
+    {
+        ++numPackages;
+        unsigned int currentPackageSize = getRTCPPackageLength(((const RTCPHeader*)packagePointer)->getLength());
+        remainingPackageLength -= currentPackageSize;
+        packagePointer = (char*)packagePointer + currentPackageSize;
+    }
+    return numPackages;
+}
+
 const uint8_t RTCPPackageHandler::calculateLengthField(uint16_t length)
 {
     //4 byte = 32 bit
@@ -286,4 +330,13 @@ const uint8_t RTCPPackageHandler::calculateLengthField(uint16_t length)
     //e.g. 16 / 4 = 4 <-> (16+3) / 4 = 4
     //17 / 4 = 4 => (17+3) / 4 = 5!
     return ((length+3) / 4) - 1;
+}
+
+void RTCPPackageHandler::assertCapacity(unsigned int newCapacity)
+{
+    if(rtcpPackageBuffer.capacity() < newCapacity)
+    {
+        //should never be necessary, but just to be sure...
+        rtcpPackageBuffer.resize(newCapacity);
+    }
 }

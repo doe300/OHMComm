@@ -1,6 +1,7 @@
 #ifndef PROCESSORRTP_H
-
 #define	PROCESSORRTP_H
+
+#include "ParticipantDatabase.h"
 #include "AudioProcessor.h"
 #include "RTPPackageHandler.h"
 #include "NetworkWrapper.h"
@@ -43,5 +44,7 @@ private:
     RTPPackageHandler *rtpPackage = nullptr;
     std::shared_ptr<RTPBufferHandler> rtpBuffer;
     const PayloadType payloadType;
+    
+    void initPackageHandler(unsigned int maxBufferSize);
 };
 #endif

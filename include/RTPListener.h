@@ -11,6 +11,7 @@
 #include <thread>
 #include <functional>
 
+#include "ParticipantDatabase.h"
 #include "RTPBufferHandler.h"
 #include "NetworkWrapper.h"
 
@@ -55,7 +56,6 @@ private:
     bool threadRunning = false;
     //for jitter-calculation
     uint32_t lastDelay;
-    float lastJitter;
 
     /*!
      * Method called in the parallel thread, receiving packages and writing them into RTPBuffer

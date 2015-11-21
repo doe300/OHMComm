@@ -13,7 +13,7 @@
 //the port should be a number greater than 1024
 static const int DEFAULT_NETWORK_PORT = 12345;
 //The program's current version as string
-static const std::string OHMCOMM_VERSION = "0.5";
+static const std::string OHMCOMM_VERSION = "0.7";
 
 struct NetworkConfiguration
 {
