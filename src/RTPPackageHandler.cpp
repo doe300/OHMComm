@@ -7,22 +7,21 @@
 
 #include "RTPPackageHandler.h"
 
-RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType, unsigned int sizeOfRTPHeader)
+RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType)
 {
-	this->maximumPayloadSize = maximumPayloadSize;
-	this->sizeOfRTPHeader = sizeOfRTPHeader;
-	this->maximumBufferSize = maximumPayloadSize + sizeOfRTPHeader;
-	this->payloadType = payloadType;
+    this->maximumPayloadSize = maximumPayloadSize;
+    this->maximumBufferSize = maximumPayloadSize + RTP_HEADER_MAX_SIZE;
+    this->payloadType = payloadType;
 
-	workBuffer = new char[maximumBufferSize];
+    workBuffer = new char[maximumBufferSize];
 
-	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-	std::mt19937 tmp(seed1);
-	this->randomGenerator = tmp;
+    unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 tmp(seed1);
+    this->randomGenerator = tmp;
 
-	sequenceNr = getRandomNumber();
-	timestamp = createStartingTimestamp();
-	ssrc = getAudioSourceId();
+    sequenceNr = getRandomNumber();
+    timestamp = createStartingTimestamp();
+    ssrc = getAudioSourceId();
 }
 
 RTPPackageHandler::~RTPPackageHandler()
@@ -32,37 +31,48 @@ RTPPackageHandler::~RTPPackageHandler()
 
 const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsigned int payloadSize)
 {
-	RTPHeader newRTPHeader;
+    RTPHeader newRTPHeader;
 
-	newRTPHeader.version = 2;
-	newRTPHeader.padding = 0;
-	newRTPHeader.extension = 0;
-	newRTPHeader.csrc_count = 0;
-	newRTPHeader.marker = 0;
-	newRTPHeader.payload_type = this->payloadType;
-	newRTPHeader.setSequenceNumber((this->sequenceNr++) % UINT16_MAX);
-        //we need steady clock so it will always change monotonically (etc. no change to/from daylight savings time)
-        //additionally, we need to count with milliseconds precision
-        //we add the random starting timestamp to meet the condition specified in the RTP standard
-	newRTPHeader.setTimestamp(getCurrentRTPTimestamp());
-	newRTPHeader.setSSRC(this->ssrc);
+    newRTPHeader.setPayloadType(payloadType);
+    newRTPHeader.setSequenceNumber((this->sequenceNr++) % UINT16_MAX);
+    //we need steady clock so it will always change monotonically (etc. no change to/from daylight savings time)
+    //additionally, we need to count with milliseconds precision
+    //we add the random starting timestamp to meet the condition specified in the RTP standard
+    newRTPHeader.setTimestamp(getCurrentRTPTimestamp());
+    newRTPHeader.setSSRC(this->ssrc);
 
-	// Copy RTPHeader and Audiodata in the buffer
-	memcpy((char*)workBuffer, &newRTPHeader, this->sizeOfRTPHeader);
-	memcpy((char*)(workBuffer)+sizeOfRTPHeader, audioData, payloadSize);
-        actualPayloadSize = payloadSize;
+    // Copy RTPHeader and Audiodata in the buffer
+    memcpy((char*)workBuffer, &newRTPHeader, RTP_HEADER_MIN_SIZE);
+    memcpy((char*)(workBuffer)+ RTP_HEADER_MIN_SIZE, audioData, payloadSize);
+    actualPayloadSize = payloadSize;
 
-	return workBuffer;
+    return workBuffer;
 }
 
 const void* RTPPackageHandler::getRTPPackageData() const
 {
-    return (char*)(workBuffer) + sizeOfRTPHeader;
+    return (char*)(workBuffer) + getRTPHeaderSize() + getRTPHeaderExtensionSize();
 }
 
 const RTPHeader* RTPPackageHandler::getRTPPackageHeader() const
 {
     return (RTPHeader*)workBuffer;
+}
+
+//TODO needs testing
+const RTPHeaderExtension RTPPackageHandler::getRTPHeaderExtension() const
+{
+    if(!getRTPPackageHeader()->hasExtension())
+    {
+        //return empty extension
+        return RTPHeaderExtension(0);
+    }
+    //we must copy the contents of the header-extension, because we don't have any dynamic-sized array
+    const RTPHeaderExtension* readEx = (RTPHeaderExtension*)((char*)(workBuffer) + getRTPHeaderSize());
+    RTPHeaderExtension ex(readEx->getLength());
+    ex.setProfile(readEx->getProfile());
+    memcpy(ex.getExtension(), ((char*)(workBuffer) + getRTPHeaderSize() + RTP_HEADER_EXTENSION_MIN_SIZE), readEx->getLength());
+    return ex;
 }
 
 unsigned int RTPPackageHandler::getRandomNumber()
@@ -82,14 +92,28 @@ unsigned int RTPPackageHandler::getAudioSourceId()
     return this->randomGenerator();
 }
 
+unsigned int RTPPackageHandler::getRTPHeaderSize() const
+{
+    return RTP_HEADER_MIN_SIZE + getRTPPackageHeader()->getCSRCCount() * sizeof(uint32_t);
+}
+
+unsigned int RTPPackageHandler::getRTPHeaderExtensionSize() const
+{
+    if(((RTPHeader*)workBuffer)->hasExtension())
+    {
+        const RTPHeaderExtension* readEx = (RTPHeaderExtension*)((char*)(workBuffer) + getRTPHeaderSize());
+        return RTP_HEADER_EXTENSION_MIN_SIZE + readEx->getLength() * sizeof(uint32_t);
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+
 unsigned int RTPPackageHandler::getMaximumPackageSize() const
 {
     return maximumBufferSize;
-}
-
-unsigned int RTPPackageHandler::getRTPHeaderSize() const
-{
-    return sizeOfRTPHeader;
 }
 
 unsigned int RTPPackageHandler::getMaximumPayloadSize() const
@@ -115,8 +139,8 @@ void* RTPPackageHandler::getWorkBuffer()
 void RTPPackageHandler::createSilencePackage()
 {
     RTPHeader silenceHeader;
-    memcpy(workBuffer, &silenceHeader, sizeOfRTPHeader);
-    memset((char *)(workBuffer) + sizeOfRTPHeader, 0, maximumPayloadSize);
+    memcpy(workBuffer, &silenceHeader, RTP_HEADER_MIN_SIZE);
+    memset((char *)(workBuffer) + RTP_HEADER_MIN_SIZE, 0, maximumPayloadSize);
 }
 
 unsigned int RTPPackageHandler::getSSRC() const
@@ -140,7 +164,7 @@ bool RTPPackageHandler::isRTPPackage(const void* packageBuffer, unsigned int pac
     const RTPHeader* readHeader = (const RTPHeader* )packageBuffer;
 
     //3. check for header-fields
-    if(readHeader->version != 2)
+    if(readHeader->getVersion() != RTPHeader::VERSION)
     {
         //version is always 2 per specification
         return false;

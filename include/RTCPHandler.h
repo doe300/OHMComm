@@ -12,6 +12,7 @@
 #include <thread>
 #include <chrono> // clock, tick
 #include "NetworkWrapper.h"
+#include "ParticipantDatabase.h"
 #include "RTCPPackageHandler.h"
 #include "ConfigurationMode.h"
 #include "Statistics.h"
@@ -69,11 +70,21 @@ private:
      * Sends a Source Description-package, only called from #runThread()
      */
     void sendSourceDescription();
+    
+    /*!
+     * Sends a Source BYE-package, only called from #runThread()
+     */
+    void sendByePackage();
 
     /*!
-     * Creates and sends a Sender Report (SR)-package, only called from #runThread()
+     * Creates a SR package to be used in a compound package
      */
-    void sendSenderReport();
+    const void* createSenderReport(unsigned int offset = 0);
+    
+    /*!
+     * Creates a SDES package to be used in a compound package
+     */
+    const void* createSourceDescription(unsigned int offset = 0);
     
     /*!
      * \return the fraction of lost-packages as 1/256

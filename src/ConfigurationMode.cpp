@@ -647,9 +647,9 @@ bool PassiveConfiguration::runConfiguration()
         return false;
     }
     RTCPHeader responseHeader = handler.readRTCPHeader(buffer, receivedSize);
-    if(responseHeader.packageType != RTCP_PACKAGE_APPLICATION_DEFINED)
+    if(responseHeader.getType() != RTCP_PACKAGE_APPLICATION_DEFINED)
     {
-        std::cerr << "Invalid RTCP response package type: " << (unsigned int)responseHeader.packageType << std::endl;
+        std::cerr << "Invalid RTCP response package type: " << (unsigned int)responseHeader.getType() << std::endl;
         return false;
     }
     ApplicationDefined configResponse = handler.readApplicationDefinedMessage(buffer, receivedSize, responseHeader);

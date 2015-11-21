@@ -33,11 +33,7 @@ void RTCPHandler::startUp()
 void RTCPHandler::shutdown()
 {
     // Send a RTCP BYE-packet, to tell the other side that communication has been stopped
-    RTCPHeader byeHeader(Statistics::readCounter(Statistics::RTP_LOCAL_SSRC));
-    const void* packageBuffer = rtcpHandler.createByePackage(byeHeader, "Program exit");
-    wrapper->sendData(packageBuffer, RTCPPackageHandler::getRTCPPackageLength(byeHeader.getLength()));
-    std::cout << "RTCP: BYE-Package sent." << std::endl;
-    
+    sendByePackage();
     shutdownInternal();
 }
 
@@ -53,13 +49,17 @@ void RTCPHandler::shutdownInternal()
 void RTCPHandler::runThread()
 {
     std::cout << "RTCP-Handler started ..." << std::endl;
-    //on startup, send SDES
-    sendSourceDescription();
     
     while(threadRunning)
     {
-        //1. wait for package and store into RTCPPackageHandler
-        int receivedSize = this->wrapper->receiveData(rtcpHandler.rtcpPackageBuffer, rtcpHandler.maxPackageSize);
+        if(std::chrono::system_clock::now() - sendSRInterval >= lastSRSent)
+        {
+            //send sender report (SR) every X seconds
+            lastSRSent = std::chrono::system_clock::now();
+            sendSourceDescription();
+        }
+        //wait for package and store into RTCPPackageHandler
+        int receivedSize = this->wrapper->receiveData(rtcpHandler.rtcpPackageBuffer.data(), rtcpHandler.rtcpPackageBuffer.capacity());
         if(threadRunning == false || receivedSize == INVALID_SOCKET)
         {
             //socket was already closed
@@ -69,15 +69,9 @@ void RTCPHandler::runThread()
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
-        else if (RTCPPackageHandler::isRTCPPackage(rtcpHandler.rtcpPackageBuffer, receivedSize))
+        else if (RTCPPackageHandler::isRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), receivedSize))
         {
-            handleRTCPPackage(rtcpHandler.rtcpPackageBuffer, (unsigned int)receivedSize);
-        }
-        if(std::chrono::system_clock::now() - sendSRInterval >= lastSRSent)
-        {
-            //send sender report (SR) every X seconds
-            lastSRSent = std::chrono::system_clock::now();
-            sendSenderReport();
+            handleRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), (unsigned int)receivedSize);
         }
     }
     std::cout << "RTCP-Handler shut down!" << std::endl;
@@ -87,7 +81,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
 {
     //handle RTCP-packages
     RTCPHeader header = rtcpHandler.readRTCPHeader(receiveBuffer, receivedSize);
-    if(header.packageType == RTCP_PACKAGE_GOODBYE)
+    if(header.getType() == RTCP_PACKAGE_GOODBYE)
     {
         //other side sent an BYE-package, shutting down
         std::cout << "RTCP: Received Goodbye-message: " << rtcpHandler.readByeMessage(receiveBuffer, receivedSize, header) << std::endl;
@@ -95,8 +89,9 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         shutdownInternal();
         //notify OHMComm to shut down
         stopCallback();
+        return;
     }
-    else if(header.packageType == RTCP_PACKAGE_SENDER_REPORT)
+    else if(header.getType() == RTCP_PACKAGE_SENDER_REPORT)
     {
         //other side sent SR, so print output
         lastSRReceived = std::chrono::system_clock::now();
@@ -109,13 +104,13 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         std::cout << "RTCP: Received Reception Reports:" << std::endl;
         for(const ReceptionReport& report : receptionReports)
         {
-            std::cout << "\tReception Report for: " << report.ssrc << std::endl;
-            std::cout << "\t\tFraction Lost (1/256): " << report.fraction_lost << std::endl;
-            std::cout << "\t\tTotal package loss: " << report.cumulativePackageLoss << std::endl;
-            std::cout << "\t\tInterarrival Jitter (in ms): " << report.interarrivalJitter << std::endl;
+            std::cout << "\tReception Report for: " << report.getSSRC() << std::endl;
+            std::cout << "\t\tFraction Lost (1/256): " << (unsigned int)report.getFractionLost() << std::endl;
+            std::cout << "\t\tTotal package loss: " << report.getCummulativePackageLoss() << std::endl;
+            std::cout << "\t\tInterarrival Jitter (in ms): " << report.getInterarrivalJitter() << std::endl;
         }
     }
-    else if(header.packageType == RTCP_PACKAGE_SOURCE_DESCRIPTION)
+    else if(header.getType() == RTCP_PACKAGE_SOURCE_DESCRIPTION)
     {
         //other side sent SDES, so print to output
         std::vector<SourceDescription> sourceDescriptions = rtcpHandler.readSourceDescription(receiveBuffer, receivedSize, header);
@@ -126,7 +121,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         }
         std::cout << std::endl;
     }
-    else if(header.packageType == RTCP_PACKAGE_APPLICATION_DEFINED)
+    else if(header.getType() == RTCP_PACKAGE_APPLICATION_DEFINED)
     {
         //other side sent AD, assume it is an configuration-request
         ApplicationDefined appDefinedRequest = rtcpHandler.readApplicationDefinedMessage(receiveBuffer, receivedSize, header);
@@ -167,11 +162,85 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
     }
     else
     {
-        std::cerr << "RTCP: Unrecognized package-type: " << (unsigned int)header.packageType << std::endl;
+        std::cerr << "RTCP: Unrecognized package-type: " << (unsigned int)header.getType() << std::endl;
+        return;
+    }
+    
+    //handle RTCP compound packages
+    unsigned int packageLength = RTCPPackageHandler::getRTCPPackageLength(header.getLength());
+    void* remainingBuffer = (char*)receiveBuffer + packageLength;
+    unsigned int remainingLength = receivedSize - packageLength;
+    if(RTCPPackageHandler::isRTCPPackage(remainingBuffer, remainingLength))
+    {
+        handleRTCPPackage(remainingBuffer, remainingLength);
     }
 }
 
 void RTCPHandler::sendSourceDescription()
+{
+    std::cout << "RTCP: Sending SR + SDES ..." << std::endl;
+    const void* buffer = createSenderReport();
+    unsigned int length = RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)buffer)->getLength());
+    const void* tmp = createSourceDescription(length);
+    length += RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)tmp)->getLength());
+    wrapper->sendData(buffer, length);
+}
+
+void RTCPHandler::sendByePackage()
+{
+    std::cout << "RTCP: Sending SR + SDES + BYE ..." << std::endl;
+    const void* buffer = createSenderReport();
+    unsigned int length = RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)buffer)->getLength());
+    const void* tmp = createSourceDescription(length);
+    length += RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)tmp)->getLength());
+    //create bye package
+    RTCPHeader byeHeader(participantDatabase[PARTICIPANT_SELF].ssrc);
+    rtcpHandler.createByePackage(byeHeader, "Program exit", length);
+    length += RTCPPackageHandler::getRTCPPackageLength(byeHeader.getLength());
+    wrapper->sendData(buffer, length);
+    
+    std::cout << "RTCP: BYE-Package sent." << std::endl;
+}
+
+
+inline uint8_t RTCPHandler::calculateFractionLost()
+{
+    double c = Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST);
+    double d = Statistics::readCounter(Statistics::COUNTER_PACKAGES_RECEIVED);
+    return (long)((c/d) * 256);
+}
+
+const void* RTCPHandler::createSenderReport(unsigned int offset)
+{
+    RTCPHeader srHeader(participantDatabase[PARTICIPANT_SELF].ssrc);
+    
+    NTPTimestamp ntpTime = NTPTimestamp::now();
+    const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+    const uint32_t rtpTimestamp = participantDatabase[PARTICIPANT_SELF].initialRTPTimestamp + now.count();
+    const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(lastSRReceived.time_since_epoch());
+    
+    SenderInformation senderReport(ntpTime, rtpTimestamp, Statistics::readCounter(Statistics::COUNTER_PACKAGES_SENT), Statistics::readCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT));
+    //we currently have only one reception report
+    ReceptionReport receptionReport;
+    receptionReport.setSSRC(participantDatabase[PARTICIPANT_REMOTE].ssrc);
+    receptionReport.setFractionLost(calculateFractionLost());
+    receptionReport.setCummulativePackageLoss((uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST));
+    //receptionReport.setExtendedHighestSequenceNumber() - not supported
+    receptionReport.setInterarrivalJitter((uint32_t)round(participantDatabase[PARTICIPANT_REMOTE].interarrivalJitter));
+    receptionReport.setLastSRTimestamp((uint32_t)lastSRTimestamp.count());
+    //XXX delay since last SR /maybe last SR is wrong
+    receptionReport.setDelaySinceLastSR((now - lastSRTimestamp).count());
+    
+    std::vector<ReceptionReport> receptionReports;
+    if(receptionReport.getSSRC() != 0)
+    {
+        //we can skip initial reception-report if we don't even know for whom
+        receptionReports.push_back(receptionReport);
+    }
+    return rtcpHandler.createSenderReportPackage(srHeader, senderReport, receptionReports, offset);
+}
+
+const void* RTCPHandler::createSourceDescription(unsigned int offset)
 {
     std::vector<SourceDescription> sdes = {
         {RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION},
@@ -181,10 +250,6 @@ void RTCPHandler::sendSourceDescription()
     if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr && configMode->isConfigured())
     {
         //add user configured values
-        if(configMode->isCustomConfigurationSet(Parameters::SDES_CNAME->longName, "SDES CNAME?"))
-        {
-            sdes.emplace_back(RTCP_SOURCE_CNAME, configMode->getCustomConfiguration(Parameters::SDES_CNAME->longName, "Enter SDES CNAME", "Generic device"));
-        }
         if(configMode->isCustomConfigurationSet(Parameters::SDES_EMAIL->longName, "SDES EMAIL?"))
         {
             sdes.emplace_back(RTCP_SOURCE_EMAIL, configMode->getCustomConfiguration(Parameters::SDES_EMAIL->longName, "Enter SDES EMAIL", "anon@noreply.com"));
@@ -206,38 +271,6 @@ void RTCPHandler::sendSourceDescription()
             sdes.emplace_back(RTCP_SOURCE_PHONE, configMode->getCustomConfiguration(Parameters::SDES_PHONE->longName, "Enter SDES PHONE", ""));
         }
     }
-    std::cout << "RTCP: sending SDES ..." << std::endl;
-    RTCPHeader sdesHeader(Statistics::readCounter(Statistics::RTP_LOCAL_SSRC));
-    const void* buffer = rtcpHandler.createSourceDescriptionPackage(sdesHeader, sdes);
-    wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(sdesHeader.getLength()));
+    RTCPHeader sdesHeader(participantDatabase[PARTICIPANT_SELF].ssrc);
+    return rtcpHandler.createSourceDescriptionPackage(sdesHeader, sdes, offset);
 }
-
-void RTCPHandler::sendSenderReport()
-{
-    RTCPHeader srHeader(Statistics::readCounter(Statistics::RTP_LOCAL_SSRC));
-    
-    NTPTimestamp ntpTime = NTPTimestamp::now();
-    //TODO RTP-Timestamp is wrong, need to get from sending RTPHandler
-    SenderInformation senderReport(ntpTime, 0, Statistics::readCounter(Statistics::COUNTER_PACKAGES_SENT), Statistics::readCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT));
-    //we currently have only one reception report
-    ReceptionReport receptionReport = {
-        (uint32_t)Statistics::readCounter(Statistics::RTP_REMOTE_SSRC), //ssrc
-        calculateFractionLost(), //fraction lost
-        (uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST), //cummulative package loss
-        0, //extended highest sequence-number - not supported
-        (uint32_t)Statistics::readCounter(Statistics::RTP_INTERARRIVAL_JITTER), //interarrival-jitter
-        (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>(lastSRReceived.time_since_epoch()).count(), //last SR received
-        0, //delay since last SR - not supported
-    };
-    std::cout << "RTCP: Sending SR ..." << std::endl;
-    const void* buffer = rtcpHandler.createSenderReportPackage(srHeader, senderReport, {receptionReport});
-    wrapper->sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(srHeader.getLength()));
-}
-
-inline uint8_t RTCPHandler::calculateFractionLost()
-{
-    double c = Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST);
-    double d = Statistics::readCounter(Statistics::COUNTER_PACKAGES_RECEIVED);
-    return (long)((c/d) * 256);
-}
-

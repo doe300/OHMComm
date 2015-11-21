@@ -26,11 +26,13 @@
 static const unsigned int RTP_HEADER_MIN_SIZE = 12;
 /*!
  * Maximum size of a RTP-Header with all CSRCs set.
- * TODO currently doesn't account for any header-extension
  */
 static const unsigned int RTP_HEADER_MAX_SIZE = 72;
 
-//TODO add support (at least recognizing and skipping) for extensions
+/*!
+ * Minimum size for RTP header-extensions, 4 Byte
+ */
+static const unsigned int RTP_HEADER_EXTENSION_MIN_SIZE = 4;
 
 /*!
  * A RTP header extension has the following format:
@@ -57,7 +59,7 @@ static const unsigned int RTP_HEADER_MAX_SIZE = 72;
  */
 struct RTPHeaderExtension
 {
-    //XXX is in host byte-order
+private:
     //16 bit defined by profile
     unsigned int profile_field : 16;
 
@@ -65,7 +67,101 @@ struct RTPHeaderExtension
     unsigned int length : 16;
 
     //list of 32 bit header extensions
-    uint32_t *extensions[];
+    uint32_t* extensions;
+    
+public:
+    RTPHeaderExtension(uint16_t length) : profile_field(0), length(length)
+    {
+        if(length > 0)
+        {
+            extensions = new uint32_t[length];
+        }
+        else
+        {
+            extensions = nullptr;
+        }
+    }
+    
+    ~RTPHeaderExtension()
+    {
+        delete[] extensions;
+    }
+    
+    inline uint16_t getProfile() const
+    {
+        return ntohs(profile_field);
+    }
+    
+    inline void setProfile(uint16_t profile) 
+    {
+        profile_field = htons(profile);
+    }
+    
+    inline uint16_t getLength() const
+    {
+        return ntohs(length);
+    }
+    
+    inline uint32_t* getExtension()
+    {
+        return extensions;
+    }
+    
+    inline const uint32_t* getExtension() const
+    {
+        return extensions;
+    }
+};
+
+/*!
+ * List of default mappings for payload-type, as specified in https://www.ietf.org/rfc/rfc3551.txt
+ *
+ * Also see: https://en.wikipedia.org/wiki/RTP_audio_video_profile
+ *
+ * Currently only containing audio mappings.
+ */
+enum PayloadType
+{
+    //ITU-T G.711 PCMU - https://en.wikipedia.org/wiki/PCMU
+    PCMU = 0,
+    //GSM Full Rate - https://en.wikipedia.org/wiki/Full_Rate
+    GSM = 3,
+    //ITU-T G.723.1 - https://en.wikipedia.org/wiki/G.723.1
+    G723 = 4,
+    //IMA ADPCM 32 kbit/s - https://en.wikipedia.org/wiki/Adaptive_differential_pulse-code_modulation
+    DVI4_32 = 5,
+    //IMA ADPCM 64 kbit/s
+    DVI4_64 = 6,
+    //LPC - https://en.wikipedia.org/wiki/Linear_predictive_coding
+    LPC = 7,
+    //ITU-T G.711 PCMA - https://en.wikipedia.org/wiki/PCMA
+    PCMA = 8,
+    //ITU-T G.722 - https://en.wikipedia.org/wiki/G.722
+    G722 = 9,
+    //Linear PCM, 2 channels - https://en.wikipedia.org/wiki/Linear_PCM
+    L16_2 = 10,
+    //Linear PCM, 1 channel - https://en.wikipedia.org/wiki/Linear_PCM
+    L16_1 = 11,
+    //Qualcomm Code Excited Linear Prediction
+    QCELP = 12,
+    //Comfort noise
+    CN = 13,
+    //MPEG-1 or MPEG-2 audio - https://en.wikipedia.org/wiki/MPEG-1 / https://en.wikipedia.org/wiki/MPEG-2
+    MPA = 14,
+    //ITU-T G.728
+    G728 = 15,
+    //IMA ADPCM 44.1 kbit/s
+    DVI4_44 = 16,
+    //IMA ADPCM 88.2 kbit/s
+    DVI4_88 = 17,
+    //ITU-T G.729(a) - https://en.wikipedia.org/wiki/G.729
+    G729 = 18,
+    //OPUS variable bandwidth - https://en.wikipedia.org/wiki/Opus_%28audio_format%29
+    //RFC 7587 (RTP Payload Format for Opus, see: https://ietf.org/rfc/rfc7587.txt) defines the opus payload-type as dynamic
+    OPUS = 112,
+    //dummy payload-type to accept all types
+    ALL = -1
+
 };
 
 /*!
@@ -172,130 +268,142 @@ struct RTPHeaderExtension
  */
 struct RTPHeader
 {
-public:
-    //2 bit version field
-    unsigned int version : 2;
-
-    //1 bit padding flag
-    unsigned int padding : 1;
-
-    //1 bit extension flag
-    unsigned int extension : 1;
-
-    //4 bit CSRC count field
-    unsigned int csrc_count : 4;
-
-    //1 bit marker flag
-    unsigned int marker : 1;
-
-    //7 bit payload type field
-    unsigned int payload_type : 7;
-
 private:
-    //The following RTP header-fields are stored in network byte-order,
-    //so sending and receiving over network does not require any special handling
-    //for access in host byte-order, use the getter/setter beneath
     
+    //data[0]
+    //2 bit version field
+    //1 bit padding flag
+    //1 bit extension flag
+    //4 bit CSRC count field
+    
+    //data[1]
+    //1 bit marker flag
+    //7 bit payload type field
+    
+    //data[2-3]
     //16 bit sequence number field
-    unsigned int sequence_number : 16;
-
+    
+    //data[4-7]
     //32 bit timestamp field
-    unsigned int timestamp : 32;
-
+    
+    //data[8-11]
     //32 bit SSRC field
-    unsigned int ssrc : 32;
+    uint8_t data[12];
 
     //list of 32 bit CSRCs
-    //TODO adding this requires correct handling of RTPHeader (depending on the csrc_count, like it was before)
+    //TODO adding this requires correct handling of RTPHeader (depending on the csrc_count)
     //uint32_t csrc_list[15];
+    
+    static const unsigned int shiftVersion = 6;
+    static const unsigned int shiftPadding = 5;
+    static const unsigned int shiftExtension = 4;
+    static const unsigned int shiftMarker = 7;
+    
 public:
     
-    RTPHeader() : version{0}, padding{0}, extension{0}, csrc_count{0}, marker{0}, payload_type{0},
-        sequence_number{0}, timestamp{0}, ssrc{0}
-    {
-    }
-
+    /*!
+     * The version-flag of a RTP package is always 2
+     */
+    static const unsigned int VERSION = 2;
     
+    RTPHeader() : data{0}
+    {
+        data[0] = VERSION << shiftVersion;
+    }
+    
+    inline uint8_t getVersion() const
+    {
+        return (data[0] >> shiftVersion) & 0x3;
+    }
+    
+    inline bool isPadded() const
+    {
+        return (data[0] >> shiftPadding) & 0x1;
+    }
+    
+    inline void setPadding(bool padded)
+    {
+        data[0] = data[0] | (padded << shiftPadding);
+    }
+    
+    inline bool hasExtension() const
+    {
+        return (data[0] >> shiftExtension) & 0x1;
+    }
+    
+    inline void setExtension(bool extension)
+    {
+        data[0] = data[0] | (extension << shiftExtension);
+    }
+    
+    inline uint8_t getCSRCCount() const
+    {
+        return data[0] & 0x7;
+    }
+    
+    inline void setCSRCCount(uint8_t csrcCount)
+    {
+        data[0] = data[0] | (csrcCount & 0x7);
+    }
+    
+    inline bool isMarked() const
+    {
+        return (data[1] >> shiftMarker) & 0x1;
+    }
+    
+    inline void setMarker(bool marker)
+    {
+        data[1] = data[1] | (marker << shiftMarker);
+    }
+    
+    inline PayloadType getPayloadType() const
+    {
+        return (PayloadType)(data[1] & 0x7F);
+    }
+    
+    inline void setPayloadType(PayloadType type)
+    {
+        data[1] = data[1] | (type & 0x7F);
+    }
+        
     inline uint16_t getSequenceNumber() const
     {
-        return ntohs(sequence_number);
+        return ntohs((data[3] << 8) | data[2]);
     }
     
     inline void setSequenceNumber(const uint16_t sequenceNumber)
     {
-        sequence_number = htons(sequenceNumber);
+        data[3] = (uint8_t) (htons(sequenceNumber) >> 8);
+        data[2] = (uint8_t) (htons(sequenceNumber) & 0xFF);
     }
     
     inline uint32_t getTimestamp() const
     {
-        return ntohl(timestamp);
+        return ntohl(data[7] << 24 | data[6] << 16 | data[5] << 8 | data[4]);
     }
     
     inline void setTimestamp(const uint32_t timstamp)
     {
-        this->timestamp = htonl(timstamp);
+        uint32_t tmp = htonl(timstamp);
+        data[7] = (uint8_t) (tmp >> 24);
+        data[6] = (uint8_t) (tmp >> 16);
+        data[5] = (uint8_t) (tmp >> 8);
+        data[4] = (uint8_t) (tmp & 0xFF);
     }
     
     inline uint32_t getSSRC() const
     {
-        return ntohl(ssrc);
+        return ntohl(data[11] << 24 | data[10] << 16 | data[9] << 8 | data[8]);
     }
     
     inline void setSSRC(const uint32_t ssrc)
     {
-        this->ssrc = htonl(ssrc);
+        uint32_t tmp = htonl(ssrc);
+        data[11] = (uint8_t) (tmp >> 24);
+        data[10] = (uint8_t) (tmp >> 16);
+        data[9] = (uint8_t) (tmp >> 8);
+        data[8] = (uint8_t) (tmp & 0xFF);
     }
-};
-
-/*!
- * List of default mappings for payload-type, as specified in https://www.ietf.org/rfc/rfc3551.txt
- *
- * Also see: https://en.wikipedia.org/wiki/RTP_audio_video_profile
- *
- * Currently only containing audio mappings.
- */
-enum PayloadType
-{
-    //ITU-T G.711 PCMU - https://en.wikipedia.org/wiki/PCMU
-    PCMU = 0,
-    //GSM Full Rate - https://en.wikipedia.org/wiki/Full_Rate
-    GSM = 3,
-    //ITU-T G.723.1 - https://en.wikipedia.org/wiki/G.723.1
-    G723 = 4,
-    //IMA ADPCM 32 kbit/s - https://en.wikipedia.org/wiki/Adaptive_differential_pulse-code_modulation
-    DVI4_32 = 5,
-    //IMA ADPCM 64 kbit/s
-    DVI4_64 = 6,
-    //LPC - https://en.wikipedia.org/wiki/Linear_predictive_coding
-    LPC = 7,
-    //ITU-T G.711 PCMA - https://en.wikipedia.org/wiki/PCMA
-    PCMA = 8,
-    //ITU-T G.722 - https://en.wikipedia.org/wiki/G.722
-    G722 = 9,
-    //Linear PCM, 2 channels - https://en.wikipedia.org/wiki/Linear_PCM
-    L16_2 = 10,
-    //Linear PCM, 1 channel - https://en.wikipedia.org/wiki/Linear_PCM
-    L16_1 = 11,
-    //Qualcomm Code Excited Linear Prediction
-    QCELP = 12,
-    //Comfort noise
-    CN = 13,
-    //MPEG-1 or MPEG-2 audio - https://en.wikipedia.org/wiki/MPEG-1 / https://en.wikipedia.org/wiki/MPEG-2
-    MPA = 14,
-    //ITU-T G.728
-    G728 = 15,
-    //IMA ADPCM 44.1 kbit/s
-    DVI4_44 = 16,
-    //IMA ADPCM 88.2 kbit/s
-    DVI4_88 = 17,
-    //ITU-T G.729(a) - https://en.wikipedia.org/wiki/G.729
-    G729 = 18,
-    //OPUS variable bandwidth - https://en.wikipedia.org/wiki/Opus_%28audio_format%29
-    //RFC 7587 (RTP Payload Format for Opus, see: https://ietf.org/rfc/rfc7587.txt) defines the opus payload-type as dynamic
-    OPUS,
-    //dummy payload-type to accept all types
-    ALL = -1
-
 };
 
 class RTPPackageHandler
@@ -308,9 +416,8 @@ public:
      *
      * \param payloadType The PayloadType, defaults to L16_2
      *
-     * \param sizeOfRTPHeader The size in bytes of the RTPHeader, defaults to RTP_HEADER_MIN_SIZE
      */
-    RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType = L16_2, unsigned int sizeOfRTPHeader = RTP_HEADER_MIN_SIZE);
+    RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType = L16_2);
 
     ~RTPPackageHandler();
     
@@ -332,12 +439,15 @@ public:
     const void* getRTPPackageData() const;
 
     /*!
-     * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from, defaults nullptr
-     *
-     * Returns a RTPHeader pointer of the rtpPackage. When rtpPackage is not set (defaults to nullptr)
-     * the internal 'workBuffer' will be used as source.
+     * Returns a RTPHeader pointer of the currently stored RTP-package.
      */
     const RTPHeader* getRTPPackageHeader() const;
+    
+    /*!
+     * Returns a RTPHeaderExtension pointer to the extension in the stored RTP-package. 
+     * If no such extension exists, nullptr is returned.
+     */
+    const RTPHeaderExtension getRTPHeaderExtension() const;
 
     /*!
      * Gets the maximum size for the RTP package (header + body)
@@ -348,6 +458,11 @@ public:
      * Gets the RTPHeader size
      */
     unsigned int getRTPHeaderSize() const;
+    
+    /*!
+     * Returns the size (in bytes) of the currently stored RTP header-extension
+     */
+    unsigned int getRTPHeaderExtensionSize() const;
 
     /*!
      * Gets the maximum payload size
@@ -383,7 +498,7 @@ public:
     /*!
      * Returns this device SSRC
      */
-    unsigned int getSSRC() const;
+    uint32_t getSSRC() const;
     
     /*!
      * Returns the current RTP timestamp for the internal clock
@@ -417,12 +532,14 @@ private:
     unsigned int sequenceNr;
     unsigned int timestamp;
     unsigned int ssrc;
-    unsigned int payloadType;
+    PayloadType payloadType;
 
-    unsigned int sizeOfRTPHeader;
+    unsigned int currentBufferSize;
     unsigned int maximumPayloadSize;
     unsigned int maximumBufferSize;
     unsigned int actualPayloadSize;
+    
+    friend class ProcessorRTP;
 };
 
 #endif	/* RTPPACKAGEHANDLER_H */

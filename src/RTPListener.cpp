@@ -9,13 +9,13 @@
 #include "Statistics.h"
 
 RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize, std::function<void()> stopCallback) :
-    stopCallback(stopCallback), rtpHandler(receiveBufferSize), lastDelay(0), lastJitter(0)
+    stopCallback(stopCallback), rtpHandler(receiveBufferSize), lastDelay(0)
 {
     this->wrapper = wrapper;
     this->buffer = buffer;
 }
 
-RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler), lastDelay(orig.lastDelay), lastJitter(orig.lastJitter)
+RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler), lastDelay(orig.lastDelay)
 {
     this->wrapper = orig.wrapper;
     this->buffer = orig.buffer;
@@ -36,6 +36,7 @@ void RTPListener::startUp()
 void RTPListener::runThread()
 {
     std::cout << "RTP-Listener started ..." << std::endl;
+    participantDatabase[PARTICIPANT_REMOTE] = {0};
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
@@ -64,10 +65,8 @@ void RTPListener::runThread()
             }
             else
             {
-                long currentJitter = round(calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp()));
-                //XXX don't know if correct
-                Statistics::setCounter(Statistics::RTP_INTERARRIVAL_JITTER, currentJitter);
-                Statistics::setCounter(Statistics::RTP_REMOTE_SSRC, rtpHandler.getRTPPackageHeader()->getSSRC());
+                calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
+                participantDatabase[PARTICIPANT_REMOTE].ssrc = rtpHandler.getRTPPackageHeader()->getSSRC();
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
                 Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTP_HEADER_MIN_SIZE);
                 Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedSize - RTP_HEADER_MIN_SIZE);
@@ -87,7 +86,9 @@ float RTPListener::calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t 
     lastDelay = currentDelay;
     
     //Ji = Ji-1 + (|D(i-1, 1)| - Ji-1)/16
+    double lastJitter = participantDatabase[PARTICIPANT_REMOTE].interarrivalJitter;
     lastJitter = lastJitter + ((float)abs(currentDifference) - lastJitter)/16.0;
+    participantDatabase[PARTICIPANT_REMOTE].interarrivalJitter = lastJitter;
     return lastJitter;
 }
 
