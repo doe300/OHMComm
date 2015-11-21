@@ -18,6 +18,7 @@ if(NOT MSVC)
 else()
 	# visual studio specific flags
 	set(CMAKE_CXX_FLAGS "/W3 /D_UNICODE /DUNICODE")
+	add_definitions(-DWIN32_LEAN_AND_MEAN)
 endif()
 
 ####

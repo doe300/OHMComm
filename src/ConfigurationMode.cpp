@@ -55,6 +55,19 @@ const NetworkConfiguration ConfigurationMode::getNetworkConfiguration() const
     return networkConfig;
 }
 
+const NetworkConfiguration ConfigurationMode::getRTCPNetworkConfiguration() const
+{
+    if(!isConfigured())
+    {
+        throw std::runtime_error("Configuration was not finished!");
+    }
+    NetworkConfiguration rtcpConfig;
+    rtcpConfig.localPort = networkConfig.localPort+1;
+    rtcpConfig.remoteIPAddress = networkConfig.remoteIPAddress;
+    rtcpConfig.remotePort = networkConfig.remotePort+1;
+    return rtcpConfig;
+}
+
 bool ConfigurationMode::isConfigured() const
 {
     return isConfigurationDone;
@@ -570,6 +583,9 @@ void LibraryConfiguration::configureCustomValue(std::string key, bool value)
 //  PassiveConfiguration
 ////
 
+//TODO add fallback configuration-mode, because currently, it doesn't support custom-config (and therefore no SDES config)
+//problem: fallback config-mode is not fully configured and may throw errors!
+
 PassiveConfiguration::PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors, std::string logFile) :
         ConfigurationMode()
 {
@@ -594,16 +610,20 @@ bool PassiveConfiguration::runConfiguration()
     {
         return true;
     }
-    UDPWrapper wrapper(networkConfig);
+    //we need to connect to remote RTCP port
+    NetworkConfiguration rtcpConfig = networkConfig;
+    rtcpConfig.localPort += 1;
+    rtcpConfig.remotePort += 1;
+    UDPWrapper wrapper(rtcpConfig);
 
     RTCPPackageHandler handler;
     RTCPHeader requestHeader(0);  //we do not have a SSID and it doesn't really matter
     ApplicationDefined configRequest("REQC", 0, nullptr, ApplicationDefined::OHMCOMM_CONFIGURATION_REQUEST);
 
-    void* buffer = handler.createApplicationDefinedPackage(requestHeader, configRequest);
+    void* buffer = (void*)handler.createApplicationDefinedPackage(requestHeader, configRequest);
 
     std::cout << "Sending request for passive configuration..." << std::endl;
-    if(wrapper.sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(requestHeader.length)) < (int)RTCPPackageHandler::getRTCPPackageLength(requestHeader.length))
+    if(wrapper.sendData(buffer, RTCPPackageHandler::getRTCPPackageLength(requestHeader.getLength())) < (int)RTCPPackageHandler::getRTCPPackageLength(requestHeader.getLength()))
     {
         std::wcerr << wrapper.getLastError() << std::endl;
         return false;
@@ -611,6 +631,11 @@ bool PassiveConfiguration::runConfiguration()
 
     //we can reuse buffer, because it is large enough (as of RTCPPackageHandler)
     int receivedSize = wrapper.receiveData(buffer, 6000);
+    while(receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
+    {
+        //we timed out - repeat
+        receivedSize = wrapper.receiveData(buffer, 6000);
+    }
     if(receivedSize < 0)
     {
         std::wcerr << wrapper.getLastError() << std::endl;
@@ -679,7 +704,7 @@ const bool PassiveConfiguration::isCustomConfigurationSet(const std::string key,
 }
 
 
-const PassiveConfiguration::ConfigurationMessage PassiveConfiguration::readConfigurationMessage(void* buffer, unsigned int bufferSize)
+const PassiveConfiguration::ConfigurationMessage PassiveConfiguration::readConfigurationMessage(const void* buffer, unsigned int bufferSize)
 {
     ConfigurationMessage message;
     message.audioFormat = ((ConfigurationMessage*)buffer)->audioFormat;

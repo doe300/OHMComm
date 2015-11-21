@@ -13,8 +13,7 @@
 #include "UserInput.h"
 #include "RtAudio.h"
 #include "ConfigurationMode.h"
-#include "RTPBufferAlternative.h"
-#include "PassiveConfigurationHandler.h"
+#include "RTCPHandler.h"
 
 OHMComm::OHMComm(ConfigurationMode* mode)
     : rtpBuffer(new RTPBuffer(256, 100, 0)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
@@ -101,13 +100,23 @@ void OHMComm::startAudioThreads()
     }
     //write configuration back to ConfigurationMode
     configurationMode->updateAudioConfiguration(audioHandler->getAudioConfiguration());
+
+    //start RTCP-handler
+    rtcpHandler.reset(new RTCPHandler(std::unique_ptr<NetworkWrapper>(
+            new UDPWrapper(configurationMode->getRTCPNetworkConfiguration())), configurationMode, 
+            std::bind(&OHMComm::startAudio,this), createStopCallback()));
     
-    if(configurationMode->isWaitForConfigurationRequest())
+    rtcpHandler->startUp();
+    //if we don't wait for configuration, begin audio-playback
+    //otherwise, the #startAudio()-method is called from the RTCPHandler
+    if(!configurationMode->isWaitForConfigurationRequest())
     {
-        PassiveConfigurationHandler handler(networkWrapper, configurationMode);
-        handler.waitForConfigurationRequest();
+        startAudio();
     }
-    
+}
+
+void OHMComm::startAudio()
+{
     listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize(), createStopCallback()));
     listener->startUp();
     audioHandler->startDuplexMode();
@@ -129,6 +138,7 @@ void OHMComm::stopAudioThreads()
     audioHandler->stop();
     listener->shutdown();
     networkWrapper->closeNetwork();
+    rtcpHandler->shutdown();
 
     std::cout << "OHMComm stopped!" << std::endl;
     const std::pair<bool, std::string> logConfig = configurationMode->getLogToFileConfiguration();
@@ -139,6 +149,9 @@ void OHMComm::stopAudioThreads()
     }
     //print statistics to stdout anyway
     Statistics::printStatistics();
+    
+    //if this method was called from one of the background-tasks, only the main-thread (waiting for input) remains.
+    std::cout << "Type Enter to exit..." << std::endl;
 }
 
 bool OHMComm::isRunning() const

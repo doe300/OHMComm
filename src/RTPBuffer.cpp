@@ -26,19 +26,19 @@ RTPBuffer::~RTPBuffer()
     delete [] ringBuffer;
 }
 
-RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int contentSize)
+RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned int contentSize)
 {
     lockMutex();
-    RTPHeader *receivedHeader = package.getRTPPackageHeader();
+    const RTPHeader *receivedHeader = package.getRTPPackageHeader();
     if(minSequenceNumber == 0)
     {
         //if we receive our first package, we need to set minSequenceNumber
-        minSequenceNumber = receivedHeader->sequence_number;
+        minSequenceNumber = receivedHeader->getSequenceNumber();
     }
 
     //we need to check for upper limit of range, because at some point a wrap around UINT16_MAX is expected behavior
     // -> if minSequenceNumber is larger than (UINT16_MAX - capacity), sequence_number around zero have to be allowed for
-    if(minSequenceNumber < (UINT16_MAX - capacity) && receivedHeader->sequence_number < minSequenceNumber)
+    if(minSequenceNumber < (UINT16_MAX - capacity) && receivedHeader->getSequenceNumber() < minSequenceNumber)
     {
         //discard package, because it is older than the minimum sequence number to hold
         unlockMutex();
@@ -51,13 +51,13 @@ RTPBufferStatus RTPBuffer::addPackage(RTPPackageHandler &package, unsigned int c
         unlockMutex();
         return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
     }
-    if(receivedHeader->sequence_number - minSequenceNumber >= capacity)
+    if(receivedHeader->getSequenceNumber() - minSequenceNumber >= capacity)
     {
         //should never occur: package is far too new -> we have now choice but to discard it without getting into an undetermined state
         unlockMutex();
         return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
     }
-    uint16_t newWriteIndex = calculateIndex(nextReadIndex, receivedHeader->sequence_number-minSequenceNumber);
+    uint16_t newWriteIndex = calculateIndex(nextReadIndex, receivedHeader->getSequenceNumber()-minSequenceNumber);
     //write package-data into buffer
     ringBuffer[newWriteIndex].isValid = true;
     ringBuffer[newWriteIndex].header = *receivedHeader;
@@ -107,7 +107,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
             //package is valid but too old, invalidate and skip
             ringBuffer[index].isValid = false;
         }
-        else if(ringBuffer[index].isValid == true && ringBuffer[index].header.sequence_number >= minSequenceNumber)
+        else if(ringBuffer[index].isValid == true && ringBuffer[index].header.getSequenceNumber() >= minSequenceNumber)
         {
             nextReadIndex = index;
             break;
@@ -137,9 +137,9 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     nextReadIndex = incrementIndex(nextReadIndex);
     size--;
     //we lost all packages between the last read and this one, so we subtract the sequence numbers
-    Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_LOST, (bufferPack->header.sequence_number - minSequenceNumber)%UINT16_MAX);
+    Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_LOST, (bufferPack->header.getSequenceNumber() - minSequenceNumber)%UINT16_MAX);
     //only accept newer packages (at least one sequence number more than last read package)
-    minSequenceNumber = (bufferPack->header.sequence_number + 1) % UINT16_MAX;
+    minSequenceNumber = (bufferPack->header.getSequenceNumber() + 1) % UINT16_MAX;
     unlockMutex();
     return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }

@@ -102,10 +102,19 @@ bool UDPWrapper::createSocket()
     {
         std::cout << "Local port bound." << std::endl;
     }
+    //set socket timeout to 1sec
+#ifdef _WIN32
+    DWORD timeout = 1000;
+#else
+    timeval timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+#endif
+    setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
     return true;
 }
 
-int UDPWrapper::sendData(void *buffer, unsigned int bufferSize)
+int UDPWrapper::sendData(const void *buffer, const unsigned int bufferSize)
 {
     return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->remoteAddress), getSocketAddressLength());
 }
@@ -119,7 +128,14 @@ int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
     #endif
     int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->localAddress), &localAddrLen);
     if (result == -1)
+    {
+        if(hasTimedOut())
+        {
+            //we have timed-out, so notify caller and return
+            return RECEIVE_TIMEOUT;
+        }
         std::wcerr << this->getLastError();
+    }
     return result;
 }
 

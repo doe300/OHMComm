@@ -44,12 +44,12 @@ bool ProcessorWAV::configure(const AudioConfiguration& audioConfig, const std::s
     }
     if(configMode->isCustomConfigurationSet(INPUT_FILE_NAME->longName, "Log audio-input?"))
     {
-        std::string fileName = configMode->getCustomConfiguration(INPUT_FILE_NAME->longName, "Type audio-input file-name", std::string(""));
+        std::string fileName = configMode->getCustomConfiguration(INPUT_FILE_NAME->longName, "Type audio-input file-name", "");
         writeInputFile = wavfile_open(fileName.c_str());
     }
     if(configMode->isCustomConfigurationSet(OUTPUT_FILE_NAME->longName, "Log audio-output?"))
     {
-        std::string fileName = configMode->getCustomConfiguration(OUTPUT_FILE_NAME->longName, "Type audio-output file-name", std::string(""));
+        std::string fileName = configMode->getCustomConfiguration(OUTPUT_FILE_NAME->longName, "Type audio-output file-name", "");
         writeOutputFile = wavfile_open(fileName.c_str());
     }
     return true;

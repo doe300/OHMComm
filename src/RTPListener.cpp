@@ -9,13 +9,13 @@
 #include "Statistics.h"
 
 RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize, std::function<void()> stopCallback) :
-    stopCallback(stopCallback), rtpHandler(receiveBufferSize)
+    stopCallback(stopCallback), rtpHandler(receiveBufferSize), lastDelay(0), lastJitter(0)
 {
     this->wrapper = wrapper;
     this->buffer = buffer;
 }
 
-RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler)
+RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler), lastDelay(orig.lastDelay), lastJitter(orig.lastJitter)
 {
     this->wrapper = orig.wrapper;
     this->buffer = orig.buffer;
@@ -45,11 +45,7 @@ void RTPListener::runThread()
             //socket was already closed
             shutdown();
         }
-        else if (RTCPPackageHandler::isRTCPPackage(rtpHandler.getWorkBuffer(), receivedSize))
-        {
-            handleRTCPPackage(rtpHandler.getWorkBuffer(), (unsigned int)receivedSize);
-        }
-        else if(receivedSize == EAGAIN || receivedSize == EWOULDBLOCK)
+        else if(receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
@@ -62,12 +58,16 @@ void RTPListener::runThread()
                 //TODO some handling or simply discard?
                 std::cerr << "Input Buffer overflow" << std::endl;
             }
-                else if (result == RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD)
-                {
-                    std::cerr << "Package was too old, discarding" << std::endl;
+            else if (result == RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD)
+            {
+                std::cerr << "Package was too old, discarding" << std::endl;
             }
             else
             {
+                long currentJitter = round(calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp()));
+                //XXX don't know if correct
+                Statistics::setCounter(Statistics::RTP_INTERARRIVAL_JITTER, currentJitter);
+                Statistics::setCounter(Statistics::RTP_REMOTE_SSRC, rtpHandler.getRTPPackageHeader()->getSSRC());
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
                 Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTP_HEADER_MIN_SIZE);
                 Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedSize - RTP_HEADER_MIN_SIZE);
@@ -77,21 +77,19 @@ void RTPListener::runThread()
     std::cout << "RTP-Listener shut down" << std::endl;
 }
 
-void RTPListener::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSize)
+float RTPListener::calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp)
 {
-    //handle RTCP-packages
-    RTCPHeader header = rtcpHandler.readRTCPHeader(receiveBuffer, receivedSize);
-    if(header.packageType == RTCP_PACKAGE_GOODBYE)
-    {
-        //other side sent an BYE-package, shutting down
-        std::cout << "Received Goodbye-message: " << rtcpHandler.readByeMessage(receiveBuffer, receivedSize, header) << std::endl;
-        std::cout << "Dialog partner requested end of communication, shutting down!" << std::endl;
-        shutdown();
-        //notify OHMComm to shut down
-        stopCallback();
-    }
+    //as of RFC 3550 (A.8):
+    //D(i, j)=(Rj - Sj) - (Ri - Si)
+    //with (Ri - Si) = lastDelay
+    int32_t currentDelay = receptionTimestamp - sentTimestamp;
+    int32_t currentDifference = currentDelay - lastDelay;
+    lastDelay = currentDelay;
+    
+    //Ji = Ji-1 + (|D(i-1, 1)| - Ji-1)/16
+    lastJitter = lastJitter + ((float)abs(currentDifference) - lastJitter)/16.0;
+    return lastJitter;
 }
-
 
 void RTPListener::shutdown()
 {

@@ -13,7 +13,6 @@
 
 #include "RTPBufferHandler.h"
 #include "NetworkWrapper.h"
-#include "RTCPPackageHandler.h"
 
 /*!
  * Listening-thread for incoming RTP-packages
@@ -52,19 +51,27 @@ private:
     std::shared_ptr<NetworkWrapper> wrapper;
     std::shared_ptr<RTPBufferHandler> buffer;
     RTPPackageHandler rtpHandler;
-    RTCPPackageHandler rtcpHandler;
     std::thread receiveThread;
     bool threadRunning = false;
+    //for jitter-calculation
+    uint32_t lastDelay;
+    float lastJitter;
 
     /*!
      * Method called in the parallel thread, receiving packages and writing them into RTPBuffer
      */
     void runThread();
-
+    
     /*!
-     * This method handles received RTCP packages and is called only from #runThread()
+     * NOTE: is only called from #runThread()
+     * 
+     * \param sentTimestamp the RTP-timestamp of the remote device read from the RTPHeader
+     * 
+     * \param receptionTimestamp the RTP-timestamp of this device of the moment of reception
+     * 
+     * \return the interarrival-jitter for RTP-packages
      */
-    void handleRTCPPackage(void* receiveBuffer, unsigned int receivedSize);
+    float calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp);
 };
 
 #endif	/* RTPLISTENER_H */

@@ -64,7 +64,7 @@ public:
 	 * \param header A pointer to a RTPHeader
 	 * \param packageContent A pointer to the payloadContent (AudioData)
 	 */
-	void addPacket(RTPHeader *header, void *packageContent)
+	void addPacket(const RTPHeader *header, const void *packageContent)
 	{
 		// Adding a new packet while the old one was not read? -> set the overflow flag
 		if (hasBeenInitialized && hasBeenRead == false)
@@ -166,7 +166,7 @@ public:
 	 *
 	 * Returns zero on success or one of the RTPBufferStatus-codes listed in RTPBuffer.h
 	 */
-	RTPBufferStatus addPackage(RTPPackageHandler &package, unsigned int contentSize);
+	RTPBufferStatus addPackage(const RTPPackageHandler &package, unsigned int contentSize);
 
 	/*!
 	 * Reads the current package in the buffer and writes it into the package-variable

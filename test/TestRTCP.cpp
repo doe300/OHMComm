@@ -24,21 +24,22 @@ void TestRTCP::testSenderReportPackage()
 
     //create package
     RTCPHeader header(testSSRC);
-    SenderInformation info(1000, packageCount, 2048);
-    void* package = handler.createSenderReportPackage(header, info, {});
+    NTPTimestamp ntpTime;
+    SenderInformation info(ntpTime, 1000, packageCount, 2048);
+    const void* package = handler.createSenderReportPackage(header, info, {});
 
     //read package
     RTCPHeader readHeader(0);
-    SenderInformation readInfo(0,0,0);
-    std::vector<ReceptionReport> reports = handler.readSenderReport(package, RTCPPackageHandler::getRTCPPackageLength(header.length), readHeader, readInfo);
+    SenderInformation readInfo(ntpTime, 0,0,0);
+    std::vector<ReceptionReport> reports = handler.readSenderReport(package, RTCPPackageHandler::getRTCPPackageLength(header.getLength()), readHeader, readInfo);
 
     //tests
-    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.length)), "Sender Report Package not recognized");
+    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.getLength())), "Sender Report Package not recognized");
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_SENDER_REPORT, header.packageType);
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_SENDER_REPORT, readHeader.packageType);
-    TEST_ASSERT_EQUALS(header.length, readHeader.length);
-    TEST_ASSERT_EQUALS(testSSRC, readHeader.ssrc);
-    TEST_ASSERT_EQUALS(packageCount, readInfo.packetCount);
+    TEST_ASSERT_EQUALS(header.getLength(), readHeader.getLength());
+    TEST_ASSERT_EQUALS(testSSRC, readHeader.getSSRC());
+    TEST_ASSERT_EQUALS(packageCount, readInfo.getPacketCount());
     TEST_ASSERT_MSG(reports.empty(), "Reports were not empty");
 
 }
@@ -55,18 +56,18 @@ void TestRTCP::testReceiverReportPackage()
     ReceptionReport info2;
     info2.ssrc = testSSRC;
     info2.cumulativePackageLoss = packageLoss;
-    void* package = handler.createReceiverReportPackage(header, {info, info2});
+    const void* package = handler.createReceiverReportPackage(header, {info, info2});
 
     //read package
     RTCPHeader readHeader(0);
-    std::vector<ReceptionReport> readInfos = handler.readReceiverReport(package, handler.getRTCPPackageLength(header.length), readHeader);
+    std::vector<ReceptionReport> readInfos = handler.readReceiverReport(package, handler.getRTCPPackageLength(header.getLength()), readHeader);
 
     //tests
-    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.length)), "Receiver Report Package not recognized");
+    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.getLength())), "Receiver Report Package not recognized");
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_RECEIVER_REPORT, header.packageType);
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_RECEIVER_REPORT, readHeader.packageType);
-    TEST_ASSERT_EQUALS(header.length, readHeader.length);
-    TEST_ASSERT_EQUALS(testSSRC, readHeader.ssrc);
+    TEST_ASSERT_EQUALS(header.getLength(), readHeader.getLength());
+    TEST_ASSERT_EQUALS(testSSRC, readHeader.getSSRC());
     TEST_ASSERT_EQUALS(2, readInfos.size());
     TEST_ASSERT_EQUALS(packageLoss, readInfos[0].cumulativePackageLoss);
     TEST_ASSERT_EQUALS(packageLoss, readInfos[1].cumulativePackageLoss);
@@ -85,18 +86,18 @@ void TestRTCP::testSourceDescriptionPacakge()
     SourceDescription descr2;
     descr2.type = RTCP_SOURCE_TOOL;
     descr2.value = tool;
-    void* package = handler.createSourceDescriptionPackage(header, {descr1, descr2});
+    const void* package = handler.createSourceDescriptionPackage(header, {descr1, descr2});
 
     //read package
     RTCPHeader readHeader(0);
-    std::vector<SourceDescription> readDescriptions = handler.readSourceDescription(package, handler.getRTCPPackageLength(header.length),readHeader);
+    std::vector<SourceDescription> readDescriptions = handler.readSourceDescription(package, handler.getRTCPPackageLength(header.getLength()),readHeader);
 
     //tests
-    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.length)), "Source Description Package not recognized");
+    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.getLength())), "Source Description Package not recognized");
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_SOURCE_DESCRIPTION, header.packageType);
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_SOURCE_DESCRIPTION, readHeader.packageType);
-    TEST_ASSERT_EQUALS(header.length, readHeader.length);
-    TEST_ASSERT_EQUALS(testSSRC, readHeader.ssrc);
+    TEST_ASSERT_EQUALS(header.getLength(), readHeader.getLength());
+    TEST_ASSERT_EQUALS(testSSRC, readHeader.getSSRC());
     TEST_ASSERT_EQUALS(2, readDescriptions.size());
     TEST_ASSERT_EQUALS(RTCP_SOURCE_NAME, readDescriptions[0].type);
     TEST_ASSERT_EQUALS(name, readDescriptions[0].value);
@@ -110,18 +111,18 @@ void TestRTCP::testByePackage()
 
     //create package
     RTCPHeader header(testSSRC);
-    void* package = handler.createByePackage(header, testMessage);
+    const void* package = handler.createByePackage(header, testMessage);
 
     //read package
     RTCPHeader readHeader(0);
-    std::string readMessage = handler.readByeMessage(package, handler.getRTCPPackageLength(header.length)+100, readHeader);
+    std::string readMessage = handler.readByeMessage(package, handler.getRTCPPackageLength(header.getLength())+100, readHeader);
 
     //tests
-    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.length)), "Bye Package not recognized");
+    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.getLength())), "Bye Package not recognized");
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_GOODBYE, header.packageType);
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_GOODBYE, readHeader.packageType);
-    TEST_ASSERT_EQUALS(header.length, readHeader.length);
-    TEST_ASSERT_EQUALS(testSSRC, readHeader.ssrc);
+    TEST_ASSERT_EQUALS(header.getLength(), readHeader.getLength());
+    TEST_ASSERT_EQUALS(testSSRC, readHeader.getSSRC());
     TEST_ASSERT_EQUALS(testMessage, readMessage);
 }
 
@@ -134,18 +135,18 @@ void TestRTCP::testAppDefinedPackage()
     //create package
     RTCPHeader header(testSSRC);
     ApplicationDefined appDefined(name, someText.size(), (char*)someText.data(), someType);
-    void* package = handler.createApplicationDefinedPackage(header, appDefined);
+    const void* package = handler.createApplicationDefinedPackage(header, appDefined);
 
     //read package
     RTCPHeader readHeader(0);
-    ApplicationDefined readAppDefined = handler.readApplicationDefinedMessage(package, handler.getRTCPPackageLength(header.length), readHeader);
+    ApplicationDefined readAppDefined = handler.readApplicationDefinedMessage(package, handler.getRTCPPackageLength(header.getLength()), readHeader);
 
     //tests
-    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.length)), "Application Defined Package not recognized");
+    TEST_ASSERT_MSG(handler.isRTCPPackage(package, handler.getRTCPPackageLength(header.getLength())), "Application Defined Package not recognized");
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_APPLICATION_DEFINED, header.packageType);
     TEST_ASSERT_EQUALS(RTCP_PACKAGE_APPLICATION_DEFINED, readHeader.packageType);
-    TEST_ASSERT_EQUALS(header.length, readHeader.length);
-    TEST_ASSERT_EQUALS(testSSRC, readHeader.ssrc);
+    TEST_ASSERT_EQUALS(header.getLength(), readHeader.getLength());
+    TEST_ASSERT_EQUALS(testSSRC, readHeader.getSSRC());
     TEST_ASSERT_EQUALS(someText, std::string(readAppDefined.data, readAppDefined.dataLength));
     TEST_ASSERT_EQUALS(someType, readAppDefined.subType);
 }
@@ -154,14 +155,14 @@ void TestRTCP::testIsRTCPPackage()
 {
     //positive test
     RTCPHeader rtcpHeader(testSSRC);
-    void* rtcpPackage = handler.createByePackage(rtcpHeader, "Goodbye!");
+    const void* rtcpPackage = handler.createByePackage(rtcpHeader, "Goodbye!");
     //negative test
     RTPPackageHandler h(2048);
     void* someData = (void*)(std::string("Some Data!").data());
-    void* rtpPackage = h.getNewRTPPackage(someData, 10);
+    const void* rtpPackage = h.createNewRTPPackage(someData, 10);
 
     //tests
-    TEST_ASSERT(true == handler.isRTCPPackage(rtcpPackage, handler.getRTCPPackageLength(rtcpHeader.length)));
+    TEST_ASSERT(true == handler.isRTCPPackage(rtcpPackage, handler.getRTCPPackageLength(rtcpHeader.getLength())));
     TEST_ASSERT(false == handler.isRTCPPackage(rtpPackage, h.getActualPayloadSize() + h.getRTPHeaderSize()));
 }
 

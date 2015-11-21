@@ -53,6 +53,11 @@ public:
      * \return the configured NetworkConfiguration
      */
     const NetworkConfiguration getNetworkConfiguration() const;
+    
+    /*!
+     * \return the configured NetworkConfiguration for the RTCP-port
+     */
+    const NetworkConfiguration getRTCPNetworkConfiguration() const;
 
     /*!
      * \return a pair containing (first) all configured processor-names and (second) a flag whether to profile the processors
@@ -79,6 +84,14 @@ public:
      * \return the value for this configuration-key, defaults to the defaultValue
      */
     virtual const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const = 0;
+    
+    /*!
+     * Convenience-wrapper for #getCustomConfiguration(const std::string, const std::string, const std::string)
+     */
+    const std::string getCustomConfiguration(const std::string key, const std::string message, const char* defaultValue) const
+    {
+        return getCustomConfiguration(key, message, std::string(defaultValue));
+    }
 
     /*!
      * Configuration-mode specific method to retrieve a value for the given key
@@ -277,7 +290,7 @@ public:
     const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
     const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
-    static const ConfigurationMessage readConfigurationMessage(void* buffer, unsigned int bufferSize);
+    static const ConfigurationMessage readConfigurationMessage(const void* buffer, unsigned int bufferSize);
 
     static unsigned int writeConfigurationMessage(void* buffer, unsigned int maxBufferSize, ConfigurationMessage& configMessage);
 };

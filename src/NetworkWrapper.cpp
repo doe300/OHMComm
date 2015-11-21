@@ -14,3 +14,14 @@ bool NetworkWrapper::isIPv6(const std::string ipAddress)
     return false;
 }
 
+bool NetworkWrapper::hasTimedOut() const
+{
+    int error;
+    #ifdef _WIN32
+    error = WSAGetLastError();
+    #else
+    error = errno;
+    #endif
+
+    return error == EAGAIN || error == EWOULDBLOCK || error == WSAETIMEDOUT;
+}

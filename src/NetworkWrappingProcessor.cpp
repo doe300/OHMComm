@@ -36,9 +36,13 @@ unsigned int NetworkWrappingProcessor::processInputData(void* inputBuffer, const
 
 unsigned int NetworkWrappingProcessor::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
 {
-    unsigned int receiveBufferSize = wrapper->receiveData(outputBuffer, outputBufferByteSize);
+    int receiveBufferSize = wrapper->receiveData(outputBuffer, outputBufferByteSize);
+    while(receiveBufferSize== NetworkWrapper::RECEIVE_TIMEOUT)
+    {
+        receiveBufferSize = wrapper->receiveData(outputBuffer, outputBufferByteSize);
+    }
 
     //set initial received buffer size
-    return receiveBufferSize;
+    return (unsigned int)receiveBufferSize;
 }
 

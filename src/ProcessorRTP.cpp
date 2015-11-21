@@ -1,6 +1,5 @@
 #include "ProcessorRTP.h"
 #include "Statistics.h"
-#include "RTCPPackageHandler.h"
 
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
                            std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType)
@@ -31,10 +30,11 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     {
         rtpPackage = new RTPPackageHandler(userData->maxBufferSize, payloadType);
     }
-    void* newRTPPackage = rtpPackage->getNewRTPPackage(inputBuffer, inputBufferByteSize);
+    const void* newRTPPackage = rtpPackage->createNewRTPPackage(inputBuffer, inputBufferByteSize);
     //only send the number of bytes really required: header + actual payload-size
     this->networkObject->sendData(newRTPPackage, rtpPackage->getRTPHeaderSize() + inputBufferByteSize);
 
+    Statistics::setCounter(Statistics::RTP_LOCAL_SSRC, rtpPackage->getRTPPackageHeader()->getSSRC());
     Statistics::incrementCounter(Statistics::COUNTER_FRAMES_SENT, userData->nBufferFrames);
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_SENT, 1);
     Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTP_HEADER_MIN_SIZE);
@@ -63,7 +63,7 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
         std::cerr << "Output Buffer underflow" << std::endl;
     }
 
-    void* recvAudioData = rtpPackage->getRTPPackageData();
+    const void* recvAudioData = rtpPackage->getRTPPackageData();
     unsigned int receivedPayloadSize = rtpPackage->getActualPayloadSize();
     memcpy(outputBuffer, recvAudioData, outputBufferByteSize);
 
@@ -78,11 +78,6 @@ bool ProcessorRTP::cleanUp()
         //if we never sent a RTP-package, there is no need to end the communication
         return true;
     }
-    // Send a RTCP BYE-packet, to tell the other side that communication has been stopped
-    RTCPPackageHandler rtcpHandler;
-    RTCPHeader byeHeader(rtpPackage->getSSRC());
-    void* packageBuffer = rtcpHandler.createByePackage(byeHeader, "Program exit");
-    this->networkObject->sendData(packageBuffer, RTCPPackageHandler::getRTCPPackageLength(byeHeader.length));
     std::cout << "Communication terminated." << std::endl;
     //clean up send-buffer
     delete rtpPackage;

@@ -8,10 +8,18 @@
 #ifndef RTCPPACKAGEHANDLER_H
 #define	RTCPPACKAGEHANDLER_H
 
+#include <chrono> // clock, tick
 #include <string.h> // memcpy
 #include <stdint.h> //uint8_t for Windows
 #include <vector>
 #include <string>
+
+//For htons/htonl and ntohs/ntohl
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <netinet/in.h>
+#endif
 
 /*!
  * RTCP package type
@@ -38,7 +46,62 @@ static const RTCPSourceDescriptionType RTCP_SOURCE_TOOL = 6;
 static const RTCPSourceDescriptionType RTCP_SOURCE_NOTE = 7;
 
 /*!
- * The RTCP header has the following format:
+ * The NTP timestamp is specified in RFC 1305 and has the following format:
+ * 
+ * 1                   2                   3
+ * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                          Seconds                             |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                 Seconds Fraction (0-padded)                  |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * 
+ * Seconds:
+ *  Seconds since 01.01.1900 00:00:00. Also the equivalent in UNIX timestamps
+ * 
+ * Seconds Fraction:
+ *  Fraction of seconds, zero-padded
+ * 
+ * The NTP timestamp will overflow sometime in 2036
+ */
+struct NTPTimestamp
+{
+private:    //fields in network byte-order
+    unsigned int seconds : 32;
+    unsigned int fraction : 32;
+    //the difference between epoch (01.01.1970) and 01.01.1900 in seconds
+    const static uint32_t difToEpoch{2208988800}; 
+    
+public:
+    NTPTimestamp(): seconds(0), fraction(0)
+    {}
+    
+    NTPTimestamp(uint32_t seconds, uint32_t fraction = 0) : seconds(htonl(seconds)), fraction(htonl(fraction))
+    {}
+    
+    uint32_t getSeconds() const
+    {
+        return ntohl(seconds);
+    }
+    
+    uint32_t getFraction() const
+    {
+        return ntohl(fraction);
+    }
+    
+    /*!
+     * \return a NTP timestamp of this instance
+     */
+    static NTPTimestamp now()
+    {
+        std::chrono::high_resolution_clock::duration sinceEpoch = std::chrono::high_resolution_clock::now().time_since_epoch();
+        std::chrono::seconds secondsSinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(sinceEpoch);
+        //XXX we currently don't care about fractions of seconds
+        return NTPTimestamp(secondsSinceEpoch.count() + difToEpoch, 0);
+    }
+};
+/*!
+ * The RTCP header is specified in RFC 3551 has the following format:
  *
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -80,6 +143,7 @@ static const RTCPSourceDescriptionType RTCP_SOURCE_NOTE = 7;
  */
 struct RTCPHeader
 {
+public:
     //2 bit version field
     unsigned int version : 2;
 
@@ -92,18 +156,20 @@ struct RTCPHeader
     //8 bit package-type field
     RTCPPackageType packageType;
 
+private:    //uses network byte-order
     //16 bit length field
     unsigned int length : 16;
 
     //32 bit ssrc field
     unsigned int ssrc : 32;
 
+public:
     /*!
      * Creates a new RTCPHeader
      *
      * \param ssrc The SSRC, the only parameter not written by the create*Package-methods
      */
-    RTCPHeader(uint32_t ssrc) : ssrc(ssrc)
+    RTCPHeader(uint32_t ssrc) : ssrc(htonl(ssrc))
     {
         //version is always 2 per specification
         version = 2;
@@ -113,6 +179,20 @@ struct RTCPHeader
         receptionReportOrSourceCount = 0;
     }
 
+    inline uint32_t getSSRC() const
+    {
+        return ntohl(ssrc);
+    }
+    
+    inline uint16_t getLength() const
+    {
+        return ntohs(length);
+    }
+    
+    inline void setLength(uint16_t length)
+    {
+        this->length = htons(length);
+    }
 };
 
 /*!
@@ -167,8 +247,9 @@ struct RTCPHeader
  */
 struct SenderInformation
 {
+private:    //uses network byte-order
     //64 bit NTP timestamp field
-    uint64_t NTPTimestamp: 64;
+    NTPTimestamp ntpTimestamp;
 
     //32 bit RTP timestamp field
     unsigned int RTPTimestamp : 32;
@@ -179,11 +260,25 @@ struct SenderInformation
     //32 bit sender's octet count field
     unsigned int octetCount : 32;
 
-    SenderInformation(uint32_t rtpTimestamp, uint32_t packageCount, uint32_t octetCount) :
-    RTPTimestamp(rtpTimestamp), packetCount(packageCount), octetCount(octetCount)
+public:
+    SenderInformation(const NTPTimestamp& ntpTimestamp, uint32_t rtpTimestamp, uint32_t packageCount, uint32_t octetCount) :
+    ntpTimestamp(ntpTimestamp), RTPTimestamp(htonl(rtpTimestamp)), packetCount(htonl(packageCount)), octetCount(htonl(octetCount))
     {
-        //default NTP timestamp
-        NTPTimestamp = 0;
+    }
+    
+    inline uint32_t getRTPTimestamp() const
+    {
+        return ntohl(RTPTimestamp);
+    }
+    
+    inline uint32_t getPacketCount() const
+    {
+        return ntohl(packetCount);
+    }
+    
+    inline uint32_t getOctetCount() const
+    {
+        return ntohl(octetCount);
     }
 };
 
@@ -264,6 +359,7 @@ struct SenderInformation
  */
 struct ReceptionReport
 {
+    //TODO network byte-order
     //32 bit SSRC field
     unsigned int ssrc : 32;
 
@@ -304,6 +400,65 @@ struct SourceDescription
 
     //variable length value
     std::string value;
+    
+    SourceDescription() : type(0), value("")
+    {
+    }
+
+    SourceDescription(RTCPSourceDescriptionType type, std::string value) :
+        type(type), value(value)
+    {
+    }
+
+    
+    /*!
+     * \return The name of the source-description type
+     */
+    const std::string getTypeName() const
+    {
+        switch(type)
+        {
+            case RTCP_SOURCE_CNAME:
+                return "Endpoint";
+            case RTCP_SOURCE_EMAIL:
+                return "Email";
+            case RTCP_SOURCE_LOC:
+                return "Location";
+            case RTCP_SOURCE_NAME:
+                return "Name";
+            case RTCP_SOURCE_NOTE:
+                return "Note";
+            case RTCP_SOURCE_PHONE:
+                return "Phone";
+            case RTCP_SOURCE_TOOL:
+                return "Application";
+        }
+        return "";
+    }
+    
+    /*!
+     * \param typeName The name of the source-description
+     * 
+     * \return The type for the given source-description name
+     */
+    const static RTCPSourceDescriptionType getType(const std::string& typeName)
+    {
+        if(typeName.compare("Endpoint") == 0)
+            return RTCP_SOURCE_CNAME;
+        if(typeName.compare("Email") == 0)
+            return RTCP_SOURCE_EMAIL;
+        if(typeName.compare("Location") == 0)
+            return RTCP_SOURCE_LOC;
+        if(typeName.compare("Name") == 0)
+            return RTCP_SOURCE_NAME;
+        if(typeName.compare("Note") == 0)
+            return RTCP_SOURCE_NOTE;
+        if(typeName.compare("Phone") == 0)
+            return RTCP_SOURCE_PHONE;
+        if(typeName.compare("Application") == 0)
+            return RTCP_SOURCE_TOOL;
+        return 0;
+    }
 };
 
 /*!
@@ -366,7 +521,7 @@ struct ApplicationDefined
     uint16_t dataLength;
 
     //variable length application specific data
-    char *data;
+    const char *data;
 
     //5 bit application defined sub-type -> is stored in RTCPHeader.receptionReportOrSourceCount
     unsigned int subType : 5;
@@ -407,7 +562,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createSenderReportPackage(RTCPHeader &header, SenderInformation &senderInfo, const std::vector<ReceptionReport>& reports);
+    const void *createSenderReportPackage(RTCPHeader &header, const SenderInformation &senderInfo, const std::vector<ReceptionReport>& reports);
 
     /*!
      * Creates a new receiver report (RR) package
@@ -418,7 +573,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createReceiverReportPackage(RTCPHeader &header, const std::vector<ReceptionReport>& reports);
+    const void *createReceiverReportPackage(RTCPHeader &header, const std::vector<ReceptionReport>& reports);
 
     /*!
      * Creates a new source description (DES) package
@@ -429,7 +584,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createSourceDescriptionPackage(RTCPHeader &header, const std::vector<SourceDescription>& descriptions);
+    const void *createSourceDescriptionPackage(RTCPHeader &header, const std::vector<SourceDescription>& descriptions);
 
     /*!
      * Creates a new BYE package
@@ -440,7 +595,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createByePackage(RTCPHeader &header, const std::string& byeMessage);
+    const void *createByePackage(RTCPHeader &header, const std::string& byeMessage);
 
     /*!
      * Creates a new APP package
@@ -451,7 +606,7 @@ public:
      *
      * \return A pointer to the created package
      */
-    void *createApplicationDefinedPackage(RTCPHeader &header, ApplicationDefined &appDefined);
+    const void *createApplicationDefinedPackage(RTCPHeader &header, ApplicationDefined &appDefined);
 
     /*!
      * Reads a sender report (SR) package
@@ -466,7 +621,7 @@ public:
      *
      * \return a list of read reception-reports, may be empty
      */
-    std::vector<ReceptionReport> readSenderReport(void *senderReportPackage, uint16_t packageLength, RTCPHeader &header, SenderInformation &senderInfo);
+    std::vector<ReceptionReport> readSenderReport(const void *senderReportPackage, uint16_t packageLength, RTCPHeader &header, SenderInformation &senderInfo);
 
     /*!
      * Reads a receiver report (RR) package
@@ -479,7 +634,7 @@ public:
      *
      * \return a list of read reception-reports, may be empty
      */
-    std::vector<ReceptionReport> readReceiverReport(void *receiverReportPackage, uint16_t packageLength, RTCPHeader &header);
+    std::vector<ReceptionReport> readReceiverReport(const void *receiverReportPackage, uint16_t packageLength, RTCPHeader &header);
 
     /*!
      * Reads a source description (SDES) package
@@ -492,7 +647,7 @@ public:
      *
      * \return the read descriptions
      */
-    std::vector<SourceDescription> readSourceDescription(void *sourceDescriptionPackage, uint16_t packageLength, RTCPHeader &header);
+    std::vector<SourceDescription> readSourceDescription(const void *sourceDescriptionPackage, uint16_t packageLength, RTCPHeader &header);
 
     /*!
      * Reads a BYE package
@@ -505,7 +660,7 @@ public:
      *
      * \return the bye-message attached to the package, may be empty
      */
-    std::string readByeMessage(void *byePackage, uint16_t packageLength, RTCPHeader &header);
+    std::string readByeMessage(const void *byePackage, uint16_t packageLength, RTCPHeader &header);
 
     /*!
      * Reads a APP package
@@ -518,7 +673,7 @@ public:
      *
      * \return the read ApplicationDefined data
      */
-    ApplicationDefined readApplicationDefinedMessage(void *appDefinedPackage, uint16_t packageLength, RTCPHeader &header);
+    ApplicationDefined readApplicationDefinedMessage(const void *appDefinedPackage, uint16_t packageLength, RTCPHeader &header);
 
     /*!
      * Reads an RTCP-header and returns whether the package was an RTCP-package
@@ -529,7 +684,7 @@ public:
      *
      * \return Whether the RTCP-header was successfully read
      */
-    RTCPHeader readRTCPHeader(void* rtcpPackage, unsigned int packageLength);
+    RTCPHeader readRTCPHeader(const void* rtcpPackage, unsigned int packageLength);
 
     /*!
      * This method tries to determine whether the received buffer holds an RTCP package.
@@ -543,7 +698,7 @@ public:
      *
      * \return Whether this buffer COULD be holding hold an RTCP package
      */
-    static bool isRTCPPackage(void* packageBuffer, unsigned int packageLength );
+    static bool isRTCPPackage(const void* packageBuffer, const unsigned int packageLength );
 
     /*!
      * \param lengthHeaderField The value of the RTCP header-field "length"
@@ -553,6 +708,7 @@ public:
     static const unsigned int getRTCPPackageLength(unsigned int lengthHeaderField);
 
 private:
+    const unsigned int maxPackageSize;
     char *rtcpPackageBuffer;
 
     /*!
@@ -561,6 +717,8 @@ private:
      * Specification: "The length of this RTCP packet in 32-bit words minus one, including the header and any padding"
      */
     static const uint8_t calculateLengthField(uint16_t length);
+    
+    friend class RTCPHandler;
 };
 
 #endif	/* RTCPPACKAGEHANDLER_H */

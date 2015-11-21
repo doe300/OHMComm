@@ -8,29 +8,32 @@
 #ifndef PARALLELSUITE_H
 #define	PARALLELSUITE_H
 
-#include "TestSuite.h"
+#include <thread>
+#include <future>
 
-/*!
- * A suite which calls every sub-suite in an own thread and therefore in parallel
- */
+#include "TestSuite.h"
+#include "SynchronizedOutput.h"
+
 namespace Test
 {
-    //TODO override all methods and make sure, access to shared data (i.e. output) is synchronized
-
+    /*!
+     * A suite which calls every sub-suite in an own thread and therefore in parallel.
+     * ParallelSuite does not support adding test-methods directly to the suite. 
+     * All test-methods must be added via a sub-suite
+     */
     class ParallelSuite : public Suite
     {
     public:
         ParallelSuite();
         ParallelSuite(const std::string& suiteName);
 
-        virtual ~ParallelSuite()
-        {
-        }
+        ~ParallelSuite();
         
-    protected:
-    private:
-    };
+        bool run(Output& output, bool continueAfterFail = true);
 
+    private:
+        bool runSuite(unsigned int suiteIndex);
+    };
 };
 
 #endif	/* PARALLELSUITE_H */

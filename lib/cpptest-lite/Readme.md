@@ -35,3 +35,4 @@ while **TEST_ADD_WITH_INTEGER** accepts an integer and **TEST_ADD_WITH_POINTER**
 - added macro **TEST_ABORT** to fail and abort a test-method
 - added methods to be executed **before** and **after** every test-method. **setup** and **before** can be used to skip the suite/a single test-method.
 - More detailed failure-message, e.g. prints the failed assertion
+- **ParallelSuite** allows to run TestSuites in a multithreaded-environment and automatically synchronizes access to the Output.

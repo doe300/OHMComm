@@ -35,6 +35,9 @@ public:
     static const int TOTAL_ELAPSED_MILLISECONDS{13};
     static const int RTP_BUFFER_MAXIMUM_USAGE{14};
     static const int RTP_BUFFER_LIMIT{15};
+    static const int RTP_LOCAL_SSRC{16};
+    static const int RTP_REMOTE_SSRC{17};
+    static const int RTP_INTERARRIVAL_JITTER{18};
 
     /*!
      * Increments the given counter by the value provided
@@ -62,6 +65,15 @@ public:
      * \param newValue The new value to compare and possibly set
      */
     static void maxCounter(int counterIndex, long newValue);
+    
+    /*!
+     * Reads the counter-value for the given index
+     * 
+     * \param counterIndex The key to the counter
+     * 
+     * \return The current value for the given counter
+     */
+    static long readCounter(int counterIndex);
 
     /*!
      * Prints some general statistical information to stdout

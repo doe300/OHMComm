@@ -12,6 +12,14 @@
 #include <chrono> // clock, tick
 #include <string.h> //memcpy
 
+
+//For htons/htonl and ntohs/ntohl
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <netinet/in.h>
+#endif
+
 /*!
  * Minimum size of a RTP-Header in bytes, without any CSRCs set
  */
@@ -22,7 +30,7 @@ static const unsigned int RTP_HEADER_MIN_SIZE = 12;
  */
 static const unsigned int RTP_HEADER_MAX_SIZE = 72;
 
-//TODO byte-order (network-order)??
+//TODO add support (at least recognizing and skipping) for extensions
 
 /*!
  * A RTP header extension has the following format:
@@ -49,6 +57,7 @@ static const unsigned int RTP_HEADER_MAX_SIZE = 72;
  */
 struct RTPHeaderExtension
 {
+    //XXX is in host byte-order
     //16 bit defined by profile
     unsigned int profile_field : 16;
 
@@ -61,7 +70,7 @@ struct RTPHeaderExtension
 
 /*!
  *
- * The RTP header has the following format:
+ * The RTP header is specified in RFC 3550 has the following format:
  *
  *  0                   1                   2                   3
  *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -163,6 +172,7 @@ struct RTPHeaderExtension
  */
 struct RTPHeader
 {
+public:
     //2 bit version field
     unsigned int version : 2;
 
@@ -181,6 +191,11 @@ struct RTPHeader
     //7 bit payload type field
     unsigned int payload_type : 7;
 
+private:
+    //The following RTP header-fields are stored in network byte-order,
+    //so sending and receiving over network does not require any special handling
+    //for access in host byte-order, use the getter/setter beneath
+    
     //16 bit sequence number field
     unsigned int sequence_number : 16;
 
@@ -193,6 +208,43 @@ struct RTPHeader
     //list of 32 bit CSRCs
     //TODO adding this requires correct handling of RTPHeader (depending on the csrc_count, like it was before)
     //uint32_t csrc_list[15];
+public:
+    
+    RTPHeader() : version{0}, padding{0}, extension{0}, csrc_count{0}, marker{0}, payload_type{0},
+        sequence_number{0}, timestamp{0}, ssrc{0}
+    {
+    }
+
+    
+    inline uint16_t getSequenceNumber() const
+    {
+        return ntohs(sequence_number);
+    }
+    
+    inline void setSequenceNumber(const uint16_t sequenceNumber)
+    {
+        sequence_number = htons(sequenceNumber);
+    }
+    
+    inline uint32_t getTimestamp() const
+    {
+        return ntohl(timestamp);
+    }
+    
+    inline void setTimestamp(const uint32_t timstamp)
+    {
+        this->timestamp = htonl(timstamp);
+    }
+    
+    inline uint32_t getSSRC() const
+    {
+        return ntohl(ssrc);
+    }
+    
+    inline void setSSRC(const uint32_t ssrc)
+    {
+        this->ssrc = htonl(ssrc);
+    }
 };
 
 /*!
@@ -250,7 +302,7 @@ class RTPPackageHandler
 {
 public:
     /*!
-     * Constructs a new RTPPackage-object
+     * Constructs a new RTPPackageHandler-object
      *
      * \param maximumPayloadSize The maximum size in bytes of the payload (body)
      *
@@ -261,7 +313,7 @@ public:
     RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType = L16_2, unsigned int sizeOfRTPHeader = RTP_HEADER_MIN_SIZE);
 
     ~RTPPackageHandler();
-
+    
     /*!
      * Generates a new RTP-package by generating the header and copying the payload-data (audio data)
      *
@@ -272,15 +324,12 @@ public:
      *
      * Returns a pointer to the internal buffer storing the new package
      */
-    auto getNewRTPPackage(const void* audioData, unsigned int payloadSize)->void*;
+    const void* createNewRTPPackage(const void* audioData, unsigned int payloadSize);
 
     /*!
-     * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from,  defaults nullptr
-     *
-     * Returns a pointer to the payload of rtpPackage. When rtpPackage is not set (defaults to nullptr)
-     * the internal 'workBuffer' will be used as source.
+     * Returns a pointer to the payload of the internal RTP-package
      */
-    auto getRTPPackageData(void *rtpPackage = nullptr) -> void*;
+    const void* getRTPPackageData() const;
 
     /*!
      * \param rtpPackage A pointer to a complete RTP-package (header + body) to read from, defaults nullptr
@@ -288,29 +337,29 @@ public:
      * Returns a RTPHeader pointer of the rtpPackage. When rtpPackage is not set (defaults to nullptr)
      * the internal 'workBuffer' will be used as source.
      */
-    auto getRTPPackageHeader(void *rtpPackage = nullptr) -> RTPHeader*;
+    const RTPHeader* getRTPPackageHeader() const;
 
     /*!
      * Gets the maximum size for the RTP package (header + body)
      */
-    auto getMaximumPackageSize() -> unsigned int const;
+    unsigned int getMaximumPackageSize() const;
 
     /*!
      * Gets the RTPHeader size
      */
-    auto getRTPHeaderSize() -> unsigned int const;
+    unsigned int getRTPHeaderSize() const;
 
     /*!
      * Gets the maximum payload size
      */
-    auto getMaximumPayloadSize() -> unsigned int const;
+    unsigned int getMaximumPayloadSize() const;
 
     /*!
      * Returns the actual size of the currently buffered audio-payload
      *
      * Note: This value is only accurate if the #setActualPayloadSize() was set for the current payload
      */
-    auto getActualPayloadSize() -> unsigned int const;
+    unsigned int getActualPayloadSize() const;
 
     /*!
      * Sets the payload-size in bytes of the currently buffered package
@@ -322,7 +371,7 @@ public:
     /*!
      * Returns the internal buffer, which could be used as receive buffer
      */
-    auto getWorkBuffer() -> void*;
+    void* getWorkBuffer();
 
     /*!
      * Creates a silence-package in the internal work-buffer.
@@ -334,7 +383,12 @@ public:
     /*!
      * Returns this device SSRC
      */
-    unsigned int getSSRC();
+    unsigned int getSSRC() const;
+    
+    /*!
+     * Returns the current RTP timestamp for the internal clock
+     */
+    uint32_t getCurrentRTPTimestamp() const;
     
     /*!
      * This method tries to determine whether the received buffer holds an RTP package.
@@ -347,12 +401,9 @@ public:
      *
      * \return Whether this buffer COULD be holding hold an RTP package
      */
-    static bool isRTPPackage(void* packageBuffer, unsigned int packageLength );
+    static bool isRTPPackage(const void* packageBuffer, unsigned int packageLength );
 
 private:
-    // When a new RTP-Package is created, it will be written in this buffer
-    void *newRTPPackageBuffer;
-
     // A buffer that can store a whole RTP-Package
     void *workBuffer;
 

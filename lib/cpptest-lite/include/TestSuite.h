@@ -42,7 +42,7 @@ namespace Test
          * \param output The output to print the results to
          * \param continueAfterFail whether to continue running after a test failed
          */
-        bool run(Output& output, bool continueAfterFail = true);
+        virtual bool run(Output& output, bool continueAfterFail = true);
 
         static unsigned int getTotalNumberOfTests()
         {
@@ -182,6 +182,9 @@ namespace Test
         Output* output;
 
         std::pair<bool, std::chrono::microseconds> runTestMethod(const TestMethod& method);
+        
+        //ParallelSuite needs access to subSuites
+        friend class ParallelSuite;
     };
 
     /*!
