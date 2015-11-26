@@ -16,7 +16,7 @@
 #include "AudioHandlerFactory.h"
 #include "AudioProcessorFactory.h"
 #include "RtAudio.h"
-#include "RTCPPackageHandler.h"
+#include "rtp/RTCPPackageHandler.h"
 #include "UDPWrapper.h"
 
 ConfigurationMode::ConfigurationMode() : audioConfig( {0} ), networkConfig( {0} ), processorNames(std::vector<std::string>(0))

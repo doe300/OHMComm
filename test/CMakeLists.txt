@@ -2,7 +2,7 @@ include_directories(..)
 include_directories(../include)
 
 #Include the source files
-file( GLOB SRCS *.cpp *.h)
+file( GLOB SRCS *.cpp */*.cpp *.h */*.h)
 
 option(TEST_OUTPUT_CONSOLE "Prints the test-output to console" OFF)
 if(TEST_OUTPUT_CONSOLE)

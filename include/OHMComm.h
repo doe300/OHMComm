@@ -10,10 +10,10 @@
 
 #include "ConfigurationMode.h"
 #include "AudioHandler.h"
-#include "RTPBuffer.h"
+#include "rtp/RTPBuffer.h"
 #include "NetworkWrapper.h"
-#include "RTPListener.h"
-#include "RTCPHandler.h"
+#include "rtp/RTPListener.h"
+#include "rtp/RTCPHandler.h"
 
 #include <functional>
 #include <memory> // unique_ptr

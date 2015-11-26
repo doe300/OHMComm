@@ -9,7 +9,7 @@
 #define	TESTRTP_H
 
 #include "cpptest.h"
-#include "RTPPackageHandler.h"
+#include "rtp/RTPPackageHandler.h"
 
 class TestRTP: public Test::Suite
 {

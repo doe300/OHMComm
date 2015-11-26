@@ -755,7 +755,7 @@ public:
      *
      * \return a list of read reception-reports, may be empty
      */
-    std::vector<ReceptionReport> readSenderReport(const void *senderReportPackage, uint16_t packageLength, RTCPHeader &header, SenderInformation &senderInfo);
+    std::vector<ReceptionReport> readSenderReport(const void *senderReportPackage, uint16_t packageLength, RTCPHeader &header, SenderInformation &senderInfo) const;
 
     /*!
      * Reads a receiver report (RR) package
@@ -768,7 +768,7 @@ public:
      *
      * \return a list of read reception-reports, may be empty
      */
-    std::vector<ReceptionReport> readReceiverReport(const void *receiverReportPackage, uint16_t packageLength, RTCPHeader &header);
+    std::vector<ReceptionReport> readReceiverReport(const void *receiverReportPackage, uint16_t packageLength, RTCPHeader &header) const;
 
     /*!
      * Reads a source description (SDES) package
@@ -781,7 +781,7 @@ public:
      *
      * \return the read descriptions
      */
-    std::vector<SourceDescription> readSourceDescription(const void *sourceDescriptionPackage, uint16_t packageLength, RTCPHeader &header);
+    std::vector<SourceDescription> readSourceDescription(const void *sourceDescriptionPackage, uint16_t packageLength, RTCPHeader &header) const;
 
     /*!
      * Reads a BYE package
@@ -794,7 +794,7 @@ public:
      *
      * \return the bye-message attached to the package, may be empty
      */
-    std::string readByeMessage(const void *byePackage, uint16_t packageLength, RTCPHeader &header);
+    std::string readByeMessage(const void *byePackage, uint16_t packageLength, RTCPHeader &header) const;
 
     /*!
      * Reads a APP package
@@ -807,7 +807,7 @@ public:
      *
      * \return the read ApplicationDefined data
      */
-    ApplicationDefined readApplicationDefinedMessage(const void *appDefinedPackage, uint16_t packageLength, RTCPHeader &header);
+    ApplicationDefined readApplicationDefinedMessage(const void *appDefinedPackage, uint16_t packageLength, RTCPHeader &header) const;
 
     /*!
      * Reads an RTCP-header and returns whether the package was an RTCP-package
@@ -818,7 +818,7 @@ public:
      *
      * \return Whether the RTCP-header was successfully read
      */
-    RTCPHeader readRTCPHeader(const void* rtcpPackage, unsigned int packageLength);
+    RTCPHeader readRTCPHeader(const void* rtcpPackage, unsigned int packageLength) const;
 
     /*!
      * This method tries to determine whether the received buffer holds an RTCP package.

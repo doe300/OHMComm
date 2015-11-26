@@ -5,7 +5,7 @@ file( GLOB HDRS "${PROJECT_SOURCE_DIR}/include/*.h" )
 include_directories ("${PROJECT_SOURCE_DIR}/include")
 
 #Include the source files
-file( GLOB SRCS *.cpp )
+file( GLOB SRCS *.cpp */*.cpp )
 
 #Visual Studio specific settings
 if(MSVC)

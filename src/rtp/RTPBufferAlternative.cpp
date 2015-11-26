@@ -1,4 +1,4 @@
-#include "RTPBufferAlternative.h"
+#include "rtp/RTPBufferAlternative.h"
 
 RTPBufferAlternative::RTPBufferAlternative(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) :
 maxCapacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages), ringBuffer(nullptr)

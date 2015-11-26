@@ -6,7 +6,7 @@
  */
 
 
-#include "RTPBuffer.h"
+#include "rtp/RTPBuffer.h"
 
 
 RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : capacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages)

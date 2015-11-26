@@ -267,7 +267,7 @@ public:
     /*! The size of a configuration-message (without the vector) in bytes */
     static const uint8_t CONFIGURATION_MESSAGE_SIZE{12};
 
-    struct ConfigurationMessage
+    struct ConfigurationMessage //TODO network byte-order + shrinken size of struct
     {
         unsigned int sampleRate;            // 4 bytes
         unsigned int audioFormat;           // 4 bytes

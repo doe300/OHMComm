@@ -14,6 +14,7 @@ struct Participant
 {
     uint32_t ssrc;
     uint32_t initialRTPTimestamp;
+    uint32_t extendedHighestSequenceNumber;
     double interarrivalJitter;
 };
 

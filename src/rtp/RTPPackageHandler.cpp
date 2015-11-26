@@ -5,7 +5,7 @@
  * Created on May 02, 2015, 13:03 PM
  */
 
-#include "RTPPackageHandler.h"
+#include "rtp/RTPPackageHandler.h"
 
 RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType)
 {

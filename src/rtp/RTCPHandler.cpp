@@ -7,7 +7,7 @@
 
 #include <chrono>
 
-#include "RTCPHandler.h"
+#include "rtp/RTCPHandler.h"
 
 const std::chrono::seconds RTCPHandler::sendSRInterval{20};
 
@@ -225,7 +225,7 @@ const void* RTCPHandler::createSenderReport(unsigned int offset)
     receptionReport.setSSRC(participantDatabase[PARTICIPANT_REMOTE].ssrc);
     receptionReport.setFractionLost(calculateFractionLost());
     receptionReport.setCummulativePackageLoss((uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST));
-    //receptionReport.setExtendedHighestSequenceNumber() - not supported
+    receptionReport.setExtendedHighestSequenceNumber(participantDatabase[PARTICIPANT_REMOTE].extendedHighestSequenceNumber);
     receptionReport.setInterarrivalJitter((uint32_t)round(participantDatabase[PARTICIPANT_REMOTE].interarrivalJitter));
     receptionReport.setLastSRTimestamp((uint32_t)lastSRTimestamp.count());
     //XXX delay since last SR /maybe last SR is wrong

@@ -6,7 +6,7 @@
  */
 
 #include "TestRTCP.h"
-#include "RTPPackageHandler.h"
+#include "rtp/RTPPackageHandler.h"
 
 TestRTCP::TestRTCP()
 {

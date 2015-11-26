@@ -7,13 +7,13 @@
 
 #include "OHMComm.h"
 #include "UDPWrapper.h"
-#include "ProcessorRTP.h"
+#include "rtp/ProcessorRTP.h"
 #include "AudioProcessorFactory.h"
 #include "AudioHandlerFactory.h"
 #include "UserInput.h"
 #include "RtAudio.h"
 #include "ConfigurationMode.h"
-#include "RTCPHandler.h"
+#include "rtp/RTCPHandler.h"
 
 OHMComm::OHMComm(ConfigurationMode* mode)
     : rtpBuffer(new RTPBuffer(256, 100, 0)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)

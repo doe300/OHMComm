@@ -5,7 +5,7 @@
  * Created on May 16, 2015, 12:49 PM
  */
 
-#include "RTPListener.h"
+#include "rtp/RTPListener.h"
 #include "Statistics.h"
 
 RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize, std::function<void()> stopCallback) :
@@ -65,6 +65,7 @@ void RTPListener::runThread()
             }
             else
             {
+                //XXX set extended highest sequence number
                 calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
                 participantDatabase[PARTICIPANT_REMOTE].ssrc = rtpHandler.getRTPPackageHeader()->getSSRC();
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);

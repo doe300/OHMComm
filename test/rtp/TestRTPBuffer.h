@@ -2,9 +2,9 @@
 #define TESTRTPBUFFER_H
 
 #include "cpptest.h"
-#include "RTPBufferHandler.h"
-#include "RTPBuffer.h"
-#include "RTPBufferAlternative.h"
+#include "rtp/RTPBufferHandler.h"
+#include "rtp/RTPBuffer.h"
+#include "rtp/RTPBufferAlternative.h"
 
 class TestRTPBuffer : public Test::Suite
 {

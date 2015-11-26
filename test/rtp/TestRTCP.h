@@ -9,7 +9,7 @@
 #define	TESTRTCP_H
 
 #include "cpptest.h"
-#include "RTCPPackageHandler.h"
+#include "rtp/RTCPPackageHandler.h"
 
 class TestRTCP : public Test::Suite
 {
