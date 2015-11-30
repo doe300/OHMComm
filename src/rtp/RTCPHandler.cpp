@@ -8,6 +8,9 @@
 #include <chrono>
 
 #include "rtp/RTCPHandler.h"
+#include "config/InteractiveConfiguration.h"
+#include "config/PassiveConfiguration.h"
+#include "Parameters.h"
 
 const std::chrono::seconds RTCPHandler::sendSRInterval{20};
 

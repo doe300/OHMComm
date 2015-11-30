@@ -70,13 +70,13 @@ public:
      */
     virtual void closeNetwork() = 0;
 
-protected:
     /*!
      * \param ipAddress The address to check
      *
      * \return Whether the address given is an IPv6 address
      */
     static bool isIPv6(const std::string ipAddress);
+protected:
     
     /*!
      * \return whether the recv()-method has returned because of a timeout

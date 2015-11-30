@@ -4,6 +4,11 @@
 #include "AudioProcessorFactory.h"
 #include "AudioHandlerFactory.h"
 
+#include "config/FileConfiguration.h"
+#include "config/InteractiveConfiguration.h"
+#include "config/ParameterConfiguration.h"
+#include "config/PassiveConfiguration.h"
+
 int main(int argc, char* argv[])
 {
     ////
