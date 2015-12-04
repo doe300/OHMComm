@@ -54,6 +54,7 @@ private:
     RTPPackageHandler rtpHandler;
     std::thread receiveThread;
     bool threadRunning = false;
+    bool firstPackage = false;
     //for jitter-calculation
     uint32_t lastDelay;
 
@@ -72,6 +73,11 @@ private:
      * \return the interarrival-jitter for RTP-packages
      */
     float calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp);
+    
+    /*!
+     * Calculates the new extended highest sequence number for the received package
+     */
+    uint32_t calculateExtendedHighestSequenceNumber(const uint16_t receivedSequenceNumber) const;
 };
 
 #endif	/* RTPLISTENER_H */

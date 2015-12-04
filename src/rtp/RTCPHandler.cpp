@@ -104,13 +104,17 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         std::cout << "RTCP: Received Sender Report: " << std::endl;
         std::cout << "\tTotal package sent: " << senderReport.getPacketCount() << std::endl;
         std::cout << "\tTotal bytes sent: " << senderReport.getOctetCount() << std::endl;
-        std::cout << "RTCP: Received Reception Reports:" << std::endl;
-        for(const ReceptionReport& report : receptionReports)
+        if(receptionReports.size() > 0)
         {
-            std::cout << "\tReception Report for: " << report.getSSRC() << std::endl;
-            std::cout << "\t\tFraction Lost (1/256): " << (unsigned int)report.getFractionLost() << std::endl;
-            std::cout << "\t\tTotal package loss: " << report.getCummulativePackageLoss() << std::endl;
-            std::cout << "\t\tInterarrival Jitter (in ms): " << report.getInterarrivalJitter() << std::endl;
+            std::cout << "RTCP: Received Reception Reports:" << std::endl;
+            for(const ReceptionReport& report : receptionReports)
+            {
+                std::cout << "\tExtended highest sequence number: " << report.getExtendedHighestSequenceNumber() << std::endl;
+                std::cout << "\tReception Report for: " << report.getSSRC() << std::endl;
+                std::cout << "\t\tFraction Lost (1/256): " << (unsigned int)report.getFractionLost() << std::endl;
+                std::cout << "\t\tTotal package loss: " << report.getCummulativePackageLoss() << std::endl;
+                std::cout << "\t\tInterarrival Jitter (in ms): " << report.getInterarrivalJitter() << std::endl;
+            }
         }
     }
     else if(header.getType() == RTCP_PACKAGE_SOURCE_DESCRIPTION)

@@ -65,7 +65,17 @@ void RTPListener::runThread()
             }
             else
             {
-                //XXX set extended highest sequence number
+                //set extended highest sequence number
+                if(firstPackage)
+                {
+                    firstPackage = false;
+                    participantDatabase[PARTICIPANT_REMOTE].extendedHighestSequenceNumber = rtpHandler.getRTPPackageHeader()->getSequenceNumber();
+                    participantDatabase[PARTICIPANT_REMOTE].initialRTPTimestamp = rtpHandler.getRTPPackageHeader()->getTimestamp();
+                }
+                else
+                {
+                    participantDatabase[PARTICIPANT_REMOTE].extendedHighestSequenceNumber  = calculateExtendedHighestSequenceNumber(rtpHandler.getRTPPackageHeader()->getSequenceNumber());
+                }
                 calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
                 participantDatabase[PARTICIPANT_REMOTE].ssrc = rtpHandler.getRTPPackageHeader()->getSSRC();
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
@@ -99,3 +109,32 @@ void RTPListener::shutdown()
     threadRunning = false;
 }
 
+uint32_t RTPListener::calculateExtendedHighestSequenceNumber(const uint16_t receivedSequenceNumber) const
+{
+    //See https://tools.ietf.org/html/rfc3711#section-3.3.1
+    const uint32_t previousValue = participantDatabase[PARTICIPANT_REMOTE].extendedHighestSequenceNumber;
+    //rollover-count is the higher 16 bits
+    const uint32_t rollOverCount = previousValue >> 16;
+    //determine possible values for the next extended highest sequence number
+    const uint32_t possibleValues[3] = {
+        //package is older than current EHSeqNr
+        ((rollOverCount - 1) << 16) + receivedSequenceNumber,
+        //package is in same roll-over than current EHSeqNr
+        (rollOverCount << 16) + receivedSequenceNumber,
+        //roll-over between current EHSeqNr and new package
+        ((rollOverCount + 1) << 16) + receivedSequenceNumber
+    };
+    //determine closest of the possible values
+    //skip ROC-1 unless we actually have a roll over
+    uint8_t index = previousValue < UINT16_MAX ? 1 : 0;
+    for(uint8_t i = 1; i < 3; i++)
+    {
+        uint32_t diffPrev = abs(possibleValues[index] - previousValue);
+        uint32_t diffNew = abs(possibleValues[i] - previousValue);
+        if(diffNew < diffPrev)
+        {
+            index = i;
+        }
+    }
+    return possibleValues[index];
+}
