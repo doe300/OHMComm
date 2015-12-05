@@ -9,6 +9,7 @@
 #define	FILECONFIGURATION_H
 
 #include "ConfigurationMode.h"
+#include "Utility.h"
 #include <map>
 #include <fstream>
 

@@ -122,14 +122,5 @@ struct AudioConfiguration
     }
 };
 
-////
-// System Info
-////
-
-std::string getDomainName();
-
-std::string getUserName();
-
-
 #endif	/* CONFIGURATION_H */
 

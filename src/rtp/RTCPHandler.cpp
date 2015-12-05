@@ -11,6 +11,7 @@
 #include "config/InteractiveConfiguration.h"
 #include "config/PassiveConfiguration.h"
 #include "Parameters.h"
+#include "Utility.h"
 
 const std::chrono::seconds RTCPHandler::sendSRInterval{20};
 
@@ -251,7 +252,7 @@ const void* RTCPHandler::createSourceDescription(unsigned int offset)
 {
     std::vector<SourceDescription> sdes = {
         {RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION},
-		{RTCP_SOURCE_CNAME, (getUserName() + '@') + getDomainName()}
+		{RTCP_SOURCE_CNAME, (Utility::getUserName() + '@') + Utility::getDomainName()}
     };
     //TODO clashes with interactive configuration (with input to shutdown server)
     if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr && configMode->isConfigured())

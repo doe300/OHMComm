@@ -78,8 +78,7 @@ void OHMComm::startAudioThreads()
     {
         audioHandler = AudioHandlerFactory::getAudioHandler(configurationMode->getAudioHandlerConfiguration().first);
     }
-    std::unique_ptr<NetworkWrapper> tmp(new UDPWrapper(configurationMode->getNetworkConfiguration()));
-    networkWrapper = std::move(tmp);
+    networkWrapper.reset(new UDPWrapper(configurationMode->getNetworkConfiguration()));
     std::vector<std::string> procNames(0);
     bool profileProcessors = configurationMode->getAudioProcessorsConfiguration(procNames);
     PayloadType payloadType = PayloadType::L16_2;

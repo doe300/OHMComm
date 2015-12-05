@@ -16,12 +16,6 @@ FileConfiguration::FileConfiguration(const std::string fileName) : Configuration
     createDefaultNetworkConfiguration();
 }
 
-inline std::string trim(const std::string &s)
-{
-   auto wsfront=std::find_if_not(s.begin(),s.end(),[](int c){return std::isspace(c);});
-   return std::string(wsfront,std::find_if_not(s.rbegin(),std::string::const_reverse_iterator(wsfront),[](int c){return std::isspace(c);}).base());
-}
-
 inline std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
     size_t start_pos = 0;
     while((start_pos = str.find(from, start_pos)) != std::string::npos) {
@@ -63,10 +57,10 @@ bool FileConfiguration::runConfiguration()
                 std::cerr << "Invalid configuration line: " << line << std::endl;
                 continue;
             }
-            key = trim(line.substr(0, index));
+            key = Utility::trim(line.substr(0, index));
             index++;
             //read value
-            value = trim(line.substr(index));
+            value = Utility::trim(line.substr(index));
             if(value[0] == '"')
             {
                 value = value.substr(1, value.size()-2);
@@ -79,16 +73,16 @@ bool FileConfiguration::runConfiguration()
                 value = "0";
             //save value
             if(key.compare(Parameters::AUDIO_PROCESSOR->longName) == 0)
-                processorNames.push_back(trim(value));
+                processorNames.push_back(Utility::trim(value));
             else
-                customConfig[key] = trim(value);
+                customConfig[key] = Utility::trim(value);
         }
         stream.close();
         
         //interpret config
         if(customConfig.find(Parameters::AUDIO_HANDLER->longName) != customConfig.end())
         {
-            audioHandlerName = trim(customConfig.at(Parameters::AUDIO_HANDLER->longName));
+            audioHandlerName = Utility::trim(customConfig.at(Parameters::AUDIO_HANDLER->longName));
         }
         else
         {
