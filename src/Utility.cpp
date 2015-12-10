@@ -6,6 +6,7 @@
  */
 
 #include "Utility.h"
+#include "TCPWrapper.h"
 
 #ifdef _WIN32
 #include <WinSock2.h>
@@ -175,13 +176,45 @@ std::string Utility::getExternalLocalIPAddress()
 std::string Utility::getExternalNetworkIPAddress()
 {
     //let some server give us our external IP
-    const std::string remoteServer = "http://checkip.dyndns.org/";
+//    const std::string remoteServer = "checkip.dyndns.org";
     
-    //TODO
+//    addrinfo* info;
+//    if(getaddrinfo(remoteServer, "http", nullptr, &info) != 0)
+//    {
+//        //handle error
+//        return "";
+//    }
+//    char buffer[65] = {0};
+//    if(info->ai_family == AF_INET)
+//    {
+//        ipAddress = inet_ntop(AF_INET, info->ai_addr, sizeof(sockaddr_in), buffer);
+//    }
+//    else
+//    {
+//        ipAddress = inet_ntop(AF_INET6, info->ai_addr, sizeof(sockaddr_in6), buffer);
+//    }
+//    std::string ipAddress = buffer;
+    
     //1. open TCP connection
+    TCPWrapper network(55555, "91.198.22.70", 80);
     //2. send something - anything
+    const std::string message("anything\r\n\r\n");
+    network.sendData(message.c_str(), message.size());
     //3. read response
+    char buffer[1024] = {0};
+    if(network.receiveData(buffer, 1023) == TCPWrapper::RECEIVE_TIMEOUT)
+    {
+        //we timed out - don't delay the application too much
+        return "";
+    }
+    std::string response = buffer;
     //4. extract IP address
+    std::string::size_type index = response.find("<body>");
+    if(index != std::string::npos)
+    {
+        index = response.find(':', index) + 2;
+        return response.substr(index, response.find('<', index) - index);
+    }
     return "";
 }
 
