@@ -217,7 +217,7 @@ bool Utility::isLocalNetwork(const std::string& ipAddress)
         in6_addr address;
         inet_pton(AF_INET6, ipAddress.c_str(), &address);
         //local block: fd00::/8
-        const uint8_t* firstByte = (const uint8_t*) &address.__in6_u;
+        const uint8_t* firstByte = (const uint8_t*) &address;
         return *firstByte == 0xFD;
     }
     throw std::invalid_argument("No IPv4 or IPv6 address supplied");
