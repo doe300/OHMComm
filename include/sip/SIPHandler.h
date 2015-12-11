@@ -32,7 +32,7 @@ class SIPHandler
 {
 public:
     
-    SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser);
+    SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription&)> configFunction);
     
     SIPHandler(const NetworkConfiguration& sipConfig, const std::string& localUser, const std::string& localHostName, const std::string& remoteUser, const std::string& callID);
 
@@ -48,11 +48,17 @@ public:
      */
     void startUp();
     
+    /*!
+     * \return whether the SIP-thread is up and running
+     */
+    bool isRunning() const;
+    
     static std::string generateCallID(const std::string& host);
     
 private:
     std::unique_ptr<NetworkWrapper> network;
     const NetworkConfiguration sipConfig;
+    const std::function<void(const MediaDescription&)> configFunction;
     SDPMessageHandler sdpHandler;
     std::string callID;
     uint32_t sequenceNumber;
@@ -60,6 +66,7 @@ private:
     
     std::thread sipThread;
     bool threadRunning = false;
+    bool sessionEstablished = false;
 
     /*!
      * Method called in the parallel thread, receiving SIP-packages and handling them

@@ -8,6 +8,7 @@
 #include "config/InteractiveConfiguration.h"
 #include "config/ParameterConfiguration.h"
 #include "config/PassiveConfiguration.h"
+#include "sip/SIPConfiguration.h"
 
 int main(int argc, char* argv[])
 {
@@ -19,7 +20,15 @@ int main(int argc, char* argv[])
     Parameters params(AudioHandlerFactory::getAudioHandlerNames(), AudioProcessorFactory::getAudioProcessorNames());
     if(params.parseParameters(argc, argv))
     {
-        if(params.isParameterSet(Parameters::PASSIVE_CONFIGURATION))
+        if(params.isParameterSet(Parameters::SIP_CONFIGURATION))
+        {
+            NetworkConfiguration sipConfig{0};
+            sipConfig.remoteIPAddress = params.getParameterValue(Parameters::REMOTE_ADDRESS);
+            sipConfig.remotePort = atoi(params.getParameterValue(Parameters::SIP_CONFIGURATION).data());
+            sipConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
+            ohmComm.reset(new OHMComm(new SIPConfiguration(sipConfig)));
+        }
+        else if(params.isParameterSet(Parameters::PASSIVE_CONFIGURATION))
         {
             NetworkConfiguration networkConfig{0};
             networkConfig.remoteIPAddress = params.getParameterValue(Parameters::REMOTE_ADDRESS);

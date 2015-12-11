@@ -298,10 +298,11 @@ MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, con
     const std::string encoding = rtpMap.substr(index, rtpMap.find('/', index) - index);
     index = rtpMap.find('/', index) +1;
     const unsigned int sampleRate = atoi(rtpMap.substr(index, rtpMap.find('/', index) - index).data());
-    index = rtpMap.find('/', index) +1;
+    index = rtpMap.find('/', index);
     unsigned short numChannels = 2;
     if(index != std::string::npos)
     {
+        index += 1;
         numChannels = atoi(rtpMap.substr(index).data());
     }
     return std::move(MediaDescription{0, "", payloadType, encoding, sampleRate, numChannels});

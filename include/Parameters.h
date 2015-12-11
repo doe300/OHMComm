@@ -137,6 +137,7 @@ public:
     static const Parameter* HELP;
     static const Parameter* PASSIVE_CONFIGURATION;
     static const Parameter* WAIT_FOR_PASSIVE_CONFIG;
+    static const Parameter* SIP_CONFIGURATION;
     static const Parameter* CONFIGURATION_FILE;
     static const Parameter* LOG_TO_FILE;
     static const Parameter* AUDIO_HANDLER;

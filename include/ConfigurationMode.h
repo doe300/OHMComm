@@ -71,6 +71,13 @@ public:
      * \return whether the program will wait on startup for the communication partner to request a passive configuration before starting audio-playback
      */
     const bool isWaitForConfigurationRequest() const;
+    
+    /*!
+     * A payload-type of -1 lets the audio-processors decide the type
+     * 
+     * \return the configured payload-type to be used
+     */
+    const short getPayloadType() const;
 
     /*!
      * Configuration-mode specific method to retrieve a value for the given key
@@ -132,7 +139,8 @@ public:
 protected:
 
     void createDefaultNetworkConfiguration();
-
+    
+    short payloadType = -1;
     bool waitForConfigurationRequest = false;
     bool isConfigurationDone = false;
     bool useDefaultAudioConfig = true;

@@ -88,6 +88,11 @@ const bool ConfigurationMode::isWaitForConfigurationRequest() const
     return waitForConfigurationRequest;
 }
 
+const short ConfigurationMode::getPayloadType() const
+{
+    return payloadType;
+}
+
 void ConfigurationMode::updateAudioConfiguration(const AudioConfiguration& audioConfig)
 {
     this->audioConfig = audioConfig;

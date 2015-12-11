@@ -49,6 +49,21 @@ struct MediaDescription
     std::string encoding;
     unsigned int sampleRate;
     unsigned short numChannels;
+    
+    /*!
+     * \return the underlying supported-format for this media-description
+     */
+    const SupportedFormat getFormat() const
+    {
+        for(const SupportedFormat& format : SupportedFormats::getFormats())
+        {
+            if(Utility::equalsIgnoreCase(format.encoding, encoding) && format.sampleRate == sampleRate && format.numChannels == numChannels)
+            {
+                return format;
+            }
+        }
+        return SupportedFormat(0, "", 0, 0, "");
+    }
 };
 
 struct SessionDescription : public KeyValuePairs<SessionKey>

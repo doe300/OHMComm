@@ -17,9 +17,10 @@ struct SupportedFormat
     const std::string encoding;
     const unsigned int sampleRate;
     const unsigned short numChannels;
+    const std::string processorName;
     
-    SupportedFormat(const unsigned int payloadType, const std::string encoding, const unsigned int sampleRate, const unsigned short numChannels) :
-        payloadType(payloadType), encoding(encoding), sampleRate(sampleRate), numChannels(numChannels)
+    SupportedFormat(const unsigned int payloadType, const std::string encoding, const unsigned int sampleRate, const unsigned short numChannels, const std::string processorName) :
+        payloadType(payloadType), encoding(encoding), sampleRate(sampleRate), numChannels(numChannels), processorName(processorName)
     {
     }
 

@@ -45,35 +45,35 @@ int main(int argc, char** argv)
     Test::TextOutput output(Test::TextOutput::Verbose, file);
     #endif
     
-//    TestAudioIO testaudio;
-//    testaudio.run(output);
-//
-//    TestRTP testRTP;
-//    testRTP.run(output);
-//
-//    TestUserInput testInput;
-//    testInput.run(output);
-//
-//    TestParameters testParams;
-//    testParams.run(output);
-//
-//    TestRTCP testRTCP;
-//    testRTCP.run(output);
-//
-//    TestConfigurationModes testConfig;
-//    testConfig.run(output);
-//
-//    TestNetworkWrappers testNetwork;
-//    testNetwork.run(output);
-//
-//    TestRTPBuffer testBuffer;
-//    testBuffer.run(output);
-//    
-//    TestAudioProcessors testProcessors;
-//    testProcessors.run(output);
+    TestAudioIO testaudio;
+    testaudio.run(output);
+
+    TestRTP testRTP;
+    testRTP.run(output);
+
+    TestUserInput testInput;
+    testInput.run(output);
+
+    TestParameters testParams;
+    testParams.run(output);
+
+    TestRTCP testRTCP;
+    testRTCP.run(output);
+
+    TestConfigurationModes testConfig;
+    testConfig.run(output);
+
+    TestNetworkWrappers testNetwork;
+    testNetwork.run(output);
+
+    TestRTPBuffer testBuffer;
+    testBuffer.run(output);
     
-    TestSIPHandler testSIP;
-    testSIP.run(output);
+    TestAudioProcessors testProcessors;
+    testProcessors.run(output);
+    
+//    TestSIPHandler testSIP;
+//    testSIP.run(output);
     
     TestUtility testUtility;
     testUtility.run(output);

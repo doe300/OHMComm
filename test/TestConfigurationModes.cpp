@@ -13,6 +13,7 @@ TestConfigurationModes::TestConfigurationModes()
     TEST_ADD(TestConfigurationModes::testLibraryConfiguration);
     TEST_ADD(TestConfigurationModes::testPassiveConfiguration);
     TEST_ADD(TestConfigurationModes::testFileConfiguration);
+    TEST_ADD(TestConfigurationModes::testSIPConfiguration);
 }
 
 void TestConfigurationModes::testParameterConfiguration()
@@ -173,4 +174,19 @@ void TestConfigurationModes::testFileConfiguration()
     TEST_ASSERT_EQUALS(std::string("value"), mode->getCustomConfiguration("key", "", "empty"));
     
     delete mode;
+}
+
+void TestConfigurationModes::testSIPConfiguration()
+{
+    ConfigurationMode* config = new SIPConfiguration({54321, "127.0.0.1", SIP_DEFAULT_PORT});
+    TEST_ASSERT_EQUALS(false, config->isConfigured());
+    TEST_ASSERT(config->runConfiguration());
+    TEST_ASSERT(config->isConfigured());
+    
+    //test specific values
+    TEST_ASSERT_EQUALS(48000, config->getAudioConfiguration().forceSampleRate);
+    std::vector<std::string> procNames;
+    TEST_ASSERT(!config->getAudioProcessorsConfiguration(procNames));
+    TEST_ASSERT(procNames.size() == 1);
+    TEST_ASSERT(procNames[0].compare(AudioProcessorFactory::OPUS_CODEC) == 0);
 }

@@ -14,8 +14,8 @@ const std::string SIPUserAgent::getSIPURI() const
     return SIPPackageHandler::createSIPURI(userName, hostName.empty() ? ipAddress : hostName, port);
 }
 
-SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser) : 
-        network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), sdpHandler(), callID(SIPHandler::generateCallID(Utility::getDomainName())), sequenceNumber(0), buffer(SIP_BUFFER_SIZE)
+SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription&)> configFunction) : 
+        network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), sdpHandler(), callID(SIPHandler::generateCallID(Utility::getDomainName())), sequenceNumber(0), buffer(SIP_BUFFER_SIZE)
 {
     sipUserAgents[PARTICIPANT_SELF].userName = Utility::getUserName();
     sipUserAgents[PARTICIPANT_SELF].hostName = Utility::getDomainName();
@@ -27,7 +27,7 @@ SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string&
 
 
 SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& localUser, const std::string& localHostName, const std::string& remoteUser, const std::string& callID) :
-network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), sdpHandler(), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE)
+network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](const MediaDescription& dummy){}), sdpHandler(), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE)
 {
     sipUserAgents[PARTICIPANT_SELF].userName = localUser;
     sipUserAgents[PARTICIPANT_SELF].hostName = localHostName;
@@ -49,10 +49,19 @@ void SIPHandler::startUp()
     sipThread = std::thread(&SIPHandler::runThread, this);
 }
 
+bool SIPHandler::isRunning() const
+{
+    return threadRunning;
+}
+
+
 void SIPHandler::shutdown()
 {
     // Send a SIP BYE-packet, to tell the other side that communication has been stopped
-    sendByeRequest();
+    if(sessionEstablished)
+    {
+        sendByeRequest();
+    }
     shutdownInternal();
 }
 
@@ -60,6 +69,7 @@ void SIPHandler::shutdownInternal()
 {
     // notify the thread to stop
     threadRunning = false;
+    sessionEstablished = false;
     // close the socket
     network->closeNetwork();
 }
@@ -68,7 +78,8 @@ void SIPHandler::runThread()
 {
     std::cout << "SIP-Handler started ..." << std::endl;
 
-    //TODO how to determine if initiating or receiving side??
+    //how to determine if initiating or receiving side??
+    //doesn't really matter, if we are the first to start, the other side won't receive our INVITE, otherwise we INVITE
     sendInviteRequest();
 
     while (threadRunning)
@@ -89,6 +100,7 @@ void SIPHandler::runThread()
             handleSIPResponse(buffer.data(), receivedSize);
         }
     }
+    sessionEstablished = false;
     std::cout << "SIP-Handler shut down!" << std::endl;
 }
 
@@ -162,7 +174,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         sendResponse(SIP_RESPONSE_RINGING_CODE, SIP_RESPONSE_RINGING, &requestHeader);
         //1. send dialog established
         sendResponse(SIP_RESPONSE_DIALOG_ESTABLISHED_CODE, SIP_RESPONSE_DIALOG_ESTABLISHED, &requestHeader);
-        if (false) //TODO
+        if (sessionEstablished)
         {
             //2.1 send busy here if communication is already running
             sendResponse(SIP_RESPONSE_BUSY_CODE, SIP_RESPONSE_BUSY, &requestHeader);
@@ -176,7 +188,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             int bestMediaIndex = selectBestMedia(availableMedias);
             if(bestMediaIndex < 0)
             {
-                //TODO no useful media found - send message
+                //TODO no useful media found - send message (something about not-supported or similar)
                 shutdown();
                 return;
             }
@@ -193,7 +205,9 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             std::cout << "SIP: Accepting INVITE from " << requestHeader[SIP_HEADER_CONTACT] << std::endl;
             network->sendData(message.data(), message.size());
             
-            //TODO start communication
+            //start communication
+            sessionEstablished = true;
+            configFunction(availableMedias[bestMediaIndex]);
         }
         else
         {
@@ -240,7 +254,6 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         sendAckRequest();
         //action depending on request
         const std::string requestCommand = responseHeader.getRequestCommand();
-        //TODO perform according action
         if (SIP_REQUEST_INVITE.compare(requestCommand) == 0 && responseHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0)
         {
             NetworkConfiguration streamConfig;
@@ -265,8 +278,11 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
 
             //update remote SIP-URI
             updateNetworkConfig();
-            //TODO
             std::cout << "SIP: Our INVITE was accepted, initializing communication" << std::endl;
+            
+            //start communication
+            sessionEstablished = true;
+            configFunction(selectedMedias[0]);
         }
         else
         {
@@ -345,7 +361,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         //remote is busy or call was declined
         std::cout << "SIP: Could not establish connection: " << responseHeader.reasonPhrase << std::endl;
         sendAckRequest();
-        //TODO handle accordingly
+        shutdown();
     }
     else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_TERMINATED_CODE)
     {

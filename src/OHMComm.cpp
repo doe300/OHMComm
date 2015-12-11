@@ -89,6 +89,11 @@ void OHMComm::startAudioThreads()
         //only the last non-default payload-type is required
         payloadType = proc->getSupportedPlayloadType() == PayloadType::ALL ? payloadType : proc->getSupportedPlayloadType();
     }
+    if(configurationMode->getPayloadType() != PayloadType::ALL)
+    {
+        //if we use a custom payload-type (e.g. for SIP-config), it must be set here
+        payloadType = (PayloadType)configurationMode->getPayloadType();
+    }
     configureRTPProcessor(profileProcessors, payloadType);
 
     //run threads
