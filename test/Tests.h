@@ -8,9 +8,11 @@
 #include "TestParameters.h"
 #include "TestConfigurationModes.h"
 #include "TestNetworkWrappers.h"
+#include "TestUtility.h"
 #include "rtp/TestRTP.h"
 #include "rtp/TestRTCP.h"
 #include "rtp/TestRTPBuffer.h"
+#include "sip/TestSIPHandler.h"
 
 #include <iostream>
 #include <fstream>
