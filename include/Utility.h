@@ -47,14 +47,26 @@ public:
     
     /*!
      * NOTE: on devices with multiple network interfaces, this method may return the wrong address
-     * \return the external local IP address
+     * 
+     * \param addressType The type of the network to retrieve the local address for
+     * 
+     * \return the external local IP address or an empty string on error
      */
     static std::string getLocalIPAddress(const AddressType addressType = AddressType::ADDRESS_LOCAL_NETWORK );
     
     /*!
+     * \param remoteAddress The remote IP-address to get the network-type for
+     * 
      * \return the network-type for the network between this device and the device with the given remote-address
      */
     static AddressType getNetworkType(const std::string& remoteAddress);
+    
+    /*!
+     * \param hostName the DNS name to retrieve the IP address for
+     * 
+     * \return the IPv4 or IPv6 address in the standard textual representation, or an empty string on error
+     */
+    static std::string getAddressForHostName(const std::string& hostName);
 
     /*!
      * \param in The string to trim

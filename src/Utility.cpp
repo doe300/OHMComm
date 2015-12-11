@@ -88,6 +88,35 @@ Utility::AddressType Utility::getNetworkType(const std::string& remoteAddress)
     return AddressType::ADDRESS_INTERNET;
 }
 
+std::string Utility::getAddressForHostName(const std::string& hostName)
+{
+    std::string ipAddress;
+    addrinfo* info;
+    if(getaddrinfo(hostName.c_str(), nullptr, nullptr, &info) != 0)
+    {
+        //handle error
+        return "";
+    }
+    char buffer[64] = {0};
+    addrinfo* cur = info;
+    while(cur != nullptr)
+    {
+        if(info->ai_family == AF_INET && info->ai_addr != nullptr)
+        {
+            inet_ntop(info->ai_family, &(((sockaddr_in*)info->ai_addr)->sin_addr), buffer, 64);
+            break;
+        }
+        else if(info->ai_family == AF_INET6 && info->ai_addr != nullptr)
+        {
+            inet_ntop(info->ai_family, &(((sockaddr_in6*)info->ai_addr)->sin6_addr), buffer, 64);
+            break;
+        }
+        cur = cur->ai_next;
+    }
+    ipAddress = buffer;
+    freeaddrinfo(info);
+    return ipAddress;
+}
 
 
 std::string Utility::trim(const std::string& in)
@@ -176,24 +205,6 @@ std::string Utility::getExternalLocalIPAddress()
 std::string Utility::getExternalNetworkIPAddress()
 {
     //let some server give us our external IP
-//    const std::string remoteServer = "checkip.dyndns.org";
-    
-//    addrinfo* info;
-//    if(getaddrinfo(remoteServer, "http", nullptr, &info) != 0)
-//    {
-//        //handle error
-//        return "";
-//    }
-//    char buffer[65] = {0};
-//    if(info->ai_family == AF_INET)
-//    {
-//        ipAddress = inet_ntop(AF_INET, info->ai_addr, sizeof(sockaddr_in), buffer);
-//    }
-//    else
-//    {
-//        ipAddress = inet_ntop(AF_INET6, info->ai_addr, sizeof(sockaddr_in6), buffer);
-//    }
-//    std::string ipAddress = buffer;
     
     //1. open TCP connection
     TCPWrapper network(55555, "91.198.22.70", 80);

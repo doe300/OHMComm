@@ -11,6 +11,7 @@ TestUtility::TestUtility()
 {
     TEST_ADD(TestUtility::printDomainInfo);
     TEST_ADD(TestUtility::testNetworkInfo);
+    TEST_ADD(TestUtility::testAddressFromHostName);
     TEST_ADD(TestUtility::testTrim);
     TEST_ADD(TestUtility::testEqualsIgnoreCase);
 }
@@ -38,6 +39,10 @@ void TestUtility::testNetworkInfo()
     TEST_ASSERT_EQUALS(Utility::AddressType::ADDRESS_INTERNET, Utility::getNetworkType("::ADC2:712F"));
 }
 
+void TestUtility::testAddressFromHostName()
+{
+    TEST_ASSERT(Utility::getAddressForHostName("checkip.dyndns.org").compare("91.198.22.70") == 0);
+}
 
 void TestUtility::testTrim()
 {

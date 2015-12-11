@@ -21,6 +21,8 @@ public:
     
     void testNetworkInfo();
     
+    void testAddressFromHostName();
+    
     void testTrim();
     
     void testEqualsIgnoreCase();
