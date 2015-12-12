@@ -1,0 +1,15 @@
+platform:
+  - x86
+  - x64
+  
+configuration:
+  - Release
+
+os:
+  - Visual Studio 2015 Update 1
+  
+build_script:
+  - md build
+  - cd build
+  - cmake -G"Visual Studio 14 2015" ..
+  - cmake --build .
