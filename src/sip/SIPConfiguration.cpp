@@ -8,6 +8,8 @@
 #include "sip/SIPConfiguration.h"
 #include "AudioHandlerFactory.h"
 
+#include <chrono>
+
 SIPConfiguration::SIPConfiguration(const NetworkConfiguration& sipConfig, bool profileProcessors, const std::string& logFile) : 
     ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription& media){this->setAudioConfig(media);})
 {
@@ -40,13 +42,21 @@ bool SIPConfiguration::runConfiguration()
         return true;
     }
     handler.startUp();
+    
+    int timeLeft = SIPConfiguration::MAX_WAIT_TIME;
+    
     //wait for configuration to be done
     while(!isConfigurationDone && handler.isRunning())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        // maximum time to wait before aborting configuration
+        timeLeft -= 100;
+        if(timeLeft <= 0)
+        {
+            //TODO when aborting, let SIPHandler send CANCEL
+            break;
+        }
     }
-    //TODO maximum time to wait before aborting configuration
-    //when aborting, let SIPHandler send CANCEL
     return isConfigurationDone;
 }
 

@@ -13,3 +13,9 @@ build_script:
   - cd build
   - cmake -G"Visual Studio 14 2015" ..
   - cmake --build .
+  
+test_script:
+  - '**\Tests.exe'
+
+artifacts:
+  - '**\OHMComm.exe'

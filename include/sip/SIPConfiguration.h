@@ -30,6 +30,9 @@ private:
 
     void setAudioConfig(const MediaDescription& media);
     
+    //Wait a maximum of 30 secs
+    static const int MAX_WAIT_TIME{30000};
+    
     friend class SIPHandler;
 };
 
