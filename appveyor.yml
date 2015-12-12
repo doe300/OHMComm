@@ -18,4 +18,4 @@ test_script:
   - '**\Tests.exe'
 
 artifacts:
-  - '**\OHMComm.exe'
+  - path: '**\OHMComm.exe'
