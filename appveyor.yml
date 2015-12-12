@@ -15,7 +15,7 @@ build_script:
   - cmake --build .
   
 test_script:
-  - .\tests\Release\Tests.exe
+  - .\build\test\Debug\Tests.exe
 
 artifacts:
   - path: '**\OHMComm.exe'
