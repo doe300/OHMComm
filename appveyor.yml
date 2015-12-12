@@ -11,7 +11,7 @@ os:
 build_script:
   - md build
   - cd build
-  - cmake -G"Visual Studio 14 2015" ..
+  - cmake -DBUILD_TESTING=YES -G"Visual Studio 14 2015" ..
   - cmake --build .
   
 test_script:
