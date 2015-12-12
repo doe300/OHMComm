@@ -129,8 +129,8 @@ uint32_t RTPListener::calculateExtendedHighestSequenceNumber(const uint16_t rece
     uint8_t index = previousValue < UINT16_MAX ? 1 : 0;
     for(uint8_t i = 1; i < 3; i++)
     {
-        uint32_t diffPrev = std::abs(possibleValues[index] - previousValue);
-        uint32_t diffNew = std::abs(possibleValues[i] - previousValue);
+        uint32_t diffPrev = std::abs((int32_t)(possibleValues[index] - previousValue));
+        uint32_t diffNew = std::abs((int32_t)(possibleValues[i] - previousValue));
         if(diffNew < diffPrev)
         {
             index = i;

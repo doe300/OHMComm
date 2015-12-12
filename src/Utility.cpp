@@ -122,8 +122,8 @@ std::string Utility::getAddressForHostName(const std::string& hostName)
 std::string Utility::trim(const std::string& in)
 {
     //https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
-    auto wsfront=std::find_if_not(in.begin(),in.end(),[](int c){return std::isspace(c);});
-    return std::string(wsfront,std::find_if_not(in.rbegin(),std::string::const_reverse_iterator(wsfront),[](int c){return std::isspace(c);}).base());
+    auto wsfront=std::find_if_not(in.begin(),in.end(),[](int c){return std::isspace(c, std::locale());});
+    return std::string(wsfront,std::find_if_not(in.rbegin(),std::string::const_reverse_iterator(wsfront),[](int c){return std::isspace(c, std::locale());}).base());
 }
 
 bool Utility::equalsIgnoreCase(const std::string& s1, const std::string s2)
