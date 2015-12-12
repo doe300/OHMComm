@@ -133,7 +133,7 @@ bool Utility::equalsIgnoreCase(const std::string& s1, const std::string s2)
         return false;
     }
 #ifdef _WIN32
-    return lstrcmpi(s1.data(), s2.data()) == 0;
+    return lstrcmpi((const wchar_t*)s1.data(), (const wchar_t*)s2.data()) == 0;
 #else
     return strcasecmp(s1.data(), s2.data()) == 0;
 #endif
