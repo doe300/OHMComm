@@ -27,7 +27,7 @@ deploy:
   draft: false
   prerelease: false
   auth_token:
-    secure: Kttc7goEAF7pVbwGtg9M6PWeFXpaHOCZOsuyVioY7KPuJcGCjzy32F1I+yRRGK/q
+    secure: fIObA1SGSxF/oK69Deh0D7eTmdJirubBGCjbHDn7EA7M4mP2AdkHDEheW77PTPge
   on:
     #branch: master
     appveyor_repo_tag: true
