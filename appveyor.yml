@@ -26,6 +26,7 @@ deploy:
   description: 'Windows builds'
   draft: false
   prerelease: false
+  artifact: OHMComm-win-$(platform)
   auth_token:
     secure: fIObA1SGSxF/oK69Deh0D7eTmdJirubBGCjbHDn7EA7M4mP2AdkHDEheW77PTPge
   on:
