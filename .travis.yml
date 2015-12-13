@@ -32,3 +32,16 @@ after_script:
   - cd build
   - chmod +x test/Tests
   - test/Tests
+
+before_deploy
+  - mv OHMComm OHMComm-$TRAVIS_OS_NAME-$TRAVIS_TAG
+
+deploy:
+  provider: releases
+  api_key: "b23a43a4f78094bb331b0bb43afd75c45c0678c9"
+  file-glob: true
+  file: "OHMComm-*"
+  skip_cleanup: true
+  on:
+    tags: true
+    all_branches: true
