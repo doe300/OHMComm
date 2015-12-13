@@ -19,3 +19,15 @@ build_script:
 
 artifacts:
   - path: '**\OHMComm.exe'
+    name: OHMComm-win-$(platform)
+
+deploy:
+- provider: GitHub
+  description: 'Windows builds'
+  draft: false
+  prerelease: false
+  auth_token:
+    secure: eX5NuKHDUEiNOSrlvakOZokoteQXYdPVA9meUZnRE57M+SEAN4wkvAtCsp2R+vSS
+  on:
+    #branch: master
+    appveyor_repo_tag: true
