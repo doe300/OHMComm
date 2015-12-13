@@ -33,7 +33,7 @@ after_script:
   - chmod +x test/Tests
   - test/Tests
 
-before_deploy
+before_deploy:
   - mv OHMComm OHMComm-$TRAVIS_OS_NAME-$TRAVIS_TAG
 
 deploy:
