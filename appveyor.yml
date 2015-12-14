@@ -15,7 +15,7 @@ build_script:
   - cmake --build .
   
 after_build:
-  - ps: Push-AppveyorArtifact build\build\Debug\OHMComm.exe -FileName "OHMComm-win-$env:platform"
+  - ps: Push-AppveyorArtifact build\Debug\OHMComm.exe -FileName "OHMComm-win-$env:platform"
 
 #test_script:
 #  - .\build\test\Debug\Tests.exe
