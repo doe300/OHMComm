@@ -15,7 +15,7 @@ build_script:
   - cmake --build .
   
 after_build:
-  - ps: Push-AppveyorArtifact build\Debug\OHMComm.exe -FileName "OHMComm-win-$env:platform"
+  - ps: Push-AppveyorArtifact build\Debug\OHMComm.exe -FileName "OHMComm-win-$env:platform.exe"
 
 #test_script:
 #  - .\build\test\Debug\Tests.exe
@@ -29,7 +29,7 @@ deploy:
   description: 'Windows builds'
   draft: false
   prerelease: false
-  artifact: OHMComm-win-$(platform)
+  artifact: OHMComm-win-$(platform).exe
   auth_token:
     secure: fIObA1SGSxF/oK69Deh0D7eTmdJirubBGCjbHDn7EA7M4mP2AdkHDEheW77PTPge
   on:
