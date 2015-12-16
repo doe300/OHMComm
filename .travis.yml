@@ -39,7 +39,7 @@ before_deploy:
 
 deploy:
   provider: releases
-  api_key: "f4bac3a8854bc4f04c6a6085e6d750dda217f24f"
+  api_key: "eCpBRcWXtxWlRBxGVQFwMq+zR5ga4/TwZZV1W5pgJd1mT6sECTFaYr5Z3T7MOoSWkBBYFQ56ulIi4rMrcoN1WH7kbqX6RwfwYRm3LakqsLD9iRwLXzLNNke2RAAC2Z7UA8GgFaVtVHJxHj4DVLMSva9PqS2K3F9xQmiTDKp4LuU="
   file-glob: true
   file: "build/OHMComm-*"
   skip_cleanup: true
