@@ -25,7 +25,9 @@ int main(int argc, char* argv[])
             NetworkConfiguration sipConfig{0};
             sipConfig.remoteIPAddress = params.getParameterValue(Parameters::REMOTE_ADDRESS);
             sipConfig.remotePort = atoi(params.getParameterValue(Parameters::SIP_CONFIGURATION).data());
-            sipConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
+            //sipConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
+            //TODO allow for custom local SIP-port (or use --local-port and assign local RT(C)P-ports dynamically)
+            sipConfig.localPort = SIP_DEFAULT_PORT;
             ohmComm.reset(new OHMComm(new SIPConfiguration(sipConfig)));
         }
         else if(params.isParameterSet(Parameters::PASSIVE_CONFIGURATION))

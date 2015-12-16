@@ -95,6 +95,8 @@ private:
     const int selectBestMedia(const std::vector<MediaDescription>& availableMedias) const;
     
     void updateNetworkConfig();
+    
+    void startCommunication(const MediaDescription& descr);
 };
 
 #endif	/* SIPHANDLER_H */

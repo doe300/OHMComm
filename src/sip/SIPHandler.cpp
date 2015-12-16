@@ -206,8 +206,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             network->sendData(message.data(), message.size());
             
             //start communication
-            sessionEstablished = true;
-            configFunction(availableMedias[bestMediaIndex]);
+            startCommunication(availableMedias[bestMediaIndex]);
         }
         else
         {
@@ -281,8 +280,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
             std::cout << "SIP: Our INVITE was accepted, initializing communication" << std::endl;
             
             //start communication
-            sessionEstablished = true;
-            configFunction(selectedMedias[0]);
+            startCommunication(selectedMedias[0]);
         }
         else
         {
@@ -478,4 +476,13 @@ void SIPHandler::updateNetworkConfig()
     //update all configuration-dependant values
     sipUserAgents[PARTICIPANT_SELF].ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
     
+}
+
+void SIPHandler::startCommunication(const MediaDescription& descr)
+{
+    sessionEstablished = true;
+    std::cout << "SIP: Using following SDP configuration: "
+            << descr.protocol << " " << descr.payloadType << " " << descr.encoding << '/' << descr.sampleRate << '/' << descr.numChannels
+            << std::endl;
+    configFunction(descr);
 }
