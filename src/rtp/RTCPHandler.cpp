@@ -30,15 +30,31 @@ RTCPHandler::~RTCPHandler()
 
 void RTCPHandler::startUp()
 {
-    threadRunning = true;
-    listenerThread = std::thread(&RTCPHandler::runThread, this);
+    if(!threadRunning)
+    {
+        threadRunning = true;
+        listenerThread = std::thread(&RTCPHandler::runThread, this);
+    }
 }
 
 void RTCPHandler::shutdown()
 {
-    // Send a RTCP BYE-packet, to tell the other side that communication has been stopped
-    sendByePackage();
-    shutdownInternal();
+    if(threadRunning)
+    {
+        // Send a RTCP BYE-packet, to tell the other side that communication has been stopped
+        sendByePackage();
+        shutdownInternal();
+    }
+}
+
+void RTCPHandler::onPlaybackStart()
+{
+    startUp();
+}
+
+void RTCPHandler::onPlaybackStop()
+{
+    shutdown();
 }
 
 void RTCPHandler::shutdownInternal()

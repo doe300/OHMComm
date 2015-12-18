@@ -53,7 +53,8 @@ bool SIPConfiguration::runConfiguration()
         timeLeft -= 100;
         if(timeLeft <= 0)
         {
-            //TODO when aborting, let SIPHandler send CANCEL
+            //when aborting, let SIPHandler send CANCEL
+            handler.shutdown();
             break;
         }
     }
@@ -79,6 +80,11 @@ const bool SIPConfiguration::getCustomConfiguration(const std::string key, const
 const bool SIPConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
     return false;
+}
+
+void SIPConfiguration::onPlaybackStop()
+{
+    handler.shutdown();
 }
 
 void SIPConfiguration::setAudioConfig(const MediaDescription& media)

@@ -13,11 +13,12 @@
 #include <stdexcept>
 
 #include "configuration.h"
+#include "PlaybackListener.h"
 
 /*!
  * Abstract super-class for the various kinds of configuration-modes
  */
-class ConfigurationMode
+class ConfigurationMode : public PlaybackListener
 {
 public:
     ConfigurationMode();

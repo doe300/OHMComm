@@ -25,6 +25,8 @@ public:
     const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
     const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
+    void onPlaybackStop();
+    
 private:
     SIPHandler handler;
 

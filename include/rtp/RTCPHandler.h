@@ -16,13 +16,14 @@
 #include "RTCPPackageHandler.h"
 #include "ConfigurationMode.h"
 #include "Statistics.h"
+#include "PlaybackListener.h"
 
 /*!
  * The RTCPHandler manages a thread for RTCP-communication.
  * 
  * The port occupied by RTCP is per standard the RTP-port +1
  */
-class RTCPHandler
+class RTCPHandler : public PlaybackListener
 {
 public:
     RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
@@ -30,14 +31,25 @@ public:
     ~RTCPHandler();
     
     /*!
-     * Shuts down the receive-thread
+     * Shuts down the RTCP-thread
      */
     void shutdown();
 
     /*!
-     * Starts the receive-thread
+     * Starts the RTCP-thread
      */
     void startUp();
+
+    /*!
+     * Starts the RTCP-thread
+     */
+    void onPlaybackStart();
+
+    
+    /*!
+     * Shuts down the RTCP-thread
+     */
+    void onPlaybackStop();
     
 private:
     const std::unique_ptr<NetworkWrapper> wrapper;

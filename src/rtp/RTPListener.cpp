@@ -29,8 +29,11 @@ RTPListener::~RTPListener()
 
 void RTPListener::startUp()
 {
-    threadRunning = true;
-    receiveThread = std::thread(&RTPListener::runThread, this);
+    if(!threadRunning)
+    {
+        threadRunning = true;
+        receiveThread = std::thread(&RTPListener::runThread, this);
+    }
 }
 
 void RTPListener::runThread()
@@ -107,6 +110,16 @@ void RTPListener::shutdown()
 {
     // notify the thread to stop
     threadRunning = false;
+}
+
+void RTPListener::onPlaybackStart()
+{
+    startUp();
+}
+
+void RTPListener::onPlaybackStop()
+{
+    shutdown();
 }
 
 uint32_t RTPListener::calculateExtendedHighestSequenceNumber(const uint16_t receivedSequenceNumber) const

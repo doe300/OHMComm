@@ -158,13 +158,16 @@ std::wstring UDPWrapper::getLastError() const
 
 void UDPWrapper::closeNetwork()
 {
-    shutdown(Socket, SHUTDOWN_BOTH);
-    #ifdef _WIN32
-    closesocket(Socket);
-    #else
-    close(Socket);
-    #endif
-    Socket = INVALID_SOCKET;
+    if(Socket != INVALID_SOCKET)
+    {
+        shutdown(Socket, SHUTDOWN_BOTH);
+        #ifdef _WIN32
+        closesocket(Socket);
+        #else
+        close(Socket);
+        #endif
+        Socket = INVALID_SOCKET;
+    }
 }
 
 const int UDPWrapper::getSocketAddressLength()

@@ -54,9 +54,9 @@ bool SIPHandler::isRunning() const
     return threadRunning;
 }
 
-
 void SIPHandler::shutdown()
 {
+    //TODO if we send an unanswered INVITE, cancel it otherwise sent BYE
     // Send a SIP BYE-packet, to tell the other side that communication has been stopped
     if(sessionEstablished)
     {
