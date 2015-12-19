@@ -141,8 +141,12 @@ const std::vector<std::string> Parameters::getAudioProcessors() const
 void Parameters::printHelpPage() const
 {
     std::cout << "OHMComm peer-to-peer voice-over-IP communication program running in version " << OHMCOMM_VERSION << std::endl;
-    std::cout << "Usage: OHMComm [option]" << std::endl;
+    std::cout << "Usage: OHMComm [option]" << std::endl
+            << std::setw(tabSize) << ' ' << "or OHMComm config-file" << std::endl
+            << std::setw(tabSize) << ' ' << "or OHMComm" << std::endl;
     std::cout << "When run without command-line arguments, the program will start in interactive mode." << std::endl;
+    std::cout << "Running the program with a file-path as single argument, the settings will be read from the specified file."
+            << " The path will be relative to the current working directory." << std::endl;
     std::cout << std::endl;
 
     std::cout << "General configuration:" << std::endl;
