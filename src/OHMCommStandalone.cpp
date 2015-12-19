@@ -4,7 +4,6 @@
 #include "AudioProcessorFactory.h"
 #include "AudioHandlerFactory.h"
 
-#include "config/FileConfiguration.h"
 #include "config/InteractiveConfiguration.h"
 #include "config/ParameterConfiguration.h"
 #include "config/PassiveConfiguration.h"
@@ -37,11 +36,6 @@ int main(int argc, char* argv[])
             networkConfig.remotePort = atoi(params.getParameterValue(Parameters::REMOTE_PORT).data());
             networkConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
             ohmComm.reset(new OHMComm(new PassiveConfiguration(networkConfig)));
-        }
-        else if(params.isParameterSet(Parameters::CONFIGURATION_FILE))
-        {
-            const std::string configFile = params.getParameterValue(Parameters::CONFIGURATION_FILE);
-            ohmComm.reset(new OHMComm(new FileConfiguration(configFile)));
         }
         else
         {

@@ -155,7 +155,10 @@ void TestConfigurationModes::testPassiveConfiguration()
 
 void TestConfigurationModes::testFileConfiguration()
 {
-    ConfigurationMode* mode = new FileConfiguration("../test/test.config");
+    char* args[] = {(char*)"progName", (char*)"../test/test.config"};
+    Parameters params({},{});
+    params.parseParameters(2, args);
+    ConfigurationMode* mode = new ParameterConfiguration(params);
     
     TEST_ASSERT_MSG(mode->runConfiguration(), "Reading configuration-file failed!");
     TEST_ASSERT_EQUALS(true, mode->getLogToFileConfiguration().first);
@@ -170,8 +173,6 @@ void TestConfigurationModes::testFileConfiguration()
     const AudioConfiguration audioConf = mode->getAudioConfiguration();
     TEST_ASSERT_EQUALS(44100, audioConf.sampleRate);
     TEST_ASSERT_EQUALS(2, audioConf.audioFormatFlag);
-    
-    TEST_ASSERT_EQUALS(std::string("value"), mode->getCustomConfiguration("key", "", "empty"));
     
     delete mode;
 }

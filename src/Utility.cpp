@@ -139,6 +139,16 @@ bool Utility::equalsIgnoreCase(const std::string& s1, const std::string s2)
 #endif
 }
 
+std::string Utility::replaceAll(std::string str, const std::string& from, const std::string& to)
+{
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
+}
+
 std::string Utility::getExternalLocalIPAddress()
 {
     //find external IP of local device

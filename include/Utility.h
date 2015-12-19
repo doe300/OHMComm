@@ -83,6 +83,15 @@ public:
      */
     static bool equalsIgnoreCase(const std::string& s1, const std::string s2);
     
+    /*!
+     * \param str The string to replace occurrences in (this will be modified)
+     * \param from The occurrence to replace
+     * \param to The string to replace with
+     * 
+     * \return the original string with all occurrences replaced
+     */
+    static std::string replaceAll(std::string str, const std::string& from, const std::string& to);
+    
 private:
     
     static std::string getExternalLocalIPAddress();

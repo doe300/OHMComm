@@ -31,22 +31,18 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params) : Confi
     {
         inputDeviceID = atoi(params.getParameterValue(Parameters::INPUT_DEVICE).c_str());
     }
-    if(inputDeviceID >= 0 || outputDeviceID >= 0)
-    {
-        useDefaultAudioConfig = false;
-        fillAudioConfiguration(outputDeviceID, inputDeviceID);
-    }
-    else
-    {
-        useDefaultAudioConfig = true;
-    }
-    //TODO fix, so force audio-format or sample-rate works without device-parameter set
+    useDefaultAudioConfig = !(inputDeviceID >= 0 || outputDeviceID >= 0);
+    fillAudioConfiguration(outputDeviceID, inputDeviceID);
     if(params.isParameterSet(Parameters::FORCE_AUDIO_FORMAT))
     {
+        useDefaultAudioConfig =false;
+        audioConfig.audioFormatFlag = atoi(params.getParameterValue(Parameters::FORCE_AUDIO_FORMAT).c_str());
         audioConfig.forceAudioFormatFlag = atoi(params.getParameterValue(Parameters::FORCE_AUDIO_FORMAT).c_str());
     }
     if(params.isParameterSet(Parameters::FORCE_SAMPLE_RATE))
     {
+        useDefaultAudioConfig =false;
+        audioConfig.sampleRate = atoi(params.getParameterValue(Parameters::FORCE_SAMPLE_RATE).c_str());
         audioConfig.forceSampleRate = atoi(params.getParameterValue(Parameters::FORCE_SAMPLE_RATE).c_str());
     }
 

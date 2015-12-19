@@ -6,8 +6,10 @@
  */
 
 #include "Parameters.h"
+#include "Utility.h"
 #include <iomanip>
 #include <string.h>
+#include <fstream>
 
 std::list<Parameter> Parameters::availableParameters = {};
 //parameters must be registered after initializing the availableParameters
@@ -93,84 +95,14 @@ bool Parameters::parseParameters(int argc, char* argv[])
     //if run with a single parameter not starting with '-', use it as configuration-file
     if(argc == 2 && argv[1][0] != '-')
     {
-        readParameters.push_back(ParameterValue(CONFIGURATION_FILE, std::string(argv[1])));
-        return true;
+        if(!parseParametersFromFile(std::string(argv[1])))
+        {
+            return false;
+        }
     }
-    readParameters.reserve(argc-1);
-    processorNames.reserve(5);
-    for(int index = 1; index < argc; index++)
+    else
     {
-        char* paramText = argv[index];
-        const Parameter* param = nullptr;
-        //1. check for '-' or '--'
-        unsigned long numSlashes = strspn(paramText, "--");
-        if(numSlashes == 0 || numSlashes > 2)
-        {
-            //Invalid argument syntax - print message and continue
-            std::cout << "Invalid syntax for parameter: " << paramText << std::endl;
-            std::cout << "See \"OHMComm --help\" for accepted parameters" << std::endl;
-            continue;
-        }
-        //2. get correct parameter
-        if(numSlashes == 1)
-        {
-            char shortParam = paramText[1];
-            for(const Parameter& p : availableParameters)
-            {
-                if(p.shortName == shortParam)
-                {
-                    param = &p;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            unsigned int posEqualsSign = std::string(paramText).find("=");
-            std::string longParam = std::string(paramText).substr(2, posEqualsSign-2);
-            for(const Parameter& p : availableParameters)
-            {
-                if(p.longName.compare(longParam) == 0)
-                {
-                    param = &p;
-                    break;
-                }
-            }
-        }
-        if(param == nullptr)
-        {
-            //Unrecognized argument - print message and continue
-            std::cout << "Parameter \"" << paramText << "\" not found, skipping." << std::endl;
-            std::cout << "See \"OHMComm --help\" for a list of all parameters" << std::endl;
-            continue;
-        }
-        std::string value;
-        //3. read value, if any
-        if(param->hasValue())
-        {
-            char* paramValue = strstr(paramText, "=");
-            if(paramValue != nullptr)
-            {
-                //we need to skip the '='
-                paramValue = paramValue + 1;
-                //value set via parameter
-                value = std::string(paramValue);
-            }
-            if(value.empty())
-            {
-                //No value set
-                std::cout << "No value set for parameter \"" << param->longName << "\", skipping." << std::endl;
-                std::cout << "See \"OHMComm --help\" for a list of parameters and their accepted values" << std::endl;
-                continue;
-            }
-        }
-        //4. set mapping
-        readParameters.push_back(ParameterValue(param, value));
-        //4.1 if audio-processor, add to list
-        if(param == AUDIO_PROCESSOR)
-        {
-            processorNames.push_back(value);
-        }
+        parseParametersCommandLine(argc, argv);
     }
     //print help page and exit if requested
     if(isParameterSet(HELP))
@@ -348,4 +280,166 @@ void Parameters::printParameterHelp(const Parameter& param) const
         std::cout << param.infoText;
     }
     std::cout << std::endl;
+}
+
+void Parameters::parseParametersCommandLine(int argc, char* argv[])
+{
+    readParameters.reserve(argc-1);
+    processorNames.reserve(5);
+    for(int index = 1; index < argc; index++)
+    {
+        char* paramText = argv[index];
+        const Parameter* param = nullptr;
+        //1. check for '-' or '--'
+        unsigned long numSlashes = strspn(paramText, "--");
+        if(numSlashes == 0 || numSlashes > 2)
+        {
+            //Invalid argument syntax - print message and continue
+            std::cout << "Invalid syntax for parameter: " << paramText << std::endl;
+            std::cout << "See \"OHMComm --help\" for accepted parameters" << std::endl;
+            continue;
+        }
+        //2. get correct parameter
+        if(numSlashes == 1)
+        {
+            char shortParam = paramText[1];
+            for(const Parameter& p : availableParameters)
+            {
+                if(p.shortName == shortParam)
+                {
+                    param = &p;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            unsigned int posEqualsSign = std::string(paramText).find("=");
+            std::string longParam = std::string(paramText).substr(2, posEqualsSign-2);
+            for(const Parameter& p : availableParameters)
+            {
+                if(p.longName.compare(longParam) == 0)
+                {
+                    param = &p;
+                    break;
+                }
+            }
+        }
+        if(param == nullptr)
+        {
+            //Unrecognized argument - print message and continue
+            std::cout << "Parameter \"" << paramText << "\" not found, skipping." << std::endl;
+            std::cout << "See \"OHMComm --help\" for a list of all parameters" << std::endl;
+            continue;
+        }
+        std::string value;
+        //3. read value, if any
+        if(param->hasValue())
+        {
+            char* paramValue = strstr(paramText, "=");
+            if(paramValue != nullptr)
+            {
+                //we need to skip the '='
+                paramValue = paramValue + 1;
+                //value set via parameter
+                value = std::string(paramValue);
+            }
+            if(value.empty())
+            {
+                //No value set
+                std::cout << "No value set for parameter \"" << param->longName << "\", skipping." << std::endl;
+                std::cout << "See \"OHMComm --help\" for a list of parameters and their accepted values" << std::endl;
+                continue;
+            }
+        }
+        //4. set mapping
+        readParameters.push_back(ParameterValue(param, value));
+        //4.1 if audio-processor, add to list
+        if(param == AUDIO_PROCESSOR)
+        {
+            processorNames.push_back(value);
+        }
+    }
+}
+
+
+bool Parameters::parseParametersFromFile(const std::string& configFile)
+{
+    try
+    {
+        std::cout << "Reading configuration file... " << configFile << std::endl;
+        //read configuration-file
+        std::fstream stream(configFile, std::fstream::in);
+        stream.exceptions ( std::ios::badbit );
+        std::string line;
+        unsigned int index;
+        std::string key, value;
+        if(!stream.is_open())
+        {
+            throw std::ios::failure("Could not open file!");
+        }
+        while(true)
+        {
+            std::getline(stream, line);
+            if(stream.eof()) break;
+            if(line.empty()) continue;
+            if(line[0] == '#') continue;
+            
+            const Parameter* param = nullptr;
+
+            //read key
+            index = line.find('=');
+            if(index == std::string::npos)
+            {
+                std::cerr << "Invalid configuration line: " << line << std::endl;
+                continue;
+            }
+            key = Utility::trim(line.substr(0, index));
+            for(const Parameter& p : availableParameters)
+            {
+                if(p.longName.compare(key) == 0)
+                {
+                    param = &p;
+                    break;
+                }
+            }
+            if(param == nullptr)
+            {
+                //Unrecognized argument - print message and continue
+                std::cout << "Parameter \"" << line << "\" not found, skipping." << std::endl;
+                std::cout << "See \"OHMComm --help\" for a list of all parameters" << std::endl;
+                continue;
+            }
+            index++;
+            //read value
+            value = Utility::trim(line.substr(index));
+            if(value[0] == '"')
+            {
+                value = value.substr(1, value.size()-2);
+                //unescape escapes
+                Utility::replaceAll(value, "\\\"", "\"");
+            }
+            else if(value.compare("true") == 0)
+                value = "1";
+            else if(value.compare("false") == 0)
+                value = "0";
+            //save value
+            readParameters.push_back(ParameterValue(param, value));
+            //4.1 if audio-processor, add to list
+            if(param == AUDIO_PROCESSOR)
+            {
+                processorNames.push_back(value);
+            }
+        }
+        stream.close();
+    }
+    catch(std::ios_base::failure f)
+    {
+        std::cerr << "Failed to read configuration-file!" << std::endl;
+        std::cerr << strerror(errno) << std::endl;
+        std::cerr << f.what() << std::endl;
+        return false;
+    }
+    std::cout << "Configuration-file read" << std::endl;
+    return true;
 }

@@ -189,7 +189,6 @@ public:
      *
      * \param argc The argument count
      * \param argv The arguments
-     * \param allProcessorNames The names of the audio-processors to print. This is only required for printing the help-page
      *
      * \return whether arguments have been set and parsed
      */
@@ -233,6 +232,16 @@ private:
 
     const std::vector<std::string> allAudioHandlerNames;
     const std::vector<std::string> allProcessorNames;
+    
+    /*!
+     * Extracts the parameter from the command line arguments
+     */
+    void parseParametersCommandLine(int argc, char* argv[]);
+    
+    /*!
+     * Reads the given file and retrieves parameters from it
+     */
+    bool parseParametersFromFile(const std::string& configFile);
 };
 
 #endif	/* PARAMETERS_H */
