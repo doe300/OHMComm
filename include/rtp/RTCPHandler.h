@@ -27,7 +27,7 @@ class RTCPHandler : public PlaybackListener
 {
 public:
     RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
-                const std::function<void ()> startCallback, const std::function<void ()> stopCallback);
+                const std::function<void ()> startCallback);
     ~RTCPHandler();
     
     /*!
@@ -39,6 +39,11 @@ public:
      * Starts the RTCP-thread
      */
     void startUp();
+    
+    /*!
+     * Registers the stop-callback
+     */
+    void onRegister(PlaybackObservee* ohmComm);
 
     /*!
      * Starts the RTCP-thread
@@ -55,7 +60,7 @@ private:
     const std::unique_ptr<NetworkWrapper> wrapper;
     const std::shared_ptr<ConfigurationMode> configMode;
     const std::function<void ()> startAudioCallback;
-    const std::function<void ()> stopCallback;
+    std::function<void ()> stopCallback;
     RTCPPackageHandler rtcpHandler;
     
     std::thread listenerThread;

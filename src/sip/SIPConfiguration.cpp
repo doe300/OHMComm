@@ -51,6 +51,7 @@ bool SIPConfiguration::runConfiguration()
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         // maximum time to wait before aborting configuration
         timeLeft -= 100;
+        //FIXME can currently not be cancelled by user input
         if(timeLeft <= 0)
         {
             //when aborting, let SIPHandler send CANCEL
@@ -80,6 +81,11 @@ const bool SIPConfiguration::getCustomConfiguration(const std::string key, const
 const bool SIPConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
     return false;
+}
+
+void SIPConfiguration::onRegister(PlaybackObservee* ohmComm)
+{
+    handler.stopCallback = ohmComm->createStopCallback();
 }
 
 void SIPConfiguration::onPlaybackStop()

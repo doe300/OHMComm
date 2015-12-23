@@ -59,6 +59,7 @@ private:
     std::unique_ptr<NetworkWrapper> network;
     const NetworkConfiguration sipConfig;
     const std::function<void(const MediaDescription&)> configFunction;
+    std::function<void()> stopCallback = []()-> void{};
     SDPMessageHandler sdpHandler;
     std::string callID;
     uint32_t sequenceNumber;
@@ -97,6 +98,8 @@ private:
     void updateNetworkConfig();
     
     void startCommunication(const MediaDescription& descr);
+    
+    friend class SIPConfiguration;
 };
 
 #endif	/* SIPHANDLER_H */

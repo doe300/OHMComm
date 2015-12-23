@@ -9,7 +9,6 @@
 #define	RTPLISTENER_H
 
 #include <thread>
-#include <functional>
 
 #include "PlaybackListener.h"
 #include "ParticipantDatabase.h"
@@ -33,11 +32,10 @@ public:
      *
      * \param receiveBufferSize The maximum size (in bytes) a RTP-package can fill, according to the configuration
      *
-     * \param stopCallback The callback to be executed after receiving a RTCP GOODBYE-package
      */
-    RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize, std::function<void ()> stopCallback);
+    RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize);
     RTPListener(const RTPListener& orig);
-    virtual ~RTPListener();
+    ~RTPListener();
 
     /*!
      * Shuts down the receive-thread
@@ -60,7 +58,6 @@ public:
     void onPlaybackStop();
 
 private:
-    std::function<void ()> stopCallback;
     std::shared_ptr<NetworkWrapper> wrapper;
     std::shared_ptr<RTPBufferHandler> buffer;
     RTPPackageHandler rtpHandler;

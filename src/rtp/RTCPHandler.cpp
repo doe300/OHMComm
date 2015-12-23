@@ -16,8 +16,8 @@
 const std::chrono::seconds RTCPHandler::sendSRInterval{20};
 
 RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
-                         const std::function<void ()> startCallback, const std::function<void()> stopCallback):
-    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), stopCallback(stopCallback), rtcpHandler(),
+                         const std::function<void ()> startCallback):
+    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(),
         lastSRReceived(std::chrono::milliseconds::zero()), lastSRSent(std::chrono::milliseconds::zero())
 {
 }
@@ -45,6 +45,11 @@ void RTCPHandler::shutdown()
         sendByePackage();
         shutdownInternal();
     }
+}
+
+void RTCPHandler::onRegister(PlaybackObservee* ohmComm)
+{
+    stopCallback = ohmComm->createStopCallback();
 }
 
 void RTCPHandler::onPlaybackStart()

@@ -20,8 +20,10 @@ SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string&
     sipUserAgents[PARTICIPANT_SELF].userName = Utility::getUserName();
     sipUserAgents[PARTICIPANT_SELF].hostName = Utility::getDomainName();
     sipUserAgents[PARTICIPANT_SELF].tag = std::to_string(rand());
+    sipUserAgents[PARTICIPANT_SELF].port = sipConfig.localPort;
     sipUserAgents[PARTICIPANT_REMOTE].userName = remoteUser;
     sipUserAgents[PARTICIPANT_REMOTE].ipAddress = sipConfig.remoteIPAddress;
+    sipUserAgents[PARTICIPANT_REMOTE].port = sipConfig.remotePort;
     updateNetworkConfig();
 }
 
@@ -32,8 +34,10 @@ network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](cons
     sipUserAgents[PARTICIPANT_SELF].userName = localUser;
     sipUserAgents[PARTICIPANT_SELF].hostName = localHostName;
     sipUserAgents[PARTICIPANT_SELF].tag = std::to_string(rand());
+    sipUserAgents[PARTICIPANT_SELF].port = sipConfig.localPort;
     sipUserAgents[PARTICIPANT_REMOTE].userName = remoteUser;
     sipUserAgents[PARTICIPANT_REMOTE].ipAddress = sipConfig.remoteIPAddress;
+    sipUserAgents[PARTICIPANT_REMOTE].port = sipConfig.remotePort;
     updateNetworkConfig();
 }
 
@@ -62,6 +66,7 @@ void SIPHandler::shutdown()
     {
         sendByeRequest();
     }
+    stopCallback();
     shutdownInternal();
 }
 
@@ -86,17 +91,21 @@ void SIPHandler::runThread()
     {
         //wait for package and store it in the SIPPackageHandler
         int receivedSize = network->receiveData(buffer.data(), buffer.size());
-        if (threadRunning == false || receivedSize == INVALID_SOCKET) {
+        if (threadRunning == false || receivedSize == INVALID_SOCKET)
+        {
             //socket was already closed
             shutdownInternal();
         }
-        else if (receivedSize == NetworkWrapper::RECEIVE_TIMEOUT) {
+        else if (receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
+        {
             //just continue to next loop iteration, checking if thread should continue running
         }
-        else if (SIPPackageHandler::isRequestPackage(buffer.data(), receivedSize)) {
+        else if (SIPPackageHandler::isRequestPackage(buffer.data(), receivedSize))
+        {
             handleSIPRequest(buffer.data(), receivedSize);
         }
-        else if (SIPPackageHandler::isResponsePackage(buffer.data(), receivedSize)) {
+        else if (SIPPackageHandler::isResponsePackage(buffer.data(), receivedSize))
+        {
             handleSIPResponse(buffer.data(), receivedSize);
         }
     }
@@ -221,8 +230,9 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         std::cout << "SIP: BYE received, shutting down ..." << std::endl;
         //send ok to verify reception
         sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader);
-        //TODO end communication, if established
+        //end communication, if established
         shutdownInternal();
+        stopCallback();
     }
     else if(SIP_REQUEST_ACK.compare(requestHeader.requestCommand) == 0)
     {

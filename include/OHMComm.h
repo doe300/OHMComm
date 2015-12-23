@@ -82,6 +82,8 @@ public:
      */
     bool isRunning() const;
     
+    std::function<void ()> createStopCallback();
+    
 private:
 
     const std::shared_ptr<RTPBufferHandler> rtpBuffer;
@@ -99,7 +101,6 @@ private:
     std::shared_ptr<RTCPHandler> rtcpHandler;
 
     void configureRTPProcessor(bool profileProcessors, const PayloadType payloadType);
-    std::function<void ()> createStopCallback();
     
     void startAudio();
 };

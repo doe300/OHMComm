@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 /*!
  * Defined to prevent circular includes when OHMComm uses this header to maintain a structure of listeners
@@ -29,7 +30,7 @@ public:
      * 
      * \param ohmComm the observee to be bound to
      */
-    virtual void onRegister(const PlaybackObservee* ohmComm)
+    virtual void onRegister(PlaybackObservee* ohmComm)
     {
         //do nothing
     };
@@ -70,6 +71,11 @@ public:
         }
     }
     
+    /*!
+     * \return a function, which will stop the playback on invocation
+     */
+    virtual std::function<void ()> createStopCallback() = 0;
+    
 protected:
     
     PlaybackObservee() : listeners()
@@ -77,7 +83,7 @@ protected:
         
     }
     
-    ~PlaybackObservee()
+    virtual ~PlaybackObservee()
     {
         
     }

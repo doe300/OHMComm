@@ -25,6 +25,8 @@ public:
     const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
     const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
+
+    void onRegister(PlaybackObservee* ohmComm);
     void onPlaybackStop();
     
 private:
@@ -34,8 +36,6 @@ private:
     
     //Wait a maximum of 30 secs
     static const int MAX_WAIT_TIME{30000};
-    
-    friend class SIPHandler;
 };
 
 #endif	/* SIPCONFIGURATION_H */

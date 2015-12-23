@@ -104,7 +104,7 @@ void OHMComm::startAudioThreads()
     //start RTCP-handler
     rtcpHandler.reset(new RTCPHandler(std::unique_ptr<NetworkWrapper>(
             new UDPWrapper(configurationMode->getRTCPNetworkConfiguration())), configurationMode, 
-            std::bind(&OHMComm::startAudio,this), createStopCallback()));
+            std::bind(&OHMComm::startAudio,this)));
     registerPlaybackListener(rtcpHandler);
     rtcpHandler->startUp();
     //if we don't wait for configuration, begin audio-playback
@@ -117,7 +117,7 @@ void OHMComm::startAudioThreads()
 
 void OHMComm::startAudio()
 {
-    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize(), createStopCallback()));
+    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize()));
     registerPlaybackListener(listener);
     notifyPlaybackStart();
     audioHandler->startDuplexMode();
