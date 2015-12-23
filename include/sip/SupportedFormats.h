@@ -48,11 +48,8 @@ private:
     static std::vector<SupportedFormat> availableFormats;
     
     //just for registration
+    //as of RFC 7587, the opus format must be opus/48000/2
     static const SupportedFormat* OPUS_48000;
-    static const SupportedFormat* OPUS_24000;
-    static const SupportedFormat* OPUS_16000;
-    static const SupportedFormat* OPUS_12000;
-    static const SupportedFormat* OPUS_8000;
 };
 
 #endif	/* SUPPORTEDFORMATS_H */

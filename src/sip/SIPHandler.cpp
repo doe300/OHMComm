@@ -280,7 +280,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
             //select best media
             if (selectedMedias.size() != 1) {
                 std::cerr << "SIP: Could not agree on audio-configuration, aborting!" << std::endl;
-                shutdown();
+                shutdownInternal();
             }
             audioConfig.forceSampleRate = audioConfig.sampleRate = selectedMedias[0].sampleRate;
             audioConfig.inputDeviceChannels = audioConfig.outputDeviceChannels = selectedMedias[0].numChannels;

@@ -7,10 +7,6 @@
 std::vector<SupportedFormat> SupportedFormats::availableFormats = {};
 
 const SupportedFormat* SupportedFormats::OPUS_48000 = SupportedFormats::registerFormat(SupportedFormat(112, "opus", 48000, 2, AudioProcessorFactory::OPUS_CODEC));
-const SupportedFormat* SupportedFormats::OPUS_24000 = SupportedFormats::registerFormat(SupportedFormat(113, "opus", 24000, 2, AudioProcessorFactory::OPUS_CODEC));
-const SupportedFormat* SupportedFormats::OPUS_16000 = SupportedFormats::registerFormat(SupportedFormat(114, "opus", 16000, 2, AudioProcessorFactory::OPUS_CODEC));
-const SupportedFormat* SupportedFormats::OPUS_12000 = SupportedFormats::registerFormat(SupportedFormat(115, "opus", 12000, 2, AudioProcessorFactory::OPUS_CODEC));
-const SupportedFormat* SupportedFormats::OPUS_8000 = SupportedFormats::registerFormat(SupportedFormat(116, "opus", 8000, 2, AudioProcessorFactory::OPUS_CODEC));
 
 
 const SupportedFormat* SupportedFormats::registerFormat(SupportedFormat&& format)

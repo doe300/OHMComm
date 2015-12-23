@@ -26,6 +26,7 @@ const char SDP_MEDIA='m';
 const char SDP_ATTRIBUTE='a';
 
 const std::string SDP_ATTRIBUTE_RTPMAP("rtpmap");
+const std::string SDP_ATTRIBUTE_FMTP("fmtp");
 
 const std::string SDP_MEDIA_RTP("RTP/AVP");
 const std::string SDP_MEDIA_SRTP("RTP/SAVP");
@@ -41,6 +42,17 @@ struct SessionKey : public KeyValuePair<char>
     }
 };
 
+struct FormatParameter : public KeyValuePair<std::string>
+{
+    FormatParameter() : KeyValuePair<std::string>()
+    {
+    }
+
+    FormatParameter(std::string key, std::string value) : KeyValuePair<std::string>(key, value)
+    {
+    }
+};
+
 struct MediaDescription
 {
     unsigned short port;
@@ -49,6 +61,7 @@ struct MediaDescription
     std::string encoding;
     unsigned int sampleRate;
     unsigned short numChannels;
+    KeyValuePairs<FormatParameter> formatParams;
     
     /*!
      * \return the underlying supported-format for this media-description
@@ -130,6 +143,11 @@ private:
      * Reads a single media-description from a "rtpmap"-attribute
      */
     static MediaDescription getRTPMap(const SessionDescription& sdp, const unsigned int payloadType);
+    
+    /*!
+     * Reads additional format-parameters (if any) into the given media-description
+     */
+    static void readFormatParameters(MediaDescription& descr, const SessionDescription& sdp, const unsigned int payloadType);
     
     /*!
      * \return whether the given encoding is supported

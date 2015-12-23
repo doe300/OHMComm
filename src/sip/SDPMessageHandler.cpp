@@ -175,6 +175,7 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
     //  0  - the worst still-image quality the codec designer thinks is still usable.
     //a=fmtp:<format> <format specific parameters>T parameters that are specific to a particular format to be conveyed 
     //  in a way that SDP does not have to understand them
+    //TODO can be used for usedtx, ...
     
     //SDES Cryptographic extension - https://tools.ietf.org/html/rfc4568
     //a=crypto:<tag> <crypto-suite> <key-params> [<session-params>]
@@ -275,6 +276,7 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
                 MediaDescription descr = getRTPMap(sdp, payloadType);
                 descr.port = port;
                 descr.protocol = protocol;
+                readFormatParameters(descr, sdp, payloadType);
                 if(isEncodingSupported(descr.encoding))
                 {
                     results.push_back(descr);
@@ -307,6 +309,32 @@ MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, con
     }
     return std::move(MediaDescription{0, "", payloadType, encoding, sampleRate, numChannels});
 }
+
+void SDPMessageHandler::readFormatParameters(MediaDescription& descr, const SessionDescription& sdp, const unsigned int payloadType)
+{
+    
+    const std::string fmtParams = sdp.getAttribute(SDP_ATTRIBUTE_FMTP, std::to_string(payloadType));
+    if(fmtParams.empty())
+    {
+        return;
+    }
+    
+    //the format parameters depend on the format used
+    if(descr.encoding.compare("opus") == 0)
+    {
+        //a=fmtp:<payload type> key=value;key1=value1;...
+        std::string::size_type index = fmtParams.find(' ');
+        while(index != std::string::npos && index < fmtParams.size())
+        {
+            const std::string pair = fmtParams.substr(index + 1, fmtParams.find(';', index+1) - (index+1));
+            const std::string key = Utility::trim(pair.substr(0, pair.find('=')));
+            const std::string value = Utility::trim(pair.substr(pair.find('=')+1));
+            descr.formatParams[key] = value;
+            index = fmtParams.find(';', index + 1);
+        }
+    }
+}
+
 
 bool SDPMessageHandler::isEncodingSupported(const std::string& encoding)
 {
