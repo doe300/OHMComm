@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <string.h>
+#include <map>
 
 #include "KeyValuePairs.h"
 
@@ -24,9 +25,13 @@
 const std::string SIP_VERSION("SIP/2.0");
 
 /*!
- * The SIP MIME-type: application/sdp
+ * The MIME multipart type for mixed content: multipart/mixed
  */
-const std::string SIP_MIME("application/sdp");
+const std::string MIME_MULTIPART_MIXED("multipart/mixed");
+/*!
+ * The MIME multipart type for alternative representations of same content: multipart/alternative
+ */
+const std::string MIME_MULTIPART_ALTERNATIVE("multipart/alternative");
 
 const std::string CRLF("\r\n");
 
@@ -587,6 +592,25 @@ public:
      * Returns whether the package in the buffer is a valid SIP request-package
      */
     static bool isRequestPackage(const void* buffer, const unsigned int bufferLength);
+    
+    /*!
+     * \param header The SIPHeader to check
+     * 
+     * \return whether this package has a multi-part body
+     */
+    static bool hasMultipartBody(const SIPHeader& header);
+    
+    /*!
+     * Reads the multi-part body and returns the single parts mapped as (MIME-type -> part). See RFC 5621
+     * 
+     * \param header The SIPHeader to get the multi-part bodies
+     * 
+     * \param body The body-text of the whole body
+     * 
+     * \return a map of all occurring MIME-types and their content
+     */
+    static std::map<std::string, std::string> readMultipartBody(const SIPHeader& header, const std::string& body);
+    
 private:
     
     static void writeHeaderFields(std::stringstream& stream, const std::vector<HeaderField> fields, unsigned int contentSize);

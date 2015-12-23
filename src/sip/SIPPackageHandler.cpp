@@ -81,6 +81,56 @@ bool SIPPackageHandler::isRequestPackage(const void* buffer, const unsigned int 
     return line.find(SIP_VERSION) + SIP_VERSION.size() == line.size();
 }
 
+bool SIPPackageHandler::hasMultipartBody(const SIPHeader& header)
+{
+    return !header[SIP_HEADER_CONTENT_TYPE].empty() && header[SIP_HEADER_CONTENT_TYPE].find("multipart/") == 0;
+}
+
+std::map<std::string, std::string> SIPPackageHandler::readMultipartBody(const SIPHeader& header, const std::string& body)
+{
+    if(!hasMultipartBody(header))
+    {
+        //return single part with whole body
+        return {{header[SIP_HEADER_CONTENT_TYPE], body}};
+    }
+    //get boundary string
+    const std::string contentType = header[SIP_HEADER_CONTENT_TYPE];
+    const std::string::size_type start = contentType.find("boundary=") + strlen("boundary=");
+    //boundary may be surrounded by '"'
+    const std::string boundary = std::string("--").append(contentType.substr((contentType[start] == '"' ? start+1 : start), (contentType[start] == '"' ? (contentType.find('"', start) - start) : std::string::npos)));
+    
+    std::map<std::string,std::string> parts;
+    std::string::size_type index = 0;
+    while(true)
+    {
+        index = body.find(boundary, index);
+        if(index == std::string::npos)
+        {
+            return parts;
+        }
+        index += boundary.size();
+        if(body.substr(index, 2).compare("--") == 0)
+        {
+            //we have found the last boundary and the end of the multi-part body
+            return parts;
+        }
+        //content-type of part is next after the boundary, defaults to "text/plain"
+        while(::isspace(body[index])) ++index;
+        std::string partType("text/plain");
+        if(Utility::equalsIgnoreCase(body.substr(index, SIP_HEADER_CONTENT_LENGTH.size()), SIP_HEADER_CONTENT_TYPE))
+        {
+            //skip Content-Type:
+            index += SIP_HEADER_CONTENT_TYPE.size() + 1;
+            //Content-Type could end with new-line or space
+            partType = body.substr(index, body.find_first_of("\n \r", index) - index);
+            index = body.find_first_of("\n \r", index) + 1;
+        }
+        //now the content is everything from index to the next boundary (or end)
+        parts.insert({partType, body.substr(index, body.find(boundary, index) - index)});
+    }
+    return parts;
+}
+
 
 void SIPPackageHandler::writeHeaderFields(std::stringstream& stream, std::vector<HeaderField> fields, unsigned int contentSize)
 {

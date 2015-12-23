@@ -189,8 +189,20 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             sendResponse(SIP_RESPONSE_BUSY_CODE, SIP_RESPONSE_BUSY, &requestHeader);
             std::cout << "SIP: Received INVITE, but communication already active, answering: " << SIP_RESPONSE_BUSY << std::endl;
         }
-        else if (requestHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0)
+        else if (requestHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(requestHeader))
         {
+            //adds support for multipart containing SDP (RFC 5621)
+            if(SIPPackageHandler::hasMultipartBody(requestHeader))
+            {
+                //we only need the SDP part of the body
+                requestBody = SIPPackageHandler::readMultipartBody(requestHeader, requestBody)[MIME_SDP];
+                if(requestBody.empty())
+                {
+                    std::cout << "SIP: Received multi-part INVITE without SDP body!" << std::endl;
+                    shutdownInternal();
+                    return;
+                }
+            }
             SessionDescription sdp = sdpHandler.readSessionDescription(requestBody);
             const std::vector<MediaDescription> availableMedias = SDPMessageHandler::readMediaDescriptions(sdp);
             //select best media
@@ -263,8 +275,20 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         sendAckRequest();
         //action depending on request
         const std::string requestCommand = responseHeader.getRequestCommand();
-        if (SIP_REQUEST_INVITE.compare(requestCommand) == 0 && responseHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0)
+        if (SIP_REQUEST_INVITE.compare(requestCommand) == 0 && (responseHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(responseHeader)))
         {
+            //adds support for multipart containing SDP (RFC 5621)
+            if(SIPPackageHandler::hasMultipartBody(responseHeader))
+            {
+                //we only need the SDP part of the body
+                responseBody = SIPPackageHandler::readMultipartBody(responseHeader, responseBody)[MIME_SDP];
+                if(responseBody.empty())
+                {
+                    std::cout << "SIP: Received multi-part OK without SDP body!" << std::endl;
+                    shutdownInternal();
+                    return;
+                }
+            }
             NetworkConfiguration streamConfig;
             AudioConfiguration audioConfig;
 

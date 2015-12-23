@@ -14,7 +14,9 @@
 #include "sip/SIPUserAgent.h"
 #include "sip/SupportedFormats.h"
 
-//The MIME-type for SDP
+/*!
+ * The MIME-type for SDP: application/sdp
+ */
 const std::string MIME_SDP="application/sdp";
 
 const char SDP_VERSION='v';
