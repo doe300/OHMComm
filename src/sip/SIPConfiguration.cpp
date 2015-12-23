@@ -11,7 +11,7 @@
 #include <chrono>
 
 SIPConfiguration::SIPConfiguration(const NetworkConfiguration& sipConfig, bool profileProcessors, const std::string& logFile) : 
-    ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription& media){this->setAudioConfig(media);})
+    ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription& media, const NetworkConfiguration& rtcpConfig){this->setConfig(media, rtcpConfig);}), rtcpConfig({0})
 {
     useDefaultAudioConfig = false;
     audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
@@ -51,7 +51,7 @@ bool SIPConfiguration::runConfiguration()
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         // maximum time to wait before aborting configuration
         timeLeft -= 100;
-        //FIXME can currently not be cancelled by user input
+        //FIXME can currently not be canceled by user input
         if(timeLeft <= 0)
         {
             //when aborting, let SIPHandler send CANCEL
@@ -61,6 +61,12 @@ bool SIPConfiguration::runConfiguration()
     }
     return isConfigurationDone;
 }
+
+const NetworkConfiguration SIPConfiguration::getRTCPNetworkConfiguration() const
+{
+    return rtcpConfig;
+}
+
 
 const std::string SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const
 {
@@ -93,7 +99,7 @@ void SIPConfiguration::onPlaybackStop()
     handler.shutdown();
 }
 
-void SIPConfiguration::setAudioConfig(const MediaDescription& media)
+void SIPConfiguration::setConfig(const MediaDescription& media, const NetworkConfiguration& customRTCPConfig)
 {
     networkConfig.remotePort = media.port;
     audioConfig.forceSampleRate = media.sampleRate;
@@ -102,6 +108,19 @@ void SIPConfiguration::setAudioConfig(const MediaDescription& media)
     payloadType = media.payloadType;
     SupportedFormat format = media.getFormat();
     processorNames.push_back(format.processorName);
+    
+    //allows for custom remote RTCP port (and address), see RFC 3605
+    rtcpConfig.localPort = networkConfig.localPort + 1;
+    rtcpConfig.remotePort = networkConfig.remotePort + 1;
+    rtcpConfig.remoteIPAddress = networkConfig.remoteIPAddress;
+    if(customRTCPConfig.remotePort != 0)
+    {
+        rtcpConfig.remotePort = customRTCPConfig.remotePort;
+    }
+    if(!customRTCPConfig.remoteIPAddress.empty())
+    {
+        rtcpConfig.remoteIPAddress = customRTCPConfig.remoteIPAddress;
+    }
     
     isConfigurationDone = true;
 }

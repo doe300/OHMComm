@@ -20,6 +20,8 @@ public:
     
     bool runConfiguration();
     
+    const NetworkConfiguration getRTCPNetworkConfiguration() const;
+    
     const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
     const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
     const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
@@ -31,8 +33,9 @@ public:
     
 private:
     SIPHandler handler;
+    NetworkConfiguration rtcpConfig;
 
-    void setAudioConfig(const MediaDescription& media);
+    void setConfig(const MediaDescription& media, const NetworkConfiguration& customRTCPConfig);
     
     //Wait a maximum of 30 secs
     static const int MAX_WAIT_TIME{30000};

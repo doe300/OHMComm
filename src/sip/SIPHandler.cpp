@@ -14,7 +14,7 @@ const std::string SIPUserAgent::getSIPURI() const
     return SIPPackageHandler::createSIPURI(userName, hostName.empty() ? ipAddress : hostName, port);
 }
 
-SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription&)> configFunction) : 
+SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription&, const NetworkConfiguration&)> configFunction) : 
         network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), sdpHandler(), callID(SIPHandler::generateCallID(Utility::getDomainName())), sequenceNumber(0), buffer(SIP_BUFFER_SIZE)
 {
     sipUserAgents[PARTICIPANT_SELF].userName = Utility::getUserName();
@@ -29,7 +29,7 @@ SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string&
 
 
 SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& localUser, const std::string& localHostName, const std::string& remoteUser, const std::string& callID) :
-network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](const MediaDescription& dummy){}), sdpHandler(), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE)
+network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](const MediaDescription& dummy, const NetworkConfiguration& dummy2){}), sdpHandler(), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE)
 {
     sipUserAgents[PARTICIPANT_SELF].userName = localUser;
     sipUserAgents[PARTICIPANT_SELF].hostName = localHostName;
@@ -215,7 +215,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             network->sendData(message.data(), message.size());
             
             //start communication
-            startCommunication(availableMedias[bestMediaIndex]);
+            startCommunication(availableMedias[bestMediaIndex], SDPMessageHandler::readRTCPAttribute(sdp));
         }
         else
         {
@@ -290,7 +290,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
             std::cout << "SIP: Our INVITE was accepted, initializing communication" << std::endl;
             
             //start communication
-            startCommunication(selectedMedias[0]);
+            startCommunication(selectedMedias[0], SDPMessageHandler::readRTCPAttribute(sdp));
         }
         else
         {
@@ -488,11 +488,22 @@ void SIPHandler::updateNetworkConfig()
     
 }
 
-void SIPHandler::startCommunication(const MediaDescription& descr)
+void SIPHandler::startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtcpConfig)
 {
     sessionEstablished = true;
     std::cout << "SIP: Using following SDP configuration: "
             << descr.protocol << " " << descr.payloadType << " " << descr.encoding << '/' << descr.sampleRate << '/' << descr.numChannels
             << std::endl;
-    configFunction(descr);
+    if(rtcpConfig.remotePort != 0)
+    {
+        if(!rtcpConfig.remoteIPAddress.empty())
+        {
+            std::cout << "SIP: Using custom remote RTCP address: " << rtcpConfig.remoteIPAddress << ":" << rtcpConfig.remotePort << std::endl;
+        }
+        else
+        {
+            std::cout << "SIP: Using custom remote RTCP port: " << rtcpConfig.remotePort << std::endl;
+        }
+    }
+    configFunction(descr, rtcpConfig);
 }

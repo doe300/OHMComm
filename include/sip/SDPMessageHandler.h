@@ -27,6 +27,8 @@ const char SDP_ATTRIBUTE='a';
 
 const std::string SDP_ATTRIBUTE_RTPMAP("rtpmap");
 const std::string SDP_ATTRIBUTE_FMTP("fmtp");
+//specifies RTCP-port, if not consecutive to RTP-port, see RFC 3605
+const std::string SDP_ATTRIBUTE_RTCP("rtcp");
 
 const std::string SDP_MEDIA_RTP("RTP/AVP");
 const std::string SDP_MEDIA_SRTP("RTP/SAVP");
@@ -136,6 +138,16 @@ public:
      * \return a list of all extracted media-descriptions
      */
     static std::vector<MediaDescription> readMediaDescriptions(const SessionDescription& sdp);
+    
+    /*!
+     * This method will return 0 (zero) for the remote-port or an empty string for the remote-address, if they are not
+     * specified in the RTCP-attribute. See RFC 3605
+     * 
+     * \param sdp The session-description
+     * 
+     * \return The custom RTCP configuration, if any
+     */
+    static NetworkConfiguration readRTCPAttribute(const SessionDescription& sdp);
     
 private:
     

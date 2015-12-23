@@ -288,6 +288,33 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
     return std::move(results);
 }
 
+NetworkConfiguration SDPMessageHandler::readRTCPAttribute(const SessionDescription& sdp)
+{
+    NetworkConfiguration config{0};
+    config.remoteIPAddress = "";
+    //a=rtcp:<port> [<nettype> <addrtype> <connection-address>]
+    const std::string rtcpAttribute = sdp.getAttribute(SDP_ATTRIBUTE_RTCP);
+    if(rtcpAttribute.empty())
+    {
+        //no custom RTCP-config set
+        return config;
+    }
+    if(rtcpAttribute.find(' ') != std::string::npos)
+    {
+        //we contain spaces
+        config.remotePort  = atoi(rtcpAttribute.substr(0, rtcpAttribute.find(' ')).c_str());
+        //<netttype> must be "IN", <addrtype> "IP4" or "IP6", but we skip the checking for now
+        std::string::size_type index = rtcpAttribute.find_last_of(' ') + 1;
+        config.remoteIPAddress = rtcpAttribute.substr(index);
+    }
+    else
+    {
+        config.remotePort = atoi(rtcpAttribute.c_str());
+    }
+    return config;
+}
+
+
 MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, const unsigned int payloadType)
 {
     //a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding parameters>]
