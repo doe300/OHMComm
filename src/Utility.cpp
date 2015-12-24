@@ -149,6 +149,19 @@ std::string Utility::replaceAll(std::string str, const std::string& from, const 
     return str;
 }
 
+std::string Utility::joinStrings(const std::vector<std::string>& vector, const std::string& delimiter)
+{
+    std::vector<std::string>::const_iterator it = vector.begin();
+    std::string result(*it);
+    ++it;
+    for(;it != vector.end();++it)
+    {
+        result.append(delimiter);
+        result.append(*it);
+    }
+    return result;
+}
+
 std::string Utility::getExternalLocalIPAddress()
 {
     //find external IP of local device

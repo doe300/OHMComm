@@ -125,12 +125,12 @@ public:
      * NOTE: As of the current description, following limitations apply
      * - Only L16_2 with 44.1kHz and Opus with a sample-rate of 48000 are supported
      */
-    std::string createSessionDescription(const NetworkConfiguration& config, const std::vector<MediaDescription>& media = {}) const;
+    static std::string createSessionDescription(const NetworkConfiguration& config, const std::vector<MediaDescription>& media = {});
     
     /*!
      * Ready the session description from the given message and returns it
      */
-    const SessionDescription readSessionDescription(std::string message) const;
+    static const SessionDescription readSessionDescription(std::string message);
     
     /*!
      * This method extracts all media-descriptions from the given session-description which are valid for the OHMComm application

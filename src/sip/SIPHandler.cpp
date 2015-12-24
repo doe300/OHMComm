@@ -15,7 +15,7 @@ const std::string SIPUserAgent::getSIPURI() const
 }
 
 SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription&, const NetworkConfiguration&)> configFunction) : 
-        network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), sdpHandler(), callID(SIPHandler::generateCallID(Utility::getDomainName())), sequenceNumber(0), buffer(SIP_BUFFER_SIZE)
+        network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), callID(SIPHandler::generateCallID(Utility::getDomainName())), sequenceNumber(0), buffer(SIP_BUFFER_SIZE), lastBranch(), state(SessionState::UNKNOWN)
 {
     sipUserAgents[PARTICIPANT_SELF].userName = Utility::getUserName();
     sipUserAgents[PARTICIPANT_SELF].hostName = Utility::getDomainName();
@@ -29,7 +29,7 @@ SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string&
 
 
 SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& localUser, const std::string& localHostName, const std::string& remoteUser, const std::string& callID) :
-network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](const MediaDescription& dummy, const NetworkConfiguration& dummy2){}), sdpHandler(), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE)
+network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](const MediaDescription& dummy, const NetworkConfiguration& dummy2){}), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE), lastBranch(), state(SessionState::UNKNOWN)
 {
     sipUserAgents[PARTICIPANT_SELF].userName = localUser;
     sipUserAgents[PARTICIPANT_SELF].hostName = localHostName;
@@ -60,10 +60,14 @@ bool SIPHandler::isRunning() const
 
 void SIPHandler::shutdown()
 {
-    //TODO if we send an unanswered INVITE, cancel it otherwise sent BYE
-    // Send a SIP BYE-packet, to tell the other side that communication has been stopped
-    if(sessionEstablished)
+    if(state == SessionState::INVITING)
     {
+        //if we send an unanswered INVITE, CANCEL it
+        sendCancelRequest();
+    }
+    else if(state == SessionState::ESTABLISHED)
+    {
+        // Send a SIP BYE-packet, to tell the other side that communication has been stopped
         sendByeRequest();
     }
     stopCallback();
@@ -74,7 +78,7 @@ void SIPHandler::shutdownInternal()
 {
     // notify the thread to stop
     threadRunning = false;
-    sessionEstablished = false;
+    state = SessionState::SHUTDOWN;
     // close the socket
     network->closeNetwork();
 }
@@ -82,6 +86,7 @@ void SIPHandler::shutdownInternal()
 void SIPHandler::runThread()
 {
     std::cout << "SIP-Handler started ..." << std::endl;
+    state = SessionState::UNKNOWN;
 
     //how to determine if initiating or receiving side??
     //doesn't really matter, if we are the first to start, the other side won't receive our INVITE, otherwise we INVITE
@@ -109,7 +114,7 @@ void SIPHandler::runThread()
             handleSIPResponse(buffer.data(), receivedSize);
         }
     }
-    sessionEstablished = false;
+    state = SessionState::SHUTDOWN;
     std::cout << "SIP-Handler shut down!" << std::endl;
 }
 
@@ -134,12 +139,34 @@ void SIPHandler::sendInviteRequest()
     NetworkConfiguration rtpConfig = sipConfig;
     rtpConfig.localPort = DEFAULT_NETWORK_PORT;
     rtpConfig.remotePort = DEFAULT_NETWORK_PORT;
-    const std::string messageBody = sdpHandler.createSessionDescription(rtpConfig);
+    const std::string messageBody = SDPMessageHandler::createSessionDescription(rtpConfig);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, messageBody);
     std::cout << "SIP: Sending INVITE to " << sipUserAgents[PARTICIPANT_REMOTE].getSIPURI() << std::endl;
     network->sendData(message.data(), message.size());
+    
+    state = SessionState::INVITING;
 }
+
+void SIPHandler::sendCancelRequest()
+{
+    SIPRequestHeader header(SIP_REQUEST_CANCEL, sipUserAgents[PARTICIPANT_REMOTE].getSIPURI());
+    //branch must be the same as on INVITE
+    const std::string retainLastBranch(lastBranch);
+    initializeHeaderFields(SIP_REQUEST_CANCEL, header, nullptr);
+    //need to manually overwrite CSeq to use the value from INVITE (previous request)
+    --sequenceNumber;
+    header[SIP_HEADER_CSEQ] = (std::to_string(sequenceNumber)+" ") + SIP_REQUEST_CANCEL;
+    //need to manually set the branch-tag to the value from the INVITE
+    header[SIP_HEADER_VIA].replace(header[SIP_HEADER_VIA].find_last_of('=') + 1, header.getBranchTag().size(), retainLastBranch);
+    
+    const std::string message = SIPPackageHandler::createRequestPackage(header, "");
+    std::cout << "SIP: Sending CANCEL to " << sipUserAgents[PARTICIPANT_REMOTE].getSIPURI() << std::endl;
+    network->sendData(message.data(), message.size());
+    
+    state = SessionState::SHUTDOWN;
+}
+
 
 void SIPHandler::sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader)
 {
@@ -157,6 +184,8 @@ void SIPHandler::sendByeRequest()
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
     std::cout << "SIP: Sending BYE to " << sipUserAgents[PARTICIPANT_REMOTE].getSIPURI() << std::endl;
     network->sendData(message.data(), message.size());
+    
+    state = SessionState::SHUTDOWN;
 }
 
 void SIPHandler::sendAckRequest()
@@ -183,7 +212,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         sendResponse(SIP_RESPONSE_RINGING_CODE, SIP_RESPONSE_RINGING, &requestHeader);
         //1. send dialog established
         sendResponse(SIP_RESPONSE_DIALOG_ESTABLISHED_CODE, SIP_RESPONSE_DIALOG_ESTABLISHED, &requestHeader);
-        if (sessionEstablished)
+        if (state == SessionState::ESTABLISHED)
         {
             //2.1 send busy here if communication is already running
             sendResponse(SIP_RESPONSE_BUSY_CODE, SIP_RESPONSE_BUSY, &requestHeader);
@@ -203,7 +232,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
                     return;
                 }
             }
-            SessionDescription sdp = sdpHandler.readSessionDescription(requestBody);
+            SessionDescription sdp = SDPMessageHandler::readSessionDescription(requestBody);
             const std::vector<MediaDescription> availableMedias = SDPMessageHandler::readMediaDescriptions(sdp);
             //select best media
             int bestMediaIndex = selectBestMedia(availableMedias);
@@ -220,7 +249,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             NetworkConfiguration rtpConfig = sipConfig;
             rtpConfig.localPort = DEFAULT_NETWORK_PORT;
             rtpConfig.remotePort = DEFAULT_NETWORK_PORT;
-            const std::string messageBody = sdpHandler.createSessionDescription(rtpConfig, {availableMedias[bestMediaIndex]});
+            const std::string messageBody = SDPMessageHandler::createSessionDescription(rtpConfig, {availableMedias[bestMediaIndex]});
             const std::string message = SIPPackageHandler::createResponsePackage(responseHeader, messageBody);
             
             std::cout << "SIP: Accepting INVITE from " << requestHeader[SIP_HEADER_CONTACT] << std::endl;
@@ -250,6 +279,19 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     {
         // remote has acknowledged our last message
         //TODO what to do??
+    }
+    else if(SIP_REQUEST_CANCEL.compare(requestHeader.requestCommand) == 0)
+    {
+        //remote has canceled their INVITE
+        //if we have already established communication - do nothing
+        if(state != SessionState::ESTABLISHED)
+        {
+            std::cout << "SIP: CANCEL received, canceling session setup ..." << std::endl;
+            //send ok to verify reception
+            sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader);
+            shutdownInternal();
+            stopCallback();
+        }
     }
     else
     {
@@ -294,7 +336,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
 
             streamConfig.localPort = DEFAULT_NETWORK_PORT;
             //OK for INVITES contains SDP with selected media, as well as IP/session-data of remote
-            const SessionDescription sdp = sdpHandler.readSessionDescription(responseBody);
+            const SessionDescription sdp = SDPMessageHandler::readSessionDescription(responseBody);
             //extract ORIGIN-data
             const std::string origin = sdp[SDP_ORIGIN];
             sipUserAgents[PARTICIPANT_REMOTE].userName = origin.substr(0, origin.find(' '));
@@ -393,6 +435,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         //remote is busy or call was declined
         std::cout << "SIP: Could not establish connection: " << responseHeader.reasonPhrase << std::endl;
         sendAckRequest();
+        state  = SessionState::SHUTDOWN;
         shutdown();
     }
     else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_TERMINATED_CODE)
@@ -426,10 +469,10 @@ void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHea
     //"rport" is specified in RFC3581 and requests the response to be sent to the originating port
     //"branch"-tag unique for all requests, randomly generated, starting with "z9hG4bK", ACK has same as INVITE (for non-2xx ACK) -> 8.1.1.7 Via
     //"received"-tag has the IP of the receiving endpoint
-    const std::string branchTag = requestHeader != nullptr ? requestHeader->getBranchTag() : (std::string("z9hG4bK") + std::to_string(rand()));
+    lastBranch = requestHeader != nullptr ? requestHeader->getBranchTag() : (std::string("z9hG4bK") + std::to_string(rand()));
     const std::string receivedTag = requestHeader != nullptr ? std::string(";received=") + sipUserAgents[PARTICIPANT_SELF].ipAddress : "";
     header[SIP_HEADER_VIA] = ((SIP_VERSION + "/UDP ") + sipUserAgents[PARTICIPANT_SELF].hostName + ":") + ((((std::to_string(sipConfig.localPort)
-                             + ";rport") + receivedTag) + ";branch=") + branchTag);
+                             + ";rport") + receivedTag) + ";branch=") + lastBranch);
     //TODO for response, copy/retain VIA-fields of request (multiple!)
     
     header[SIP_HEADER_CONTACT] = (sipUserAgents[PARTICIPANT_SELF].userName + " <") + sipUserAgents[PARTICIPANT_SELF].getSIPURI() + ">";
@@ -514,7 +557,7 @@ void SIPHandler::updateNetworkConfig()
 
 void SIPHandler::startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtcpConfig)
 {
-    sessionEstablished = true;
+    state = SessionState::ESTABLISHED;
     std::cout << "SIP: Using following SDP configuration: "
             << descr.protocol << " " << descr.payloadType << " " << descr.encoding << '/' << descr.sampleRate << '/' << descr.numChannels
             << std::endl;

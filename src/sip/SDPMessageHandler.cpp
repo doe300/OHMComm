@@ -18,7 +18,7 @@ SDPMessageHandler::SDPMessageHandler()
 {
 }
 
-std::string SDPMessageHandler::createSessionDescription(const NetworkConfiguration& config, const std::vector<MediaDescription>& media) const
+std::string SDPMessageHandler::createSessionDescription(const NetworkConfiguration& config, const std::vector<MediaDescription>& media)
 {
     NTPTimestamp now = NTPTimestamp::now();
     std::string localIP = Utility::getLocalIPAddress(Utility::getNetworkType(config.remoteIPAddress));
@@ -209,7 +209,7 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
     return result;
 }
 
-const SessionDescription SDPMessageHandler::readSessionDescription(std::string message) const
+const SessionDescription SDPMessageHandler::readSessionDescription(std::string message)
 {
     //Extract lines from message
     std::vector<std::string> lines;

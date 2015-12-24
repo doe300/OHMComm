@@ -21,10 +21,10 @@
 #define SIP_BUFFER_SIZE 4096
 
 //A list of all allowed SIP-methods
-const std::string SIP_ALLOW_METHODS("INVITE ACK BYE");
+const std::string SIP_ALLOW_METHODS = Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");
 
 //A list of all accepted MIME-types
-const std::string SIP_ACCEPT_TYPES(MIME_SDP);
+const std::string SIP_ACCEPT_TYPES = Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 
 const unsigned short SIP_DEFAULT_PORT =5060;
 
@@ -56,18 +56,38 @@ public:
     static std::string generateCallID(const std::string& host);
     
 private:
+    enum class SessionState
+    {
+        /*!
+         * Unknown status, we haven't established contact yet
+         */
+        UNKNOWN,
+        /*!
+         * We sent an INVITE and are waiting for a response
+         */
+        INVITING,
+        /*!
+         * Session is established, communication is up and running.
+         * Don't accept any further INVITEs, only BYE
+         */
+        ESTABLISHED,
+        /*!
+         * We had a session and shut it down. Or we failed to initialize a session at all
+         */
+        SHUTDOWN,
+    };
     std::unique_ptr<NetworkWrapper> network;
     const NetworkConfiguration sipConfig;
     const std::function<void(const MediaDescription&, const NetworkConfiguration&)> configFunction;
     std::function<void()> stopCallback = []()-> void{};
-    SDPMessageHandler sdpHandler;
     std::string callID;
     uint32_t sequenceNumber;
     std::vector<char> buffer;
+    std::string lastBranch;
     
     std::thread sipThread;
     bool threadRunning = false;
-    bool sessionEstablished = false;
+    SessionState state;
 
     /*!
      * Method called in the parallel thread, receiving SIP-packages and handling them
@@ -86,6 +106,8 @@ private:
     void handleSIPResponse(const void* buffer, unsigned int packageLength);
     
     void sendInviteRequest();
+    
+    void sendCancelRequest();
     
     void sendByeRequest();
     

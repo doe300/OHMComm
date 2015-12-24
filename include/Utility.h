@@ -92,6 +92,17 @@ public:
      */
     static std::string replaceAll(std::string str, const std::string& from, const std::string& to);
     
+    /*!
+     * Joins the strings in the given vector by concatenating them in the order of the vector.
+     * Between consecutive strings, the delimiter is inserted
+     * 
+     * \param vector The strings to be concatenated
+     * \param delimiter The string to insert between the single strings
+     * 
+     * \return the concatenated string
+     */
+    static std::string joinStrings(const std::vector<std::string>& vector, const std::string& delimiter = " ");
+    
 private:
     
     static std::string getExternalLocalIPAddress();
