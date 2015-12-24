@@ -11,6 +11,7 @@
 #include <string>
 #include <algorithm>
 #include <stdexcept>
+#include <vector>
 
 /*!
  * Class providing utility methods
