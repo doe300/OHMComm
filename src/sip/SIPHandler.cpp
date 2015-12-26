@@ -202,15 +202,9 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     SIPRequestHeader requestHeader;
     std::string requestBody = SIPPackageHandler::readRequestPackage(buffer, packageLength, requestHeader);
     std::cout << "SIP: Request received: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
-    //set values for remote user/host and remote-address into SIP user agent database
-    //this enables receiving INVITES from user agents other than the one, we sent the initial INVITE to
-    std::tuple<std::string, std::string,std::string, int> remoteAddress = requestHeader.getAddress();
-    sipUserAgents[PARTICIPANT_REMOTE].userName = std::get<0>(remoteAddress);
-    sipUserAgents[PARTICIPANT_REMOTE].hostName = std::get<1>(remoteAddress);
-    sipUserAgents[PARTICIPANT_REMOTE].ipAddress = std::get<2>(remoteAddress);
-    sipUserAgents[PARTICIPANT_REMOTE].port = std::get<3>(remoteAddress) == -1 ? SIP_DEFAULT_PORT : std::get<3>(remoteAddress);
+    //TODO allow only for INVITEs (and only if we have not already established a connection)
     sipUserAgents[PARTICIPANT_REMOTE].tag = requestHeader.getRemoteTag();
-    updateNetworkConfig();
+    updateNetworkConfig(&requestHeader);
     
     if (SIP_REQUEST_INVITE.compare(requestHeader.requestCommand) == 0)
     {
@@ -246,7 +240,8 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             int bestMediaIndex = selectBestMedia(availableMedias);
             if(bestMediaIndex < 0)
             {
-                //TODO no useful media found - send message (something about not-supported or similar)
+                //no useful media found - send message (something about not-supported or similar)
+                sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader);
                 shutdown();
                 return;
             }
@@ -371,11 +366,15 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     }
     else if(responseHeader.statusCode == SIP_RESPONSE_MULTIPLE_CHOICES_CODE || responseHeader.statusCode == SIP_RESPONSE_AMBIGUOUS_CODE)
     {
-        //TODO select first choice (Contact) and try again??
+        //select first choice (Contact) and try again
+        updateNetworkConfig(&responseHeader);
+        sendInviteRequest();
     }
-    else if(responseHeader.statusCode == SIP_RESPONSE_MOVED_PERMAMENTLY_CODE || responseHeader.statusCode == SIP_RESPONSE_MOVED_TEMPORARILY_CODE)
+    else if(responseHeader.statusCode == SIP_RESPONSE_MOVED_PERMANENTLY_CODE || responseHeader.statusCode == SIP_RESPONSE_MOVED_TEMPORARILY_CODE)
     {
-        //TODO change remote-address and retry
+        //change remote-address and retry
+        updateNetworkConfig(&responseHeader);
+        sendInviteRequest();
     }
     else if(responseHeader.statusCode == SIP_RESPONSE_BAD_REQUEST_CODE)
     {
@@ -552,15 +551,26 @@ const int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& avail
     //TODO...
 }
 
-void SIPHandler::updateNetworkConfig()
+void SIPHandler::updateNetworkConfig(const SIPHeader* header)
 {
-    //update all configuration-dependant values
-    sipUserAgents[PARTICIPANT_SELF].ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
+    if(header != nullptr)
+    {
+        //set values for remote user/host and remote-address into SIP user agent database
+        //this enables receiving INVITES from user agents other than the one, we sent the initial INVITE to
+        std::tuple<std::string, std::string,std::string, int> remoteAddress = header->getAddress();
+        sipUserAgents[PARTICIPANT_REMOTE].userName = std::get<0>(remoteAddress);
+        sipUserAgents[PARTICIPANT_REMOTE].hostName = std::get<1>(remoteAddress);
+        sipUserAgents[PARTICIPANT_REMOTE].ipAddress = std::get<2>(remoteAddress);
+        sipUserAgents[PARTICIPANT_REMOTE].port = std::get<3>(remoteAddress) == -1 ? SIP_DEFAULT_PORT : std::get<3>(remoteAddress);
+    }
     //reset network-wrapper to send new packages to correct address
     sipConfig.remoteIPAddress = sipUserAgents[PARTICIPANT_REMOTE].ipAddress;
     sipConfig.remotePort = sipUserAgents[PARTICIPANT_REMOTE].port;
     network->closeNetwork();
     network.reset(new UDPWrapper(sipConfig));
+    
+    //update all configuration-dependant values
+    sipUserAgents[PARTICIPANT_SELF].ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
 }
 
 void SIPHandler::startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration& rtcpConfig)

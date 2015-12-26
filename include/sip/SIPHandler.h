@@ -117,7 +117,7 @@ private:
     
     const int selectBestMedia(const std::vector<MediaDescription>& availableMedias) const;
     
-    void updateNetworkConfig();
+    void updateNetworkConfig(const SIPHeader* header = nullptr);
     
     void startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration& rtcpConfig);
     
