@@ -12,6 +12,7 @@
 #include <vector>
 #include <string.h>
 #include <map>
+#include <tuple>
 
 #include "KeyValuePairs.h"
 
@@ -281,6 +282,36 @@ struct SIPRequestHeader : public SIPHeader
         }
         std::string::size_type index = fromField.find("tag=") + strlen("tag=");
         return fromField.substr(index, fromField.find(';', index) - index);
+    }
+    
+    /*!
+     * This method returns the user-name, host-name IP-address and port of the originating device for this 
+     * SIPRequestHeader. The host-name may be the same as the IP-address, if the host-name was specified in numeric form
+     * 
+     * \return the remote user-name, remote host-name, remote IP-address and remote port for this request
+     */
+    const std::tuple<std::string, std::string, std::string, int> getAddress() const
+    {
+        //read contact-field
+        //Contact: [<user-name>] "<sip:"<user>"@"<host>[":"<port>]">"
+        const std::string& contactHeader = this->operator [](SIP_HEADER_CONTACT);
+        std::string::size_type index1 = contactHeader.find('<');
+        index1 += std::string("<sip:").size();
+        std::string::size_type index2 = contactHeader.find('@', index1);
+        const std::string user = contactHeader.substr(index1, index2 - index1);
+        index2 += 1;
+        index1 = contactHeader.find_first_of(":>", index2);
+        const std::string host = contactHeader.substr(index2, index1 - index2);
+        //host may be host-name or IP-address
+        const std::string ipAddress = Utility::getAddressForHostName(host);
+        int port = -1;
+        if(contactHeader[index1] == ':')
+        {
+            index1 += 1;
+            index2 = contactHeader.find('>', index1);
+            port = atoi(contactHeader.substr(index1, index2 - index1).data());
+        }
+        return std::make_tuple(user, host, ipAddress, port);
     }
 };
 

@@ -11,7 +11,7 @@
 #include <chrono>
 
 SIPConfiguration::SIPConfiguration(const NetworkConfiguration& sipConfig, bool profileProcessors, const std::string& logFile) : 
-    ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription& media, const NetworkConfiguration& rtcpConfig){this->setConfig(media, rtcpConfig);}), rtcpConfig({0})
+    ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription& media, const NetworkConfiguration& rtpConfig, const NetworkConfiguration& rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
 {
     useDefaultAudioConfig = false;
     audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
@@ -99,16 +99,13 @@ void SIPConfiguration::onPlaybackStop()
     handler.shutdown();
 }
 
-void SIPConfiguration::setConfig(const MediaDescription& media, const NetworkConfiguration& customRTCPConfig)
+void SIPConfiguration::setConfig(const MediaDescription& media, const NetworkConfiguration& rtpConfig, const NetworkConfiguration& customRTCPConfig)
 {
+    //RTP-config
+    networkConfig.localPort = rtpConfig.localPort;
+    networkConfig.remoteIPAddress = rtpConfig.remoteIPAddress;
     networkConfig.remotePort = media.port;
-    audioConfig.forceSampleRate = media.sampleRate;
-    audioConfig.inputDeviceChannels = media.numChannels;
-    audioConfig.outputDeviceChannels = media.numChannels;
-    payloadType = media.payloadType;
-    SupportedFormat format = media.getFormat();
-    processorNames.push_back(format.processorName);
-    
+    //RTCP-config
     //allows for custom remote RTCP port (and address), see RFC 3605
     rtcpConfig.localPort = networkConfig.localPort + 1;
     rtcpConfig.remotePort = networkConfig.remotePort + 1;
@@ -121,6 +118,14 @@ void SIPConfiguration::setConfig(const MediaDescription& media, const NetworkCon
     {
         rtcpConfig.remoteIPAddress = customRTCPConfig.remoteIPAddress;
     }
+    
+    //audio-config
+    audioConfig.forceSampleRate = media.sampleRate;
+    audioConfig.inputDeviceChannels = media.numChannels;
+    audioConfig.outputDeviceChannels = media.numChannels;
+    payloadType = media.payloadType;
+    SupportedFormat format = media.getFormat();
+    processorNames.push_back(format.processorName);
     
     isConfigurationDone = true;
 }

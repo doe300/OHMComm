@@ -63,6 +63,8 @@ public:
     static AddressType getNetworkType(const std::string& remoteAddress);
     
     /*!
+     * If an IP-address is passed to this method, the same address is returned
+     * 
      * \param hostName the DNS name to retrieve the IP address for
      * 
      * \return the IPv4 or IPv6 address in the standard textual representation, or an empty string on error

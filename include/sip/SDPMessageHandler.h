@@ -103,7 +103,18 @@ struct SessionDescription : public KeyValuePairs<SessionKey>
             }
         }
         return "";
-    }    
+    }
+
+    /*!
+     * \return The IP address (IPv4 or IPv6) of the media source
+     */
+    const std::string getConnectionAddress() const
+    {
+        const std::string connection = this->operator [](SDP_CONNECTION);
+        //c=<nettype> <addrtype> <connection-address>
+        const std::string::size_type index = connection.find_last_of(' ');
+        return connection.substr(index+1);
+    }
 };
 
 /*!
