@@ -162,6 +162,40 @@ std::string Utility::joinStrings(const std::vector<std::string>& vector, const s
     return result;
 }
 
+/* Converts a hex character to its integer value */
+inline char from_hex(char ch)
+{
+    return std::isdigit(ch) ? ch - '0' : std::tolower(ch) - 'a' + 10;
+}
+
+std::string Utility::decodeURI(const std::string& uri)
+{
+    //Taken from: http://www.geekhideout.com/urlcode.shtml
+    std::string result;
+    const char* pstr = uri.c_str();
+    while (*pstr != '\0')
+    {
+        if (*pstr == '%')
+        {
+            if (pstr[1] && pstr[2])
+            {
+                result += from_hex(pstr[1]) << 4 | from_hex(pstr[2]);
+                pstr += 2;
+            }
+        }
+        else if (*pstr == '+')
+        {
+            result += ' ';
+        }
+        else
+        {
+            result += *pstr;
+        }
+        pstr++;
+    }
+    return result;
+}
+
 std::string Utility::getExternalLocalIPAddress()
 {
     //find external IP of local device

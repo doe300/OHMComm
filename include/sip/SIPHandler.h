@@ -11,14 +11,14 @@
 #include <memory>
 #include <thread>
 #include <functional>
+#include <exception>
 
 #include "UDPWrapper.h"
 #include "rtp/ParticipantDatabase.h"
 #include "SDPMessageHandler.h"
 #include "SIPPackageHandler.h"
 
-//TODO some reasonable value
-#define SIP_BUFFER_SIZE 4096
+#define SIP_BUFFER_SIZE 2048
 
 //A list of all allowed SIP-methods
 const std::string SIP_ALLOW_METHODS = Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");

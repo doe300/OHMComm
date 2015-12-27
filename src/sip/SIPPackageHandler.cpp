@@ -6,7 +6,6 @@
  */
 
 #include <sstream>
-#include <iostream>
 #include <limits.h>
 
 #include "sip/SIPPackageHandler.h"
@@ -29,15 +28,19 @@ const std::string SIPPackageHandler::createRequestPackage(const SIPRequestHeader
 
 const std::string SIPPackageHandler::readRequestPackage(const void* sipPackage, unsigned int packageLength, SIPRequestHeader& readHeader) 
 {
-    std::vector<std::string> results = readResponse(sipPackage, packageLength, readHeader.fields);
+    std::vector<std::string> results = readPackage(sipPackage, packageLength, readHeader.fields);
     //check protocol version
     if(SIP_VERSION.compare(results[2])!=0)
     {
-        std::cerr << "Invalid SIP protocol version: " << results[2] << std::endl;
-        return "";
+        throw std::invalid_argument(std::string("Invalid SIP protocol version: ") + results[2]);
     }
     readHeader.requestCommand = results[0];
-    readHeader.requestURI = results[1];
+    readHeader.requestURI = Utility::decodeURI(results[1]);
+    //check for request URI syntax
+    if(readHeader.requestURI.find("sip:") != 0 || readHeader.requestURI.find('@') == std::string::npos)
+    {
+        throw std::invalid_argument(std::string("Invalid request URI: ") + results[1]);
+    }
     return results[3];
 }
 
@@ -55,11 +58,10 @@ const std::string SIPPackageHandler::createResponsePackage(const SIPResponseHead
 
 const std::string SIPPackageHandler::readResponsePackage(const void* sipPackage, unsigned int packageLength, SIPResponseHeader& readHeader)
 {
-    std::vector<std::string> results = readResponse(sipPackage, packageLength, readHeader.fields);//check protocol version
+    std::vector<std::string> results = readPackage(sipPackage, packageLength, readHeader.fields);//check protocol version
     if(SIP_VERSION.compare(results[0])!=0)
     {
-        std::cerr << "Invalid SIP protocol version: " << results[0] << std::endl;
-        return "";
+        throw std::invalid_argument(std::string("Invalid SIP protocol version: ") + results[0]);
     }
     readHeader.statusCode = atoi(results[1].c_str());
     readHeader.reasonPhrase = results[2];
@@ -155,7 +157,7 @@ void SIPPackageHandler::writeHeaderFields(std::stringstream& stream, std::vector
     stream << CRLF;
 }
 
-std::vector<std::string> SIPPackageHandler::readResponse(const void* sipPackage, unsigned int packageLength, std::vector<HeaderField>& header)
+std::vector<std::string> SIPPackageHandler::readPackage(const void* sipPackage, unsigned int packageLength, std::vector<HeaderField>& header)
 {
     std::vector<std::string> results(4);
     //create string from the input buffer

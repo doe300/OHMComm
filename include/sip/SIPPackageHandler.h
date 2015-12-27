@@ -13,6 +13,7 @@
 #include <string.h>
 #include <map>
 #include <tuple>
+#include <exception>
 
 #include "KeyValuePairs.h"
 
@@ -244,10 +245,18 @@ struct SIPHeader : KeyValuePairs<HeaderField>
     
     virtual const std::string getRequestCommand() const = 0;
     
+    /*!
+     * \return the branch-tag from the Via header-field or an empty string if no such tag exists
+     */
     const std::string getBranchTag() const
     {
         const std::string& viaField = operator [](SIP_HEADER_VIA);
-        std::string::size_type index = viaField.find("branch=") + strlen("branch=");
+        std::string::size_type index = viaField.find("branch=");
+        if(index == std::string::npos)
+        {
+            return "";
+        }
+        index += strlen("branch=");
         return viaField.substr(index, viaField.find(';', index) - index);
     }
     
@@ -257,30 +266,30 @@ struct SIPHeader : KeyValuePairs<HeaderField>
      * This method returns the user-name, host-name IP-address and port of the originating device for this 
      * SIPHeader. The host-name may be the same as the IP-address, if the host-name was specified in numeric form
      * 
-     * NOTE: for this method to work, the header needs to have a Contact header-field
+     * NOTE: for this method to work, the header needs to have a Contact or a From header-field
      * 
      * \return the remote user-name, remote host-name, remote IP-address and remote port for this request
      */
     const std::tuple<std::string, std::string, std::string, int> getAddress() const
     {
         //read contact-field
-        //Contact: [<user-name>] "<sip:"<user>"@"<host>[":"<port>]">"
-        const std::string& contactHeader = this->operator [](SIP_HEADER_CONTACT);
-        std::string::size_type index1 = contactHeader.find('<');
+        //Contact/From: [<user-name>] "<sip:"<user>"@"<host>[":"<port>]">"
+        const std::string& headerField = this->operator [](SIP_HEADER_CONTACT).empty() ? this->operator [](SIP_HEADER_FROM) : this->operator [](SIP_HEADER_CONTACT);
+        std::string::size_type index1 = headerField.find('<');
         index1 += std::string("<sip:").size();
-        std::string::size_type index2 = contactHeader.find('@', index1);
-        const std::string user = contactHeader.substr(index1, index2 - index1);
+        std::string::size_type index2 = headerField.find('@', index1);
+        const std::string user = headerField.substr(index1, index2 - index1);
         index2 += 1;
-        index1 = contactHeader.find_first_of(":>", index2);
-        const std::string host = contactHeader.substr(index2, index1 - index2);
-        //host may be host-name or IP-address
-        const std::string ipAddress = Utility::getAddressForHostName(host);
+        index1 = headerField.find_first_of(":>", index2);
+        const std::string host = headerField.substr(index2, index1 - index2);
+        //host may be host-name or IP-address (but we need to skip possible URL-attributes starting with ';')
+        const std::string ipAddress = Utility::getAddressForHostName(host.find(';') != std::string::npos ? host.substr(0, host.find(';')) : host);
         int port = -1;
-        if(contactHeader[index1] == ':')
+        if(headerField[index1] == ':')
         {
             index1 += 1;
-            index2 = contactHeader.find('>', index1);
-            port = atoi(contactHeader.substr(index1, index2 - index1).data());
+            index2 = headerField.find('>', index1);
+            port = atoi(headerField.substr(index1, index2 - index1).data());
         }
         return std::make_tuple(user, host, ipAddress, port);
     }
@@ -661,7 +670,7 @@ private:
      *      For request: request-command, request-uri, SIP-version, body
      *      For response: SIP-version, response-status, response-reason, body
      */
-    static std::vector<std::string> readResponse(const void* sipPackage, unsigned int packageLength, std::vector<HeaderField>& header);
+    static std::vector<std::string> readPackage(const void* sipPackage, unsigned int packageLength, std::vector<HeaderField>& header);
 };
 
 #endif	/* SIPPACKAGEHANDLER_H */

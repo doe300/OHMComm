@@ -200,108 +200,132 @@ void SIPHandler::sendAckRequest()
 void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength)
 {
     SIPRequestHeader requestHeader;
-    std::string requestBody = SIPPackageHandler::readRequestPackage(buffer, packageLength, requestHeader);
-    std::cout << "SIP: Request received: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
-    //TODO allow only for INVITEs (and only if we have not already established a connection)
-    sipUserAgents[PARTICIPANT_REMOTE].tag = requestHeader.getRemoteTag();
-    updateNetworkConfig(&requestHeader);
-    
-    if (SIP_REQUEST_INVITE.compare(requestHeader.requestCommand) == 0)
+    std::string requestBody;
+    try
     {
-        //if we get invited, the Call-ID is set by the remote UAS
-        callID = requestHeader[SIP_HEADER_CALL_ID];
-        //0. send ringing
-        sendResponse(SIP_RESPONSE_RINGING_CODE, SIP_RESPONSE_RINGING, &requestHeader);
-        //1. send dialog established
-        sendResponse(SIP_RESPONSE_DIALOG_ESTABLISHED_CODE, SIP_RESPONSE_DIALOG_ESTABLISHED, &requestHeader);
-        if (state == SessionState::ESTABLISHED)
+        requestBody = SIPPackageHandler::readRequestPackage(buffer, packageLength, requestHeader);
+        std::cout << "SIP: Request received: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
+        sipUserAgents[PARTICIPANT_REMOTE].tag = requestHeader.getRemoteTag();
+        //TODO allow changing of remote only for INVITEs (and only if we have not already established a connection)
+        updateNetworkConfig(&requestHeader);
+    }
+    catch(const std::invalid_argument& error)
+    {
+        //fired on invalid IP-address or any error while parsing request
+        //TODO error-response is sent to wrong (old) destination if thrown before network is reconnected
+        std::cout << "SIP: Received bad request: " << error.what() << std::endl;
+        sendResponse(SIP_RESPONSE_BAD_REQUEST_CODE, SIP_RESPONSE_BAD_REQUEST, &requestHeader);
+        return;
+    }
+    try
+    {
+        if (SIP_REQUEST_INVITE.compare(requestHeader.requestCommand) == 0)
         {
-            //2.1 send busy here if communication is already running
-            sendResponse(SIP_RESPONSE_BUSY_CODE, SIP_RESPONSE_BUSY, &requestHeader);
-            std::cout << "SIP: Received INVITE, but communication already active, answering: " << SIP_RESPONSE_BUSY << std::endl;
-        }
-        else if (requestHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(requestHeader))
-        {
-            //adds support for multipart containing SDP (RFC 5621)
-            if(SIPPackageHandler::hasMultipartBody(requestHeader))
+            //if we get invited, the Call-ID is set by the remote UAS
+            callID = requestHeader[SIP_HEADER_CALL_ID];
+            //0. send ringing
+            sendResponse(SIP_RESPONSE_RINGING_CODE, SIP_RESPONSE_RINGING, &requestHeader);
+            //1. send dialog established
+            sendResponse(SIP_RESPONSE_DIALOG_ESTABLISHED_CODE, SIP_RESPONSE_DIALOG_ESTABLISHED, &requestHeader);
+            if (state == SessionState::ESTABLISHED)
             {
-                //we only need the SDP part of the body
-                requestBody = SIPPackageHandler::readMultipartBody(requestHeader, requestBody)[MIME_SDP];
-                if(requestBody.empty())
+                //2.1 send busy here if communication is already running
+                sendResponse(SIP_RESPONSE_BUSY_CODE, SIP_RESPONSE_BUSY, &requestHeader);
+                std::cout << "SIP: Received INVITE, but communication already active, answering: " << SIP_RESPONSE_BUSY << std::endl;
+            }
+            else if (requestHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(requestHeader))
+            {
+                //adds support for multipart containing SDP (RFC 5621)
+                if(SIPPackageHandler::hasMultipartBody(requestHeader))
                 {
-                    std::cout << "SIP: Received multi-part INVITE without SDP body!" << std::endl;
-                    shutdownInternal();
+                    //we only need the SDP part of the body
+                    requestBody = SIPPackageHandler::readMultipartBody(requestHeader, requestBody)[MIME_SDP];
+                    if(requestBody.empty())
+                    {
+                        std::cout << "SIP: Received multi-part INVITE without SDP body!" << std::endl;
+                        shutdownInternal();
+                        return;
+                    }
+                }
+                SessionDescription sdp = SDPMessageHandler::readSessionDescription(requestBody);
+                const std::vector<MediaDescription> availableMedias = SDPMessageHandler::readMediaDescriptions(sdp);
+                //select best media
+                int bestMediaIndex = selectBestMedia(availableMedias);
+                if(bestMediaIndex < 0)
+                {
+                    //no useful media found - send message (something about not-supported or similar)
+                    sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader);
+                    state = SessionState::UNKNOWN;
+                    shutdown();
                     return;
                 }
+                //2.2 send ok to start communication (with selected media-format)
+                SIPResponseHeader responseHeader(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK);
+                initializeHeaderFields(SIP_REQUEST_INVITE, responseHeader, &requestHeader);
+                responseHeader[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
+                NetworkConfiguration rtpConfig;
+                rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
+                rtpConfig.localPort = DEFAULT_NETWORK_PORT;
+                rtpConfig.remotePort = availableMedias[bestMediaIndex].port;
+                const std::string messageBody = SDPMessageHandler::createSessionDescription(rtpConfig, {availableMedias[bestMediaIndex]});
+                const std::string message = SIPPackageHandler::createResponsePackage(responseHeader, messageBody);
+
+                std::cout << "SIP: Accepting INVITE from " << requestHeader[SIP_HEADER_CONTACT] << std::endl;
+                network->sendData(message.data(), message.size());
+
+                //start communication
+                startCommunication(availableMedias[bestMediaIndex], rtpConfig, SDPMessageHandler::readRTCPAttribute(sdp));
             }
-            SessionDescription sdp = SDPMessageHandler::readSessionDescription(requestBody);
-            const std::vector<MediaDescription> availableMedias = SDPMessageHandler::readMediaDescriptions(sdp);
-            //select best media
-            int bestMediaIndex = selectBestMedia(availableMedias);
-            if(bestMediaIndex < 0)
+            else
             {
-                //no useful media found - send message (something about not-supported or similar)
+                std::cout << "SIP: Received INVITE without SDP body!" << std::endl;
+                if(requestHeader.getContentLength() > 0)
+                {
+                    std::cout << requestHeader.getContentLength() << " " << requestHeader[SIP_HEADER_CONTENT_TYPE] << std::endl;
+                }
                 sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader);
-                shutdown();
-                return;
             }
-            //2.2 send ok to start communication (with selected media-format)
-            SIPResponseHeader responseHeader(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK);
-            initializeHeaderFields(SIP_REQUEST_INVITE, responseHeader, &requestHeader);
-            responseHeader[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
-            NetworkConfiguration rtpConfig;
-            rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
-            rtpConfig.localPort = DEFAULT_NETWORK_PORT;
-            rtpConfig.remotePort = availableMedias[bestMediaIndex].port;
-            const std::string messageBody = SDPMessageHandler::createSessionDescription(rtpConfig, {availableMedias[bestMediaIndex]});
-            const std::string message = SIPPackageHandler::createResponsePackage(responseHeader, messageBody);
-            
-            std::cout << "SIP: Accepting INVITE from " << requestHeader[SIP_HEADER_CONTACT] << std::endl;
-            network->sendData(message.data(), message.size());
-            
-            //start communication
-            startCommunication(availableMedias[bestMediaIndex], rtpConfig, SDPMessageHandler::readRTCPAttribute(sdp));
         }
-        else
+        else if (SIP_REQUEST_BYE.compare(requestHeader.requestCommand) == 0)
         {
-            std::cout << "SIP: Received INVITE without SDP body!" << std::endl;
-            std::cout << requestHeader.getContentLength() << " " << requestHeader[SIP_HEADER_CONTENT_TYPE] << std::endl;
-            
-            shutdown();
-        }
-    }
-    else if (SIP_REQUEST_BYE.compare(requestHeader.requestCommand) == 0)
-    {
-        std::cout << "SIP: BYE received, shutting down ..." << std::endl;
-        //send ok to verify reception
-        sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader);
-        //end communication, if established
-        shutdownInternal();
-        stopCallback();
-    }
-    else if(SIP_REQUEST_ACK.compare(requestHeader.requestCommand) == 0)
-    {
-        // remote has acknowledged our last message
-        //TODO what to do??
-    }
-    else if(SIP_REQUEST_CANCEL.compare(requestHeader.requestCommand) == 0)
-    {
-        //remote has canceled their INVITE
-        //if we have already established communication - do nothing
-        if(state != SessionState::ESTABLISHED)
-        {
-            std::cout << "SIP: CANCEL received, canceling session setup ..." << std::endl;
+            std::cout << "SIP: BYE received, shutting down ..." << std::endl;
             //send ok to verify reception
             sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader);
+            //end communication, if established
             shutdownInternal();
             stopCallback();
         }
+        else if(SIP_REQUEST_ACK.compare(requestHeader.requestCommand) == 0)
+        {
+            // remote has acknowledged our last message
+            //TODO what to do??
+        }
+        else if(SIP_REQUEST_CANCEL.compare(requestHeader.requestCommand) == 0)
+        {
+            //remote has canceled their INVITE
+            //if we have already established communication - do nothing
+            if(state != SessionState::ESTABLISHED)
+            {
+                std::cout << "SIP: CANCEL received, canceling session setup ..." << std::endl;
+                //send ok to verify reception
+                sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader);
+                shutdownInternal();
+                stopCallback();
+            }
+        }
+        else
+        {
+            std::cout << "SIP: Received not implemented request-method: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
+            //by default, send method not allowed
+            sendResponse(SIP_RESPONSE_NOT_IMPLEMENTED_CODE, SIP_RESPONSE_NOT_IMPLEMENTED, &requestHeader);
+            state = SessionState::UNKNOWN;
+        }
     }
-    else
+    catch(const std::exception& error)
     {
-        std::cout << "SIP: Received not implemented request-method: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
-        //by default, send method not allowed
-        sendResponse(SIP_RESPONSE_NOT_IMPLEMENTED_CODE, SIP_RESPONSE_NOT_IMPLEMENTED, &requestHeader);
+        sendResponse(SIP_RESPONSE_SERVER_ERROR_CODE, SIP_RESPONSE_SERVER_ERROR, &requestHeader);
+        std::cerr << "SIP: Server-error: " << error.what() << std::endl;
+        shutdown();
     }
 }
 
@@ -563,6 +587,7 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
         sipUserAgents[PARTICIPANT_REMOTE].ipAddress = std::get<2>(remoteAddress);
         sipUserAgents[PARTICIPANT_REMOTE].port = std::get<3>(remoteAddress) == -1 ? SIP_DEFAULT_PORT : std::get<3>(remoteAddress);
     }
+    std::cout << "Reconnecting SIP ..." << std::endl;
     //reset network-wrapper to send new packages to correct address
     sipConfig.remoteIPAddress = sipUserAgents[PARTICIPANT_REMOTE].ipAddress;
     sipConfig.remotePort = sipUserAgents[PARTICIPANT_REMOTE].port;

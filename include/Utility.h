@@ -106,6 +106,15 @@ public:
      */
     static std::string joinStrings(const std::vector<std::string>& vector, const std::string& delimiter = " ");
     
+    /*!
+     * Decodes an URI-encoded string by reversing the '%'-escaping
+     * 
+     * \param uri The (possibly) URI-encoded string
+     * 
+     * \return The decoded string
+     */
+    static std::string decodeURI(const std::string& uri);
+    
 private:
     
     static std::string getExternalLocalIPAddress();
