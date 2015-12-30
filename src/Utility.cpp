@@ -165,7 +165,7 @@ std::string Utility::joinStrings(const std::vector<std::string>& vector, const s
 /* Converts a hex character to its integer value */
 inline char from_hex(char ch)
 {
-    return std::isdigit(ch) ? ch - '0' : std::tolower(ch) - 'a' + 10;
+    return ::isdigit(ch) ? ch - '0' : ::tolower(ch) - 'a' + 10;
 }
 
 std::string Utility::decodeURI(const std::string& uri)
