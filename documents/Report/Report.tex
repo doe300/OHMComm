@@ -10,6 +10,15 @@
 \usepackage{float} % Umgebung die sich automatisch im Dokument an passenden Positionen bewegen (floaten)
 \usepackage{emptypage} % Wirklich leer bei leeren Seiten
 
+\usepackage{hyperref} % macht ToC und alle internen Lonks klickbar (für leichtere Navigation)
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
 \usepackage{listings} % schöne Quellcode-Listings
 % ein paar Einstellungen für akzeptable Listings
 \lstset{basicstyle=\ttfamily, columns=[l]flexible, mathescape=true, showstringspaces=false, numbers=left, numberstyle=\tiny}
@@ -103,62 +112,13 @@ OHMComm ist ein Framework zur Audiokommunikation und -verarbeitung, dass im Rahm
 
 \tableofcontents
 
-
-
-
-\chapter{Einleitung}
-\section{Ziel}
-\section{Aufbau des Berichts}
-
-\chapter{Anforderungsanalyse}
-\section{Funktionale und Nicht-Funktionale Anforderungen}
-\section{Datenhaushalt}
-\section{Alternative Softwarelösungen}
-
-\chapter{Entwurf}
-\section{Projektverwaltung und Werkzeuge}
-\section{Build Prozess}
-\section{Externe Softwarekomponenten}
-
-\section{Softwarearchitektur}
-\subsubsection{RTAudio}
-\subsubsection{Opus}
-\subsubsection{CPPTest}
-\subsection{Verarbeitungskette}
-\subsection{Instanziierung}
-\subsection{Statistiken}
-\subsection{Einstellungsmöglichkeiten und Konfigurationen}
-\subsection{RTP-Protokoll}
-\subsubsection{RTCP-Protokoll}
-\subsection{RTP-Buffer}
-
-\chapter{Implementierung}
-
-\chapter{Prototypische Anwendungen}
-\section{Voice-over-IP Konsolenanwendungen}
-\subsection{Ziel der Anwendung}
-\subsection{Steuerung}
-\subsection{Anwendungen ordnungsgemäß beenden}
-\section{Filerecorder}
-
-\chapter{Fazit und Ausblick}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+%Teil Inhalt auf, für bessere Modularität und paralleles Schreiben
+\include{includes/chapter1}
+\include{includes/chapter2}
+\include{includes/chapter3}
+\include{includes/chapter4}
+\include{includes/chapter5}
+\include{includes/chapter6}
 
 
 \bibliographystyle{apalike} % Literaturverzeichnis

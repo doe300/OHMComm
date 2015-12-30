@@ -215,3 +215,11 @@ rtaudio_static.lib
 /lib/**/stamp-h1
 /lib/**/Doxyfile
 /lib/**/.deps
+
+# LaTeX auxiliary files
+/documents/**/*.aux
+/documents/**/*.out
+/documents/**/*.bbl
+/documents/**/*.gz
+/documents/**/*.pdf
+/documents/**/*.toc
