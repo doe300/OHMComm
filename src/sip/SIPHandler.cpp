@@ -121,6 +121,7 @@ void SIPHandler::runThread()
 std::string SIPHandler::generateCallID(const std::string& host)
 {
     //TODO generate UUID
+    //use or copy: https://github.com/graeme-hill/crossguid/blob/master/guid.cpp
     //Call-ID: UUID@host
     return (std::to_string(std::rand()) + "@") +host;
 }
@@ -298,7 +299,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         else if(SIP_REQUEST_ACK.compare(requestHeader.requestCommand) == 0)
         {
             // remote has acknowledged our last message
-            //TODO what to do??
+            // we currently have no need to wait for confirmation
         }
         else if(SIP_REQUEST_CANCEL.compare(requestHeader.requestCommand) == 0)
         {
@@ -551,6 +552,7 @@ const int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& avail
     {
         return -1;
     }
+    //we only have one media, select it
     if(availableMedias.size() == 1)
     {
         return 0;
@@ -572,7 +574,17 @@ const int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& avail
         return index;
     }
     //then look for PCM
-    //TODO...
+    index = -1;
+    sampleRate = 0;
+    for(unsigned short i = 0; i < availableMedias.size(); i++)
+    {
+        if(Utility::equalsIgnoreCase(MediaDescription::MEDIA_PCM, availableMedias[i].encoding) && availableMedias[i].sampleRate > sampleRate)
+        {
+            index = i;
+            sampleRate = availableMedias[i].sampleRate;
+        }
+    }
+    return index;
 }
 
 void SIPHandler::updateNetworkConfig(const SIPHeader* header)

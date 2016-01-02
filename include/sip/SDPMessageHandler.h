@@ -59,6 +59,8 @@ struct FormatParameter : public KeyValuePair<std::string>
 
 struct MediaDescription
 {
+    //! media name for PCM samples
+    static const std::string MEDIA_PCM;
     unsigned short port;
     std::string protocol;
     unsigned int payloadType;

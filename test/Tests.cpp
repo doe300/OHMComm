@@ -75,6 +75,9 @@ int main(int argc, char** argv)
 //    TestSIPHandler testSIP;
 //    testSIP.run(output);
     
+    TestSTUNClient testSTUN;
+    testSTUN.run(output);
+    
     TestUtility testUtility;
     testUtility.run(output);
 }

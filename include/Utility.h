@@ -114,7 +114,7 @@ public:
      * \return The decoded string
      */
     static std::string decodeURI(const std::string& uri);
-    
+
 private:
     
     static std::string getExternalLocalIPAddress();

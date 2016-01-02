@@ -14,6 +14,8 @@
 
 SIPUserAgent sipUserAgents[2] = {{},{}};
 
+const std::string MediaDescription::MEDIA_PCM("PCM");
+
 SDPMessageHandler::SDPMessageHandler()
 {
 }
@@ -175,7 +177,7 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
     //  0  - the worst still-image quality the codec designer thinks is still usable.
     //a=fmtp:<format> <format specific parameters>T parameters that are specific to a particular format to be conveyed 
     //  in a way that SDP does not have to understand them
-    //TODO can be used for usedtx, ...
+    //XXX can be used for usedtx, ...
     
     //SDES Cryptographic extension - https://tools.ietf.org/html/rfc4568
     //a=crypto:<tag> <crypto-suite> <key-params> [<session-params>]
@@ -269,7 +271,7 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
                     //we currently only support L16_2 (PT = 10)
                     continue;
                 }
-                results.push_back({(unsigned short)port, protocol, payloadType, "PCM", 44100, 2});
+                results.push_back({(unsigned short)port, protocol, payloadType, MediaDescription::MEDIA_PCM, 44100, 2});
             }
             else //otherwise load RTP-map for payload-type
             {

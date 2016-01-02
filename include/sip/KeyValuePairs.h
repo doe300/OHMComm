@@ -136,6 +136,7 @@ private:
     
     inline bool isSame(const char& c1, const char& c2) const
     {
+        //SDP-keys are chars
         return c1 == c2;
     }
 };

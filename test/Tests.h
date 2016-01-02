@@ -13,6 +13,7 @@
 #include "rtp/TestRTCP.h"
 #include "rtp/TestRTPBuffer.h"
 #include "sip/TestSIPHandler.h"
+#include "sip/TestSTUNClient.h"
 
 #include <iostream>
 #include <fstream>
