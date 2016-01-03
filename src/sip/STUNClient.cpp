@@ -76,9 +76,14 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::testSTUNServer(c
         {
             //1.1 read body-length
             const uint16_t bodySize = ntohs(*(reinterpret_cast<uint16_t*>(buffer + 2)));
-            //1.2 check transaction-ID
+            //1.2 check magic cookie and transaction-ID
+            const uint32_t magicCookie = ntohl(*(reinterpret_cast<uint32_t*>(buffer + 4)));
             const char* transID = (const char*)(buffer + 8);
-            if(transactionID.compare(transID) != 0)
+            if(magicCookie != MAGIC_COOKIE)
+            {
+                std::cout << "STUN: Magic Cookie does not match!" << std::endl;
+            }
+            else if(transactionID.compare(transID) != 0)
             {
                 std::cout << "STUN: Transaction-IDs do not match!" << std::endl;
                 std::cout << transactionID << " is not " << std::string(transID, 12) << std::endl;
@@ -162,7 +167,7 @@ unsigned int STUNClient::createRequestMessage(STUNMessageType type, const std::s
 
 void STUNClient::createTransactionID(char* position)
 {
-    std::srand(std::time(nullptr));
+    std::srand(::time(nullptr));
     uint32_t rnd = std::rand();
     memcpy(position, &rnd, 4);
     rnd = std::rand();
@@ -200,7 +205,15 @@ const std::tuple<std::string, unsigned short> STUNClient::readMappedAddress(cons
     {
         const unsigned char* addressPtr = (unsigned char*)attribute.valuePointer + 4;
         std::string address("");
-        //TODO read hexadecimal values from ptr and join with ':'
+        //read hexadecimal values from ptr and join with ':'
+        uint8_t part = *addressPtr;
+        address.append(Utility::toHexString(part));
+        for(unsigned int i = 1; i < 16; i++)
+        {
+            address.append(":");
+            part = *(addressPtr + 1);
+            address.append(Utility::toHexString(part));
+        }
         return std::make_tuple(address, port);
     }
     return std::make_tuple("", 0);

@@ -114,6 +114,15 @@ public:
      * \return The decoded string
      */
     static std::string decodeURI(const std::string& uri);
+    
+    /*!
+     * Converts the given number to string using the hexadecimal representation
+     * 
+     * \param number The number to convert
+     * 
+     * \return a string-representation of the given number using hex digits
+     */
+    static std::string toHexString(unsigned int number);
 
 private:
     

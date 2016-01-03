@@ -196,6 +196,14 @@ std::string Utility::decodeURI(const std::string& uri)
     return result;
 }
 
+std::string Utility::toHexString(unsigned int number)
+{
+    //a 32 bit number has at most 8 hexadecimal digits
+    char tmp[8] = {'\0'};
+    sprintf(tmp, "%X", number);
+    return std::string(tmp);
+}
+
 std::string Utility::getExternalLocalIPAddress()
 {
     //find external IP of local device

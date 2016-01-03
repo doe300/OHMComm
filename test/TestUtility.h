@@ -26,6 +26,14 @@ public:
     void testTrim();
     
     void testEqualsIgnoreCase();
+    
+    void testReplaceAll();
+    
+    void testJoinStrings();
+    
+    void testDecodeURI();
+    
+    void testToHexString();
 };
 
 #endif	/* TESTUTILITY_H */

@@ -14,6 +14,10 @@ TestUtility::TestUtility()
     TEST_ADD(TestUtility::testAddressFromHostName);
     TEST_ADD(TestUtility::testTrim);
     TEST_ADD(TestUtility::testEqualsIgnoreCase);
+    TEST_ADD(TestUtility::testReplaceAll);
+    TEST_ADD(TestUtility::testJoinStrings);
+    TEST_ADD(TestUtility::testDecodeURI);
+    TEST_ADD(TestUtility::testToHexString);
 }
 
 void TestUtility::printDomainInfo()
@@ -54,4 +58,27 @@ void TestUtility::testEqualsIgnoreCase()
     TEST_ASSERT(Utility::equalsIgnoreCase(std::string("some Text"), std::string("SoMe tExT")));
 }
 
+void TestUtility::testReplaceAll()
+{
+    TEST_ASSERT(Utility::replaceAll("abababc", "b", "a").compare("aaaaaac") == 0);
+    TEST_ASSERT(Utility::replaceAll("abababc", "d", "a").compare("abababc") == 0);
+    TEST_ASSERT(Utility::replaceAll("abababc", "ba", "a").compare("aaabc") == 0);
+    TEST_ASSERT(Utility::replaceAll("abababc", "b", "ba").compare("abaabaabac") == 0);
+}
 
+void TestUtility::testJoinStrings()
+{
+    TEST_ASSERT(Utility::joinStrings({"one","two"}, " and ").compare("one and two") == 0);
+    TEST_ASSERT(Utility::joinStrings({"beer", "fest", "ival"}, "").compare("beerfestival") == 0);
+}
+
+void TestUtility::testDecodeURI()
+{
+    TEST_ASSERT(Utility::decodeURI("https%3A%2F%2Fgithub.com%2Fdoe300%2FOHMComm%2Fissues%2F64").compare("https://github.com/doe300/OHMComm/issues/64") == 0);
+    TEST_ASSERT(Utility::decodeURI("https://github.com/doe300/OHMComm/issues/64").compare("https://github.com/doe300/OHMComm/issues/64") == 0);
+}
+
+void TestUtility::testToHexString()
+{
+    TEST_ASSERT(Utility::toHexString(1234567890).compare("499602D2") == 0);
+}
