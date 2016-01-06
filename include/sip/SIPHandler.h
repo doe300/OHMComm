@@ -32,7 +32,7 @@ class SIPHandler
 {
 public:
     
-    SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription&, const NetworkConfiguration&, const NetworkConfiguration&)> configFunction);
+    SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction);
     
     SIPHandler(const NetworkConfiguration& sipConfig, const std::string& localUser, const std::string& localHostName, const std::string& remoteUser, const std::string& callID);
 
@@ -78,7 +78,7 @@ private:
     };
     std::unique_ptr<NetworkWrapper> network;
     NetworkConfiguration sipConfig;
-    const std::function<void(const MediaDescription&, const NetworkConfiguration&, const NetworkConfiguration&)> configFunction;
+    const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction;
     std::function<void()> stopCallback = []()-> void{};
     std::string callID;
     uint32_t sequenceNumber;
@@ -119,7 +119,7 @@ private:
     
     void updateNetworkConfig(const SIPHeader* header = nullptr);
     
-    void startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration& rtcpConfig);
+    void startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig);
     
     friend class SIPConfiguration;
 };

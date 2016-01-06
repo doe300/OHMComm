@@ -69,6 +69,19 @@ struct MediaDescription
     unsigned short numChannels;
     KeyValuePairs<FormatParameter> formatParams;
     
+    MediaDescription() = default;
+    
+    MediaDescription(unsigned short port, const std::string& protocol, unsigned int payloadType, const std::string& encoding, unsigned int sampleRate, unsigned short numChannels) : 
+        port(port), protocol(protocol), payloadType(payloadType), encoding(encoding), sampleRate(sampleRate), numChannels(numChannels)
+    {
+        
+    }
+    
+    MediaDescription(const SupportedFormat& format, unsigned short port, const std::string& protocol) : port(port), protocol(protocol), 
+        payloadType(format.payloadType), encoding(format.encoding), sampleRate(format.sampleRate), numChannels(format.numChannels)
+    {
+    }
+    
     /*!
      * \return the underlying supported-format for this media-description
      */

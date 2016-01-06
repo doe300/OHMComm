@@ -14,7 +14,7 @@ const std::string SIPUserAgent::getSIPURI() const
     return SIPPackageHandler::createSIPURI(userName, hostName.empty() ? ipAddress : hostName, port);
 }
 
-SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription&, const NetworkConfiguration&, const NetworkConfiguration&)> configFunction) : 
+SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction) : 
         network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), callID(SIPHandler::generateCallID(Utility::getDomainName())), sequenceNumber(0), buffer(SIP_BUFFER_SIZE), lastBranch(), state(SessionState::UNKNOWN)
 {
     sipUserAgents[PARTICIPANT_SELF].userName = Utility::getUserName();
@@ -29,7 +29,7 @@ SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string&
 
 
 SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& localUser, const std::string& localHostName, const std::string& remoteUser, const std::string& callID) :
-network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](const MediaDescription& dummy, const NetworkConfiguration& dummy1, const NetworkConfiguration& dummy2){}), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE), lastBranch(), state(SessionState::UNKNOWN)
+    network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](const MediaDescription dummy, const NetworkConfiguration dummy1, const NetworkConfiguration dummy2){}), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE), lastBranch(), state(SessionState::UNKNOWN)
 {
     sipUserAgents[PARTICIPANT_SELF].userName = localUser;
     sipUserAgents[PARTICIPANT_SELF].hostName = localHostName;
@@ -610,7 +610,7 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
     sipUserAgents[PARTICIPANT_SELF].ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
 }
 
-void SIPHandler::startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration& rtcpConfig)
+void SIPHandler::startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig)
 {
     state = SessionState::ESTABLISHED;
     std::cout << "SIP: Using following SDP configuration: "

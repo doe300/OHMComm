@@ -11,7 +11,7 @@
 #include <chrono>
 
 SIPConfiguration::SIPConfiguration(const NetworkConfiguration& sipConfig, bool profileProcessors, const std::string& logFile) : 
-    ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription& media, const NetworkConfiguration& rtpConfig, const NetworkConfiguration& rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
+    ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription media, const NetworkConfiguration rtpConfig, const NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
 {
     useDefaultAudioConfig = false;
     audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
@@ -125,7 +125,11 @@ void SIPConfiguration::setConfig(const MediaDescription& media, const NetworkCon
     audioConfig.outputDeviceChannels = media.numChannels;
     payloadType = media.payloadType;
     SupportedFormat format = media.getFormat();
-    processorNames.push_back(format.processorName);
+    if(!format.processorName.empty())
+    {
+        //format "PCM" has no processor name set, do don't add an empty one
+        processorNames.push_back(format.processorName);
+    }
     
     isConfigurationDone = true;
 }

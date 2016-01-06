@@ -13,7 +13,8 @@
 #include "Parameters.h"
 #include "Utility.h"
 
-const std::chrono::seconds RTCPHandler::sendSRInterval{20};
+//standard-conform minimum interval of 5 seconds (no need to be adaptive, as long as we only have one remote) (RFC3550 Section 6.2)
+const std::chrono::seconds RTCPHandler::sendSRInterval{5};
 
 RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback):

@@ -115,7 +115,6 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
         {
             mediaLine.append(std::to_string(format.payloadType)).append(" ");
         }
-        mediaLine.append(std::to_string(PayloadType::L16_2));
     }
     else
     {
@@ -145,8 +144,12 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
         //RTPmap for all supported media-formats
         for(const SupportedFormat& format: SupportedFormats::getFormats())
         {
-            lines.push_back(std::string("a=rtpmap:").append(std::to_string(format.payloadType)).append(" ")
+            //skip formats which are predefined in RFC 3551
+            if(!format.isDefaultFormat)
+            {
+                lines.push_back(std::string("a=rtpmap:").append(std::to_string(format.payloadType)).append(" ")
                     .append(format.encoding).append("/").append(std::to_string(format.sampleRate)).append("/").append(std::to_string(format.numChannels)));
+            }
         }
     }
     else
@@ -266,12 +269,15 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
             //check if payload-type is predefined
             if(payloadType <= PayloadType::G729)
             {
-                if(payloadType != PayloadType::L16_2)
+                if(payloadType == PayloadType::L16_2)
+                {
+                    results.push_back(MediaDescription(*(SupportedFormats::getFormat(PayloadType::L16_2)), (unsigned short)port, protocol));
+                }
+                else
                 {
                     //we currently only support L16_2 (PT = 10)
                     continue;
                 }
-                results.push_back({(unsigned short)port, protocol, payloadType, MediaDescription::MEDIA_PCM, 44100, 2});
             }
             else //otherwise load RTP-map for payload-type
             {
@@ -336,7 +342,7 @@ MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, con
         index += 1;
         numChannels = atoi(rtpMap.substr(index).data());
     }
-    return std::move(MediaDescription{0, "", payloadType, encoding, sampleRate, numChannels});
+    return std::move(MediaDescription(0, "", payloadType, encoding, sampleRate, numChannels));
 }
 
 void SDPMessageHandler::readFormatParameters(MediaDescription& descr, const SessionDescription& sdp, const unsigned int payloadType)
@@ -367,10 +373,6 @@ void SDPMessageHandler::readFormatParameters(MediaDescription& descr, const Sess
 
 bool SDPMessageHandler::isEncodingSupported(const std::string& encoding)
 {
-    if(Utility::equalsIgnoreCase("pcm", encoding))
-    {
-        return true;
-    }
     for(const SupportedFormat& format : SupportedFormats::getFormats())
     {
         if(Utility::equalsIgnoreCase(format.encoding, encoding))
