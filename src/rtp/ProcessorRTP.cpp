@@ -67,7 +67,7 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
 
     const void* recvAudioData = rtpPackage->getRTPPackageData();
     unsigned int receivedPayloadSize = rtpPackage->getActualPayloadSize();
-    memcpy(outputBuffer, recvAudioData, outputBufferByteSize);
+    memcpy(outputBuffer, recvAudioData, receivedPayloadSize);
 
     //set received payload size for all following processors to use
     return receivedPayloadSize;

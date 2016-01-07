@@ -186,7 +186,7 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices()
         audioConfig.forceAudioFormatFlag = 1 << (selectedAudioFormatIndex-1);
     }
 
-    unsigned int selectedSampleRate = UserInput::inputNumber("Input a sample-rate [use 0 for default]", true, false);
+    unsigned int selectedSampleRate = UserInput::inputNumber("Input a sample-rate [use 0 for default]", 0, UserInput::INPUT_ALLOW_ZERO|UserInput::INPUT_USE_DEFAULT);
     if(selectedSampleRate > 0)
     {
         audioConfig.forceSampleRate = selectedSampleRate;
@@ -202,8 +202,8 @@ void InteractiveConfiguration::interactivelyConfigureNetwork()
     networkConfig.remoteIPAddress = ipString;
 
     //2. remote and local ports
-    int destPort = UserInput::inputNumber("2. Input destination port", false, false);
-    int localPort = UserInput::inputNumber("3. Input local port", false, false);
+    int destPort = UserInput::inputNumber("2. Input destination port", 0, 0);
+    int localPort = UserInput::inputNumber("3. Input local port", 0, 0);
     networkConfig.remotePort = destPort;
     networkConfig.localPort = localPort;
 
