@@ -43,16 +43,20 @@ bool SIPConfiguration::runConfiguration()
     }
     handler.startUp();
     
+    //wait a bit for handler to have started
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // maximum time to wait before aborting configuration
     int timeLeft = SIPConfiguration::MAX_WAIT_TIME;
+    std::cout << "SIP: Calling remote ... " << std::endl;
+    std::cout << "SIP: Press Enter to cancel" << std::endl;
     
     //wait for configuration to be done
     while(!isConfigurationDone && handler.isRunning())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        // maximum time to wait before aborting configuration
         timeLeft -= 100;
-        //FIXME can currently not be canceled by user input
-        if(timeLeft <= 0)
+        //abort configuration on timeout or user input
+        if(timeLeft <= 0 || Utility::waitForUserInput(10) > 0)
         {
             //when aborting, let SIPHandler send CANCEL
             handler.shutdown();

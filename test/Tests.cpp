@@ -72,8 +72,8 @@ int main(int argc, char** argv)
     TestAudioProcessors testProcessors;
     testProcessors.run(output);
     
-//    TestSIPHandler testSIP;
-//    testSIP.run(output);
+    TestSIPHandler testSIP;
+    testSIP.run(output);
     
     TestSTUNClient testSTUN;
     testSTUN.run(output);

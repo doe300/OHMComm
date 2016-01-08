@@ -123,6 +123,15 @@ public:
      * \return a string-representation of the given number using hex digits
      */
     static std::string toHexString(unsigned int number);
+    
+    /*!
+     * Waits the given time (in milliseconds) for user input and returns the input or -1
+     * 
+     * \param waitInMS The time in milliseconds to wait for user input. If set to -1, the method will wait indefinitely
+     * 
+     * \return The key-code of the first character input or -1 if no input was performed
+     */
+    static int waitForUserInput(const int waitInMS);
 
 private:
     

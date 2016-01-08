@@ -34,6 +34,8 @@ public:
     void testDecodeURI();
     
     void testToHexString();
+    
+    void testWaitForUserInput();
 };
 
 #endif	/* TESTUTILITY_H */

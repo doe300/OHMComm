@@ -18,6 +18,7 @@ TestUtility::TestUtility()
     TEST_ADD(TestUtility::testJoinStrings);
     TEST_ADD(TestUtility::testDecodeURI);
     TEST_ADD(TestUtility::testToHexString);
+    TEST_ADD(TestUtility::testWaitForUserInput);
 }
 
 void TestUtility::printDomainInfo()
@@ -81,4 +82,10 @@ void TestUtility::testDecodeURI()
 void TestUtility::testToHexString()
 {
     TEST_ASSERT(Utility::toHexString(1234567890).compare("499602D2") == 0);
+}
+
+void TestUtility::testWaitForUserInput()
+{
+    TEST_ASSERT_EQUALS(-1, Utility::waitForUserInput(500));
+    TEST_ASSERT_EQUALS(-1, Utility::waitForUserInput(5));
 }

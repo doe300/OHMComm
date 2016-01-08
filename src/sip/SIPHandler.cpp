@@ -592,15 +592,20 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
         sipUserAgents[PARTICIPANT_REMOTE].ipAddress = std::get<2>(remoteAddress);
         sipUserAgents[PARTICIPANT_REMOTE].port = std::get<3>(remoteAddress) == -1 ? SIP_DEFAULT_PORT : std::get<3>(remoteAddress);
     }
-    std::cout << "Reconnecting SIP ..." << std::endl;
-    //reset network-wrapper to send new packages to correct address
-    sipConfig.remoteIPAddress = sipUserAgents[PARTICIPANT_REMOTE].ipAddress;
-    sipConfig.remotePort = sipUserAgents[PARTICIPANT_REMOTE].port;
-    network->closeNetwork();
-    network.reset(new UDPWrapper(sipConfig));
-    
-    //update all configuration-dependant values
-    sipUserAgents[PARTICIPANT_SELF].ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
+    //check if configuration has changed
+    if(sipConfig.remotePort != sipUserAgents[PARTICIPANT_REMOTE].port ||
+       sipUserAgents[PARTICIPANT_REMOTE].ipAddress.compare(sipConfig.remoteIPAddress) != 0)
+    {
+        std::cout << "Reconnecting SIP ..." << std::endl;
+        //reset network-wrapper to send new packages to correct address
+        sipConfig.remoteIPAddress = sipUserAgents[PARTICIPANT_REMOTE].ipAddress;
+        sipConfig.remotePort = sipUserAgents[PARTICIPANT_REMOTE].port;
+        network->closeNetwork();
+        network.reset(new UDPWrapper(sipConfig));
+        
+        //update all configuration-dependant values
+        sipUserAgents[PARTICIPANT_SELF].ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
+    }
 }
 
 void SIPHandler::startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig)

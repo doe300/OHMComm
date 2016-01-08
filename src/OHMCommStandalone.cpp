@@ -56,10 +56,9 @@ int main(int argc, char* argv[])
     }
     ohmComm->startAudioThreads();
 
-    char input;
     // wait for exit
     std::cout << "Type Enter to exit..." << std::endl;
-    std::cin >> input;
+    Utility::waitForUserInput(-1);
 
     ohmComm->stopAudioThreads();
 

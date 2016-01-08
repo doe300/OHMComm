@@ -70,6 +70,7 @@ private:
     static const std::chrono::seconds sendSRInterval;
     std::chrono::system_clock::time_point lastSRReceived;
     std::chrono::system_clock::time_point lastSRSent;
+    std::vector<SourceDescription> sourceDescriptions;
     
     /*!
      * Method called in the parallel thread, receiving RTCP-packages and handling them

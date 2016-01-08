@@ -9,10 +9,13 @@
 #include "TCPWrapper.h"
 
 #ifdef _WIN32
+#include <stdio.h>
 #include <WinSock2.h>
 #include <Windows.h>
 #include <ws2tcpip.h>
+#define STDIN_FILENO _fileno(stdin)
 #else
+#include <sys/select.h>
 #include <string.h>
 #include <unistd.h>
 #include <pwd.h>
@@ -203,6 +206,22 @@ std::string Utility::toHexString(unsigned int number)
     sprintf(tmp, "%X", number);
     return std::string(tmp);
 }
+
+int Utility::waitForUserInput(const int waitInMS)
+{
+    fd_set readFDs;
+    FD_ZERO(&readFDs);
+    FD_SET(STDIN_FILENO, &readFDs);
+    timeval waitFor{waitInMS/1000, (waitInMS%1000)*1000};
+    timeval* waitForPtr = waitInMS == -1 ? nullptr : &waitFor;
+    const int result = select(1, &readFDs, nullptr, nullptr, waitForPtr);
+    if(result)
+    {
+        return std::cin.get();
+    }
+    return -1;
+}
+
 
 std::string Utility::getExternalLocalIPAddress()
 {
