@@ -3,16 +3,31 @@
 \section{Build Prozess}
 \subsection{CMake}
 \subsection{Build unter Linux}
-\subsection{Build untre Windows}
+TODO: Cmake -G ``Unix Makefiles'', make (OHMCommLib, OHMComm)
+Ja nach verwendeter Audio-Bibliothek werden Header benötigt (ALSA-Header in Fedora/Debina unter alsa-lib-devel/libasoud-dev)
+\subsection{Build unter Windows}
 \section{Softwarearchitektur}
 \subsection{Konfiguration und Verwendung}
+%TODO: nach Steuerung?
+OHMComm implementiert eine Vielzahl an Konfigurationsmöglichkeiten, um einen möglichst breiten Verwendungsbereich zu bieten. So kann die prototypische Anwendung aus Kapitel \ref{prototypProgram} als interaktive Konsolen-Anwendung gestartet werden. Dabei werden alle Einstellungsmöglichkeiten nacheinander ausgegeben und der Benutzer kann durch Eingabe einen der vorgeschlagenen Werte auswählen oder einen eigenen Wert eingeben, je nach Art der Einstellung.
+\\
+Ebenso kann die Konfiguration durch Kommandozeilen-Argumente vorgenommen werden. Hierfür benutzt OHMComm den aus Unix bekannten Syntax, bei dem Schlüssel-Werte Paare mit einem Gleichheitszeichen = getrennt angegeben werden, z.B. \texttt{--local-port=54321} für die Bestimmung des lokalen Ports. Ebenso werden für die meisten Optionen sowohl ein kurzer als auch ein langer Schlüssel unterstützt. So geben beide Argumente \texttt{-h} und \texttt{--help} die Hilfe auf der Kommandozeile aus, die alle verfügbaren Parameter und deren Bedeutung sowie Standard-Werte anzeigt. Die gleichen Parameter können auch aus einer Konfigurations-Datei geladen werden. Dafür werden dort die Schlüssel-Wert Paare zeilenweise und auch durch ein Gleichheitszeichen getrennt aufgelistet und die Datei beim Start an das OHMComm-Programm als einzigen Parameter übergeben.
+\\
+Um das Programm auch als Bibliothek verwenden zu können, wird eine Möglichkeit geboten, über die benötigten und optionalen Einstellungen Methodenaufrufe zu setzen. %TODO: Verwendung als Bib, Was kanns? Nutzen
+
+TODO: Ausführlicher!?
+TODO: Passive Konfiguration, Problematik, warum wird benötigt? Wie implementiert? Was wird gelöst?
 \subsection{Audio-Schnittstelle}
 \subsection{Verarbeitungskette}
-\subsection{Austauschbarkeit und Instanziierung}
+\subsection{Austauschbarkeit und Instantiierung}
 \subsection{RTP-Protokoll}
 \subsubsection{RTCP-Protokoll}
 \subsection{Jitter-Buffer}
+TODO: Warum wird BUffer benötigt? Reordering, Loss
+Wo wird Buffer verwendet? Auf Empfänger-Seite, eigentlich einen pro Sender, wir haben aber nur einen Sender
+Was macht Buffer? Reihenfolge, Concealment, optional auch Auspielverzögerung, um späte Pakete noch ausspielen zu können
 \subsection{Netzwerkverbindung}
+TODO: Wie alle anderen Komponenten auch Impl- und Plattformunabhängig gebaut, d.h. NetworkWrapper kann in UDP und TCP (hinzugefügt in späterer version) oder z.B: auch anderen Netzwerken, verschlüsselt oder ähnlichen Implementiert werden
 \section{Konkrete Softwarekomponenten}
 \subsection{RTAudio}
 \subsection{Opus}
