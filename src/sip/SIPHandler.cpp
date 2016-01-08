@@ -558,33 +558,26 @@ const int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& avail
         return 0;
     }
     //determine best media (best quality)
-    //first search for best quality for opus
-    int index = -1;
-    unsigned int sampleRate = 0;
-    for(unsigned short i = 0; i < availableMedias.size(); i++)
+    //we achieve this by searching for the best quality for each of the supported format in descending priority
+    for(const SupportedFormat& format : SupportedFormats::getFormats())
     {
-        if(Utility::equalsIgnoreCase("opus", availableMedias[i].encoding) && availableMedias[i].sampleRate > sampleRate)
+        int index = -1;
+        unsigned int sampleRate = 0;
+        for(unsigned short i = 0; i < availableMedias.size(); i++)
         {
-            index = i;
-            sampleRate = availableMedias[i].sampleRate;
+            if(Utility::equalsIgnoreCase(format.encoding, availableMedias[i].encoding) && availableMedias[i].sampleRate > sampleRate)
+            {
+                index = i;
+                sampleRate = availableMedias[i].sampleRate;
+            }
+        }
+        if(index != -1)
+        {
+            return index;
         }
     }
-    if(index != -1)
-    {
-        return index;
-    }
-    //then look for PCM
-    index = -1;
-    sampleRate = 0;
-    for(unsigned short i = 0; i < availableMedias.size(); i++)
-    {
-        if(Utility::equalsIgnoreCase(MediaDescription::MEDIA_PCM, availableMedias[i].encoding) && availableMedias[i].sampleRate > sampleRate)
-        {
-            index = i;
-            sampleRate = availableMedias[i].sampleRate;
-        }
-    }
-    return index;
+    //if we come to this point, we couldn't match any media-format
+    return -1;
 }
 
 void SIPHandler::updateNetworkConfig(const SIPHeader* header)

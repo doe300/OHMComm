@@ -13,6 +13,13 @@
 
 struct SupportedFormat
 {
+    // media name for LPCM samples
+    static const std::string MEDIA_LPCM;
+    //media name for G.711 A-law samples
+    static const std::string MEDIA_PCMA;
+    //media name for G.711 mu-law samples
+    static const std::string MEDIA_PCMU;
+    
     const unsigned int payloadType;
     const std::string encoding;
     const unsigned int sampleRate;
@@ -55,6 +62,8 @@ private:
     //just for registration
     //as of RFC 7587, the opus format must be opus/48000/2
     static const SupportedFormat* OPUS_48000;
+    static const SupportedFormat* G711_PCMA;
+    static const SupportedFormat* G711_PCMU;
     static const SupportedFormat* L16_2_44100;
 };
 

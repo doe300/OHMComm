@@ -14,8 +14,6 @@
 
 SIPUserAgent sipUserAgents[2] = {{},{}};
 
-const std::string MediaDescription::MEDIA_PCM("PCM");
-
 SDPMessageHandler::SDPMessageHandler()
 {
 }
@@ -273,9 +271,17 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
                 {
                     results.push_back(MediaDescription(*(SupportedFormats::getFormat(PayloadType::L16_2)), (unsigned short)port, protocol));
                 }
+                else if(payloadType == PayloadType::PCMA)
+                {
+                    results.push_back(MediaDescription(*(SupportedFormats::getFormat(PayloadType::PCMA)), (unsigned short)port, protocol));
+                }
+                else if(payloadType == PayloadType::PCMU)
+                {
+                    results.push_back(MediaDescription(*(SupportedFormats::getFormat(PayloadType::PCMU)), (unsigned short)port, protocol));
+                }
                 else
                 {
-                    //we currently only support L16_2 (PT = 10)
+                    //we don't support any of the other predefined profiles
                     continue;
                 }
             }
