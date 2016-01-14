@@ -14,6 +14,9 @@
 /**
  * Implementation of the G.711 A-law audio-codec
  * 
+ * NOTE: If not started with SIP-configuration, this will run in stereo mode, despite the RTP payload-type specifying mono.
+ * The same applies to mu-law.
+ * 
  * See: https://en.wikipedia.org/wiki/A-law_algorithm
  * See: http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-G.711-198811-I!!PDF-E&type=items
  * 

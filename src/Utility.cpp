@@ -7,6 +7,7 @@
 
 #include "Utility.h"
 #include "TCPWrapper.h"
+#include "sip/STUNClient.h"
 
 #ifdef _WIN32
 #include <stdio.h>
@@ -288,29 +289,37 @@ std::string Utility::getExternalLocalIPAddress()
 
 std::string Utility::getExternalNetworkIPAddress()
 {
-    //let some server give us our external IP
-    
-    //1. open TCP connection
-    TCPWrapper network(55555, "91.198.22.70", 80);
-    //2. send something - anything
-    const std::string message("anything\r\n\r\n");
-    network.sendData(message.c_str(), message.size());
-    //3. read response
-    char buffer[1024] = {0};
-    if(network.receiveData(buffer, 1023) == TCPWrapper::RECEIVE_TIMEOUT)
+    //use STUN to get our external IP/port
+    STUNClient stun;
+    auto result = stun.retrieveSIPInfo();
+    if(std::get<0>(result))
     {
-        //we timed out - don't delay the application too much
-        return "";
-    }
-    std::string response = buffer;
-    //4. extract IP address
-    std::string::size_type index = response.find("<body>");
-    if(index != std::string::npos)
-    {
-        index = response.find(':', index) + 2;
-        return response.substr(index, response.find('<', index) - index);
+        return std::get<1>(result);
     }
     return "";
+    
+    //old code, uses one single server and no standard protocol
+//    //1. open TCP connection
+//    TCPWrapper network(55555, "91.198.22.70", 80);
+//    //2. send something - anything
+//    const std::string message("anything\r\n\r\n");
+//    network.sendData(message.c_str(), message.size());
+//    //3. read response
+//    char buffer[1024] = {0};
+//    if(network.receiveData(buffer, 1023) == TCPWrapper::RECEIVE_TIMEOUT)
+//    {
+//        //we timed out - don't delay the application too much
+//        return "";
+//    }
+//    std::string response = buffer;
+//    //4. extract IP address
+//    std::string::size_type index = response.find("<body>");
+//    if(index != std::string::npos)
+//    {
+//        index = response.find(':', index) + 2;
+//        return response.substr(index, response.find('<', index) - index);
+//    }
+//    return "";
 }
 
 bool Utility::isLocalNetwork(const std::string& ipAddress)

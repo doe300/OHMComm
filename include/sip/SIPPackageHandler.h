@@ -561,7 +561,9 @@ const std::string SIP_RESPONSE_DECLINE("Decline");
 const unsigned int SIP_RESPONSE_DOES_NOT_EXIST_ANYWHERE_CODE = 604;
 const std::string SIP_RESPONSE_DOES_NOT_EXIST_ANYWHERE("Does not exist anywhere");
 
-//XXX 606Not acceptable - but already defined in 406
+//The user's agent was contacted successfully but some aspects of the session description such as the requested media, bandwidth, or addressing style were not acceptable.
+const unsigned int SIP_RESPONSE_NOT_ACCEPTABLE_ANYWHERE_CODE = 606;
+const std::string SIP_RESPONSE_NOT_ACCEPTABLE_ANYWHERE("Not acceptable");
 
 struct SIPResponseHeader : public SIPHeader
 {
