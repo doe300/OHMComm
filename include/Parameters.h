@@ -135,6 +135,7 @@ class Parameters
 public:
 
     static const Parameter* HELP;
+    static const Parameter* LIST_LOCAL_ADDRESSES;
     static const Parameter* PASSIVE_CONFIGURATION;
     static const Parameter* WAIT_FOR_PASSIVE_CONFIG;
     static const Parameter* SIP_LOCAL_PORT;

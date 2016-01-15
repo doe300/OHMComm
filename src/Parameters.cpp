@@ -14,6 +14,7 @@
 std::list<Parameter> Parameters::availableParameters = {};
 //parameters must be registered after initializing the availableParameters
 const Parameter* Parameters::HELP = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, 'h', "help", "Print this help page and exit"));
+const Parameter* Parameters::LIST_LOCAL_ADDRESSES = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, 'n', "list-addresses", "Display the local addresses and exit"));
 const Parameter* Parameters::PASSIVE_CONFIGURATION = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, Parameter::FLAG_CONFIGURATION_MODE, 'P', "passive", "Enables passive configuration. The communication partner will decide the audio-configuration", ""));
 const Parameter* Parameters::WAIT_FOR_PASSIVE_CONFIG = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, 'W', "wait-for-passive", "Enables waiting for the remote to request passive-configuration. This flag must be set for passive configuration to work"));
 const Parameter* Parameters::SIP_LOCAL_PORT = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, Parameter::FLAG_CONFIGURATION_MODE|Parameter::FLAG_HAS_VALUE, 's', "sip-local-port", "Enables signaling and configuration via SIP. The value is the local SIP-port", "5060"));
@@ -108,6 +109,16 @@ bool Parameters::parseParameters(int argc, char* argv[])
     if(isParameterSet(HELP))
     {
         printHelpPage();
+        exit(0);
+    }
+    if(isParameterSet(LIST_LOCAL_ADDRESSES))
+    {
+        const std::string externalAddress = Utility::getLocalIPAddress(Utility::AddressType::ADDRESS_INTERNET);
+        std::cout << std::endl;
+        std::cout << "Listing local addresses:" << std::endl;
+        std::cout << std::setw(tabSize) << ' ' << "Loopback: " << Utility::getLocalIPAddress(Utility::AddressType::ADDRESS_LOOPBACK) << std::endl;
+        std::cout << std::setw(tabSize) << ' ' << "Local: " << Utility::getLocalIPAddress(Utility::AddressType::ADDRESS_LOCAL_NETWORK) << std::endl;
+        std::cout << std::setw(tabSize) << ' ' << "External: " << externalAddress << std::endl;
         exit(0);
     }
     //if we set another configuration-mode, we can skip the required-parameter check
