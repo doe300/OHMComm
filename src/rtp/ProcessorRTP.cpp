@@ -28,7 +28,7 @@ const std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sample
 unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
     // pack data into a rtp-package
-    if (rtpPackage == nullptr)
+    if (rtpPackage.get() == nullptr)
     {
         initPackageHandler(userData->maxBufferSize);
     }
@@ -49,7 +49,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
 unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
     // unpack data from a rtp-package
-    if (rtpPackage == nullptr)
+    if (rtpPackage.get() == nullptr)
     {
         initPackageHandler(userData->maxBufferSize);
     }
@@ -67,6 +67,9 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
 
     const void* recvAudioData = rtpPackage->getRTPPackageData();
     unsigned int receivedPayloadSize = rtpPackage->getActualPayloadSize();
+    //XXX this memcpy copies to much data (on first call only??)
+    //reading and writing beyond the buffer-sizes, independent of encoding used
+    //possible reason: is the first package bigger than the others??
     memcpy(outputBuffer, recvAudioData, receivedPayloadSize);
 
     //set received payload size for all following processors to use
@@ -75,23 +78,20 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
 
 bool ProcessorRTP::cleanUp()
 {
-    if(rtpPackage == nullptr)
+    if(rtpPackage.get() == nullptr)
     {
         //if we never sent a RTP-package, there is no need to end the communication
         return true;
     }
     std::cout << "Communication terminated." << std::endl;
-    //clean up send-buffer
-    delete rtpPackage;
-    rtpPackage = nullptr;
     return true;
 }
 
 void ProcessorRTP::initPackageHandler(unsigned int maxBufferSize)
 {
-    if(rtpPackage == nullptr)
+    if(rtpPackage.get() == nullptr)
     {
-        rtpPackage = new RTPPackageHandler(maxBufferSize, payloadType);
+        rtpPackage.reset(new RTPPackageHandler(maxBufferSize, payloadType));
     }
     participantDatabase[PARTICIPANT_SELF].ssrc = rtpPackage->ssrc;
     participantDatabase[PARTICIPANT_SELF].initialRTPTimestamp = rtpPackage->timestamp;

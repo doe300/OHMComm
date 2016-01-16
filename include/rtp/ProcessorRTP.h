@@ -30,7 +30,7 @@ public:
      */
     ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
                  std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType);
-
+    
     unsigned int getSupportedAudioFormats() const;
     unsigned int getSupportedSampleRates() const;
     const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
@@ -41,7 +41,7 @@ public:
     bool cleanUp();
 private:
     std::shared_ptr<NetworkWrapper> networkObject;
-    RTPPackageHandler *rtpPackage = nullptr;
+    std::unique_ptr<RTPPackageHandler> rtpPackage;
     std::shared_ptr<RTPBufferHandler> rtpBuffer;
     const PayloadType payloadType;
     

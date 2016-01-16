@@ -114,6 +114,7 @@ void RtAudioWrapper::suspend()
 void RtAudioWrapper::stop()
 {
     this->suspend();
+    //FIXME ALSA-API throws "duplicate free or corruption" in closeStream()
     this->rtaudio.closeStream();
     this->cleanUpAudioProcessors();
 }

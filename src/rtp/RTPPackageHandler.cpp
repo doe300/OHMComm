@@ -35,9 +35,6 @@ const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsign
 
     newRTPHeader.setPayloadType(payloadType);
     newRTPHeader.setSequenceNumber((this->sequenceNr++) % UINT16_MAX);
-    //we need steady clock so it will always change monotonically (etc. no change to/from daylight savings time)
-    //additionally, we need to count with milliseconds precision
-    //we add the random starting timestamp to meet the condition specified in the RTP standard
     newRTPHeader.setTimestamp(getCurrentRTPTimestamp());
     newRTPHeader.setSSRC(this->ssrc);
 
@@ -150,6 +147,9 @@ unsigned int RTPPackageHandler::getSSRC() const
 
 uint32_t RTPPackageHandler::getCurrentRTPTimestamp() const
 {
+    //we need steady clock so it will always change monotonically (etc. no change to/from daylight savings time)
+    //additionally, we need to count with milliseconds precision
+    //we add the random starting timestamp to meet the condition specified in the RTP standard
     return timestamp + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
