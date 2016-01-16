@@ -2,12 +2,13 @@
 \section{Projektverwaltung und Werkzeuge}
 \section{Build Prozess}
 \subsection{CMake}
-\subsection{Build unter Linux}
-TODO: Cmake -G ``Unix Makefiles'', make (OHMCommLib, OHMComm)
-Ja nach verwendeter Audio-Bibliothek werden Header benötigt (ALSA-Header in Fedora/Debina unter alsa-lib-devel/libasoud-dev)
+\subsection{Build unter Unix}
+Zum Erstellen des Projektes OHMComm unter Unix-Systemen wird neben einem C++11-fähigen Compiler und dem Programm \textbf{CMake} noch die \textbf{Make} Build-Suite sowie eine Audio-Bibliothek mitsamt Header-Dateien benötigt. Während Make und eine Audio-Bibliothek auf den meisten Unix-Systemen bereits mitgeliefert werden, müssen die Entwicklungs-Header für die verwendete Audio-Bibliothek meist erst noch installiert werden. Als Audio-Bibliothek wird unter Linux-Systemen OSS, ALSA, Jack und PulseAudio unterstützt \cite{RTAudioAPIs}. Die Entwicklungs-Header für die Audio-Bibliotheken liegen je nach System -- oder genauer: je nach Paketverwaltungssystem -- in verschieden benannten Paketen. So heißt das Paket für die ALSA-Header unter Debian \texttt{libasound-dev} und unter Fedora \texttt{alsa-lib-devel}.
+Unter Linux und den meisten Unix-Betriebssystemen wird das Projekt kompiliert, indem zuerst mit dem Befehl \texttt{cmake -G ``Unix Makefiles''} aus der CMake-Beschreibung eine \texttt{Makefile} -- also eine Anleitung für das \texttt{make} Build-System -- erstellt wird. Daraufhin können mit dem Befehl \texttt{make} im Zielverzeichnis des vorherigen Kommandos die einzelnen Bibliotheken oder Programme kompiliert werden. So erstellt \texttt{make OHMCommLib} die Bibliothek \textbf{OHmCommLib}, die in weitere Programme eingebunden werden kann (siehe Abschnitt \ref{configurationUsages}). \texttt{make OHMComm} erstellt das ausführbare Programm \textbf{OHMComm} und \texttt{make Tests} die Test-Suite für das Projekt.
 \subsection{Build unter Windows}
 \section{Softwarearchitektur}
 \subsection{Konfiguration und Verwendung}
+\label{configurationUsages}
 %TODO: nach Steuerung?
 OHMComm implementiert eine Vielzahl an Konfigurationsmöglichkeiten, um einen möglichst breiten Verwendungsbereich zu bieten. So kann die prototypische Anwendung aus Kapitel \ref{prototypProgram} als interaktive Konsolen-Anwendung gestartet werden. Dabei werden alle Einstellungsmöglichkeiten nacheinander ausgegeben und der Benutzer kann durch Eingabe einen der vorgeschlagenen Werte auswählen oder einen eigenen Wert eingeben, je nach Art der Einstellung.
 \\
@@ -32,3 +33,9 @@ TODO: Wie alle anderen Komponenten auch Impl- und Plattformunabhängig gebaut, d
 \subsection{RTAudio}
 \subsection{Opus}
 \section{Statistiken}
+
+TODO: Grund: Zum Testen der performance, berechnen algorithmisches Delay
+Art: Audio-Daten/Zeit -> ``Bandbreite'' der Audio-Schnittstelle, Frames/Zeit -> tatsächliche Samplerate, Header/Daten -> Overhead, Gesendete/Empfangene/verlorene Pakete -> Verlust, Buffer-Usage -> max Abspieldelay (Playout Point), Aufgenomme/Gesendet -> Kompression, Empfangen/Abgespielt -> Dekompression,
+Prozessor-Profiler: konfigurierbar, Gesamtdauer/Dauer per Schleifendurchlauf bearbeiten Input/Output-Daten -> Algorithmischer Delay je Prozessor
+
+Statistiken werden immer auf Stdout ausgegeben + optional Statistiken in Datei Schreiben, Pfad konfiguierbar.

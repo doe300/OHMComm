@@ -223,3 +223,4 @@ rtaudio_static.lib
 /documents/**/*.gz
 /documents/**/*.pdf
 /documents/**/*.toc
+/documents/**/*.blg
