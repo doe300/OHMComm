@@ -32,6 +32,12 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     {
         initPackageHandler(userData->maxBufferSize);
     }
+    if(userData->isSilentPackage)
+    {
+        //XXX only check if DTX is enabled
+        std::cout << "Not sending silent package" << std::endl;
+        return inputBufferByteSize;
+    }
     const void* newRTPPackage = rtpPackage->createNewRTPPackage(inputBuffer, inputBufferByteSize);
     //only send the number of bytes really required: header + actual payload-size
     this->networkObject->sendData(newRTPPackage, rtpPackage->getRTPHeaderSize() + inputBufferByteSize);
@@ -62,14 +68,16 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
     }
     else if (result == RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW)
     {
+        userData->isSilentPackage = true;
         std::cerr << "Output Buffer underflow" << std::endl;
+    }
+    else
+    {
+        userData->isSilentPackage = false;
     }
 
     const void* recvAudioData = rtpPackage->getRTPPackageData();
     unsigned int receivedPayloadSize = rtpPackage->getActualPayloadSize();
-    //XXX this memcpy copies to much data (on first call only??)
-    //reading and writing beyond the buffer-sizes, independent of encoding used
-    //possible reason: is the first package bigger than the others??
     memcpy(outputBuffer, recvAudioData, receivedPayloadSize);
 
     //set received payload size for all following processors to use

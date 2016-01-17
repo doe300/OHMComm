@@ -35,6 +35,12 @@ struct StreamData
      * The maximum number of bytes to be stored in the input/output-buffer
      */
     unsigned int maxBufferSize;
+
+    /*!
+     * Whether the current package is a silent-package.
+     * A silence-package has all samples set to a volume of zero
+     */
+    bool isSilentPackage;
 };
 
 /*!

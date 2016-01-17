@@ -7,16 +7,18 @@
 
 #include "AudioProcessorFactory.h"
 
-#include "ProcessorOpus.h"
+#include "codecs/ProcessorOpus.h"
 #include "ProcessorWAV.h"
-#include "ProcessorALaw.h"
-#include "ProcessorMuLaw.h"
+#include "codecs/ProcessorALaw.h"
+#include "codecs/ProcessorMuLaw.h"
+#include "filters/GainControl.h"
 #include "ProfilingAudioProcessor.h"
 
 const std::string AudioProcessorFactory::OPUS_CODEC = "Opus-Codec";
 const std::string AudioProcessorFactory::WAV_WRITER = "wav-Writer";
 const std::string AudioProcessorFactory::G711_PCMA = "A-law";
 const std::string AudioProcessorFactory::G711_PCMU = "mu-law";
+const std::string AudioProcessorFactory::GAIN_CONTROL = "Gain Control";
 
 AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name, bool createProfiler)
 {
@@ -45,6 +47,12 @@ AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name,
         processor = new ProcessorMuLaw(G711_PCMU);
     }
     #endif
+    #ifdef GAINCONTROL_H
+    if(name == GAIN_CONTROL)
+    {
+        processor = new GainControl(GAIN_CONTROL);
+    }
+    #endif
     if(processor != nullptr)
     {
         if(createProfiler)
@@ -70,6 +78,9 @@ const std::vector<std::string> AudioProcessorFactory::getAudioProcessorNames()
     #endif
     #ifdef PROCESSORMULAW_H
     processorNames.push_back(G711_PCMU);
+    #endif
+    #ifdef GAINCONTROL_H
+    processorNames.push_back(GAIN_CONTROL);
     #endif
     return processorNames;
 }

@@ -51,6 +51,7 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
 
     //in case the two buffer sizes max vary
     this->streamData->maxBufferSize = inputBufferByteSize;
+    this->streamData->isSilentPackage = false;
     if (inputBuffer != nullptr)
         this->processAudioInput(inputBuffer, inputBufferByteSize, streamData);
 

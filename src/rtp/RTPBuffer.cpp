@@ -92,7 +92,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         //buffer has insufficient fill level
         //return silence package
         package.createSilencePackage();
-        package.setActualPayloadSize(package.getMaximumPackageSize());
+        package.setActualPayloadSize(package.getMaximumPayloadSize());
         unlockMutex();
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
@@ -121,7 +121,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         //no valid packages found
         //return silence package
         package.createSilencePackage();
-        package.setActualPayloadSize(package.getMaximumPackageSize());
+        package.setActualPayloadSize(package.getMaximumPayloadSize());
         unlockMutex();
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
