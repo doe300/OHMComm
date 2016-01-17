@@ -5,7 +5,7 @@
  * Created on January 7, 2016, 10:56 AM
  */
 
-#include "ProcessorALaw.h"
+#include "codecs/ProcessorALaw.h"
 #include <string.h>
 
 ProcessorALaw::ProcessorALaw(const std::string& name) : AudioProcessor(name)

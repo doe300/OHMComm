@@ -5,7 +5,7 @@
  * Created on January 8, 2016, 11:38 AM
  */
 
-#include "ProcessorMuLaw.h"
+#include "codecs/ProcessorMuLaw.h"
 #include <string.h>
 
 ProcessorMuLaw::ProcessorMuLaw(const std::string& name) : AudioProcessor(name)

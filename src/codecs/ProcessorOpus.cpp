@@ -1,4 +1,4 @@
-#include "ProcessorOpus.h"
+#include "codecs/ProcessorOpus.h"
 
 ProcessorOpus::ProcessorOpus(const std::string name, int opusApplication) : 
     AudioProcessor(name), OpusEncoderObject(nullptr), OpusDecoderObject(nullptr)
