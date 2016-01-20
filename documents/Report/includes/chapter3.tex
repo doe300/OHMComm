@@ -9,20 +9,33 @@ Unter Linux und den meisten Unix-Betriebssystemen wird das Projekt kompiliert, i
 \section{Softwarearchitektur}
 \subsection{Konfiguration und Verwendung}
 \label{configurationUsages}
-%TODO: nach Steuerung?
+Um OHMComm verwenden zu können, müssen vorher eine Vielzahl an Einstellungen getroffen werden. Diese Einstellungen gliedern sich in folgende Bereiche:
+\begin{description}
+\item[Audio-Konfiguration:]Einstellungen für die Soundkarte, wie die Wahl des Formats zum Aufnehmen oder Abspielen, die Anzahl der Kanäle, die Abtastrate oder die verwendeten Audiogeräte. Die Auswahl der Geräte für die Aufnahme und Ausgabe können unabhängig vom Kommunikationspartner eingestellt werden, die anderen Einstellungen (Audioformat, Kanäle und Abtastrate) müssen jedoch mit dem Gesprächspartner abgestimmt oder auf kompatible Werte umgerechnet werden.
+\item[Prozessoren-Konfiguration:]Hierunter fällt die Auswahl der verwendeten Audioprozessoren und die Reihenfolge, in der die Prozessoren verkettet werden (siehe Abschnitt \ref{processingChain}). Ebenso besitzen manche Prozessoren eigene Einstellungsmöglichkeiten, um deren Funktionsweise zu regeln. Die meisten Prozessoren und -Einstellungen fordern keine Anpassung der Konfiguration des Gesprächspartners. Ausnahmen sind hier die Audiocodecs, die von beiden Programmen gleich konfiguriert verwendet werden müssen, um die encodierten Daten wieder richtig decodieren zu können.
+\item[Netzwerk-Konfiguration:]Bestimmt den zu verwendeten Port zum Empfangen und Senden von Paketen auf dem lokalen Rechner, sowie die IP-Adresse und den Port des Rechners des Kommunikationspartners. Die Ports und die Adresse des jeweils anderen Rechners müssen vorher zwischen den Gesprächspartner abgestimmt werden, um eine Duplex-Kommunikation einrichten zu können. Bei der Netzwerk-Konfiguration ist zu beachten, dass bei Kommunikation über ein WAN (Wide Area Network) eine von außen erreichbare IP-Adresse gewählt wird evtl. auch Port-Weiterleitungen eingerichtet werden müssen.
+\item[Sonstige Konfiguration:] Hier zählen sonstige, rein optionale Einstellungen, die die eigentliche Audiokommunikation nicht beeinflussen, wie das Messen der Ausführungsdauer der verwendeten Prozessoren, das Schreiben des Logs in eine Datei sowie die informativen Daten, die bei RTCP SDES-Paketen gesendet werden (siehe Abschnitt \ref{rtcp}). Da diese Einstellungen nur das lokale Programm betreffen, müssen sie nicht mit dem Gegenüber abgestimmt werden.
+\end{description}
+Für die meisten nicht-optionalen Einstellungen sind Standardwerte vorgegeben (wie den beiden Ports) oder werden beim Start des Programms ermitteln (wie die Standard-Audiogeräte für die Ein- und Ausgabe). Um die einfachste Form der Kommunikation aufbauen zu können -- ohne Audiocodecs oder sonstigen Audioprozessoren -- muss nur die IP-Adresse des Gegenübers gesetzt werden. jedoch empfiehlt es sich aus verschiedenen Gründen (wie die Reduzierung der Bandbreite) eine erweiterte Konfiguration vorzunehmen.
+\\%TODO: nach Steuerung?
 OHMComm implementiert eine Vielzahl an Konfigurationsmöglichkeiten, um einen möglichst breiten Verwendungsbereich zu bieten. So kann die prototypische Anwendung aus Kapitel \ref{prototypProgram} als interaktive Konsolen-Anwendung gestartet werden. Dabei werden alle Einstellungsmöglichkeiten nacheinander ausgegeben und der Benutzer kann durch Eingabe einen der vorgeschlagenen Werte auswählen oder einen eigenen Wert eingeben, je nach Art der Einstellung.
 \\
-Ebenso kann die Konfiguration durch Kommandozeilen-Argumente vorgenommen werden. Hierfür benutzt OHMComm den aus Unix bekannten Syntax, bei dem Schlüssel-Werte Paare mit einem Gleichheitszeichen = getrennt angegeben werden, z.B. \texttt{--local-port=54321} für die Bestimmung des lokalen Ports. Ebenso werden für die meisten Optionen sowohl ein kurzer als auch ein langer Schlüssel unterstützt. So geben beide Argumente \texttt{-h} und \texttt{--help} die Hilfe auf der Kommandozeile aus, die alle verfügbaren Parameter und deren Bedeutung sowie Standard-Werte anzeigt. Die gleichen Parameter können auch aus einer Konfigurations-Datei geladen werden. Dafür werden dort die Schlüssel-Wert Paare zeilenweise und auch durch ein Gleichheitszeichen getrennt aufgelistet und die Datei beim Start an das OHMComm-Programm als einzigen Parameter übergeben.
+Ebenso kann die Konfiguration durch Kommandozeilen-Argumente vorgenommen werden. Hierfür benutzt OHMComm den aus Unix bekannten Syntax, bei dem Schlüssel-Werte Paare mit einem Gleichheitszeichen = getrennt angegeben werden, z.B. \texttt{--local-port=54321} für die Bestimmung des lokalen Ports. Ebenso werden für die meisten Optionen sowohl ein kurzer als auch ein langer Schlüssel unterstützt. So geben beide Argumente \texttt{-h} und \texttt{--help} die Hilfe auf der Kommandozeile aus, die alle verfügbaren Parameter und deren Bedeutung sowie Standard-Werte anzeigt. Die gleichen Parameter können auch aus einer Konfigurationsdatei geladen werden. Dafür werden dort die Schlüssel-Wert Paare zeilenweise und auch durch ein Gleichheitszeichen getrennt (aber ohne führende Bindestriche) aufgelistet und die Datei beim Start an das OHMComm-Programm als einzigen Parameter übergeben.
 \\
-Um das Programm auch als Bibliothek verwenden zu können, wird eine Möglichkeit geboten, über die benötigten und optionalen Einstellungen Methodenaufrufe zu setzen. %TODO: Verwendung als Bib, Was kanns? Nutzen
-
-TODO: Ausführlicher!?
-TODO: Passive Konfiguration, Problematik, warum wird benötigt? Wie implementiert? Was wird gelöst?
+Um das Programm auch als Bibliothek verwenden zu können, wird eine Möglichkeit geboten, über Methodenaufrufe die benötigten und optionalen Einstellungen zu setzen. %TODO: Verwendung als Bib, Was kanns? Nutzen
+\\
+Des Weiteren gibt es die sog. \textbf{passive Konfiguration}, bei der alle Konfigurationen, die in beiden Programmen gleich eingestellt sein müssen, vor dem Start der Kommunikation ausgetauscht werden. Zu den ausgetauschten Einstellungen zählen Abtastrate, Audioformat, Anzahl der Kanäle und die verwendeten Prozessoren (für die Audiocodecs).Somit wird die Gleichheit dieser Einstellungen garantiert und der Konfigurationsaufwand verringert. Mehr zur passiven Konfiguration in Abschnitt \ref{rtcp}.
+%TODO: Ausführlicher!?
 \subsection{Audio-Schnittstelle}
 \subsection{Verarbeitungskette}
+\label{processingChain}
 \subsection{Austauschbarkeit und Instantiierung}
 \subsection{RTP-Protokoll}
+TODO: Definiert in RFC 3550, auch RTCP.
+Wozu da? Funktionsumfang? Wird bei uns benötigt wieso/wozu?
 \subsubsection{RTCP-Protokoll}
+TODO: Wozu da? Aufbau? Verwendung zum Austausch statistischer Daten und passive Konfiguration
+\label{rtcp}
 \subsection{Jitter-Buffer}
 TODO: Warum wird BUffer benötigt? Reordering, Loss
 Wo wird Buffer verwendet? Auf Empfänger-Seite, eigentlich einen pro Sender, wir haben aber nur einen Sender
