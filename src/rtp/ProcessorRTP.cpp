@@ -5,6 +5,7 @@ Participant participantDatabase[2] = {0};
 
 //!Treat as silence after 500ms of no input
 const unsigned short ProcessorRTP::SILENCE_DELAY = 500;
+const Parameter* ProcessorRTP::ENABLE_DTX = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, 'd', "enable-dtx", "Enables DTX to not send any packages, if silence is detected."));
 
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
                            std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType), lastPackageWasSilent(false)
@@ -30,9 +31,16 @@ const std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sample
 
 bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
 {
-    //calculate the number of packages to fill the specified delay
-    const double timeOfPackage = audioConfig.framesPerPackage / (double)audioConfig.sampleRate;
-    totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
+    //check whether to enable DTX at all
+    isDTXEnabled = configMode->isCustomConfigurationSet(ProcessorRTP::ENABLE_DTX->longName, "Enable DTX");
+    if(isDTXEnabled)
+    {
+        std::cout << "Using DTX after " << ProcessorRTP::SILENCE_DELAY << " ms of silence." << std::endl;
+        //calculate the number of packages to fill the specified delay
+        const double timeOfPackage = audioConfig.framesPerPackage / (double)audioConfig.sampleRate;
+        totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
+    }
+    return true;
 }
 
 unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
@@ -42,9 +50,8 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     {
         initPackageHandler(userData->maxBufferSize);
     }
-    if(userData->isSilentPackage)
+    if(isDTXEnabled && userData->isSilentPackage)
     {
-        //XXX only check if DTX is enabled
         //wait a few packages (specified in time, not frames) until not sending anything to prevent too abrupt silence
         ++currentSilenceDelayPackages;
         if(currentSilenceDelayPackages > totalSilenceDelayPackages)

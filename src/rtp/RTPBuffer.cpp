@@ -126,7 +126,9 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         package.createSilencePackage();
         package.setActualPayloadSize(package.getMaximumPayloadSize());
         //only accept newer packages (at least one sequence number more than the dummy package)
-        minSequenceNumber = (minSequenceNumber + 1) % UINT16_MAX;
+        //but skip check for first package
+        if(minSequenceNumber != 0)
+            minSequenceNumber = (minSequenceNumber + 1) % UINT16_MAX;
         unlockMutex();
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
