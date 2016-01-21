@@ -39,12 +39,18 @@ private:
     double gain;
     Amplifier amplifier;
     GainCalculator calculator;
+    //we use double, because it is the largest type used
+    static double upperSampleLimit;
+    static double lowerSampleLimit;
     
-    template<typename T>
+    template<typename AudioFormat>
     static double calculate(void* buffer, const unsigned int bufferSize);
     
-    template<typename T>
+    template<typename AudioFormat>
     static void amplify(void* buffer, const unsigned int bufferSize, double gain);
+    
+    template<typename AudioFormat>
+    static AudioFormat clipOverflow(AudioFormat sample, double gain);
 };
 
 #endif	/* GAINCONTROL_H */

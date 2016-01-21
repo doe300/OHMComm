@@ -32,8 +32,8 @@ unsigned int ProcessorMuLaw::getSupportedSampleRates() const
 const std::vector<int> ProcessorMuLaw::getSupportedBufferSizes(unsigned int sampleRate) const
 {
     //as of RFC3551 we use a default package size of 20ms -> 160 frames at 8kHz sampling rate
-    const int defaultSampleRate = 20 * sampleRate / 1000;    //20 ms
-    return {defaultSampleRate, BUFFER_SIZE_ANY};
+    const int defaultPackageSize = 20 * sampleRate / 1000;    //20 ms
+    return {defaultPackageSize, BUFFER_SIZE_ANY};
 }
 
 PayloadType ProcessorMuLaw::getSupportedPlayloadType() const

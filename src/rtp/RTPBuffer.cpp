@@ -30,9 +30,10 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
 {
     lockMutex();
     const RTPHeader *receivedHeader = package.getRTPPackageHeader();
-    if(minSequenceNumber == 0)
+    if(minSequenceNumber == 0 || receivedHeader->isMarked())
     {
         //if we receive our first package, we need to set minSequenceNumber
+        //same for the first package after a silent period
         minSequenceNumber = receivedHeader->getSequenceNumber();
     }
 
@@ -93,6 +94,8 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         //return silence package
         package.createSilencePackage();
         package.setActualPayloadSize(package.getMaximumPayloadSize());
+        //we do not increase the minimum sequence number here, because we want to stretch the play-out delay
+        //for that, we need to insert, not replace packages
         unlockMutex();
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
@@ -118,10 +121,12 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     RTPBufferPackage *bufferPack = &(ringBuffer[nextReadIndex]);
     if(bufferPack->isValid == false)
     {
-        //no valid packages found
+        //no valid packages found -> buffer is empty
         //return silence package
         package.createSilencePackage();
         package.setActualPayloadSize(package.getMaximumPayloadSize());
+        //only accept newer packages (at least one sequence number more than the dummy package)
+        minSequenceNumber = (minSequenceNumber + 1) % UINT16_MAX;
         unlockMutex();
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }

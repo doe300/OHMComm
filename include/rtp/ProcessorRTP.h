@@ -34,16 +34,22 @@ public:
     unsigned int getSupportedAudioFormats() const;
     unsigned int getSupportedSampleRates() const;
     const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
+    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode);
 
     unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);
     unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
 
     bool cleanUp();
 private:
+    //! Delay until treating input as silence
+    const static unsigned short SILENCE_DELAY;
     std::shared_ptr<NetworkWrapper> networkObject;
     std::unique_ptr<RTPPackageHandler> rtpPackage;
     std::shared_ptr<RTPBufferHandler> rtpBuffer;
     const PayloadType payloadType;
+    bool lastPackageWasSilent;
+    unsigned short totalSilenceDelayPackages;
+    unsigned int currentSilenceDelayPackages;
     
     void initPackageHandler(unsigned int maxBufferSize);
 };

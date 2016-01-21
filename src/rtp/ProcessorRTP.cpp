@@ -3,8 +3,11 @@
 
 Participant participantDatabase[2] = {0};
 
+//!Treat as silence after 500ms of no input
+const unsigned short ProcessorRTP::SILENCE_DELAY = 500;
+
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
-                           std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType)
+                           std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType), lastPackageWasSilent(false)
 {
     this->networkObject = networkwrapper;
     this->rtpBuffer = buffer;
@@ -25,6 +28,13 @@ const std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sample
     return std::vector<int>({BUFFER_SIZE_ANY});
 }
 
+bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
+{
+    //calculate the number of packages to fill the specified delay
+    const double timeOfPackage = audioConfig.framesPerPackage / (double)audioConfig.sampleRate;
+    totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
+}
+
 unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
     // pack data into a rtp-package
@@ -35,10 +45,23 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     if(userData->isSilentPackage)
     {
         //XXX only check if DTX is enabled
-        std::cout << "Not sending silent package" << std::endl;
-        return inputBufferByteSize;
+        //wait a few packages (specified in time, not frames) until not sending anything to prevent too abrupt silence
+        ++currentSilenceDelayPackages;
+        if(currentSilenceDelayPackages > totalSilenceDelayPackages)
+        {
+            lastPackageWasSilent = true;
+            std::cout << "Not sending silent package" << std::endl;
+            return inputBufferByteSize;
+        }
     }
     const void* newRTPPackage = rtpPackage->createNewRTPPackage(inputBuffer, inputBufferByteSize);
+    if(lastPackageWasSilent)
+    {
+        //set the marker bit after a silence period
+        ((RTPHeader*)newRTPPackage)->setMarker(true);
+        lastPackageWasSilent = false;
+        currentSilenceDelayPackages = 0;
+    }
     //only send the number of bytes really required: header + actual payload-size
     this->networkObject->sendData(newRTPPackage, rtpPackage->getRTPHeaderSize() + inputBufferByteSize);
 

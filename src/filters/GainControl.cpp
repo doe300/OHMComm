@@ -8,9 +8,12 @@
 #include "filters/GainControl.h"
 #include <exception>
 #include <cmath>
+#include <limits>
 
-const double GainControl::SILENCE_THRESHOLD = 0.0;
+const double GainControl::SILENCE_THRESHOLD = 0.02;
 const Parameter* GainControl::TARGET_GAIN = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'g', "gain", "Specifies the target gain", "1.0"));
+double GainControl::lowerSampleLimit = std::numeric_limits<double>::max();
+double GainControl::upperSampleLimit = std::numeric_limits<double>::min();
 
 GainControl::GainControl(const std::string& name) : AudioProcessor(name), gainEnabled(false), gain(1.0), amplifier(nullptr), calculator(nullptr)
 {
@@ -61,22 +64,32 @@ bool GainControl::configure(const AudioConfiguration& audioConfig, const std::sh
         case AudioConfiguration::AUDIO_FORMAT_SINT8:
             amplifier = &GainControl::amplify<int8_t>;
             calculator = &GainControl::calculate<int8_t>;
+            upperSampleLimit = std::numeric_limits<int8_t>::max() / gain;
+            lowerSampleLimit = std::numeric_limits<int8_t>::min() / gain;
             break;
         case AudioConfiguration::AUDIO_FORMAT_SINT16:
             amplifier = &GainControl::amplify<int16_t>;
             calculator = &GainControl::calculate<int16_t>;
+            upperSampleLimit = std::numeric_limits<int16_t>::max() / gain;
+            lowerSampleLimit = std::numeric_limits<int16_t>::min() / gain;
             break;
         case AudioConfiguration::AUDIO_FORMAT_SINT32:
             amplifier = &GainControl::amplify<int32_t>;
             calculator = &GainControl::calculate<int32_t>;
+            upperSampleLimit = std::numeric_limits<int32_t>::max() / gain;
+            lowerSampleLimit = std::numeric_limits<int32_t>::min() / gain;
             break;
         case AudioConfiguration::AUDIO_FORMAT_FLOAT32:
             amplifier = &GainControl::amplify<float>;
             calculator = &GainControl::calculate<float>;
+            upperSampleLimit = std::numeric_limits<float>::max() / gain;
+            lowerSampleLimit = std::numeric_limits<float>::min() / gain;
             break;
         case AudioConfiguration::AUDIO_FORMAT_FLOAT64:
             amplifier = &GainControl::amplify<double>;
             calculator = &GainControl::calculate<double>;
+            upperSampleLimit = std::numeric_limits<double>::max() / gain;
+            lowerSampleLimit = std::numeric_limits<double>::min() / gain;
             break;
     default:
         amplifier = nullptr;
@@ -98,10 +111,8 @@ bool GainControl::cleanUp()
 unsigned int GainControl::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
     double gain = calculator(inputBuffer, inputBufferByteSize);
-    //convert to dB and check against threshold
-    //TODO is wrong?? is always about 1.0 - 1.12
     //XXX better threshold
-    if(std::pow(10.0, gain/20.0) <= SILENCE_THRESHOLD)
+    if(gain <= SILENCE_THRESHOLD)
     {
         userData->isSilentPackage = true;
     }
@@ -118,12 +129,12 @@ unsigned int GainControl::processOutputData(void* outputBuffer, const unsigned i
     return outputBufferByteSize;
 }
 
-template<typename T>
+template<typename AudioFormat>
 double GainControl::calculate(void* buffer, const unsigned int bufferSize)
 {
-    T* buf = (T*) buffer;
+    AudioFormat* buf = (AudioFormat*) buffer;
     double gain = 0;
-    const unsigned int bufSize = bufferSize / sizeof(T);
+    const unsigned int bufSize = bufferSize / sizeof(AudioFormat);
     for(unsigned int i = 0; i < bufSize; ++i)
     {
         gain += buf[i] < 0 ? -buf[i] : buf[i];
@@ -131,16 +142,48 @@ double GainControl::calculate(void* buffer, const unsigned int bufferSize)
     return gain / bufSize;
 }
 
-template<typename T>
+template<typename AudioFormat>
 void GainControl::amplify(void* buffer, const unsigned int bufferSize, double gain)
 {
-    T* buf = (T*) buffer;
-    const unsigned int bufSize = bufferSize / sizeof(T);
+    AudioFormat* buf = (AudioFormat*) buffer;
+    const unsigned int bufSize = bufferSize / sizeof(AudioFormat);
     for(unsigned int i = 0; i < bufSize; ++i)
     {
         //this works, since we read the byte before writing it
-        //TODO add checking for overflow -> clip
-        //per std::numeric_limits<T>::max() and ::min()
-        buf[i] = buf[i] * gain;
+        buf[i] = clipOverflow(buf[i], gain);
     }
+}
+
+template<typename AudioFormat>
+AudioFormat GainControl::clipOverflow(AudioFormat sample, double gain)
+{
+    if(sample == 0)
+    {
+        // 0 * x = 0
+        return sample;
+    }
+    if(gain <= 1.0)
+    {
+        //if we're reducing the signal, overflow can't occur
+        return sample * gain;
+    }
+    if(sample > 0)
+    {
+        //if we have a positive sample-value, we must test for upper limits
+        if(upperSampleLimit > sample)
+        {
+            //if max/g > s -> s * g > max -> overflow
+            return std::numeric_limits<AudioFormat>::max();
+        }
+    }
+    else
+    {
+        //if we have a negative sample-value, we must test for lower limits
+        if(lowerSampleLimit > sample)
+        {
+            //if min/g > s -> s * g < min -> overflow
+            return std::numeric_limits<AudioFormat>::min();
+        }
+    }
+    return sample * gain;
 }
