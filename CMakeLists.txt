@@ -17,7 +17,7 @@ if(NOT MSVC)
 	LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wall -pthread")
 else()
 	# visual studio specific flags
-	set(CMAKE_CXX_FLAGS "/W3 /D_UNICODE /DUNICODE")
+	set(CMAKE_CXX_FLAGS "/W3 /D_UNICODE /DUNICODE /DNOMINMAX")
 	add_definitions(-DWIN32_LEAN_AND_MEAN)
 endif()
 
