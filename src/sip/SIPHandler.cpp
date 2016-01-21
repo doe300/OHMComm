@@ -368,21 +368,24 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
             rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
             //extract MEDIA-data for selected media-type
             const std::vector<MediaDescription> selectedMedias = SDPMessageHandler::readMediaDescriptions(sdp);
+            unsigned short mediaIndex = 0;
             //select best media
-            if (selectedMedias.size() != 1) {
-                //TODO if medias > 1, select best, CANCEL (or BYE?) and INVITE again to support offer/answer model (RFC 3264))
+            if (selectedMedias.size() < 1) {
                 std::cerr << "SIP: Could not agree on audio-configuration, aborting!" << std::endl;
                 shutdownInternal();
             }
+            //support for SDP offer/answer model (RFC 3264)
+            //if medias > 1, select best media-type
+            mediaIndex = selectBestMedia(selectedMedias);
             
-            rtpConfig.remotePort = selectedMedias[0].port;
+            rtpConfig.remotePort = selectedMedias[mediaIndex].port;
 
             //update remote SIP-URI
             updateNetworkConfig();
             std::cout << "SIP: Our INVITE was accepted, initializing communication" << std::endl;
             
             //start communication
-            startCommunication(selectedMedias[0], rtpConfig, SDPMessageHandler::readRTCPAttribute(sdp));
+            startCommunication(selectedMedias[mediaIndex], rtpConfig, SDPMessageHandler::readRTCPAttribute(sdp));
         }
         else
         {

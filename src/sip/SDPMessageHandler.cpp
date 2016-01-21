@@ -144,12 +144,10 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
         //RTPmap for all supported media-formats
         for(const SupportedFormat& format: SupportedFormats::getFormats())
         {
-            //skip formats which are predefined in RFC 3551
-            if(!format.isDefaultFormat)
-            {
-                lines.push_back(std::string("a=rtpmap:").append(std::to_string(format.payloadType)).append(" ")
-                    .append(format.encoding).append("/").append(std::to_string(format.sampleRate)).append("/").append(std::to_string(format.numChannels)));
-            }
+            //formats which are predefined in RFC 3551 could be skipped
+            //but RFC 3264 recommends to not do so, to allow "easier migration away from static payload types" (page 6)
+            lines.push_back(std::string("a=rtpmap:").append(std::to_string(format.payloadType)).append(" ")
+                .append(format.encoding).append("/").append(std::to_string(format.sampleRate)).append("/").append(std::to_string(format.numChannels)));
             if(!format.parameterLine.empty())
             {
                 lines.push_back(std::string("a=fmtp:").append(std::to_string(format.payloadType)).append(" ").append(format.parameterLine));
@@ -163,6 +161,12 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
         {
             lines.push_back(std::string("a=rtpmap:").append(std::to_string(format.payloadType)).append(" ")
                     .append(format.encoding).append("/").append(std::to_string(format.sampleRate)).append("/").append(std::to_string(format.numChannels)));
+            if(!format.getFormat().parameterLine.empty())
+            {
+                //add the parameters to the response too
+                //XXX to be precise, only received (and understood) parameters are to be added
+                lines.push_back(std::string("a=fmtp:").append(std::to_string(format.payloadType)).append(" ").append(format.getFormat().parameterLine));
+            }
         }
     }
     //a=recvonly This specifies that the tools should be started in receive-only mode where applicable
