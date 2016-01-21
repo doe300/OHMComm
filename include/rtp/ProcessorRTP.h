@@ -6,7 +6,6 @@
 #include "RTPPackageHandler.h"
 #include "NetworkWrapper.h"
 #include "RTPBufferHandler.h"
-#include "Parameters.h"
 
 /*!
  * AudioProcessor wrapping/unwrapping audio-frames in/out of a RTP-package
@@ -44,7 +43,6 @@ public:
 private:
     //! Delay until treating input as silence
     static const unsigned short SILENCE_DELAY;
-    static const Parameter* ENABLE_DTX;
     std::shared_ptr<NetworkWrapper> networkObject;
     std::unique_ptr<RTPPackageHandler> rtpPackage;
     std::shared_ptr<RTPBufferHandler> rtpBuffer;

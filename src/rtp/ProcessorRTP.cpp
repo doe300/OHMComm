@@ -1,11 +1,11 @@
 #include "rtp/ProcessorRTP.h"
 #include "Statistics.h"
+#include "Parameters.h"
 
 Participant participantDatabase[2] = {0};
 
 //!Treat as silence after 500ms of no input
 const unsigned short ProcessorRTP::SILENCE_DELAY = 500;
-const Parameter* ProcessorRTP::ENABLE_DTX = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, 'd', "enable-dtx", "Enables DTX to not send any packages, if silence is detected."));
 
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
                            std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType), lastPackageWasSilent(false)
@@ -32,7 +32,7 @@ const std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sample
 bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
 {
     //check whether to enable DTX at all
-    isDTXEnabled = configMode->isCustomConfigurationSet(ProcessorRTP::ENABLE_DTX->longName, "Enable DTX");
+    isDTXEnabled = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
     if(isDTXEnabled)
     {
         std::cout << "Using DTX after " << ProcessorRTP::SILENCE_DELAY << " ms of silence." << std::endl;

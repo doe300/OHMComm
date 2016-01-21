@@ -30,6 +30,7 @@ const Parameter* Parameters::REMOTE_PORT = Parameters::registerParameter(Paramet
 const Parameter* Parameters::LOCAL_PORT = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, Parameter::FLAG_REQUIRED|Parameter::FLAG_HAS_VALUE, 'l', "local-port", "The local port to listen on", std::to_string(DEFAULT_NETWORK_PORT)));
 const Parameter* Parameters::AUDIO_PROCESSOR = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'a', "add-processor", "The name of the audio-processor to add", ""));
 const Parameter* Parameters::PROFILE_PROCESSORS = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 't', "profile-processors", "Enables profiling of the the execution time of audio-processors"));
+const Parameter* Parameters::ENABLE_DTX = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, 'd', "enable-dtx", "Enables DTX to not send any packages, if silence is detected."));
 
 const Parameter* Parameters::SDES_CNAME = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'C', "sdes-cname", "The SDES CNAME (device name)", ""));
 const Parameter* Parameters::SDES_EMAIL = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'E', "sdes-email", "The SDES EMAIL (email-address)", ""));

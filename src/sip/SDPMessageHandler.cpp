@@ -137,6 +137,8 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
     //a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding parameters>] maps from an RTP payload type number
     //  to an encoding name denoting the payload format to be used [...] For audio streams, <encoding parameters> 
     //  indicates the number of audio channels
+    //a=fmtp:<format> <format specific parameters>T parameters that are specific to a particular format to be conveyed 
+    //  in a way that SDP does not have to understand them
     if(media.empty())
     {
         //RTPmap for all supported media-formats
@@ -147,6 +149,10 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
             {
                 lines.push_back(std::string("a=rtpmap:").append(std::to_string(format.payloadType)).append(" ")
                     .append(format.encoding).append("/").append(std::to_string(format.sampleRate)).append("/").append(std::to_string(format.numChannels)));
+            }
+            if(!format.parameterLine.empty())
+            {
+                lines.push_back(std::string("a=fmtp:").append(std::to_string(format.payloadType)).append(" ").append(format.parameterLine));
             }
         }
     }
@@ -176,9 +182,6 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
     //  10 - the best still-image quality possible
     //  5  - the default behavior given no quality suggestion.
     //  0  - the worst still-image quality the codec designer thinks is still usable.
-    //a=fmtp:<format> <format specific parameters>T parameters that are specific to a particular format to be conveyed 
-    //  in a way that SDP does not have to understand them
-    //XXX can be used for usedtx, ...
     
     //SDES Cryptographic extension - https://tools.ietf.org/html/rfc4568
     //a=crypto:<tag> <crypto-suite> <key-params> [<session-params>]

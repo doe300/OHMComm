@@ -7,11 +7,13 @@
 
 #include "sip/SIPConfiguration.h"
 #include "AudioHandlerFactory.h"
+#include "AudioProcessorFactory.h"
+#include "Parameters.h"
 
 #include <chrono>
 
 SIPConfiguration::SIPConfiguration(const NetworkConfiguration& sipConfig, bool profileProcessors, const std::string& logFile) : 
-    ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription media, const NetworkConfiguration rtpConfig, const NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
+    ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription media, const NetworkConfiguration rtpConfig, const NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0}), customConfig()
 {
     useDefaultAudioConfig = false;
     audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
@@ -74,23 +76,28 @@ const NetworkConfiguration SIPConfiguration::getRTCPNetworkConfiguration() const
 
 const std::string SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const
 {
-    //TODO how to support custom configuration??
+    if(customConfig.count(key) != 0)
+        return customConfig.at(key);
     return defaultValue;
 }
 
 const int SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
 {
+    if(customConfig.count(key) != 0)
+        return atoi(customConfig.at(key).data());
     return defaultValue;
 }
 
 const bool SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
+    if(customConfig.count(key) != 0)
+        return atoi(customConfig.at(key).data());
     return defaultValue;
 }
 
 const bool SIPConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
-    return false;
+    return customConfig.count(key) != 0;
 }
 
 void SIPConfiguration::onRegister(PlaybackObservee* ohmComm)
@@ -129,6 +136,17 @@ void SIPConfiguration::setConfig(const MediaDescription& media, const NetworkCon
     audioConfig.outputDeviceChannels = media.numChannels;
     payloadType = media.payloadType;
     SupportedFormat format = media.getFormat();
+    for(const KeyValuePair<std::string>& param : media.formatParams.fields)
+    {
+        if(FORMAT_OPUS_DTX.compare(param.key) == 0)
+        {
+            //if the other side supports DTX, we do too
+            //add "Gain Control" to calculate the silence-threshold
+            processorNames.push_back(AudioProcessorFactory::GAIN_CONTROL);
+            //set enable-DTX parameter for RTP-processor to use DTX
+            customConfig[Parameters::ENABLE_DTX->longName] = "1";
+        }
+    }
     if(!format.processorName.empty())
     {
         //format "PCM" has no processor name set, do don't add an empty one

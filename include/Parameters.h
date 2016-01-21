@@ -151,6 +151,7 @@ public:
     static const Parameter* LOCAL_PORT;
     static const Parameter* AUDIO_PROCESSOR;
     static const Parameter* PROFILE_PROCESSORS;
+    static const Parameter* ENABLE_DTX;
     
     static const Parameter* SDES_CNAME;
     static const Parameter* SDES_EMAIL;

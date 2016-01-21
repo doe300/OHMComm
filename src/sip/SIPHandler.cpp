@@ -370,6 +370,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
             const std::vector<MediaDescription> selectedMedias = SDPMessageHandler::readMediaDescriptions(sdp);
             //select best media
             if (selectedMedias.size() != 1) {
+                //TODO if medias > 1, select best, CANCEL (or BYE?) and INVITE again to support offer/answer model (RFC 3264))
                 std::cerr << "SIP: Could not agree on audio-configuration, aborting!" << std::endl;
                 shutdownInternal();
             }

@@ -34,6 +34,7 @@ public:
 private:
     SIPHandler handler;
     NetworkConfiguration rtcpConfig;
+    std::map<std::string, std::string> customConfig;
 
     /*!
      * Called by the SIPHandler to set the network- and audio-configuration

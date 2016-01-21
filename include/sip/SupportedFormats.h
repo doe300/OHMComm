@@ -11,6 +11,9 @@
 #include <string>
 #include <vector>
 
+const std::string FORMAT_OPUS_DTX("usedtx");
+const std::string FORMAT_OPUS_FEC("useinbandfec");
+
 struct SupportedFormat
 {
     // media name for LPCM samples
@@ -26,9 +29,11 @@ struct SupportedFormat
     const unsigned short numChannels;
     const std::string processorName;
     const bool isDefaultFormat;
+    const std::string parameterLine;
     
-    SupportedFormat(const unsigned int payloadType, const std::string encoding, const unsigned int sampleRate, const unsigned short numChannels, const std::string processorName, const bool defaultFormat = false) :
-        payloadType(payloadType), encoding(encoding), sampleRate(sampleRate), numChannels(numChannels), processorName(processorName), isDefaultFormat(defaultFormat)
+    SupportedFormat(const unsigned int payloadType, const std::string encoding, const unsigned int sampleRate, const unsigned short numChannels, 
+    const std::string processorName, const bool defaultFormat = false, const std::string parameterLine = "") :
+        payloadType(payloadType), encoding(encoding), sampleRate(sampleRate), numChannels(numChannels), processorName(processorName), isDefaultFormat(defaultFormat), parameterLine(parameterLine)
     {
     }
 
