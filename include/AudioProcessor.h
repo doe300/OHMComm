@@ -8,7 +8,7 @@
 
 #include "configuration.h"
 #include "ConfigurationMode.h"
-#include "rtp/RTPPackageHandler.h"
+#include "rtp/RTPHeader.h"
 
 /*!
  * This AudioProcessor supports any buffer-length
