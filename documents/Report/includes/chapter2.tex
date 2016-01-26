@@ -1,2 +1,118 @@
 \chapter{Anforderungsanalyse}
-\section{Funktionale und Nicht-Funktionale Anforderungen}
+In diesem Kapitel sollen aus der Projektbeschreibung und die daraus resultierenden konkreten Anforderungen für das Framework erstellt werden. 
+
+\section{Funktionale Anforderungen}
+	In diesem Kapitel wird aus der Projektbeschreibung, die funktionalen Anforderungen ermittelt und definiert. Die funktionale Anforderungen werden in zusammenhängenden Gruppen eingeteilt.
+
+	\begin{itemize} 
+		\item Schnittstelle zur Audiohardware
+
+		Es muss eine entsprechende Schnittstelle zur Audiohardware, Mikrofone und Lautsprecher, erstellt werden. Diese wird benötigt, um die Audiodaten zu übertragen und abzuspielen. Da ein Computer über mehr als ein Lautsprecher und Mikrofon verfügen kann, muss hier eine entsprechende Auswahlmöglichkeit existieren. Desweiteren müssen Konfigurationsmöglichkeiten vorhanden sein um z.B. bestimmte Abtastrate auszuwählen.
+			
+		\item Audiokompression
+
+		Wie bereits erwähnt ist eine Audiokommunikation ohne entsprechende Datenkompression praktisch nicht realisierbar. Es muss eine allgemeine Schnittstelle für Dekodierer erstellt werden, die durch beliebige Audiocodecs erweitern lässt. Außerdem muss mindestens ein Codec integriert werden, um die Praxistauglichkeit des Frameworks zu gewährleisten.
+			
+		\item Netzwerkschicht
+
+		Für den Verbindungsaufbau und -abbau sowie der Datenübertragung muss ebenfalls eine Schicht erstellt werden. Dabei müssen auch Verbindungsdaten verwaltet und verarbeitet werden. Die Übertragung basiert auf UDP.
+				
+		\item RTP-Protokoll
+
+		Das Ent- und Verpacken von Nutzdaten in das RTP-Protokoll muss ebenfalls implementiert werden.
+				
+		\item Jitter-Buffer (RTPBuffer)
+
+		Der Buffer hat die Aufgabe die Paketreihenfolge von den empfangenen Paketen wiederherzustellen, da diese nicht gewährleistet werden kann mit dem UDP-Protokoll. Dadurch erhöht sich die Audioqualität. Der Buffer soll einen bestimmten Füllstand erreichen, bevor die Audiowiedergabe beginnt.
+				
+		\item Prototypische Voice-over-IP Konsolenanwendungen
+
+		Diese Anwendung soll alle Funktionen des Frameworks testen. Dadurch kann sichergestellt werden, dass das Framework die gewünschte Funktionalität tatsächlich umsetzt und anbietet. Die Hauptaufgabe der Testanwendung ist es, die Kommunikation zwischen zwei Anwendern zu ermöglichen. Die Anwendung soll sich mit Parameter konfigurieren lassen. 
+				
+		\item Statistik
+
+		Um die Funktionen objektiv bewerten zu können, soll die Möglichkeit bestehen, statistische Werte zu erfassen und zu speichern.
+		
+	\end{itemize}
+	
+\section{Nicht-Funktionale Anforderungen}
+Hier werden aus der Projektbeschreibung die nicht-funktionalen Anforderungen ermittelt und definiert.
+
+\begin{itemize} 
+\item Plattformunabhängigkeit
+
+Ist einer der zentralen Ziele des Frameworks. Es soll unter Windows, Linux und OS X funktionieren. Daraus folgt, dass eine Kommunikation zwischen einen Windows-Client und Linux-Client, oder einer sonstigen beliebigen Konstellation funktioniert, da die Funktionsweise immer identisch ist. Diesbezüglich wurde der Einsatz von CMake, ein Buildtool für C++, festgelegt.
+		
+\item Performanz
+
+Latenzen sollten für eine flüssige und störungsfreie Kommunikation so gering wie möglich gehalten werden. Daraus resultiert auch die Wahl der Programmiersprache C++. In der weiteren Entwicklungsphase gilt es diesen Aspekt mit erhöhter Priorität betrachten.
+		
+\item Prinzipien des objektorientierten Designs
+
+Das Framework soll nach den Prinzipien guten objektorientierten Designs entwickelt werden. Darunter versteht man Konventionen die Beschreiben wie gute Software aussehen sollte. Das Framework soll modular aufgebaut sein, so dass die Komponenten auch einzeln nutzbar sind. Außerdem soll es möglich sein die Klassen zu erweitern und auszutauschen. Konfigurationsmöglichkeiten sollen möglichst zur Laufzeit möglich sein. 
+		
+\item Dokumentation
+
+Das Erstellen einer Dokumenation ist ebenfalls eine Teilaufgabe des Projektes.
+		
+\end{itemize}
+
+\newpage
+\section{Übersicht aller Anforderungen}
+Es wird eine Übersicht aller Anforderungen, mit kurzen Beschreibungen erstellt, um in den folgenden Kapiteln darauf referenzieren zu können.
+
+\begin{compactenum}[a)]
+	\item Schnittstelle zur Audiohardware
+		\begin{compactenum}[1.]
+			\item Erstellen der Schnittstelle
+			\item Konfigurationsmöglichkeiten der Audiohardware
+		\end{enumerate}
+	\item Audiokompression
+		\begin{compactenum}[1.]
+			\item Erstellen der Schnittstelle
+			\item Einbinden eines Audiocodecs
+		\end{compactenum}
+	\item Netzwerkschicht
+		\begin{compactenum}[1.]
+			\item Erstellen einer Netzwerkschicht
+			\item Konfigurationsmöglichkeiten für Netzwerkverbindungen
+		\end{compactenum}
+	\item RTP-Protokoll
+		\begin{compactenum}[1.]
+			\item Implementierung des RTP-Protokolls
+		\end{compactenum}
+	\item Jitter-Buffer
+		\begin{compactenum}[1.]
+			\item Implementieren eines Jitter-Buffers
+			\item Audiowiedergabe erst starten, wenn bestimmter Füllstand erreicht ist
+		\end{compactenum}
+	\item Prototypische Voice-over-IP-Konsolenanwendung
+		\begin{compactenum}[1.]
+			\item Basiert auf das Framework und ermöglicht die Audiokommunikation zwischen zwei Anwendern
+			\item Nimmt Parameter beim Programmstart entgegen und verarbeitet sie
+		\end{compactenum}
+	\item Statistik
+		\begin{compactenum}[1.]
+			\item Erfassen von statistischen Werten muss möglich sein
+			\item Formatierte Ausgabe der Ergebnisse
+		\end{compactenum}
+
+
+	\item Plattformunabhängigkeit mit CMake
+		\begin{compactenum}[1.]
+			\item Windows, Linux, OS X
+		\end{enumerate}
+		\item Performanz
+		\begin{compactenum}[1.]
+			\item Performanz hat erhöhte Priorität
+		\end{enumerate}
+		\item Prinzpien des objektorientes Designs
+		\begin{compactenum}[1.]
+			\item Erweiterbarkeit, Wiederverwendbarkeit, Austauschbarkeit der Komponenten
+		\end{enumerate}
+		\item Dokumentation
+		\begin{compactenum}[1.]
+			\item Erstellen einer Dokumentation
+		\end{enumerate}
+\end{compactenum}
+
