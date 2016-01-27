@@ -62,58 +62,58 @@ Das Erstellen einer Dokumenation ist ebenfalls eine Teilaufgabe des Projektes.
 Es wird eine Übersicht aller Anforderungen, mit kurzen Beschreibungen erstellt, um in den folgenden Kapiteln darauf referenzieren zu können.
 
 \begin{compactenum}[a)]
-	\item Schnittstelle zur Audiohardware
+	\item Schnittstelle zur Audiohardware \label{FA:SchnittstelleAudiohardware}
 		\begin{compactenum}[1.]
-			\item Erstellen der Schnittstelle
-			\item Konfigurationsmöglichkeiten der Audiohardware
+			\item Erstellen der Schnittstelle \label{FA:SchnittstelleAudiohardware:Erstellen}
+			\item Konfigurationsmöglichkeiten der Audiohardware \label{FA:SchnittstelleAudiohardware:Konfigurieren}
 		\end{compactenum}
-	\item Audiokompression
+	\item Audiokompression \label{FA:Audiokompression}
 		\begin{compactenum}[1.]
-			\item Erstellen der Schnittstelle
-			\item Einbinden eines Audiocodecs
+			\item Erstellen der Schnittstelle \label{Fa:Audiokompression:Erstellen}
+			\item Einbinden eines Audiocodecs \label{Fa:Audiokompression:CodecEinbinden}
 		\end{compactenum}
-	\item Netzwerkschicht
+	\item Netzwerkschicht \label{Fa:Netzwerkschicht}
 		\begin{compactenum}[1.]
-			\item Erstellen einer Netzwerkschicht
-			\item Konfigurationsmöglichkeiten für Netzwerkverbindungen
+			\item Erstellen einer Netzwerkschicht \label{Fa:Netzwerkschicht:Erstellen}
+			\item Konfigurationsmöglichkeiten für Netzwerkverbindungen \label{FA:Netzwerkschicht:Konfigurieren}
 		\end{compactenum}
-	\item RTP-Protokoll
+	\item RTP-Protokoll \label{FA:RTP}
 		\begin{compactenum}[1.]
-			\item Implementierung des RTP-Protokolls
+			\item Implementierung des RTP-Protokolls \label{FA:RTP:Implementieren}
 		\end{compactenum}
-	\item Jitter-Buffer
+	\item Jitter-Buffer \label{FA:Jitter-Buffer}
 		\begin{compactenum}[1.]
-			\item Implementieren eines Jitter-Buffers
-			\item Audiowiedergabe erst starten, wenn bestimmter Füllstand erreicht ist
+			\item Implementieren eines Jitter-Buffers \label{FA:Jitter-Buffer:Implementieren}
+			\item Audiowiedergabe erst starten, wenn bestimmter Füllstand erreicht ist \label{FA:Jitter-Buffer:Buffern}
 		\end{compactenum}
-	\item Prototypische Voice-over-IP-Konsolenanwendung
+	\item Prototypische Voice-over-IP-Konsolenanwendung \label{FA:Konsolenanwendung}
 		\begin{compactenum}[1.]
-			\item Basiert auf das Framework und ermöglicht die Audiokommunikation zwischen zwei Anwendern
-			\item Nimmt Parameter beim Programmstart entgegen und verarbeitet sie
+			\item Basiert auf das Framework und ermöglicht die Audiokommunikation zwischen zwei Anwendern \label{FA:Konsolenanwendung:Audiokommunikation}
+			\item Nimmt Parameter beim Programmstart entgegen und verarbeitet sie \label{FA:Konsolenanwendung:Parameter}
 		\end{compactenum}
-	\item Statistik
+	\item Statistik \label{FA:Statistik}
 		\begin{compactenum}[1.]
-			\item Erfassen von statistischen Werten muss möglich sein
-			\item Formatierte Ausgabe der Ergebnisse
+			\item Erfassen von statistischen Werten muss möglich sein \label{FA:Statistik:Erfassen}
+			\item Formatierte Ausgabe der Ergebnisse \label{FA:Statistik:Ausgabe}
 		\end{compactenum}
 
 
-	\item Plattformunabhängigkeit mit CMake
+	\item Plattformunabhängigkeit \label{NFA:Plattformunabhängigkeit}
 		\begin{compactenum}[1.]
-			\item Windows, Linux, OS X
-			\item Einsatz von CMake
+			\item Windows, Linux, OS X \label{NFA:Plattformunabhängigkeit:BS}
+			\item Einsatz von CMake \label{NFA:Plattformunabhängigkeit:CMake}
 		\end{compactenum}
-		\item Performanz
+		\item Performanz \label{NFA:Performanz}
 		\begin{compactenum}[1.]
-			\item Performanz hat erhöhte Priorität
+			\item Performanz hat erhöhte Priorität \label{NFA:Performanz:Priorität}
 		\end{compactenum}
-		\item Prinzpien des objektorientes Designs
+		\item Prinzpien des objektorientierten Designs \label{NFA:Softwarearchitektur}
 		\begin{compactenum}[1.]
-			\item Erweiterbarkeit, Wiederverwendbarkeit, Austauschbarkeit der Komponenten
+			\item Erweiterbarkeit, Wiederverwendbarkeit, Austauschbarkeit der Komponenten \label{NFA:Softwarearchitektur:Eigenschaften}
 		\end{compactenum}
-		\item Dokumentation
+		\item Dokumentation \label{NFA:Dokumentation}
 		\begin{compactenum}[1.]
-			\item Erstellen einer Dokumentation
+			\item Erstellen einer Dokumentation \label{NFA:Dokumentation:Erstellen}
 		\end{compactenum}
 \end{compactenum}
 
