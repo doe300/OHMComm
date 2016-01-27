@@ -9,7 +9,7 @@
 \usepackage{graphicx} % wir wollen Bilder einfügen
 \usepackage{float} % Umgebung die sich automatisch im Dokument an passenden Positionen bewegen (floaten)
 \usepackage{emptypage} % Wirklich leer bei leeren Seiten
-
+\usepackage{paralist} % Spezielle Aufzählungstypen wie z.B. begin{compactenum}[a)] https://de.wikibooks.org/wiki/LaTeX-W%C3%B6rterbuch:_Aufz%C3%A4hlung
 \usepackage{hyperref} % macht ToC und alle internen Lonks klickbar (für leichtere Navigation)
 \hypersetup{
     colorlinks,
@@ -107,7 +107,7 @@
 
 % Zusammenfassung
 \begin{abstract} 
-OHMComm ist ein Framework zur Audiokommunikation und -verarbeitung, dass im Rahmen des IT-Projekts an der Technischen Hochschule Nürnberg entwickelt wurde.
+OHMComm ist ein plattformunabhängiges Audiokommunikationsframework, dass im Rahmen des IT-Projekts an der Technischen Hochschule Nürnberg entwickelt wurde. Das Ziel des Frameworks ist es, sämtliche Funktionalität, die für eine Kommunikation benötigt wird, zur Verfügung zu stellen. Die Kommunikation erfolgt dabei als Direktverbindung über das Real-Time Transport Protokoll (RTP), welches auf UDP basiert. RTP stellt ein standardisiertes Protokoll für die Audio- und Videoübertragung dar, welches 1996 von der Audio-Video Transport Working Group of the Internet Engineering Task Force (IETF) entwickelt wurde. Das Framework ist modular aufgebaut und bietet eine Schnittstelle zur Audiohardware an, ermöglicht den Umgang mit RTP-Paketen, übernimmt das Encodieren und Dekodieren von Audiodaten ins RTP-Protokoll und stellt ein Jitterbuffer zur Verfügung. Sämtliche Funktionen wurden in einer Beispielanwendung integriert und getestet.
 \end{abstract}
 
 \tableofcontents
