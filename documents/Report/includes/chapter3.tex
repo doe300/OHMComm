@@ -16,7 +16,7 @@ Um OHMComm verwenden zu können, müssen vorher eine Vielzahl an Einstellungen g
 \item[Netzwerk-Konfiguration:]Bestimmt den zu verwendeten Port zum Empfangen und Senden von Paketen auf dem lokalen Rechner, sowie die IP-Adresse und den Port des Rechners des Kommunikationspartners. Die Ports und die Adresse des jeweils anderen Rechners müssen vorher zwischen den Gesprächspartner abgestimmt werden, um eine Duplex-Kommunikation einrichten zu können. Bei der Netzwerk-Konfiguration ist zu beachten, dass bei Kommunikation über ein WAN (Wide Area Network) eine von außen erreichbare IP-Adresse gewählt wird evtl. auch Port-Weiterleitungen eingerichtet werden müssen.
 \item[Sonstige Konfiguration:] Hier zählen sonstige, rein optionale Einstellungen, die die eigentliche Audiokommunikation nicht beeinflussen, wie das Messen der Ausführungsdauer der verwendeten Prozessoren, das Schreiben des Logs in eine Datei sowie die informativen Daten, die bei RTCP SDES-Paketen gesendet werden (siehe Abschnitt \ref{rtcp}). Da diese Einstellungen nur das lokale Programm betreffen, müssen sie nicht mit dem Gegenüber abgestimmt werden.
 \end{description}
-Für die meisten nicht-optionalen Einstellungen sind Standardwerte vorgegeben (wie den beiden Ports) oder werden beim Start des Programms ermitteln (wie die Standard-Audiogeräte für die Ein- und Ausgabe). Um die einfachste Form der Kommunikation aufbauen zu können -- ohne Audiocodecs oder sonstigen Audioprozessoren -- muss nur die IP-Adresse des Gegenübers gesetzt werden. jedoch empfiehlt es sich aus verschiedenen Gründen (wie die Reduzierung der Bandbreite) eine erweiterte Konfiguration vorzunehmen.
+Für die meisten nicht-optionalen Einstellungen sind Standardwerte vorgegeben (wie den beiden Ports für den lokalen und entfernten Rechner) oder werden beim Start des Programms ermitteln (wie die Standard-Audiogeräte für die Ein- und Ausgabe). Um die einfachste Form der Kommunikation aufbauen zu können -- ohne Audiocodecs oder sonstigen Audioprozessoren -- muss nur die IP-Adresse des Gegenübers gesetzt werden. jedoch empfiehlt es sich aus verschiedenen Gründen (wie die Reduzierung der Bandbreite) eine erweiterte Konfiguration vorzunehmen.
 \\%TODO: nach Steuerung?
 OHMComm implementiert eine Vielzahl an Konfigurationsmöglichkeiten, um einen möglichst breiten Verwendungsbereich zu bieten. So kann die prototypische Anwendung aus Kapitel \ref{prototypProgram} als interaktive Konsolen-Anwendung gestartet werden. Dabei werden alle Einstellungsmöglichkeiten nacheinander ausgegeben und der Benutzer kann durch Eingabe einen der vorgeschlagenen Werte auswählen oder einen eigenen Wert eingeben, je nach Art der Einstellung.
 \\
@@ -24,24 +24,58 @@ Ebenso kann die Konfiguration durch Kommandozeilen-Argumente vorgenommen werden.
 \\
 Um das Programm auch als Bibliothek verwenden zu können, wird eine Möglichkeit geboten, über Methodenaufrufe die benötigten und optionalen Einstellungen zu setzen. %TODO: Verwendung als Bib, Was kanns? Nutzen
 \\
-Des Weiteren gibt es die sog. \textbf{passive Konfiguration}, bei der alle Konfigurationen, die in beiden Programmen gleich eingestellt sein müssen, vor dem Start der Kommunikation ausgetauscht werden. Zu den ausgetauschten Einstellungen zählen Abtastrate, Audioformat, Anzahl der Kanäle und die verwendeten Prozessoren (für die Audiocodecs).Somit wird die Gleichheit dieser Einstellungen garantiert und der Konfigurationsaufwand verringert. Mehr zur passiven Konfiguration in Abschnitt \ref{rtcp}.
+Des Weiteren gibt es die sog. \textbf{passive Konfiguration}, bei der alle Konfigurationen, die in beiden Programmen gleich eingestellt sein müssen, vor dem Start der Kommunikation ausgetauscht werden. Zu den ausgetauschten Einstellungen zählen Abtastrate, Audioformat, Anzahl der Kanäle und die verwendeten Prozessoren (für die Audiocodecs). Somit wird die Gleichheit dieser Einstellungen garantiert und der Konfigurationsaufwand verringert. Mehr zur passiven Konfiguration in Abschnitt \ref{rtcp}.
 %TODO: Ausführlicher!?
 \subsection{Audio-Schnittstelle}
 \subsection{Verarbeitungskette}
 \label{processingChain}
 \subsection{Austauschbarkeit und Instantiierung}
 \subsection{RTP-Protokoll}
+\label{rtp}
+Das Real-time Transport Protocol (RTP) ist ein Netzwerkprotokoll für die Übertragung von Echtzeitdaten, wie Audio- und Videostreams oder -Konversationen und ist im RFC 3550 der Internet Engineering Task Force (IETF) definiert (siehe \cite{RFC3550}) und unterstützt sowohl Unicast- als auch Multicast-Sitzungen. RTP ist ein Protokoll für die Anwendungsebene und kann auf beliebigen Transportprotokollen wie UDP oder TCP aufgesetzt werden. Jedoch wird RTP meist mit UDP verwendet, da aufgrund der Echtzeitvoraussetzungen der Verlust von Paketen erträglicher ist als das Blockieren weiterer Daten durch erneutes Senden nicht-angekommener Pakete, so wie es in TCP üblich ist. Dies hat wiederum zur Folge, dass eine auf RTP mit UDP basierende Anwendung den Verlust einzelner Pakete kompensieren muss. Ein RTP-Paket besteht aus dem RTP-Header und dem anwendungsspezifischen Payload (Body). Der RTP-Header hat eine Größe von zwölf bis 72 Bytes und definiert folgende Felder:
+\begin{lstlisting}[keepspaces=true,numbers=none,label=lst=rtpHeader,caption=RTP Header \cite{RFC3550}]
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|V=2|P|X|  CC   |M|     PT      |       sequence number         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           synchronization source (SSRC) identifier            |
++=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+|            contributing source (CSRC) identifiers             |
+|                             ....                              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+\end{lstlisting}
+\begin{description}
+\item[Version:] Hat in RFC 3550 immer den Wert 2, frühere Versionen hatten den Wert 1.
+\item[Padding-Bit:] Gibt an, ob die Daten des RTP-Pakets auf ein Vielfaches von 4 Byte gepadded sind.
+\item[Extension-Bit:] Gibt an, ob eine RTP Header-Extension existiert, die direkt an den Header anschließt.
+\item[CSRC Count:] Gibt die Anzahl der Contribution Sources (CSRCs) an, maximal 15 aufgrund der Größe des Feldes mit 4 Bit.
+\item[Marker-Bit:] Anwendungsspezifische Bedeutung.
+\item[Payloadtype:] Gibt den Typ der transportierten Daten an. Dieser kann aus einer Liste vordefinierter Typen aus RFC 3551 oder dynamisch ausgewählt sein.
+\item[Sequence number:] Gibt die Position des RTP-Pakets innerhalb des Datenstroms an und wird für die Umsortierung der Pakete verwendet. Der Anfangswert dieses Felds sollte zufällig gewählt werden.
+\item[Timestamp:] Zeitpunkt, zu dem das erste Byte des Pakets erstellt wurde, wobei auch hier der Anfangswert zufällig gewählt wird.
+\item[Synchronization Source Identifier:] Zufällig gewählte Zahl zum eindeutigen identifizieren des Senders dieses Pakets, auch SSRC genannt.
+\item[Contribution Source Identifier:] Beinhaltet die originalen SSRCs der Teilpakete, wenn das Paket von einem Mixer aus verschiedenen Teilpaketen zusammengestellt wurde, werden auch CSRCs angekürzt.
+\end{description}
+
 TODO: Definiert in RFC 3550, auch RTCP.
+TODO: Mixer/
 Wozu da? Funktionsumfang? Wird bei uns benötigt wieso/wozu?
 \subsubsection{RTCP-Protokoll}
-TODO: Wozu da? Aufbau? Verwendung zum Austausch statistischer Daten und passive Konfiguration
 \label{rtcp}
+TODO: Wozu da? Aufbau? Verwendung zum Austausch statistischer Daten und passive Konfiguration
+
 \subsection{Jitter-Buffer}
-TODO: Warum wird BUffer benötigt? Reordering, Loss
-Wo wird Buffer verwendet? Auf Empfänger-Seite, eigentlich einen pro Sender, wir haben aber nur einen Sender
-Was macht Buffer? Reihenfolge, Concealment, optional auch Auspielverzögerung, um späte Pakete noch ausspielen zu können
+Wie bereits in Abschnitt \ref{rtp} erwähnt, wird eine Echtzeitübertragung mit RTP meist mit dem Transportprotokoll UDP verwendet. Da UDP aber nicht garantiert, dass versendete Pakete beim Empfänger ankommen und auch nicht, in welcher Reihenfolge, muss die Anwendung dafür sorgen, dass mit verlorenen Paketen oder Paketen, die in der falschen Reihenfolge empfangen werden, richtig umgegangen wird. Dafür gibt es auf der Empfängerseite einen Jitter-Buffer, einen Puffer, der empfangene Pakete speichert und aus dem die weitere Prozessorkette Pakete in der richtigen Reihenfolge auslesen kann. Der Begriff Jitter-Buffer kommt von dem englischen Wort Jitter, dass für die Netzwerkverzögerung, oder genauer: die Varianz der Netzwerkverzögerung steht. Wie der Name schon andeutet, ist es eine der Aufgaben eines Jitter-Buffers, die Verzögerung des Netzwerkes und deren Schwankung auszugleichen. Ebenso sortiert ein Jitter-Buffer die empfangenen Pakete anhand ihrer RTP Sequenz-Nummer um und kaschiert den Verlust von Paketen. Bei Bibliotheken oder Programmen, die Sitzungen mit mehreren Teilnehmern unterstützen -- was bei OHMComm nicht der Fall ist -- muss für jeden anderen Sender ein eigener Jitter-Buffer verwaltet werden, da die Pakete der verschiedenen Sender verschiedene Netzwerkverzögerungen aufweisen können.
+\\
+Bei der Netzwerkübertragung über UDP können Pakete verloren gehen, oder sie werden so spät empfangen, dass sie bereits hätten abgespielt werden müssen, sog. \enquote{late loss}. Um den Audiotreiber trotzdem Daten zum Abspielen zu liefern, und nicht die Ausgabe ins Stocken zu bringen, muss ein Echtzeitkommunikationsprogramm dafür sorgen, dass diese Verluste von Audiodaten ausgeglichen werden. Diese Funktion nennt sich \enquote{loss concealment} (also: Verstecken von Verlusten) und kann auf verschiedene Arten umgesetzt werden. Die einfachste Möglichkeit ist es, wenn ein Paket angefordert wird, dass (noch) nicht empfangen worden ist, die Audiodaten dieses Pakets mit \textbf{Stille} zu ersetzen. Stille lässt sich sehr einfach erzeugen (z.B: durch Setzen aller Samples auf Null), ist ab einer gewissen Dauer für den Menschen hörbar und unterbricht den Fluss des Gesprächs, das Gespräch kling abgehakt. Als weitere Möglichkeit kann anstatt der Stille ein zufällig generiertes leises Rauschen, sog. \enquote{\textbf{comfort noise}}, abgespielt werden. Im Gegensatz zur absoluten Stille bekommt man bei Rauschen nicht so schnell das Gefühl, dass die Verbindung abgebrochen ist. Eine dritte Möglichkeit wiederholt das letzte erfolgreich empfangene Paket und spielt es erneut ab. Da sich der Tonverlauf der menschlichen Stimme nicht so schnell ändert, %TODO ca. Zeitdauer
+besteht eine große Wahrscheinlichkeit, dass die Audiodaten des verlorene Pakets dem vorherigen sehr ähnlich sind und der Unterschied kaum hörbar wird. Alle drei dieser einfachen Methoden für \enquote{loss concealment} sind einfach zu implementieren und besitzen eine geringe Laufzeit, werden dafür vor Allem bei längeren Stille-Perioden sehr schnell hörbar und stören den Gesprächsverlauf. Deshalb gibt es noch eine Vielzahl weiterer Algorithmen, die versuchen, Unterbrechungen möglichst unhörbar zu überdecken, dies jedoch meist auf Kosten erhöhter Laufzeit und Komplexität erkaufen.
+\\
+Um den Verlust von Paketen aufgrund von \enquote{late loss} gering zu halten und somit eine flüssige und möglichst vollständige Audiokommunikation zu gewährleisten, führt ein Jitter-Buffer eine künstliche Verzögerung zwischen dem Empfangen und dem Abspielen eines Paketes ein. Dadurch, dass ein Paket später abgespielt wird (der sog. \enquote{playout point} wird nach Hinten verschoben), hat es länger Zeit, beim Empfänger anzukommen, wodurch weniger Pakete wegen \enquote{late loss}, also dem Ankommen nach ihrem \enquote{playout point}, verworfen werden. Hierfür sollte die Abspielverzögerung so gewählt werden, dass möglichst alle Pakete, die nicht auf dem Netzwerk verloren gehen, den Empfänger vor ihrem Abspielzeitpunkt erreichen. Auf der anderen Seite darf die Abspielverzögerung nicht zu groß werden, sonst leidet die Qualität der Echtzeitkommunikation. Dafür wird in umfangreicheren Implementierungen die Abspielverzögerung meist dynamisch angepasst. Diese sog. \enquote{playout point adaption} wird auf Basis des Anteils an \enquote{late loss} berechnet und in bestimmten Abständen durch einschieben eines zusätzlichen Pakets (z.B. Stille) oder überspringen eines empfangenen Paketes umgesetzt. Der Jitter-Buffer des OHMComm-Frameworks besitzt eine feste Abspielverzögerung, die derzeit noch bei der Kompilierung des Programms eingestellt werden muss.
 \subsection{Netzwerkverbindung}
-TODO: Wie alle anderen Komponenten auch Impl- und Plattformunabhängig gebaut, d.h. NetworkWrapper kann in UDP und TCP (hinzugefügt in späterer version) oder z.B: auch anderen Netzwerken, verschlüsselt oder ähnlichen Implementiert werden
+Wie auch die meisten anderen Komponenten des OHMComm-Framework (Audio-Bibliothek, -Prozessoren) ist auch die Umsetzung der Netzwerkschnittstelle austauschbar implementiert. Da RTP in den allermeisten Fällen mit dem Transportprotokoll UDP verwendet wird, gibt es jedoch derzeit nur eine konkrete Implementierung der Netzwerkschnittstelle, die auf RTP-Pakete in UDP-Pakete verpackt und beim Empfangen wieder entpackt. Spätere Versionen des Frameworks enthalten zusätzlich noch eine Implementierung, die TCP verwendet.
 \section{Konkrete Softwarekomponenten}
 \subsection{RTAudio}
 \subsection{Opus}
