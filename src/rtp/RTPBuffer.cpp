@@ -9,7 +9,8 @@
 #include "rtp/RTPBuffer.h"
 
 
-RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : capacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages)
+RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : PlayoutPointAdaption(1000, minBufferPackages),
+    capacity(maxCapacity), maxDelay(maxDelay)
 {
     nextReadIndex = 0;
     ringBuffer = new RTPBufferPackage[maxCapacity];
@@ -41,7 +42,9 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
     // -> if minSequenceNumber is larger than (UINT16_MAX - capacity), sequence_number around zero have to be allowed for
     if(minSequenceNumber < (UINT16_MAX - capacity) && receivedHeader->getSequenceNumber() < minSequenceNumber)
     {
+        //late loss
         //discard package, because it is older than the minimum sequence number to hold
+        packageReceived(true);
         unlockMutex();
         return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
     }
@@ -81,6 +84,7 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
     //update size
     size++;
     Statistics::maxCounter(Statistics::RTP_BUFFER_MAXIMUM_USAGE, size);
+    packageReceived(false);
     unlockMutex();
     return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }
@@ -88,7 +92,7 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
 RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
 {
     lockMutex();
-    if(size < minBufferPackages)
+    if(!isAdaptionBufferFilled())
     {
         //buffer has insufficient fill level
         //return silence package
