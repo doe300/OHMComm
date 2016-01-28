@@ -79,7 +79,7 @@ public:
     NTPTimestamp(uint32_t seconds, uint32_t fraction = 0) : seconds(htonl(seconds)), fraction(htonl(fraction))
     {}
     
-    uint32_t getSeconds() const
+    uint32_t getSeconds() const 
     {
         return ntohl(seconds);
     }

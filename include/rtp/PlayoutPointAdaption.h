@@ -13,6 +13,7 @@
  */
 class PlayoutPointAdaption
 {
+    //TODO needs testing
 protected:
     
     /*!
@@ -34,7 +35,7 @@ protected:
      */
     inline bool isAdaptionBufferFilled() const
     {
-        return getSize() > numDelayPackages;
+        return getSize() >= numDelayPackages;
     }
     
     /*!

@@ -10,6 +10,7 @@
 
 #include "RTPBufferHandler.h"
 #include "PlayoutPointAdaption.h"
+#include "LossConcealment.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -22,7 +23,7 @@
 /*!
  * Serves as jitter-buffer for RTP packages
  */
-class RTPBuffer : public RTPBufferHandler, private PlayoutPointAdaption
+class RTPBuffer : public RTPBufferHandler, private PlayoutPointAdaption, private LossConcealment
 {
 public:
     /*!
@@ -57,7 +58,8 @@ public:
      */
     unsigned int getSize() const;
 private:
-
+    
+    bool repeatLastPackage(RTPPackageHandler& package, const uint16_t packageSequenceNumber);
     /*!
      * Mutex guarding all access to ringBuffer, nextReadIndex, size and minSequenceNumber
      */

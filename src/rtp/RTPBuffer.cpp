@@ -95,9 +95,8 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     if(!isAdaptionBufferFilled())
     {
         //buffer has insufficient fill level
-        //return silence package
-        package.createSilencePackage();
-        package.setActualPayloadSize(package.getMaximumPayloadSize());
+        //return concealment package
+        createConcealmentPackage(package);
         //we do not increase the minimum sequence number here, because we want to stretch the play-out delay
         //for that, we need to insert, not replace packages
         unlockMutex();
@@ -126,9 +125,8 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     if(bufferPack->isValid == false)
     {
         //no valid packages found -> buffer is empty
-        //return silence package
-        package.createSilencePackage();
-        package.setActualPayloadSize(package.getMaximumPayloadSize());
+        //return concealment package
+        concealLoss(package, minSequenceNumber);
         //only accept newer packages (at least one sequence number more than the dummy package)
         //but skip check for first package
         if(minSequenceNumber != 0)
@@ -158,6 +156,26 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
 unsigned int RTPBuffer::getSize() const
 {
     return size;
+}
+
+bool RTPBuffer::repeatLastPackage(RTPPackageHandler& package, const uint16_t packageSequenceNumber)
+{
+    //reverse iterate the buffer to get to the position for the given sequence-number
+    uint16_t index = nextReadIndex;
+    while(index != incrementIndex(nextReadIndex))
+    {
+        if(ringBuffer[index].header.getSequenceNumber() == packageSequenceNumber)
+        {
+            RTPBufferPackage *bufferPack = &(ringBuffer[index]);
+            char *packageBuffer = (char *)package.getWorkBuffer();
+            memcpy(packageBuffer, &(bufferPack->header), sizeof(bufferPack->header));
+            memcpy(packageBuffer + sizeof(bufferPack->header), bufferPack->packageContent, bufferPack->contentSize);
+            package.setActualPayloadSize(bufferPack->contentSize);
+            return true;
+        }
+        index = index == 0 ? capacity : index-1;
+    }
+    return false;
 }
 
 uint16_t RTPBuffer::calculateIndex(uint16_t index, uint16_t offset)
