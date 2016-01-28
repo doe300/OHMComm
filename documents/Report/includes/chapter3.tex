@@ -27,24 +27,65 @@ Um das Programm auch als Bibliothek verwenden zu können, wird eine Möglichkeit
 Des Weiteren gibt es die sog. \textbf{passive Konfiguration}, bei der alle Konfigurationen, die in beiden Programmen gleich eingestellt sein müssen, vor dem Start der Kommunikation ausgetauscht werden. Zu den ausgetauschten Einstellungen zählen Abtastrate, Audioformat, Anzahl der Kanäle und die verwendeten Prozessoren (für die Audiocodecs). Somit wird die Gleichheit dieser Einstellungen garantiert und der Konfigurationsaufwand verringert. Mehr zur passiven Konfiguration in Abschnitt \ref{rtcp}.
 %TODO: Ausführlicher!?
 \subsection{Audio-Schnittstelle}
-Für die Audioverarbeitung ist ein allgemeine Schnittstelle zur Audiohardware nötig, siehe Anforderung \ref{FA:SchnittstelleAudiohardware}. Dabei gilt es insbesondere die nicht-funktionalen Anforderungen \ref{NFA:Plattformunabhängigkeit}, \ref{NFA:Performanz} und \ref{NFA:Softwarearchitektur} zu berücksichtigen. Es wird eine abstrakte Klasse mit dem Namen \verb|AudioHandler| erstellt, welche die Verbindung zur Hardware darstellt. Sämtliche Audiodaten laufen über diese Schnittstelle zum Mikrofon oder zu den Lautsprechern. 
+Für die Audioverarbeitung ist ein allgemeine Schnittstelle zur Audiohardware nötig, siehe Anforderung \ref{FA:SchnittstelleAudiohardware}. Dabei gilt es insbesondere die nicht-funktionalen Anforderungen \ref{NFA:Plattformunabhängigkeit}, \ref{NFA:Performanz} und \ref{NFA:Softwarearchitektur} zu berücksichtigen. Es wird eine abstrakte Klasse mit dem Namen \texttt{AudioHandler} erstellt, welche die Verbindung zur Hardware darstellt. Sämtliche Audiodaten laufen über diese Schnittstelle zum Mikrofon oder zu den Lautsprechern. 
 
 \subsubsection{Verarbeitungsmethoden}
-Die Klasse bietet drei virtuelle Methoden, welche eine automatische Verarbeitung starten. Die Methode \verb|startRecordingMode()| startet die Verarbeitung von Audioinputdaten (Mikrofon), \verb|startPlaybackMode()| startet die Verarbeitung von Audiooutputdaten (Lautsprecher) und \verb|startDuplexMode()| ist die gleichzeitige Verarbeitung von Audioinput- und Audioutputdaten. Letztere stellt den Standardfall für die Audiokommunikation dar. Wie diese Methoden im Detail aussehen, wird in Unterklassen von \verb|AudioHandler| implementiert. Für die Hardwareansteuerung ist sinnvoll bereits existierde Lösungen zu verwenden. In diesem Fall kann man Unterklassen von \verb|AudioHandler| auch als Wrapper-Klasse ansehen.
+Die Klasse bietet drei virtuelle Methoden, welche eine automatische Verarbeitung starten. Die Methode \texttt{startRecordingMode()} startet die Verarbeitung von Audioinputdaten (Mikrofon), \texttt{startPlaybackMode()} startet die Verarbeitung von Audiooutputdaten (Lautsprecher) und \texttt{startDuplexMode()} ist die gleichzeitige Verarbeitung von Audioinput- und Audioutputdaten. Letztere stellt den Standardfall für die Audiokommunikation dar. Wie diese Methoden im Detail aussehen, wird in Unterklassen von \texttt{AudioHandler} implementiert. Für die Hardwareansteuerung ist sinnvoll bereits existierde Lösungen zu verwenden. In diesem Fall kann man Unterklassen von \texttt{AudioHandler} auch als Wrapper-Klasse ansehen.
 
 \subsubsection{Konfiguration}
-Vor der Verarbeitung muss die Hardware konfiguriert werden. Hierfür wurde das Struct \verb|AudioConfiguration| erstellt. In diesem lassen sich das Mikrofon und die Lautsprecher bestimmen, die Anzahl der Kanäle (Mono - Stereo), die Sample Rate und die Größe des internes Buffers. Der interne Buffer kann vorerst vernachlässigt werden. Im Kapitel von \ref{sec:RTAudio} TODO-Kreuzreferenz wird dieser näher erläutert. Für die Übergabe der Einstellungen steht in der Klasse \verb|AudioHandler| die Methode \verb|setConfiguration()| zur Verfügung. Falls keine Konfiguration übergeben wird, so wird automatisch die virtuelle Methode \verb|setDefaultAudioConfig()| aufgerufen. Diese muss ebenfalls von der Unterklasse implementiert werden. Die Methode stellt eine Standardkonfiguration zur Verfügung, jedoch ist zu beachten, dass diese Konfiguration eventuell fehlerhaft und nicht auf allen Systemen lauffähig ist.
+Vor der Verarbeitung muss die Hardware konfiguriert werden. Hierfür wurde das Struct \texttt{AudioConfiguration} erstellt. In diesem lassen sich das Mikrofon und die Lautsprecher bestimmen, die Anzahl der Kanäle (Mono - Stereo), die Sample Rate und die Größe des internes Buffers. Der interne Buffer kann vorerst vernachlässigt werden. Im Kapitel von \ref{sec:RTAudio} TODO-Kreuzreferenz wird dieser näher erläutert. Für die Übergabe der Einstellungen steht in der Klasse \texttt{AudioHandler} die Methode \texttt{setConfiguration()} zur Verfügung. Falls keine Konfiguration übergeben wird, so wird automatisch die virtuelle Methode \texttt{setDefaultAudioConfig()} aufgerufen. Diese muss ebenfalls von der Unterklasse implementiert werden. Die Methode stellt eine Standardkonfiguration zur Verfügung, jedoch ist zu beachten, dass diese Konfiguration eventuell fehlerhaft und nicht auf allen Systemen lauffähig ist.
 
 \subsubsection{Steuerung der Verarbeitung}
-Falls die Verarbeitung läuft kann diese durch Methoden gesteuert werden. Die Methode \verb|suspend()| pausiert die aktuelle Verarbeitung und \verb|resume()| setzt sie weiter fort. Die Methode \verb|stop()| stoppt die Verarbeitung komplett und kann nicht durch \verb|resume()| fortgesetzt werden. \verb|reset()| stoppt die Verarbeitung und setzt die übergebene Audiokonfiguration wieder zurück.
+Falls die Verarbeitung läuft kann diese durch Methoden gesteuert werden. Die Methode \texttt{suspend()} pausiert die aktuelle Verarbeitung und \texttt{resume()} setzt sie weiter fort. Die Methode \texttt{stop()} stoppt die Verarbeitung komplett und kann nicht durch \texttt{resume()} fortgesetzt werden. \texttt{reset()} stoppt die Verarbeitung und setzt die übergebene Audiokonfiguration wieder zurück.
 
 \subsubsection{Prepare-Methode}
-Die virtuelle Methode \verb|prepare| nimmt eine Sonderrolle ein. Grundsätzlich kann Sie als optional betrachtet werden, jedoch ist sie für bestimmte Einsatzzwecke sinnvoll. Sie sollte aufgerufen nachdem eine Audiokonfiguration übergeben wurde und bevor die Verarbeitung gestartet ist. Dies kann sinnvoll sein um z.B. die ausgewählte Hardware im Hinblick auf bestimmte Einstellungsmöglichkeiten und deren Kompatiblität mit anderen Komponenten zu überprüfen. Falls eine Inkompatiblität festgestellt wird, kann der Start der Verarbeitung abgebrochen wurden.
+Die virtuelle Methode \texttt{prepare} nimmt eine Sonderrolle ein. Grundsätzlich kann Sie als optional betrachtet werden, jedoch ist sie für bestimmte Einsatzzwecke sinnvoll. Sie sollte aufgerufen nachdem eine Audiokonfiguration übergeben wurde und bevor die Verarbeitung gestartet ist. Dies kann sinnvoll sein um z.B. die ausgewählte Hardware im Hinblick auf bestimmte Einstellungsmöglichkeiten und deren Kompatiblität mit anderen Komponenten zu überprüfen. Falls eine Inkompatiblität festgestellt wird, kann der Start der Verarbeitung abgebrochen wurden.
 
 \subsubsection{Überblick}
-Durch die abstrakte Klasse wird gewährleistet, dass die Klasse austauschbar und erweiterbar ist. Viele Implementierungsdetails werden in die Unterklasse ausgelagert. Die Audiohardware lässt sich durch das Struct \verb|AudioConfiguration| konfigurieren. Jedoch besteht diese Klasse nicht nur aus der Schnittstelle zur Hardware, sondern ist der zentraler Verarbeitungspunkt, daher einer der wichtigsten Komponenten des Frameworks. Für die Verarbeitung von Audiodaten wurde eine spezielle Schnittstelle, die Verarbeitungskette, in diese Klasse integriert. Im folgenden Kapitel wird diese näher erläutert.
+Abbildung \ref{Fig:AudioHandlerAnySimple} zeigt eine vereinfachte Darstellung des \texttt{AudioHandlers}. Durch die abstrakte Klasse wird gewährleistet, dass die Klasse austauschbar und erweiterbar ist. Viele Implementierungsdetails werden in die Unterklasse ausgelagert. Durch das Verwenden externer Libraries kann die Unterklasse auch als Wrapper-Klasse angesehen werden. Die Audiohardware lässt sich durch das Struct \texttt{Audio"-Configuration} konfigurieren. Jedoch besteht diese Klasse nicht nur aus der Schnittstelle zur Hardware, sondern ist der zentraler Verarbeitungspunkt, daher einer der wichtigsten Komponenten des Frameworks. Für die Verarbeitung von Audiodaten wurde eine spezielle Schnittstelle, die Verarbeitungskette, integriert. Im folgenden Kapitel wird diese näher erläutert.
+\newline
+\begin{figure}[htp]
+\centering
+\includegraphics[width=.45\textwidth]{../img/AudioHandlerAnySimple}
+\caption{UML-Klassendiagramm des AudioHandlers}
+\label{Fig:AudioHandlerAnySimple}
+\end{figure}
+
 \subsection{Verarbeitungskette}
 \label{processingChain}
+
+Die Klasse \texttt{AudioHandler} bietet eine Schnittstelle zur Hardware an. Ein Teil ihrer Implementierung ist die Verarbeitungskette. Durch ihr können andere Klassen mit den Audiodaten arbeiten, ohne die Implementierungsdetails des \texttt{AudioHandlers} kennen zu müssen. Im folgenden Abschnitt wird erklärt wie diese funktioniert.
+
+\subsubsection{AudioProcessor}
+Wenn eine Klasse mit den Audiodaten arbeiten will, so muss sie das Interface \texttt{AudioProcessor} implementieren, siehe Abbildung \ref{Fig:AudioProcessorExample}. Hierfür muss sie die Methoden \texttt{process"-Input"-Data()} und \texttt{process"-Output"-Data()} implementieren. \texttt{process"-Input"-Data()} wird immer aufgerufen, wenn Audiodaten vom Mikrofon für die Verarbeitung im internen Buffer vorhanden sind. Wenn der zweite interne Buffer zum Abspielen von Audiodaten leer ist, wird die Methode \texttt{process"-Output"-Data()} aufgerufen. Dort können Daten auf den Buffer zum Abspielen hinterlegt werden. Beide Funktionen haben als Parameter den jeweiligen Buffer und die Größe des Buffers. Der Rückgabewert der Funktion ist die neue oder alte Größe des Buffers. Der Rückgabewert ist nur auf Hinblick des Dekodieren und Kodieren relevant.
+\newline
+\begin{figure}[htp]
+\centering
+\includegraphics[width=1\textwidth]{../img/AudioProcessorExample}
+\caption{Beispielhafte Verwendung der AudioProcessor-Klasse}
+\label{Fig:AudioProcessorExample}
+\end{figure}
+
+\texttt{configure()} und \texttt{cleanUp()} sind weitere Methoden des AudioProcessors. Erstere wird einmalig, kurz bevor die Verarbeitung startet, aufgerufen. Als Parameter muss die festgelegte Audiokonfiguration übergeben werden. Die Funktion hat einen boolschen Rückgabewert der angibt, ob der AudioProcessor bereit für die Audioverarbeitung ist. Im Fehlerfall startet die Verarbeitung nicht. Dies kann wichtig sein, wenn z.B. ein AudioProcessor eine gewisse Audiokonfiguration voraussetzt. \texttt{cleanUp()} dient dazu, den \texttt{AudioProcessor} ordentlich aufzuräumen, wenn dieser nicht mehr benötigt wird.
+
+\subsubsection{Verarbeitungskette}
+Das Implementieren der Klasse \texttt{AudioProcessor} reicht nicht aus, um an der Audioverarbeitung aktiv teilzunehmen. Abbildung \ref{Fig:AudioHandlerAudioProcessor} zeigt die Beziehung zwischen \texttt{Audio"-Handler} und \texttt{Audio"-Processor}. Die Klasse muss sich beim \texttt{AudioHandler} mit der Methode \texttt{addProcessor()} anmelden. Diese nimmt als Parameter einen \texttt{AudioProcessor} entgegen. Audioprozessoren lassen sich über ihren Namen eindeutig identifizieren. Der Prozessor wird, falls er schon nicht vorhanden ist, in einer Liste vom Typ \texttt{AudioProcessor} eingefügt. Falls nun Audioinputdaten anliegen, so werden von allen Audioprozessoren, die sich in der Liste befinden, die \texttt{process"-Input"-Data()}-Methoden aufgerufen. Die Aufrufreihenfolge ist abhängig von der Anmeldereihenfolge. Für Audiooutput-Daten geschieht das analog, jedoch ist hier die Aufrufreihenfolge entgegengesetzt, da die Verarbeitungskette nicht kommutativ ist. Daraus folgt, dass die \texttt{process"-Output"-Data()}-Methoden genau in der umgekehrten Reihenfolge aufgerufen werden müssen, um wieder an die ursprünglichen Audiodaten zugelangen. Es lassen sich beliebige viele Prozessoren beim \texttt{AudioHandler} anmelden. Jedoch ist zu beachten, dass die Performanz sinkt je mehr Prozessoren angemeldet sind. Vom Aufbau ähnelt die Verarbeitungskette, dem Observer-Pattern, jedoch mit dem entscheidenden Unterschied, dass die Einfügereihenfolge eine wesentliche Rolle für die Verarbeitung spielt. 
+\newline
+\begin{figure}[!htp]
+\centering
+\includegraphics[width=1\textwidth]{../img/AudioHandlerAudioProcessor}
+\caption{UML-Klassendiagramm AudioHandler und AudioProcessors}
+\label{Fig:AudioHandlerAudioProcessor}
+\end{figure}
+
+\FloatBarrier
+
+
+
+
+
+
+
 \subsection{Austauschbarkeit und Instantiierung}
 \subsection{RTP-Protokoll}
 \label{rtp}

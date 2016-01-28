@@ -1,4 +1,4 @@
-\documentclass[11pt,a4paper]{report} 
+\documentclass[11pt,a4paper]{report}
 \usepackage[ngerman]{babel} % deutsch und deutsche Rechtschreibung
 \usepackage[utf8]{inputenc} % Unicode Text 
 \usepackage[T1]{fontenc} % Umlaute und deutsches Trennen
@@ -75,10 +75,14 @@
 % damit wir nicht so viel tippen müssen, nur für Demo 
 %\usepackage{blindtext} 
 
-% Float-Objekte sollen die Section nicht verlassen in der sie eingefügt worden sind
+% Float-Objekte sollen die (Sub)Section nicht verlassen in der sie eingefügt worden sind
 \usepackage[section]{placeins}
 
+% Für den Befehl \FloatBarrier - Damit kann man Grenzen für Float-Objekte erstellen, die sie nicht verlassen dürfen.
+\usepackage{placeins}
+
 \begin{document}
+
 
 \begin{titlepage}
   \begin{center}
