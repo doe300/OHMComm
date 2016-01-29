@@ -138,6 +138,7 @@ void RTPPackageHandler::createSilencePackage()
     RTPHeader silenceHeader;
     memcpy(workBuffer, &silenceHeader, RTP_HEADER_MIN_SIZE);
     memset((char *)(workBuffer) + RTP_HEADER_MIN_SIZE, 0, maximumPayloadSize);
+    actualPayloadSize = maximumPayloadSize;
 }
 
 unsigned int RTPPackageHandler::getSSRC() const

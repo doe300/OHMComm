@@ -8,6 +8,7 @@
 #ifndef TESTSIPHANDLER_H
 #define	TESTSIPHANDLER_H
 
+#include <cstdlib>
 #include <chrono>
 #include "cpptest.h"
 #include "sip/SIPHandler.h"
@@ -19,6 +20,11 @@ public:
 
     void testSIPThread();
     
+    void testSIPProtocol(const int index);
+    
+    virtual bool setup();
+    
+    virtual void tear_down();
 private:
     SIPHandler handler;
 };

@@ -186,7 +186,13 @@ std::vector<std::string> SIPPackageHandler::readPackage(const void* sipPackage, 
     {
         prevIndex = index;
         index = package.find(CRLF, prevIndex);
+        if(index == std::string::npos || index > package.size())
+        {
+            //this will only trigger for invalid SIP packages
+            break;
+        }
         HeaderField field;
+        //TODO handling of compact headers
         field.fromString(package.substr(prevIndex, index - prevIndex), ':');
         header.push_back(field);
         //move index to beginning of next line

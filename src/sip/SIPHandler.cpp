@@ -207,13 +207,11 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         requestBody = SIPPackageHandler::readRequestPackage(buffer, packageLength, requestHeader);
         std::cout << "SIP: Request received: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
         sipUserAgents[PARTICIPANT_REMOTE].tag = requestHeader.getRemoteTag();
-        //TODO allow changing of remote only for INVITEs (and only if we have not already established a connection)
-        updateNetworkConfig(&requestHeader);
     }
     catch(const std::invalid_argument& error)
     {
         //fired on invalid IP-address or any error while parsing request
-        //TODO error-response is sent to wrong (old) destination if thrown before network is reconnected
+        //TODO error-response is sent to wrong (old) destination if the request came from another address
         std::cout << "SIP: Received bad request: " << error.what() << std::endl;
         sendResponse(SIP_RESPONSE_BAD_REQUEST_CODE, SIP_RESPONSE_BAD_REQUEST, &requestHeader);
         return;
@@ -222,6 +220,10 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     {
         if (SIP_REQUEST_INVITE.compare(requestHeader.requestCommand) == 0)
         {
+            if(state != SessionState::ESTABLISHED)
+            {
+                updateNetworkConfig(&requestHeader);
+            }
             //if we get invited, the Call-ID is set by the remote UAS
             callID = requestHeader[SIP_HEADER_CALL_ID];
             //0. send ringing
@@ -605,6 +607,8 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
         sipConfig.remoteIPAddress = sipUserAgents[PARTICIPANT_REMOTE].ipAddress;
         sipConfig.remotePort = sipUserAgents[PARTICIPANT_REMOTE].port;
         network->closeNetwork();
+        //wait for socket to be closed
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         network.reset(new UDPWrapper(sipConfig));
         
         //update all configuration-dependant values

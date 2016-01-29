@@ -10,6 +10,7 @@
 
 // Defines OS-independant flag to close socket
 #define SHUTDOWN_BOTH SD_BOTH   // 2
+#define INTERRUPTED_BY_SYSTEM_CALL WSAEINTR
 #else
 #include <sys/socket.h> // socket(), connect()
 #include <arpa/inet.h> // sockaddr_in
@@ -21,6 +22,7 @@
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
 #define WSAETIMEDOUT 10060  //Dummy-support for WSAPI timeout-error
+#define INTERRUPTED_BY_SYSTEM_CALL EINTR
 #endif
 
 /*!

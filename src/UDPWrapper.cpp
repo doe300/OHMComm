@@ -1,14 +1,14 @@
 #include "UDPWrapper.h"
 
 UDPWrapper::UDPWrapper(unsigned short portIncoming, const std::string remoteIPAddress, unsigned short portOutgoing) :
-    localAddress({0}), remoteAddress({0})
+localAddress({0}), remoteAddress({0})
 {
-	initializeNetworkConfig(portIncoming, remoteIPAddress, portOutgoing);
-	initializeNetwork();
+    initializeNetworkConfig(portIncoming, remoteIPAddress, portOutgoing);
+    initializeNetwork();
 }
 
 UDPWrapper::UDPWrapper(const NetworkConfiguration& networkConfig) :
-    UDPWrapper(networkConfig.localPort, networkConfig.remoteIPAddress, networkConfig.remotePort)
+UDPWrapper(networkConfig.localPort, networkConfig.remoteIPAddress, networkConfig.remotePort)
 {
 }
 
@@ -20,23 +20,22 @@ UDPWrapper::~UDPWrapper()
     }
 }
 
-
 void UDPWrapper::initializeNetwork()
 {
-	startWinsock();
-	createSocket();
+    startWinsock();
+    createSocket();
 }
 
 void UDPWrapper::startWinsock()
 {
-	// Starting Winsock for Windows
-	#ifdef _WIN32
-	WSADATA w;
-	if (int result = WSAStartup(MAKEWORD(2, 2), &w) != 0)
-	{
-		std::cerr << "Failed to start Winsock 2! Error #" << result << std::endl;
-	}
-	#endif
+    // Starting Winsock for Windows
+#ifdef _WIN32
+    WSADATA w;
+    if (int result = WSAStartup(MAKEWORD(2, 2), &w) != 0)
+    {
+        std::cerr << "Failed to start Winsock 2! Error #" << result << std::endl;
+    }
+#endif
 }
 
 void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::string remoteIPAddress, unsigned short remotePort)
@@ -69,7 +68,6 @@ void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
     }
 }
 
-
 bool UDPWrapper::createSocket()
 {
     unsigned int addressLength = getSocketAddressLength();
@@ -93,6 +91,23 @@ bool UDPWrapper::createSocket()
         std::cout << "Socket created." << std::endl;
     }
     
+    //set socket timeout to 1sec
+#ifdef _WIN32
+    DWORD timeout = 1000;
+#else
+    timeval timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+#endif
+    int yes = 1;
+    setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof (timeout));
+    //we need to allow reuse-address for fast re-binding after closing
+    if(setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (int)) < 0)
+    {
+        perror("setsockopt");
+        std::wcout << "Reuse: " << getLastError() << std::endl;
+    }
+
     if (bind(Socket, (sockaddr*)&(this->localAddress), addressLength) == SOCKET_ERROR)
     {
         std::wcerr << "Error binding the socket: " << getLastError() << std::endl;
@@ -102,36 +117,27 @@ bool UDPWrapper::createSocket()
     {
         std::cout << "Local port bound." << std::endl;
     }
-    //set socket timeout to 1sec
-#ifdef _WIN32
-    DWORD timeout = 1000;
-#else
-    timeval timeout;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-#endif
-    setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
     return true;
 }
 
 int UDPWrapper::sendData(const void *buffer, const unsigned int bufferSize)
 {
-    return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->remoteAddress), getSocketAddressLength());
+    return sendto(this->Socket, (char*) buffer, (int) bufferSize, 0, (sockaddr*)&(this->remoteAddress), getSocketAddressLength());
 }
 
 int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
 {
-    #ifdef _WIN32
-    int localAddrLen = sizeof(localAddress);
-    #else
+#ifdef _WIN32
+    int localAddrLen = sizeof (localAddress);
+#else
     unsigned int localAddrLen = getSocketAddressLength();
-    #endif
+#endif
     int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->localAddress), &localAddrLen);
     if (result == -1)
     {
-        if(hasTimedOut())
+        if(hasTimedOut() || errno == INTERRUPTED_BY_SYSTEM_CALL)
         {
-            //we have timed-out, so notify caller and return
+            //we have timed-out (or were interrupted by some other system call), so notify caller and return
             return RECEIVE_TIMEOUT;
         }
         std::wcerr << this->getLastError();
@@ -139,21 +145,20 @@ int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
     return result;
 }
 
-
 std::wstring UDPWrapper::getLastError() const
 {
     int error;
-    #ifdef _WIN32
+#ifdef _WIN32
     error = WSAGetLastError();
-	wchar_t* tmp;
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,0, error, LANG_USER_DEFAULT, (wchar_t*)&tmp, 0, nullptr);
-    #else
+    wchar_t* tmp;
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 0, error, LANG_USER_DEFAULT, (wchar_t*) & tmp, 0, nullptr);
+#else
     error = errno;
     wchar_t tmp[255];
     char* errPtr = strerror(error);
     mbstowcs(tmp, errPtr, 255);
-    #endif
-    return (std::to_wstring(error) + L" - ") + tmp;
+#endif
+    return (std::to_wstring(error) + L" - ") +tmp;
 }
 
 void UDPWrapper::closeNetwork()
@@ -161,11 +166,11 @@ void UDPWrapper::closeNetwork()
     if(Socket != INVALID_SOCKET)
     {
         shutdown(Socket, SHUTDOWN_BOTH);
-        #ifdef _WIN32
+#ifdef _WIN32
         closesocket(Socket);
-        #else
+#else
         close(Socket);
-        #endif
+#endif
         Socket = INVALID_SOCKET;
     }
 }
@@ -176,5 +181,5 @@ const int UDPWrapper::getSocketAddressLength()
     {
         return sizeof(sockaddr_in6);
     }
-    return sizeof(sockaddr_in);
+    return sizeof (sockaddr_in);
 }

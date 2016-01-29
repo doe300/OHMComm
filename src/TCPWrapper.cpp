@@ -93,6 +93,19 @@ bool TCPWrapper::createSocket()
         std::cout << "Socket created." << std::endl;
     }
     
+    //set socket timeout to 1sec
+#ifdef _WIN32
+    DWORD timeout = 1000;
+#else
+    timeval timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+#endif
+    int yes = 1;
+    setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
+    //we need to allow reuse-address for fast re-binding after closing
+    setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (int));
+    
     if (bind(Socket, (sockaddr*)&(this->localAddress), addressLength) == SOCKET_ERROR)
     {
         std::wcerr << "Error binding the socket: " << getLastError() << std::endl;
@@ -112,15 +125,6 @@ bool TCPWrapper::createSocket()
     {
         std::cout << "Connection established." << std::endl;
     }
-    //set socket timeout to 1sec
-#ifdef _WIN32
-    DWORD timeout = 1000;
-#else
-    timeval timeout;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-#endif
-    setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
     return true;
 }
 
@@ -139,9 +143,9 @@ int TCPWrapper::receiveData(void *buffer, unsigned int bufferSize)
     int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->localAddress), &localAddrLen);
     if (result == -1)
     {
-        if(hasTimedOut())
+        if(hasTimedOut() || errno == INTERRUPTED_BY_SYSTEM_CALL)
         {
-            //we have timed-out, so notify caller and return
+            //we have timed-out (or were interrupted by some other system call), so notify caller and return
             return RECEIVE_TIMEOUT;
         }
         std::wcerr << this->getLastError();
