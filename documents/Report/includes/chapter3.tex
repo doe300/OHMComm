@@ -131,8 +131,33 @@ TODO: Mixer/
 Wozu da? Funktionsumfang? Wird bei uns benötigt wieso/wozu?
 \subsubsection{RTCP-Protokoll}
 \label{rtcp}
-TODO: Wozu da? Aufbau? Verwendung zum Austausch statistischer Daten und passive Konfiguration
+Das Real-time Transport Control Protocol (RTCP) ist auch in RFC 3550 definiert und bietet Möglichkeiten Flusskontrolle für eine RTP-Sitzung durchzuführen sowie statistische Daten über die Verbindungsqualität (oder Quality of Service, kurz: QoS) zu übertragen. Ebenso werden Pakettypen für anwendungsspezifische Daten und zum Beenden einer RTP-Sitzung bereitgestellt. Im Gegensatz zu RTP-Paketen beinhalten RTCP-Pakete keine Daten, sondern bestehen nur aus RTCP-Headern. Jedoch ist in RFC 3550 vorgegeben, dass ein RTCP-Header nie einzeln, sondern nur in Gruppen von mindestens zwei Headern, sogenannten \enquote{compound packages}, versendet wird. Die verschiedenen RTCP-Pakettypen bestehen aus den ersten acht Bytes, die für alle Typen die gleiche Bedeutung haben, sowie einen Typ-spezifischen Teil. Der gemeinsame Header-Teil besteht aus den folgenden Feldern:
+\begin{lstlisting}[keepspaces=true,numbers=none,label=lst=rtcpHeader,caption=RTCP Header \cite{RFC3550}]
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|V=2|P|    RC   |      PT       |             length            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     SSRC of packet sender                     |
++=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+\end{lstlisting}
+\begin{description}
+\item[Version:] Hat in RFC 3550 immer den Wert 2, frühere Versionen hatten den Wert 1.
+\item[Padding-Bit:] Gibt an, ob der RTCP-Header auf ein Vielfaches von 4 Byte gepadded ist. Padding darf nur das letzte Teilpaket eines zusammengesetzten Pakets angewendet werden.
+\item[Item Count:] Gibt die Anzahl der Einträge in diesem RTCP-Header an. Die Bedeutung hiervon ist abhängig vom Pakettyp
+\item[Package Type:] Gibt den Typ des RTCP-Paketes an
+\item[length:] Die Länge des RTCP-Teilheaders in 32-Bit Blöcken, minus 1 (den ersten 32-Bit Block)
+\item[SSRC:] Source Description des Senders, stimmt mit der SSRC von RTP-Paketen dieses Senders überein
+\end{description}
 
+RFC 3550 definiert folgende RTCP Pakettypen und deren Inhalten:
+\begin{description}
+\item[Sender Report:] Beinhaltet Informationen über die Anzahl an gesendeten Paketen und Daten eines Senders. Ebenso werden pro Teilnehmer, von dem der Sender des Sender Reports Pakete empfangen hat, Daten über die Quality of Service (Anzahl verlorener Paketen, Netzwerkjitter, letzter empfangener Sender Report) verschickt. Diese Reception Report genannten Blöcke ermöglichen, dass jeder Teilnehmer einer RTP-Sitzung von jedem anderen Teilnehmer in regelmäßigen Abständen Feedback über die Übertragungsqualität bekommt. Jeder aktive Sender in einer RTP-Sitzung muss alle zusammengesetzten RTCP-Pakete immer mit einem Sender Report beginnen.
+\item[Receiver Report:] Äquivalent zum Sender Report für passive Teilnehmer (also Teilnehmer die selbst keine Daten verschicken). Beinhaltet keine Informationen zur Anzahl verschickter Daten, aber trotzdem die Liste der Reception Reports für alle anderen Sender. Jeder passive RTP-Teilnehmer muss ein zusammengesetztes Paket immer mit einem Receiver Report beginnen.
+\item[Source Description:] Beinhaltet eine Liste an informativer Daten über den Teilnehmer mit der angegebenen SSRC. Diese Daten, wie Telefonnummer, Email, Webseite und Name können von Client-Programmen für die anderen Teilnehmer einer Sitzung angezeigt werden.
+\item[BYE:] Der BYE RTCP-Header benachrichtigt die Teilnehmer einer Sitzung, dass der Sender mit der angegebenen SSRC die Sitzung verlässt und muss immer als letztes Paket eines zusammengesetzten Pakets stehen.
+\item[Application-defined:] Der letzte Pakettyp bietet die Möglichkeit, anwendungsspezifische Daten zu übertragen. Dafür wird ein Name zur Identifikation des Typs der Daten und eine variable großer Block für die eigentlichen Daten bereitgestellt.
+\end{description}
 \subsection{Jitter-Buffer}
 Wie bereits in Abschnitt \ref{rtp} erwähnt, wird eine Echtzeitübertragung mit RTP meist mit dem Transportprotokoll UDP verwendet. Da UDP aber nicht garantiert, dass versendete Pakete beim Empfänger ankommen und auch nicht, in welcher Reihenfolge, muss die Anwendung dafür sorgen, dass mit verlorenen Paketen oder Paketen, die in der falschen Reihenfolge empfangen werden, richtig umgegangen wird. Dafür gibt es auf der Empfängerseite einen Jitter-Buffer, einen Puffer, der empfangene Pakete speichert und aus dem die weitere Prozessorkette Pakete in der richtigen Reihenfolge auslesen kann. Der Begriff Jitter-Buffer kommt von dem englischen Wort Jitter, dass für die Netzwerkverzögerung, oder genauer: die Varianz der Netzwerkverzögerung steht. Wie der Name schon andeutet, ist es eine der Aufgaben eines Jitter-Buffers, die Verzögerung des Netzwerkes und deren Schwankung auszugleichen. Ebenso sortiert ein Jitter-Buffer die empfangenen Pakete anhand ihrer RTP Sequenz-Nummer um und kaschiert den Verlust von Paketen. Bei Bibliotheken oder Programmen, die Sitzungen mit mehreren Teilnehmern unterstützen -- was bei OHMComm nicht der Fall ist -- muss für jeden anderen Sender ein eigener Jitter-Buffer verwaltet werden, da die Pakete der verschiedenen Sender verschiedene Netzwerkverzögerungen aufweisen können.
 \\
