@@ -66,12 +66,12 @@ Wenn eine Klasse mit den Audiodaten arbeiten will, so muss sie das Interface \te
 \label{Fig:AudioProcessorExample}
 \end{figure}
 
-\texttt{configure()} und \texttt{cleanUp()} sind weitere Methoden des AudioProcessors. Erstere wird einmalig, kurz bevor die Verarbeitung startet, aufgerufen. Als Parameter muss die festgelegte Audiokonfiguration übergeben werden. Die Funktion hat einen boolschen Rückgabewert der angibt, ob der AudioProcessor bereit für die Audioverarbeitung ist. Im Fehlerfall startet die Verarbeitung nicht. Dies kann wichtig sein, wenn z.B. ein AudioProcessor eine gewisse Audiokonfiguration voraussetzt. \texttt{cleanUp()} dient dazu, den \texttt{AudioProcessor} ordentlich aufzuräumen, wenn dieser nicht mehr benötigt wird.
+\texttt{configure()} und \texttt{cleanUp()} sind weitere Methoden des AudioProcessors, die nicht in der Abbildung \ref{Fig:AudioProcessorExample} zu sehen sind. Erstere wird einmalig, kurz bevor die Verarbeitung startet, aufgerufen. Als Parameter muss die festgelegte Audiokonfiguration übergeben werden. Die Funktion hat einen boolschen Rückgabewert der angibt, ob der AudioProcessor bereit für die Audioverarbeitung ist. Im Fehlerfall startet die Verarbeitung nicht. Dies kann wichtig sein, wenn z.B. ein \texttt{AudioProcessor} eine gewisse Audiokonfiguration voraussetzt. \texttt{cleanUp()} dient dazu, den \texttt{AudioProcessor} ordentlich aufzuräumen, wenn dieser nicht mehr benötigt wird.
 
-\subsubsection{Verarbeitungskette}
+\subsubsection{Registrieren von Audioprozessoren}
 Das Implementieren der Klasse \texttt{AudioProcessor} reicht nicht aus, um an der Audioverarbeitung aktiv teilzunehmen. Abbildung \ref{Fig:AudioHandlerAudioProcessor} zeigt die Beziehung zwischen \texttt{Audio"-Handler} und \texttt{Audio"-Processor}. Die Klasse muss sich beim \texttt{AudioHandler} mit der Methode \texttt{addProcessor()} anmelden. Diese nimmt als Parameter einen \texttt{AudioProcessor} entgegen. Audioprozessoren lassen sich über ihren Namen eindeutig identifizieren. Der Prozessor wird, falls er schon nicht vorhanden ist, in einer Liste vom Typ \texttt{AudioProcessor} eingefügt. Falls nun Audioinputdaten anliegen, so werden von allen Audioprozessoren, die sich in der Liste befinden, die \texttt{process"-Input"-Data()}-Methoden aufgerufen. Die Aufrufreihenfolge ist abhängig von der Anmeldereihenfolge. Für Audiooutput-Daten geschieht das analog, jedoch ist hier die Aufrufreihenfolge entgegengesetzt, da die Verarbeitungskette nicht kommutativ ist. Daraus folgt, dass die \texttt{process"-Output"-Data()}-Methoden genau in der umgekehrten Reihenfolge aufgerufen werden müssen, um wieder an die ursprünglichen Audiodaten zugelangen. Es lassen sich beliebige viele Prozessoren beim \texttt{AudioHandler} anmelden. Jedoch ist zu beachten, dass die Performanz sinkt je mehr Prozessoren angemeldet sind. Vom Aufbau ähnelt die Verarbeitungskette, dem Observer-Pattern, jedoch mit dem entscheidenden Unterschied, dass die Einfügereihenfolge eine wesentliche Rolle für die Verarbeitung spielt. 
 \newline
-\begin{figure}[!htp]
+\begin{figure}[htp]
 \centering
 \includegraphics[width=1\textwidth]{../img/AudioHandlerAudioProcessor}
 \caption{UML-Klassendiagramm AudioHandler und AudioProcessors}
@@ -83,10 +83,19 @@ Das Implementieren der Klasse \texttt{AudioProcessor} reicht nicht aus, um an de
 
 
 
-
-
-
 \subsection{Austauschbarkeit und Instantiierung}
+Um der Anforderung \ref{NFA:Softwarearchitektur} gerecht zu werden und die Komponenten austauschbar zu halten, wird das Entwurfsprinzip \texttt{Program to an interface, not to an implementation} \cite{Lahres2009}[Kap. 3.5] umgesetzt. Dies ermöglicht eine höhere Flexibilität, da der abstrakte Typ zur Laufzeit durch ein konkretes Objekt ausgetauscht werden kann. In diesem Zusammenhang bietet es sich an das Factory-Method-Pattern zu integrieren. Dabei wird die Instantiierung in einer Fabrikmethode ausgelagert. Als Parameter erwartet die Funktion ein String mit dem Namen der zu instantiierten Klasse. Alle Klassen basieren auf den gemeinsamen abstrakten Basistypen, der auch gleichzeitig Rückgabetyp ist. Die Fabrikmethoden wurde in eigenen Fabrikklassen ausgelagert, wie in Abbildung \ref{Fig:Factories} zu sehen ist. \texttt{getAudioHandler()} und \texttt{getAudioProcessor()} stellen die Fabrikmethoden dar. \texttt{getAudioHandlerNames()} und \texttt{getAudioProcessorNames()} liefern die Namen der Klassen, die instantiierbar sind.
+
+\newline
+\begin{figure}[htp]
+\centering
+\includegraphics[width=1\textwidth]{../img/Factories}
+\caption{Factory-Klassen im Überblick}
+\label{Fig:Factories}
+\end{figure}
+
+\FloatBarrier
+
 \subsection{RTP-Protokoll}
 \label{rtp}
 Das Real-time Transport Protocol (RTP) ist ein Netzwerkprotokoll für die Übertragung von Echtzeitdaten, wie Audio- und Videostreams oder -Konversationen und ist im RFC 3550 der Internet Engineering Task Force (IETF) definiert (siehe \cite{RFC3550}) und unterstützt sowohl Unicast- als auch Multicast-Sitzungen. RTP ist ein Protokoll für die Anwendungsebene und kann auf beliebigen Transportprotokollen wie UDP oder TCP aufgesetzt werden. Jedoch wird RTP meist mit UDP verwendet, da aufgrund der Echtzeitvoraussetzungen der Verlust von Paketen erträglicher ist als das Blockieren weiterer Daten durch erneutes Senden nicht-angekommener Pakete, so wie es in TCP üblich ist. Dies hat wiederum zur Folge, dass eine auf RTP mit UDP basierende Anwendung den Verlust einzelner Pakete kompensieren muss. Ein RTP-Paket besteht aus dem RTP-Header und dem anwendungsspezifischen Payload (Body). Der RTP-Header hat eine Größe von zwölf bis 72 Bytes und definiert folgende Felder:
