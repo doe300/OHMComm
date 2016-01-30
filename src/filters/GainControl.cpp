@@ -10,8 +10,9 @@
 #include <cmath>
 #include <limits>
 
-const double GainControl::SILENCE_THRESHOLD = 0.02;
-const Parameter* GainControl::TARGET_GAIN = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'g', "gain", "Specifies the target gain", "1.0"));
+//silence threshold is at -30dB (since -40dB seems to be absolute silence)
+const double GainControl::SILENCE_THRESHOLD = fromDB(-30);
+const Parameter* GainControl::TARGET_GAIN = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'g', "gain", "Specifies the amplification, in dB", "0"));
 double GainControl::lowerSampleLimit = std::numeric_limits<double>::max();
 double GainControl::upperSampleLimit = std::numeric_limits<double>::min();
 
@@ -45,9 +46,10 @@ PayloadType GainControl::getSupportedPlayloadType() const
 bool GainControl::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
 {
     const std::string gainParameter = configMode->getCustomConfiguration(TARGET_GAIN->longName, "Insert gain to apply on the volume", "1.0");
+    numInputChannels = audioConfig.inputDeviceChannels;
     try
     {
-        gain = std::stod(gainParameter);
+        gain = fromDB(std::stod(gainParameter));
         //if the gain is too marginal, don't do anything
         gainEnabled = (gain > 1.0 ? gain - 1.0 : 1.0 - gain) > 0.05;
     }
@@ -110,8 +112,7 @@ bool GainControl::cleanUp()
 
 unsigned int GainControl::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
-    double gain = calculator(inputBuffer, inputBufferByteSize);
-    //XXX better threshold
+    double gain = calculator(inputBuffer, inputBufferByteSize, numInputChannels);
     if(gain <= SILENCE_THRESHOLD)
     {
         userData->isSilentPackage = true;
@@ -130,16 +131,25 @@ unsigned int GainControl::processOutputData(void* outputBuffer, const unsigned i
 }
 
 template<typename AudioFormat>
-double GainControl::calculate(void* buffer, const unsigned int bufferSize)
+double GainControl::calculate(void* buffer, const unsigned int bufferSize, const unsigned char numChannels)
 {
+    //see https://stackoverflow.com/questions/4152201/calculate-decibels
+    //see https://stackoverflow.com/questions/13734710/is-there-a-way-get-something-like-decibel-levels-from-an-audio-file-and-transfor
     AudioFormat* buf = (AudioFormat*) buffer;
     double gain = 0;
+    double sampleGain = 0;
     const unsigned int bufSize = bufferSize / sizeof(AudioFormat);
-    for(unsigned int i = 0; i < bufSize; ++i)
+    for(unsigned int i = 0; i < bufSize; i += numChannels)
     {
-        gain += buf[i] < 0 ? -buf[i] : buf[i];
+        sampleGain = 1;
+        for(unsigned char c = 0; c < numChannels; ++c)
+        {
+            sampleGain *= buf[i] < 0 ? -buf[i] : buf[i];
+        }
+        gain +=sampleGain;
     }
-    return gain / bufSize;
+    //return root mean square of all samples
+    return sqrt(gain / (bufSize / numChannels));
 }
 
 template<typename AudioFormat>

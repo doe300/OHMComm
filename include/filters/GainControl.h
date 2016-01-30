@@ -32,9 +32,10 @@ public:
 
 private:
     typedef void (*Amplifier)(void* buffer, const unsigned int bufferSize, double gain);
-    typedef double (*GainCalculator)(void* buffer, const unsigned int bufferSize);
+    typedef double (*GainCalculator)(void* buffer, const unsigned int bufferSize, const unsigned char numChannels);
     static const double SILENCE_THRESHOLD;
     static const Parameter* TARGET_GAIN;
+    unsigned char numInputChannels;
     bool gainEnabled;
     double gain;
     Amplifier amplifier;
@@ -44,13 +45,23 @@ private:
     static double lowerSampleLimit;
     
     template<typename AudioFormat>
-    static double calculate(void* buffer, const unsigned int bufferSize);
+    static double calculate(void* buffer, const unsigned int bufferSize, const unsigned char numChannels);
     
     template<typename AudioFormat>
     static void amplify(void* buffer, const unsigned int bufferSize, double gain);
     
     template<typename AudioFormat>
     static AudioFormat clipOverflow(AudioFormat sample, double gain);
+    
+    inline static double todB(double value)
+    {
+        return 20 * log10(value);
+    }
+    
+    inline static double fromDB(double dBValue)
+    {
+        return pow10(dBValue / 20);
+    }
 };
 
 #endif	/* GAINCONTROL_H */
