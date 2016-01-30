@@ -33,7 +33,7 @@ Für die Audioverarbeitung ist ein allgemeine Schnittstelle zur Audiohardware n�
 Die Klasse bietet drei virtuelle Methoden, welche eine automatische Verarbeitung starten. Die Methode \texttt{startRecordingMode()} startet die Verarbeitung von Audioinputdaten (Mikrofon), \texttt{startPlaybackMode()} startet die Verarbeitung von Audiooutputdaten (Lautsprecher) und \texttt{startDuplexMode()} ist die gleichzeitige Verarbeitung von Audioinput- und Audioutputdaten. Letztere stellt den Standardfall für die Audiokommunikation dar. Wie diese Methoden im Detail aussehen, wird in Unterklassen von \texttt{AudioHandler} implementiert. Für die Hardwareansteuerung ist sinnvoll bereits existierde Lösungen zu verwenden. In diesem Fall kann man Unterklassen von \texttt{AudioHandler} auch als Wrapper-Klasse ansehen.
 
 \subsubsection{Konfiguration}
-Vor der Verarbeitung muss die Hardware konfiguriert werden. Hierfür wurde das Struct \texttt{AudioConfiguration} erstellt. In diesem lassen sich das Mikrofon und die Lautsprecher bestimmen, die Anzahl der Kanäle (Mono - Stereo), die Sample Rate und die Größe des internes Buffers. Der interne Buffer kann vorerst vernachlässigt werden. Im Kapitel von \ref{sec:RTAudio} TODO-Kreuzreferenz wird dieser näher erläutert. Für die Übergabe der Einstellungen steht in der Klasse \texttt{AudioHandler} die Methode \texttt{setConfiguration()} zur Verfügung. Falls keine Konfiguration übergeben wird, so wird automatisch die virtuelle Methode \texttt{setDefaultAudioConfig()} aufgerufen. Diese muss ebenfalls von der Unterklasse implementiert werden. Die Methode stellt eine Standardkonfiguration zur Verfügung, jedoch ist zu beachten, dass diese Konfiguration eventuell fehlerhaft und nicht auf allen Systemen lauffähig ist.
+Vor der Verarbeitung muss die Hardware konfiguriert werden. Hierfür kann das Struct \texttt{AudioConfiguration} verwendet werden. In diesem lassen sich das Mikrofon und die Lautsprecher bestimmen, die Anzahl der Kanäle (Mono - Stereo), die Sample Rate und die Größe des internes Buffers. Der interne Buffer kann vorerst vernachlässigt werden. Im Kapitel von \ref{sec:RTAudio} TODO-Kreuzreferenz wird dieser näher erläutert. Für die Übergabe der Einstellungen steht in der Klasse \texttt{AudioHandler} die Methode \texttt{setConfiguration()} zur Verfügung. Falls keine Konfiguration übergeben wird, so wird automatisch die virtuelle Methode \texttt{setDefaultAudioConfig()} aufgerufen. Diese muss ebenfalls von der Unterklasse implementiert werden. Die Methode stellt eine Standardkonfiguration zur Verfügung, jedoch ist zu beachten, dass diese Konfiguration eventuell fehlerhaft und nicht auf allen Systemen lauffähig ist.
 
 \subsubsection{Steuerung der Verarbeitung}
 Falls die Verarbeitung läuft kann diese durch Methoden gesteuert werden. Die Methode \texttt{suspend()} pausiert die aktuelle Verarbeitung und \texttt{resume()} setzt sie weiter fort. Die Methode \texttt{stop()} stoppt die Verarbeitung komplett und kann nicht durch \texttt{resume()} fortgesetzt werden. \texttt{reset()} stoppt die Verarbeitung und setzt die übergebene Audiokonfiguration wieder zurück.
@@ -85,7 +85,6 @@ Das Implementieren der Klasse \texttt{AudioProcessor} reicht nicht aus, um an de
 
 \subsection{Austauschbarkeit und Instantiierung}
 Um der Anforderung \ref{NFA:Softwarearchitektur} gerecht zu werden und die Komponenten austauschbar zu halten, wird das Entwurfsprinzip \texttt{Program to an interface, not to an implementation} \cite{Lahres2009}[Kap. 3.5] umgesetzt. Dies ermöglicht eine höhere Flexibilität, da der abstrakte Typ zur Laufzeit durch ein konkretes Objekt ausgetauscht werden kann. In diesem Zusammenhang bietet es sich an das Factory-Method-Pattern zu integrieren. Dabei wird die Instantiierung in einer Fabrikmethode ausgelagert. Als Parameter erwartet die Funktion ein String mit dem Namen der zu instantiierten Klasse. Alle Klassen basieren auf den gemeinsamen abstrakten Basistypen, der auch gleichzeitig Rückgabetyp ist. Die Fabrikmethoden wurde in eigenen Fabrikklassen ausgelagert, wie in Abbildung \ref{Fig:Factories} zu sehen ist. \texttt{getAudioHandler()} und \texttt{getAudioProcessor()} stellen die Fabrikmethoden dar. \texttt{getAudioHandlerNames()} und \texttt{getAudioProcessorNames()} liefern die Namen der Klassen, die instantiierbar sind.
-
 \newline
 \begin{figure}[htp]
 \centering
@@ -167,8 +166,26 @@ besteht eine große Wahrscheinlichkeit, dass die Audiodaten des verlorene Pakets
 Um den Verlust von Paketen aufgrund von \enquote{late loss} gering zu halten und somit eine flüssige und möglichst vollständige Audiokommunikation zu gewährleisten, führt ein Jitter-Buffer eine künstliche Verzögerung zwischen dem Empfangen und dem Abspielen eines Paketes ein. Dadurch, dass ein Paket später abgespielt wird (der sog. \enquote{playout point} wird nach Hinten verschoben), hat es länger Zeit, beim Empfänger anzukommen, wodurch weniger Pakete wegen \enquote{late loss}, also dem Ankommen nach ihrem \enquote{playout point}, verworfen werden. Hierfür sollte die Abspielverzögerung so gewählt werden, dass möglichst alle Pakete, die nicht auf dem Netzwerk verloren gehen, den Empfänger vor ihrem Abspielzeitpunkt erreichen. Auf der anderen Seite darf die Abspielverzögerung nicht zu groß werden, sonst leidet die Qualität der Echtzeitkommunikation. Dafür wird in umfangreicheren Implementierungen die Abspielverzögerung meist dynamisch angepasst. Diese sog. \enquote{playout point adaption} wird auf Basis des Anteils an \enquote{late loss} berechnet und in bestimmten Abständen durch einschieben eines zusätzlichen Pakets (z.B. Stille) oder überspringen eines empfangenen Paketes umgesetzt. Der Jitter-Buffer des OHMComm-Frameworks besitzt eine feste Abspielverzögerung, die derzeit noch bei der Kompilierung des Programms eingestellt werden muss.
 \subsection{Netzwerkverbindung}
 Wie auch die meisten anderen Komponenten des OHMComm-Framework (Audio-Bibliothek, -Prozessoren) ist auch die Umsetzung der Netzwerkschnittstelle austauschbar implementiert. Da RTP in den allermeisten Fällen mit dem Transportprotokoll UDP verwendet wird, gibt es jedoch derzeit nur eine konkrete Implementierung der Netzwerkschnittstelle, die auf RTP-Pakete in UDP-Pakete verpackt und beim Empfangen wieder entpackt. Spätere Versionen des Frameworks enthalten zusätzlich noch eine Implementierung, die TCP verwendet.
+
+
+
+
+\subsection{RTPListener}
+Die Socketmethoden zum Empfangen von Paketen sind blockierend \cite{WinsockReference}. Dies hat weitreichende Folgen für die Architektur. Der Ausgangspunkt der Verarbeitung ist die Verarbeitungskette im \texttt{Audio"-Handler}. Wird dort eine blockierende Funktion aufgerufen, so wird die gesamte Weiterverarbeitung blockiert. Wenn z.B. innerhalb eines Audioprozessors die blockierende Winsock-Funktion \texttt{recv"-from()} aufgerufen wird, und es werden keine Pakete empfangen, dann bricht die gesamte Verarbeitung ab. Dieses Verhalten ist nicht erwünscht. Die Verarbeitung soll unabhängig von den empfangenen Paketen funktionieren. Die Klasse \texttt{RTPListener} stellt einen Lösungsansatz für dieses Problem dar. Hierfür wird der gesamte Empfangsprozess in einem eignen Thread ausgelagert. Abbildung \ref{Fig:RTPListenerAdvanced} zeigt den Aufbau des \texttt{RTPListeners}.
+\newline
+\begin{figure}[htp]
+\centering
+\includegraphics[width=1\textwidth]{../img/RTPListenerAdvanced}
+\caption{Der gesamte Empfangsprozess in einem separaten Thread}
+\label{Fig:RTPListenerAdvanced}
+\end{figure}
+
+Die Methode \texttt{startUp()} startet den \texttt{RTP"-Listener} in einem separaten Thread und \texttt{shut"-down()} beendet ihn wieder. Der Empfangsprozess besteht aus den Komponenten \texttt{RTP"-Buffer}, \texttt{RTP"-Package"-Handler} und dem \texttt{Network"-Wrapper}. Im Thread des \texttt{RTP"-Listeners} wird in einer Endlosschleife die blockierende Funktion \texttt{receive"-Data()} des \texttt{Network"-Wrappers} aufgerufen. Als Parameter wird der Funktion der Buffer des \texttt{RTP"-Package"-Handlers} übergeben. Hierfür wird die Funktion \texttt{getWork"-Buffer()} verwendet. Wenn ein Paket empfangen wurde, so kann mit Hilfe von \texttt{RTP"-Package"-Handler} der RTPHeader ausgelesen. Falls keine weitere Verarbeitung nötig ist, kann es im \texttt{RTP"-Buffer} mit \texttt{add"-Package()} zwischengespeichert werden. Der RTPBuffer arbeitet mit dem Prinzip First-In-First-Out (FIFO), deshalb liefert \texttt{readPackage()} das älteste Paket zurück.
+
+
 \section{Konkrete Softwarekomponenten}
 \subsection{RTAudio}
+\label{sec:RTAudio}
 \subsection{Opus}
 \section{Statistiken}
 
