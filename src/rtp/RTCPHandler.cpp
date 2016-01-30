@@ -170,7 +170,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
             const unsigned int configMessageBufferSize = 512;
             char configMessageBuffer[configMessageBufferSize] = {0};
             ApplicationDefined configResponse("RESC", configMessageBufferSize, configMessageBuffer, ApplicationDefined::OHMCOMM_CONFIGURATION_RESPONSE);
-            unsigned int size = PassiveConfiguration::writeConfigurationMessage(configMessageBuffer, configMessageBufferSize, msg);
+            const int size = PassiveConfiguration::writeConfigurationMessage(configMessageBuffer, configMessageBufferSize, msg);
             if(size < 0)
             {
                 std::cerr << "Buffer not large enough!" << std::endl;

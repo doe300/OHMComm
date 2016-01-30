@@ -81,21 +81,21 @@ const std::string SIPConfiguration::getCustomConfiguration(const std::string key
     return defaultValue;
 }
 
-const int SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+int SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
 {
     if(customConfig.count(key) != 0)
         return atoi(customConfig.at(key).data());
     return defaultValue;
 }
 
-const bool SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+bool SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
     if(customConfig.count(key) != 0)
         return atoi(customConfig.at(key).data());
     return defaultValue;
 }
 
-const bool SIPConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+bool SIPConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
     return customConfig.count(key) != 0;
 }

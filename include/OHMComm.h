@@ -58,7 +58,7 @@ public:
      *
      * \return Whether the configuration is active
      */
-    const bool isConfigurationActive() const;
+    bool isConfigurationActive() const;
 
     /*!
      * \param runConfiguration Whether to run configuration if not yet configured

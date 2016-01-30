@@ -195,7 +195,7 @@ public:
      *
      * \return the length of the RTCP-package in bytes
      */
-    static const unsigned int getRTCPPackageLength(unsigned int lengthHeaderField);
+    static unsigned int getRTCPPackageLength(unsigned int lengthHeaderField);
     
     /*!
      * \param rtcpCompoundBuffer The buffer containing the (possible) compound package
@@ -204,7 +204,7 @@ public:
      * 
      * \return The number of RTCP packages currently in this buffer
      */
-    static const unsigned int getRTCPCompoundPackagesCount(const void* rtcpCompoundBuffer, const unsigned int maxPackageLength);
+    static unsigned int getRTCPCompoundPackagesCount(const void* rtcpCompoundBuffer, const unsigned int maxPackageLength);
 
 private:
     std::vector<char> rtcpPackageBuffer;
@@ -214,7 +214,7 @@ private:
      *
      * Specification: "The length of this RTCP packet in 32-bit words minus one, including the header and any padding"
      */
-    static const uint8_t calculateLengthField(uint16_t length);
+    static uint8_t calculateLengthField(uint16_t length);
     
     void assertCapacity(unsigned int newCapacity);
     

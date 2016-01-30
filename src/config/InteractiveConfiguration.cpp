@@ -63,18 +63,18 @@ const std::string InteractiveConfiguration::getCustomConfiguration(const std::st
     return UserInput::inputString(message, defaultValue, flags);
 }
 
-const int InteractiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+int InteractiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
 {
     const unsigned char flags = UserInput::INPUT_ALLOW_NEGATIVE | UserInput::INPUT_ALLOW_ZERO | UserInput::INPUT_USE_DEFAULT;
     return UserInput::inputNumber(message, defaultValue, flags);
 }
 
-const bool InteractiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+bool InteractiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
     return UserInput::inputBoolean(message, defaultValue, UserInput::INPUT_USE_DEFAULT);
 }
 
-const bool InteractiveConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+bool InteractiveConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
     return UserInput::inputBoolean(message, false, 0);
 }

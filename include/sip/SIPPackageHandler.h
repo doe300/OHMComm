@@ -238,7 +238,7 @@ struct SIPHeader : KeyValuePairs<HeaderField>
         //required for vtable for dynamic cast
     }
     
-    const int getContentLength() const
+    int getContentLength() const
     {
         return atoi(operator[](SIP_HEADER_CONTENT_LENGTH).data());
     }

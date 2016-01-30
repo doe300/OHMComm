@@ -100,7 +100,7 @@ const std::string ParameterConfiguration::getCustomConfiguration(const std::stri
     return defaultValue;
 }
 
-const int ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+int ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
 {
     const Parameter* param = Parameters::getParameter(key);
     if(param != nullptr)
@@ -110,7 +110,7 @@ const int ParameterConfiguration::getCustomConfiguration(const std::string key, 
     return defaultValue;
 }
 
-const bool ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+bool ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
     const Parameter* param = Parameters::getParameter(key);
     if(param != nullptr)
@@ -120,7 +120,7 @@ const bool ParameterConfiguration::getCustomConfiguration(const std::string key,
     return defaultValue;
 }
 
-const bool ParameterConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+bool ParameterConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
     const Parameter* param = Parameters::getParameter(key);
     if(param != nullptr)

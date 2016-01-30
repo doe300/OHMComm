@@ -116,7 +116,7 @@ private:
     
     void sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader);
     
-    const int selectBestMedia(const std::vector<MediaDescription>& availableMedias) const;
+    int selectBestMedia(const std::vector<MediaDescription>& availableMedias) const;
     
     void updateNetworkConfig(const SIPHeader* header = nullptr);
     

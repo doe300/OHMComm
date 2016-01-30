@@ -25,6 +25,7 @@ const Parameter* Parameters::INPUT_DEVICE = Parameters::registerParameter(Parame
 const Parameter* Parameters::OUTPUT_DEVICE = Parameters::registerParameter(Parameter(ParameterCategory::AUDIO, 'o', "output-device-id", "The id of the device used for audio-output. This value will fall back to the library-default", ""));
 const Parameter* Parameters::FORCE_AUDIO_FORMAT = Parameters::registerParameter(Parameter(ParameterCategory::AUDIO, 'A', "audio-format", "Forces the given audio-format to be used. For a list of audio-formats see below. Currently only works in conjunction with -i or -o.", ""));
 const Parameter* Parameters::FORCE_SAMPLE_RATE = Parameters::registerParameter(Parameter(ParameterCategory::AUDIO, 'S', "sample-rate", "Forces the given sample-rate to be used, i.e. 44100. Currently only works in conjunction with -i or -o.", ""));
+//TODO also support host-name for remote address (at least for SIP)
 const Parameter* Parameters::REMOTE_ADDRESS = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, Parameter::FLAG_REQUIRED|Parameter::FLAG_HAS_VALUE, 'r', "remote-address", "The IP address of the computer to connect to", ""));
 const Parameter* Parameters::REMOTE_PORT = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, Parameter::FLAG_REQUIRED|Parameter::FLAG_HAS_VALUE, 'p', "remote-port", "The port of the remote computer", std::to_string(DEFAULT_NETWORK_PORT)));
 const Parameter* Parameters::LOCAL_PORT = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, Parameter::FLAG_REQUIRED|Parameter::FLAG_HAS_VALUE, 'l', "local-port", "The local port to listen on", std::to_string(DEFAULT_NETWORK_PORT)));
@@ -388,7 +389,7 @@ bool Parameters::parseParametersFromFile(const std::string& configFile)
         std::fstream stream(configFile, std::fstream::in);
         stream.exceptions ( std::ios::badbit );
         std::string line;
-        unsigned int index;
+        std::string::size_type index;
         std::string key, value;
         if(!stream.is_open())
         {

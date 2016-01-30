@@ -184,7 +184,7 @@ void TCPWrapper::closeNetwork()
     }
 }
 
-const int TCPWrapper::getSocketAddressLength()
+int TCPWrapper::getSocketAddressLength()
 {
     if(isIPv6)
     {

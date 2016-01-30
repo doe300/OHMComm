@@ -162,7 +162,7 @@ std::vector<std::string> SIPPackageHandler::readPackage(const void* sipPackage, 
     std::vector<std::string> results(4);
     //create string from the input buffer
     std::string package((char*)sipPackage, packageLength);
-    unsigned int index = 0;
+    std::string::size_type index = 0;
     unsigned int prevIndex = 0;
     //read request-command / response SIP-version
     index = package.find(' ');

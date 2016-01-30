@@ -23,9 +23,9 @@ public:
     const NetworkConfiguration getRTCPNetworkConfiguration() const;
     
     const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
-    const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
-    const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
-    const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
+    int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+    bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+    bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
 
     void onRegister(PlaybackObservee* ohmComm);

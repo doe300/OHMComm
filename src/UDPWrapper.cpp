@@ -175,7 +175,7 @@ void UDPWrapper::closeNetwork()
     }
 }
 
-const int UDPWrapper::getSocketAddressLength()
+int UDPWrapper::getSocketAddressLength()
 {
     if(isIPv6)
     {

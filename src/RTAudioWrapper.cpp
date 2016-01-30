@@ -156,7 +156,7 @@ auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
 
 void RtAudioWrapper::setDefaultAudioConfig()
 {
-    AudioConfiguration audioConfig = { 0 };
+    AudioConfiguration audioConfig{};
     audioConfig.inputDeviceID = this->rtaudio.getDefaultInputDevice();
     audioConfig.outputDeviceID = this->rtaudio.getDefaultOutputDevice();
 

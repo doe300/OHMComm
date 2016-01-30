@@ -564,7 +564,7 @@ struct SourceDescription
      * 
      * \return The type for the given source-description name
      */
-    const static RTCPSourceDescriptionType getType(const std::string& typeName)
+    static RTCPSourceDescriptionType getType(const std::string& typeName)
     {
         if(typeName.compare("Endpoint") == 0)
             return RTCP_SOURCE_CNAME;

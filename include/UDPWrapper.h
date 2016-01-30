@@ -47,7 +47,7 @@ private:
     /*!
      * \returns the size of the socket-address depending on the IP-version used
      */
-    const int getSocketAddressLength();
+    int getSocketAddressLength();
 };
 
 

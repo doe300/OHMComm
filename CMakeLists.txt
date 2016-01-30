@@ -14,7 +14,7 @@ option(BUILD_TESTING "Build testing program" ON)
 if(NOT MSVC)
 	# the following instruction causes warnings in visual studio, 
 	# therefore enable it only when MSVC-compiler is not used
-	LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wall -pthread")
+	LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wextra -Wno-missing-field-initializers -pthread")
 else()
 	# visual studio specific flags
 	set(CMAKE_CXX_FLAGS "/W3 /D_UNICODE /DUNICODE /DNOMINMAX")

@@ -30,7 +30,7 @@ std::shared_ptr<ConfigurationMode> OHMComm::getConfigurationMode() const
     return configurationMode;
 }
 
-const bool OHMComm::isConfigurationActive() const
+bool OHMComm::isConfigurationActive() const
 {
     return configurationActive;
 }

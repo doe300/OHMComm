@@ -41,13 +41,13 @@ public:
 
     virtual bool runConfiguration();
     const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
-    const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
-    const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
-    const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
+    int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+    bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+    bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
     static const ConfigurationMessage readConfigurationMessage(const void* buffer, unsigned int bufferSize);
 
-    static unsigned int writeConfigurationMessage(void* buffer, unsigned int maxBufferSize, ConfigurationMessage& configMessage);
+    static int writeConfigurationMessage(void* buffer, unsigned int maxBufferSize, ConfigurationMessage& configMessage);
 };
 
 #endif	/* PASSIVECONFIGURATION_H */

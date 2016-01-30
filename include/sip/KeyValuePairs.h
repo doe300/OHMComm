@@ -26,7 +26,7 @@ struct KeyValuePair
     {
     }
     
-    const int getInteger() const
+    int getInteger() const
     {
         return atoi(value.c_str());
     }

@@ -20,6 +20,12 @@
  */
 class ConfigurationMode : public PlaybackListener
 {
+    
+    //TODO split configuration into audio-config and local-config (everything not of interest to the remote device)
+    //or at least make sure, all configuration-modes can configure both (SIP/passive e.g. can't configure local config)
+    //-> fall back to parameters/any other mode? (would need to retrieve values without being fully configured)
+    
+    //TODO allow for configuration of buffer-delay or make adaptive
 public:
     ConfigurationMode();
     virtual ~ConfigurationMode();
@@ -71,14 +77,14 @@ public:
     /*!
      * \return whether the program will wait on startup for the communication partner to request a passive configuration before starting audio-playback
      */
-    const bool isWaitForConfigurationRequest() const;
+    bool isWaitForConfigurationRequest() const;
     
     /*!
      * A payload-type of -1 lets the audio-processors decide the type
      * 
      * \return the configured payload-type to be used
      */
-    const short getPayloadType() const;
+    short getPayloadType() const;
 
     /*!
      * Configuration-mode specific method to retrieve a value for the given key
@@ -108,7 +114,7 @@ public:
      *
      * \return the value for this configuration-key, defaults to the defaultValue
      */
-    virtual const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const = 0;
+    virtual int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const = 0;
 
     /*!
      * Configuration-mode specific method to retrieve a value for the given key
@@ -119,7 +125,7 @@ public:
      *
      * \return the value for this configuration-key, defaults to the defaultValue
      */
-    virtual const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const = 0;
+    virtual bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const = 0;
     
     /*!
      * Configuration-mode specific method to check whether a configuration-value is set.
@@ -130,7 +136,7 @@ public:
      * 
      * \return whether this configuration-key is set
      */
-    virtual const bool isCustomConfigurationSet(const std::string key, const std::string message) const = 0;
+    virtual bool isCustomConfigurationSet(const std::string key, const std::string message) const = 0;
 
     /*!
      * This method is called by OHMComm to update the audio-configuration in this ConfigurationMode with the actual used configuration

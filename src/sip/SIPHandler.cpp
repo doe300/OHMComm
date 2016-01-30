@@ -552,7 +552,7 @@ void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHea
     header[SIP_HEADER_USER_AGENT] = std::string("OHMComm/") + OHMCOMM_VERSION;
 }
 
-const int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& availableMedias) const
+int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& availableMedias) const
 {
     if(availableMedias.empty())
     {
