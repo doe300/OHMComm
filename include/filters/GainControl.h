@@ -8,6 +8,8 @@
 #ifndef GAINCONTROL_H
 #define	GAINCONTROL_H
 
+#include <cmath>
+
 #include "AudioProcessor.h"
 #include "Parameters.h"
 
@@ -55,12 +57,12 @@ private:
     
     inline static double todB(double value)
     {
-        return 20 * log10(value);
+        return 20 * (std::log(value) / std::log(10));
     }
     
     inline static double fromDB(double dBValue)
     {
-        return pow10(dBValue / 20);
+        return std::pow(10, dBValue / 20);
     }
 };
 
