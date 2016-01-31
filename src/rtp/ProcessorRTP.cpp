@@ -2,7 +2,7 @@
 #include "Statistics.h"
 #include "Parameters.h"
 
-Participant participantDatabase[2] = {0};
+Participant ParticipantDatabase::participants[ParticipantDatabase::MAX_PARTICIPANTS] = {{},{}};
 
 //!Treat as silence after 500ms of no input
 const unsigned short ProcessorRTP::SILENCE_DELAY = 500;
@@ -72,7 +72,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     //only send the number of bytes really required: header + actual payload-size
     this->networkObject->sendData(newRTPPackage, rtpPackage->getRTPHeaderSize() + inputBufferByteSize);
 
-    participantDatabase[PARTICIPANT_SELF].extendedHighestSequenceNumber += 1;
+    ParticipantDatabase::self().extendedHighestSequenceNumber += 1;
     Statistics::incrementCounter(Statistics::COUNTER_FRAMES_SENT, userData->nBufferFrames);
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_SENT, 1);
     Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTP_HEADER_MIN_SIZE);
@@ -131,7 +131,7 @@ void ProcessorRTP::initPackageHandler(unsigned int maxBufferSize)
     {
         rtpPackage.reset(new RTPPackageHandler(maxBufferSize, payloadType));
     }
-    participantDatabase[PARTICIPANT_SELF].ssrc = rtpPackage->ssrc;
-    participantDatabase[PARTICIPANT_SELF].initialRTPTimestamp = rtpPackage->timestamp;
-    participantDatabase[PARTICIPANT_SELF].extendedHighestSequenceNumber = rtpPackage->sequenceNr;
+    ParticipantDatabase::self().ssrc = rtpPackage->ssrc;
+    ParticipantDatabase::self().initialRTPTimestamp = rtpPackage->timestamp;
+    ParticipantDatabase::self().extendedHighestSequenceNumber = rtpPackage->sequenceNr;
 }

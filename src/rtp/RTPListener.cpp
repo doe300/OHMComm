@@ -39,7 +39,7 @@ void RTPListener::startUp()
 void RTPListener::runThread()
 {
     std::cout << "RTP-Listener started ..." << std::endl;
-    participantDatabase[PARTICIPANT_REMOTE] = {0};
+    ParticipantDatabase::remote() = {0};
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
@@ -72,15 +72,15 @@ void RTPListener::runThread()
                 if(firstPackage)
                 {
                     firstPackage = false;
-                    participantDatabase[PARTICIPANT_REMOTE].extendedHighestSequenceNumber = rtpHandler.getRTPPackageHeader()->getSequenceNumber();
-                    participantDatabase[PARTICIPANT_REMOTE].initialRTPTimestamp = rtpHandler.getRTPPackageHeader()->getTimestamp();
+                    ParticipantDatabase::remote().extendedHighestSequenceNumber = rtpHandler.getRTPPackageHeader()->getSequenceNumber();
+                    ParticipantDatabase::remote().initialRTPTimestamp = rtpHandler.getRTPPackageHeader()->getTimestamp();
                 }
                 else
                 {
-                    participantDatabase[PARTICIPANT_REMOTE].extendedHighestSequenceNumber  = calculateExtendedHighestSequenceNumber(rtpHandler.getRTPPackageHeader()->getSequenceNumber());
+                    ParticipantDatabase::remote().extendedHighestSequenceNumber  = calculateExtendedHighestSequenceNumber(rtpHandler.getRTPPackageHeader()->getSequenceNumber());
                 }
                 calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
-                participantDatabase[PARTICIPANT_REMOTE].ssrc = rtpHandler.getRTPPackageHeader()->getSSRC();
+                ParticipantDatabase::remote().ssrc = rtpHandler.getRTPPackageHeader()->getSSRC();
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
                 Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTP_HEADER_MIN_SIZE);
                 Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedSize - RTP_HEADER_MIN_SIZE);
@@ -100,9 +100,9 @@ float RTPListener::calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t 
     lastDelay = currentDelay;
     
     //Ji = Ji-1 + (|D(i-1, 1)| - Ji-1)/16
-    double lastJitter = participantDatabase[PARTICIPANT_REMOTE].interarrivalJitter;
+    double lastJitter = ParticipantDatabase::remote().interarrivalJitter;
     lastJitter = lastJitter + ((float)abs(currentDifference) - lastJitter)/16.0;
-    participantDatabase[PARTICIPANT_REMOTE].interarrivalJitter = lastJitter;
+    ParticipantDatabase::remote().interarrivalJitter = lastJitter;
     return lastJitter;
 }
 
@@ -125,7 +125,7 @@ void RTPListener::onPlaybackStop()
 uint32_t RTPListener::calculateExtendedHighestSequenceNumber(const uint16_t receivedSequenceNumber) const
 {
     //See https://tools.ietf.org/html/rfc3711#section-3.3.1
-    const uint32_t previousValue = participantDatabase[PARTICIPANT_REMOTE].extendedHighestSequenceNumber;
+    const uint32_t previousValue = ParticipantDatabase::remote().extendedHighestSequenceNumber;
     //rollover-count is the higher 16 bits
     const uint32_t rollOverCount = previousValue >> 16;
     //determine possible values for the next extended highest sequence number

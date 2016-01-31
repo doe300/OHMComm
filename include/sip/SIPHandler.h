@@ -15,7 +15,6 @@
 #include <chrono>
 
 #include "UDPWrapper.h"
-#include "rtp/ParticipantDatabase.h"
 #include "SDPMessageHandler.h"
 #include "SIPPackageHandler.h"
 

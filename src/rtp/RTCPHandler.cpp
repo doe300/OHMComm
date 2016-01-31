@@ -224,7 +224,7 @@ void RTCPHandler::sendByePackage()
     const void* tmp = createSourceDescription(length);
     length += RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)tmp)->getLength());
     //create bye package
-    RTCPHeader byeHeader(participantDatabase[PARTICIPANT_SELF].ssrc);
+    RTCPHeader byeHeader(ParticipantDatabase::self().ssrc);
     rtcpHandler.createByePackage(byeHeader, "Program exit", length);
     length += RTCPPackageHandler::getRTCPPackageLength(byeHeader.getLength());
     wrapper->sendData(buffer, length);
@@ -242,21 +242,21 @@ inline uint8_t RTCPHandler::calculateFractionLost()
 
 const void* RTCPHandler::createSenderReport(unsigned int offset)
 {
-    RTCPHeader srHeader(participantDatabase[PARTICIPANT_SELF].ssrc);
+    RTCPHeader srHeader(ParticipantDatabase::self().ssrc);
     
     NTPTimestamp ntpTime = NTPTimestamp::now();
     const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-    const uint32_t rtpTimestamp = participantDatabase[PARTICIPANT_SELF].initialRTPTimestamp + now.count();
+    const uint32_t rtpTimestamp = ParticipantDatabase::self().initialRTPTimestamp + now.count();
     const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(lastSRReceived.time_since_epoch());
     
     SenderInformation senderReport(ntpTime, rtpTimestamp, Statistics::readCounter(Statistics::COUNTER_PACKAGES_SENT), Statistics::readCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT));
     //we currently have only one reception report
     ReceptionReport receptionReport;
-    receptionReport.setSSRC(participantDatabase[PARTICIPANT_REMOTE].ssrc);
+    receptionReport.setSSRC(ParticipantDatabase::remote().ssrc);
     receptionReport.setFractionLost(calculateFractionLost());
     receptionReport.setCummulativePackageLoss((uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST));
-    receptionReport.setExtendedHighestSequenceNumber(participantDatabase[PARTICIPANT_REMOTE].extendedHighestSequenceNumber);
-    receptionReport.setInterarrivalJitter((uint32_t)round(participantDatabase[PARTICIPANT_REMOTE].interarrivalJitter));
+    receptionReport.setExtendedHighestSequenceNumber(ParticipantDatabase::remote().extendedHighestSequenceNumber);
+    receptionReport.setInterarrivalJitter((uint32_t)round(ParticipantDatabase::remote().interarrivalJitter));
     receptionReport.setLastSRTimestamp((uint32_t)lastSRTimestamp.count());
     //XXX delay since last SR /maybe last SR is wrong
     receptionReport.setDelaySinceLastSR((now - lastSRTimestamp).count());
@@ -302,6 +302,6 @@ const void* RTCPHandler::createSourceDescription(unsigned int offset)
         }
         sourceDescriptions.push_back({RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION});
     }
-    RTCPHeader sdesHeader(participantDatabase[PARTICIPANT_SELF].ssrc);
+    RTCPHeader sdesHeader(ParticipantDatabase::self().ssrc);
     return rtcpHandler.createSourceDescriptionPackage(sdesHeader, sourceDescriptions, offset);
 }

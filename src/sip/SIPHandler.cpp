@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "sip/SIPHandler.h"
+#include "rtp/ParticipantDatabase.h"
 
 const std::string SIPUserAgent::getSIPURI() const
 {
@@ -17,13 +18,13 @@ const std::string SIPUserAgent::getSIPURI() const
 SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction) : 
         network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), callID(SIPHandler::generateCallID(Utility::getDomainName())), sequenceNumber(0), buffer(SIP_BUFFER_SIZE), lastBranch(), state(SessionState::UNKNOWN)
 {
-    sipUserAgents[PARTICIPANT_SELF].userName = Utility::getUserName();
-    sipUserAgents[PARTICIPANT_SELF].hostName = Utility::getDomainName();
-    sipUserAgents[PARTICIPANT_SELF].tag = std::to_string(rand());
-    sipUserAgents[PARTICIPANT_SELF].port = sipConfig.localPort;
-    sipUserAgents[PARTICIPANT_REMOTE].userName = remoteUser;
-    sipUserAgents[PARTICIPANT_REMOTE].ipAddress = sipConfig.remoteIPAddress;
-    sipUserAgents[PARTICIPANT_REMOTE].port = sipConfig.remotePort;
+    ParticipantDatabase::self().userAgent.userName = Utility::getUserName();
+    ParticipantDatabase::self().userAgent.hostName = Utility::getDomainName();
+    ParticipantDatabase::self().userAgent.tag = std::to_string(rand());
+    ParticipantDatabase::self().userAgent.port = sipConfig.localPort;
+    ParticipantDatabase::remote().userAgent.userName = remoteUser;
+    ParticipantDatabase::remote().userAgent.ipAddress = sipConfig.remoteIPAddress;
+    ParticipantDatabase::remote().userAgent.port = sipConfig.remotePort;
     updateNetworkConfig();
 }
 
@@ -31,13 +32,13 @@ SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string&
 SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& localUser, const std::string& localHostName, const std::string& remoteUser, const std::string& callID) :
     network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](const MediaDescription dummy, const NetworkConfiguration dummy1, const NetworkConfiguration dummy2){}), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE), lastBranch(), state(SessionState::UNKNOWN)
 {
-    sipUserAgents[PARTICIPANT_SELF].userName = localUser;
-    sipUserAgents[PARTICIPANT_SELF].hostName = localHostName;
-    sipUserAgents[PARTICIPANT_SELF].tag = std::to_string(rand());
-    sipUserAgents[PARTICIPANT_SELF].port = sipConfig.localPort;
-    sipUserAgents[PARTICIPANT_REMOTE].userName = remoteUser;
-    sipUserAgents[PARTICIPANT_REMOTE].ipAddress = sipConfig.remoteIPAddress;
-    sipUserAgents[PARTICIPANT_REMOTE].port = sipConfig.remotePort;
+    ParticipantDatabase::self().userAgent.userName = localUser;
+    ParticipantDatabase::self().userAgent.hostName = localHostName;
+    ParticipantDatabase::self().userAgent.tag = std::to_string(rand());
+    ParticipantDatabase::self().userAgent.port = sipConfig.localPort;
+    ParticipantDatabase::remote().userAgent.userName = remoteUser;
+    ParticipantDatabase::remote().userAgent.ipAddress = sipConfig.remoteIPAddress;
+    ParticipantDatabase::remote().userAgent.port = sipConfig.remotePort;
     updateNetworkConfig();
 }
 
@@ -130,7 +131,7 @@ void SIPHandler::sendInviteRequest()
 {
     SIPRequestHeader header;
     header.requestCommand = SIP_REQUEST_INVITE;
-    header.requestURI = sipUserAgents[PARTICIPANT_REMOTE].getSIPURI();
+    header.requestURI = ParticipantDatabase::remote().userAgent.getSIPURI();
     initializeHeaderFields(SIP_REQUEST_INVITE, header, nullptr);
     //header-fields
     header[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
@@ -143,7 +144,7 @@ void SIPHandler::sendInviteRequest()
     const std::string messageBody = SDPMessageHandler::createSessionDescription(rtpConfig);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, messageBody);
-    std::cout << "SIP: Sending INVITE to " << sipUserAgents[PARTICIPANT_REMOTE].getSIPURI() << std::endl;
+    std::cout << "SIP: Sending INVITE to " << ParticipantDatabase::remote().userAgent.getSIPURI() << std::endl;
     network->sendData(message.data(), message.size());
     
     state = SessionState::INVITING;
@@ -151,7 +152,7 @@ void SIPHandler::sendInviteRequest()
 
 void SIPHandler::sendCancelRequest()
 {
-    SIPRequestHeader header(SIP_REQUEST_CANCEL, sipUserAgents[PARTICIPANT_REMOTE].getSIPURI());
+    SIPRequestHeader header(SIP_REQUEST_CANCEL, ParticipantDatabase::remote().userAgent.getSIPURI());
     //branch must be the same as on INVITE
     const std::string retainLastBranch(lastBranch);
     initializeHeaderFields(SIP_REQUEST_CANCEL, header, nullptr);
@@ -162,7 +163,7 @@ void SIPHandler::sendCancelRequest()
     header[SIP_HEADER_VIA].replace(header[SIP_HEADER_VIA].find_last_of('=') + 1, header.getBranchTag().size(), retainLastBranch);
     
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
-    std::cout << "SIP: Sending CANCEL to " << sipUserAgents[PARTICIPANT_REMOTE].getSIPURI() << std::endl;
+    std::cout << "SIP: Sending CANCEL to " << ParticipantDatabase::remote().userAgent.getSIPURI() << std::endl;
     network->sendData(message.data(), message.size());
     
     state = SessionState::SHUTDOWN;
@@ -179,11 +180,11 @@ void SIPHandler::sendResponse(const unsigned int responseCode, const std::string
 
 void SIPHandler::sendByeRequest()
 {
-    SIPRequestHeader header(SIP_REQUEST_BYE, sipUserAgents[PARTICIPANT_REMOTE].getSIPURI());
+    SIPRequestHeader header(SIP_REQUEST_BYE, ParticipantDatabase::remote().userAgent.getSIPURI());
     initializeHeaderFields(SIP_REQUEST_BYE, header, nullptr);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
-    std::cout << "SIP: Sending BYE to " << sipUserAgents[PARTICIPANT_REMOTE].getSIPURI() << std::endl;
+    std::cout << "SIP: Sending BYE to " << ParticipantDatabase::remote().userAgent.getSIPURI() << std::endl;
     network->sendData(message.data(), message.size());
     
     state = SessionState::SHUTDOWN;
@@ -191,7 +192,7 @@ void SIPHandler::sendByeRequest()
 
 void SIPHandler::sendAckRequest()
 {
-    SIPRequestHeader header(SIP_REQUEST_ACK, sipUserAgents[PARTICIPANT_REMOTE].getSIPURI());
+    SIPRequestHeader header(SIP_REQUEST_ACK, ParticipantDatabase::remote().userAgent.getSIPURI());
     initializeHeaderFields(SIP_REQUEST_ACK, header, nullptr);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
@@ -206,7 +207,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     {
         requestBody = SIPPackageHandler::readRequestPackage(buffer, packageLength, requestHeader);
         std::cout << "SIP: Request received: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
-        sipUserAgents[PARTICIPANT_REMOTE].tag = requestHeader.getRemoteTag();
+        ParticipantDatabase::remote().userAgent.tag = requestHeader.getRemoteTag();
     }
     catch(const std::invalid_argument& error)
     {
@@ -337,7 +338,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     SIPResponseHeader responseHeader;
     std::string responseBody = SIPPackageHandler::readResponsePackage(buffer, packageLength, responseHeader);
     std::cout << "SIP: Response received: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
-    sipUserAgents[PARTICIPANT_REMOTE].tag = responseHeader.getRemoteTag();
+    ParticipantDatabase::remote().userAgent.tag = responseHeader.getRemoteTag();
     if(responseHeader.statusCode >= 100 && responseHeader.statusCode < 200)
     {
         //for all provisional status-codes - do nothing
@@ -505,12 +506,12 @@ void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHea
     //"branch"-tag unique for all requests, randomly generated, starting with "z9hG4bK", ACK has same as INVITE (for non-2xx ACK) -> 8.1.1.7 Via
     //"received"-tag has the IP of the receiving endpoint
     lastBranch = requestHeader != nullptr ? requestHeader->getBranchTag() : (std::string("z9hG4bK") + std::to_string(rand()));
-    const std::string receivedTag = requestHeader != nullptr ? std::string(";received=") + sipUserAgents[PARTICIPANT_SELF].ipAddress : "";
-    header[SIP_HEADER_VIA] = ((SIP_VERSION + "/UDP ") + sipUserAgents[PARTICIPANT_SELF].hostName + ":") + ((((std::to_string(sipConfig.localPort)
+    const std::string receivedTag = requestHeader != nullptr ? std::string(";received=") + ParticipantDatabase::self().userAgent.ipAddress : "";
+    header[SIP_HEADER_VIA] = ((SIP_VERSION + "/UDP ") + ParticipantDatabase::self().userAgent.hostName + ":") + ((((std::to_string(sipConfig.localPort)
                              + ";rport") + receivedTag) + ";branch=") + lastBranch);
     //TODO for response, copy/retain VIA-fields of request (multiple!)
     
-    header[SIP_HEADER_CONTACT] = (sipUserAgents[PARTICIPANT_SELF].userName + " <") + sipUserAgents[PARTICIPANT_SELF].getSIPURI() + ">";
+    header[SIP_HEADER_CONTACT] = (ParticipantDatabase::self().userAgent.userName + " <") + ParticipantDatabase::self().userAgent.getSIPURI() + ">";
     header[SIP_HEADER_CALL_ID] =  callID;
     try
     {
@@ -520,8 +521,8 @@ void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHea
         reqHeader[SIP_HEADER_CSEQ] = (std::to_string(sequenceNumber) + " ") + requestMethod;
 
         //"tag"-tag for user-identification
-        reqHeader[SIP_HEADER_TO] = ((sipUserAgents[PARTICIPANT_REMOTE].userName + " <") + sipUserAgents[PARTICIPANT_REMOTE].getSIPURI() + ">") + (sipUserAgents[PARTICIPANT_REMOTE].tag.empty() ? std::string("") : (std::string(";tag=") + sipUserAgents[PARTICIPANT_REMOTE].tag));
-        reqHeader[SIP_HEADER_FROM] = (((sipUserAgents[PARTICIPANT_SELF].userName + " <") + sipUserAgents[PARTICIPANT_SELF].getSIPURI() + ">") + ";tag=") + sipUserAgents[PARTICIPANT_SELF].tag;
+        reqHeader[SIP_HEADER_TO] = ((ParticipantDatabase::remote().userAgent.userName + " <") + ParticipantDatabase::remote().userAgent.getSIPURI() + ">") + (ParticipantDatabase::remote().userAgent.tag.empty() ? std::string("") : (std::string(";tag=") + ParticipantDatabase::remote().userAgent.tag));
+        reqHeader[SIP_HEADER_FROM] = (((ParticipantDatabase::self().userAgent.userName + " <") + ParticipantDatabase::self().userAgent.getSIPURI() + ">") + ";tag=") + ParticipantDatabase::self().userAgent.tag;
     }
     
     catch(const std::bad_cast& e)
@@ -537,7 +538,7 @@ void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHea
         if(requestHeader->operator [](SIP_HEADER_TO).find("tag=") == std::string::npos)
         {
             //on initial response, add tag
-            resHeader[SIP_HEADER_TO] = (requestHeader->operator[](SIP_HEADER_TO) + ";tag=") + sipUserAgents[PARTICIPANT_SELF].tag;
+            resHeader[SIP_HEADER_TO] = (requestHeader->operator[](SIP_HEADER_TO) + ";tag=") + ParticipantDatabase::self().userAgent.tag;
         }
         else
         {
@@ -593,26 +594,26 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
         //set values for remote user/host and remote-address into SIP user agent database
         //this enables receiving INVITES from user agents other than the one, we sent the initial INVITE to
         std::tuple<std::string, std::string,std::string, int> remoteAddress = header->getAddress();
-        sipUserAgents[PARTICIPANT_REMOTE].userName = std::get<0>(remoteAddress);
-        sipUserAgents[PARTICIPANT_REMOTE].hostName = std::get<1>(remoteAddress);
-        sipUserAgents[PARTICIPANT_REMOTE].ipAddress = std::get<2>(remoteAddress);
-        sipUserAgents[PARTICIPANT_REMOTE].port = std::get<3>(remoteAddress) == -1 ? SIP_DEFAULT_PORT : std::get<3>(remoteAddress);
+        ParticipantDatabase::remote().userAgent.userName = std::get<0>(remoteAddress);
+        ParticipantDatabase::remote().userAgent.hostName = std::get<1>(remoteAddress);
+        ParticipantDatabase::remote().userAgent.ipAddress = std::get<2>(remoteAddress);
+        ParticipantDatabase::remote().userAgent.port = std::get<3>(remoteAddress) == -1 ? SIP_DEFAULT_PORT : std::get<3>(remoteAddress);
     }
     //check if configuration has changed
-    if(sipConfig.remotePort != sipUserAgents[PARTICIPANT_REMOTE].port ||
-       sipUserAgents[PARTICIPANT_REMOTE].ipAddress.compare(sipConfig.remoteIPAddress) != 0)
+    if(sipConfig.remotePort != ParticipantDatabase::remote().userAgent.port ||
+       ParticipantDatabase::remote().userAgent.ipAddress.compare(sipConfig.remoteIPAddress) != 0)
     {
         std::cout << "Reconnecting SIP ..." << std::endl;
         //reset network-wrapper to send new packages to correct address
-        sipConfig.remoteIPAddress = sipUserAgents[PARTICIPANT_REMOTE].ipAddress;
-        sipConfig.remotePort = sipUserAgents[PARTICIPANT_REMOTE].port;
+        sipConfig.remoteIPAddress = ParticipantDatabase::remote().userAgent.ipAddress;
+        sipConfig.remotePort = ParticipantDatabase::remote().userAgent.port;
         network->closeNetwork();
         //wait for socket to be closed
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         network.reset(new UDPWrapper(sipConfig));
         
         //update all configuration-dependant values
-        sipUserAgents[PARTICIPANT_SELF].ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
+        ParticipantDatabase::self().userAgent.ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
     }
 }
 

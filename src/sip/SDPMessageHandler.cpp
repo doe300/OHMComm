@@ -39,7 +39,7 @@ std::string SDPMessageHandler::createSessionDescription(const NetworkConfigurati
     //<nettype> is a text string giving the type of network [...] "IN" is defined to have the meaning "Internet"
     //<addrtype> is a text string giving the type of the address that follows. Initially "IP4" and "IP6" are defined
     //<unicast-address> is the address of the machine from which the session was created
-    lines.push_back(std::string("o=").append(sipUserAgents[PARTICIPANT_SELF].userName).append(" ").append(std::to_string(now.getSeconds()))
+    lines.push_back(std::string("o=").append(ParticipantDatabase::self().userAgent.userName).append(" ").append(std::to_string(now.getSeconds()))
             .append(" ").append(std::to_string(now.getSeconds())).append(" IN ").append(addrType)
             .append(" ").append(localIP));
     
