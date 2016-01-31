@@ -9,7 +9,7 @@
 #include "rtp/RTPBuffer.h"
 
 
-RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : PlayoutPointAdaption(1000, minBufferPackages),
+RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : PlayoutPointAdaption(200, minBufferPackages),
     capacity(maxCapacity), maxDelay(maxDelay)
 {
     nextReadIndex = 0;

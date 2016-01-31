@@ -102,7 +102,7 @@ bool UDPWrapper::createSocket()
     int yes = 1;
     setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof (timeout));
     //we need to allow reuse-address for fast re-binding after closing
-    if(setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (int)) < 0)
+    if(setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, (char*) &yes, sizeof (int)) < 0)
     {
         perror("setsockopt");
         std::wcout << "Reuse: " << getLastError() << std::endl;

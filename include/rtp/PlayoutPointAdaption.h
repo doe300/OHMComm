@@ -13,7 +13,6 @@
  */
 class PlayoutPointAdaption
 {
-    //TODO needs testing
 protected:
     
     /*!
@@ -54,7 +53,7 @@ protected:
             ++numDelayPackages;
         
         //adapt playout point
-        if(numWrites == adaptionCycle)
+        if(numWrites >= adaptionCycle)
         {
             const double sharedLoss = ((double)numLateLosses) / numWrites;
             //if late loss less than a certain threshold, decrease delay
@@ -81,7 +80,7 @@ protected:
     
 private:
     //XXX better thresholds?
-    constexpr static double LATE_LOSS_INCREASE_THRESHOLD = 0.3;
+    constexpr static double LATE_LOSS_INCREASE_THRESHOLD = 0.2;
     constexpr static double LATE_LOSS_DECREASE_THRESHOLD = 0.05;
     //interval for adapting the playout point, in number of package receptions
     const uint16_t adaptionCycle;

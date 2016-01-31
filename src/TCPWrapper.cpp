@@ -104,7 +104,7 @@ bool TCPWrapper::createSocket()
     int yes = 1;
     setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
     //we need to allow reuse-address for fast re-binding after closing
-    setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (int));
+    setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, (char*) &yes, sizeof (int));
     
     if (bind(Socket, (sockaddr*)&(this->localAddress), addressLength) == SOCKET_ERROR)
     {
