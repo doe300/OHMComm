@@ -1,60 +1,61 @@
 \chapter{Entwurf}
 \section{Projektverwaltung und Werkzeuge}
-In diesem Abschnitt wird die internen Projektverwaltung, die Werkzeugen zur Projektverwaltung und die Werkzeugen zur Projektrealisierung beschrieben.
-Die Aufgabenstellung und der Fortschritt des Projekts wurde fortlaufen in Treffen mit \textit{Herrn Professor Teßmann} besprochen. Zwischen den Treffen stand \textit{Herr Professor Teßmann} jederzeit für Persönliche und Schriftliche Fragen zur Verfügung.
+In diesem Abschnitt wird die interne Projektverwaltung, die Werkzeuge zur Projektverwaltung und die Werkzeuge zur Projektrealisierung beschrieben.
+Die Aufgabenstellung und der Fortschritt des Projekts wurde fortlaufen in Treffen mit \textit{Herrn Professor Teßmann} besprochen. Zwischen den Treffen stand \textit{Herr Professor Teßmann} jederzeit für persönliche und schriftliche Fragen zur Verfügung.
 
 \subsection{GitHub}
-Zur kollaborative Versionsverwaltung wird der Online-Service \textbf{GitHub} verwendet. Welcher für OpenSource Projekte kostenlos öffentliche Repositorys zur Verfügung stellt. Da  das Projekt unter der \textbf{MIT-Lizenz} entwickelt wird ist die Nutzung eines öffentlichen Repositorys ein Vorteil in Hinsicht auf eine mögliche Weiterentwicklung und guter Akzeptanz in der OpenSource-Community.
+Zur kollaborativen Versionsverwaltung wird der Online-Service \textbf{GitHub} verwendet, welcher für OpenSource Projekte kostenlos öffentliche Repositories zur Verfügung stellt. Da das Projekt unter der \textbf{MIT-Lizenz} entwickelt wird, ist die Nutzung eines öffentlichen Repositories ein Vorteil hinsichtlich auf eine mögliche Weiterentwicklung und einer guten Akzeptanz in der OpenSource-Community.
 
-Das GitHub Repository bietet die Möglichkeiten den Code, welcher lokal entwickelt wird, in das Repository hoch zu laden so das immer ein konsistenter gleicher Versionsstand vorhanden ist. Außerdem gibt es die Möglichkeit für einzelne Teilprojekte eigene \textbf{Branches} zu erstellen so das auf diesen Unabhängig vom Master-Branch, in welchem alle Teile zusammen fließen, entwickelt werden kann.
+Das GitHub-Repository bietet die Möglichkeit den Code, welcher lokal entwickelt wird, in das Repository hochzuladen, so dass immer ein konsistenter gleicher Versionsstand vorhanden ist. Außerdem gibt es die Möglichkeit für einzelne Teilprojekte eigene \textbf{Branches} zu erstellen, so dass auf diesen unabhängig vom Master-Branch, in welchem alle Teile zusammenfließen, entwickelt werden kann.
 
-Zur Fehlerverwaltung wird das bereits Integrierte \textbf{Issue System} von GitHub verwendet. Mit diesem ist es möglich die Issues zu Priorisieren, mit Tags zu versehen, einzelnen Projektmitgliedern zuzuweisen und den Bearbeitungsstand zu Dokumentieren. Der weitere Vorteil hiervon ist das jedes Projektmitglied automatisch eine Benachrichtigung über neue Issues und Aktualisierungen erhält um somit bei der Fehleranalyse helfen kann.
-Außerdem wurden einzelne \textbf{Milestones} erstellt welche sich an den fortlaufenden Besprechungen Orientierten und somit laufend Ziele bei der Projektdurchführung definierten. Nach der Erreichung großer Projektziele wurden Verssionsstände als \textbf{Releases} getaggt so das ersichtlich wurde welchen funktionellen Umfang der Code in diesem Stadium hat.
+Zur Fehlerverwaltung wird das bereits Integrierte \textbf{Issue System} von GitHub verwendet. Mit diesem ist es möglich die Issues zu priorisieren, mit Tags zu versehen, einzelnen Projektmitgliedern zuzuweisen und den Bearbeitungsstand zu dokumentieren. Der weitere Vorteil hiervon ist, das jedes Projektmitglied automatisch eine Benachrichtigung über neue Issues und Aktualisierungen erhält und somit bei der Fehleranalyse helfen kann.
+Außerdem wurden einzelne \textbf{Milestones} erstellt, welche sich an den fortlaufenden Besprechungen orientierten und somit laufend Ziele bei der Projektdurchführung definierten. Nach der Erreichung großer Projektziele wurden Versionsstände als \textbf{Releases} getaggt, so dass ersichtlich wurde, welchen funktionellen Umfang der Code in diesem Stadium hat.
 
 \subsection{CMake}
-Da Ziel h) des Projekts ist plattformunabhängig zu sein wird eine Möglichkeit benötigt unterschiedliche \textbf{Integrierte Entwicklungsumgebungen (IDEs)} zu unterstützen.
-Hierfür wurde das plattformunabhängige Build Werkzeug CMake, welches auch unter einer OpenSource Lizenz (BSD-Lizenz) erhältlich ist, verwendet. CMake erlaubt es für unterschiedliche IDEs Projektdateien zu erstellen. So das für die Entwicklung nicht eine spezifische Entwicklungsumgebung benötigt wird sondern mit mehreren auch Betriebssystem unabhängigen IDEs entwickelt werden kann.
+Da Ziel \ref{NFA:Plattformunabhängigkeit} des Projektes ist plattformunabhängig zu sein, wird eine Möglichkeit benötigt unterschiedliche \textbf{integrierte Entwicklungsumgebungen (IDEs)} zu unterstützen.
+Hierfür wurde das plattformunabhängige Build Werkzeug CMake, welches auch unter einer OpenSource Lizenz (BSD-Lizenz) erhältlich ist, verwendet. CMake erlaubt es für unterschiedliche IDEs Projektdateien zu erstellen, so dass für die Entwicklung nicht eine spezifische Entwicklungsumgebung benötigt wird, sondern mit mehreren, auch betriebssystemunabhängigen IDEs, entwickelt werden kann.
 
 \subsection{IDEs}
-Als Integrierte Entwicklungsumgebung (IDEs) kamen \textbf{Visual Studio} unter Windows 7 und Windows 10 zum Einsatz. Zu Beginn des Projekts in Version Visual Studio 2013 in der zweiten Hälfte des Projekts dann in Version Visual Studio 2015, welches eine bessere Unterstützung für C++11 Sprachfeatures enthält. Unter Fedora 21 wurde \textbf{Netbeans} in Version 8 eingesetzt.
+Als IDEs kamen \textbf{Visual Studio} unter Windows 7 und Windows 10 zum Einsatz. Zu Beginn des Projekts in Version Visual Studio 2013, in der zweiten Hälfte des Projekts dann in Version Visual Studio 2015, welches eine bessere Unterstützung für C++11 Sprachfeatures enthält. Unter Fedora 21 wurde \textbf{Netbeans} in Version 8 eingesetzt.
 
 \subsection{Testumgebung}
-Zum Testen des Codes wurden mehre unterschiedliche Testumgebungen eingesetzt. Dabei wurden\textbf{Rechnerübergreifende Tests} des Verbindungsaufbaus und der Verbindungsqualität über \textit{LAN}, \textit{WLAN} und \textit{WAN} mit verschiedenen Betriebssystemen durchgeführt. 
+Zum Testen des Codes wurden mehrere unterschiedliche Testumgebungen eingesetzt. Dabei wurden\textbf{rechnerübergreifende Tests} des Verbindungsaufbaus und der Verbindungsqualität über \textit{LAN}, \textit{WLAN} und \textit{WAN} mit verschiedenen Betriebssystemen durchgeführt. 
 
-Zum Testen einzelner Module des Projektes wurde die Unit Test Umgebung \textbf{CPPTest}, welche es ermöglicht einzelne Module auf ihre funktionalen Anforderungen hin zu überprüfen eingesetzt. 
+Zum Testen einzelner Module des Projektes wurde die Unit-Test Umgebung \textbf{CPPTest}, welche es ermöglicht einzelne Module auf ihre funktionalen Anforderungen hin zu überprüfen, eingesetzt. 
 
-Für einen automatisierten Build-Test wurde auf den Online-Service \textbf{Travis CI}, welcher durch seine einfache Integration in das GitHub Repository eine gute Lösung bietet, gesetzt. Er bietet die Möglichkeit schnell herauszufinden ob der neu eingecheckte Code fehlerfrei unter \textit{Linux} und \textit{OSX} Compiliert.
+Für einen automatisierten Build-Test wurde auf den Online-Service \textbf{Travis CI}, welcher durch seine einfache Integration in das GitHub Repository eine gute Lösung bietet, gesetzt. Er bietet die Möglichkeit schnell herauszufinden, ob der neu eingecheckte Code fehlerfrei unter \textit{Linux} und \textit{OSX} kompiliert.
 
 \section{Build Prozess}
 \subsection{CMake}
-Die CMake Konfiguration basiert auf mehreren \texttt{CMakeLists.txt} Dateien welche \textbf{hierarchisch} in die Projektstruktur integriert sind. In der Konfigurationsdatei auf der obersten Ebene wird die Minimal benötigte CMake \textit{Version} und der \textit{Projektname} definiert.
+Die CMake Konfiguration basiert auf mehreren \texttt{CMakeLists.txt} Dateien, welche \textbf{hierarchisch} in die Projektstruktur integriert sind. In der Konfigurationsdatei auf der obersten Ebene wird die minimal benötigte CMake \textit{Version} und der \textit{Projektname} definiert.
 Außerdem werden IDE abhängige Einstellungen vorgenommen wie z.B. die Einstellung des \textit{Warning Levels} für Compilefehler und die Unterstützung von \textit{Unicode} Zeichen unter Visual Studio.
-Anschließend werden die relativen Pfade in welchen die fertig Compilierten Dateien abgelegt werden definiert und die unteren Ordnerstrukturen mit ihren dort befindlichen Konfigurationsdateien angegeben.
+Anschließend werden die relativen Pfade, in welchen die fertig kompilierten Dateien abgelegt werden, definiert und die unteren Ordnerstrukturen mit ihren dort befindlichen Konfigurationsdateien angegeben.
 
-In diesen weiteren Konfigurationsdateien für \textbf{OHMComm} und den extern benutzen Softwarekomponenten wie \textbf{Rtaudio} und \textbf{Opus} wird nun festgelegt welche \textit{Header} und welche \textit{C++ Dateien} eingebunden werden. 
+In diesen weiteren Konfigurationsdateien für \textbf{OHMComm} und den extern benutzten Softwarekomponenten wie \textbf{Rtaudio} und \textbf{Opus} wird nun festgelegt, welche \textit{Header} und welche \textit{C++ Dateien} eingebunden werden. 
 
 \subsection{Build unter Unix}
 Zum Erstellen des Projektes OHMComm unter Unix-Systemen wird neben einem C++11-fähigen Compiler und dem Programm \textbf{CMake} noch die \textbf{Make} Build-Suite sowie eine Audio-Bibliothek mitsamt Header-Dateien benötigt. Während Make und eine Audio-Bibliothek auf den meisten Unix-Systemen bereits mitgeliefert werden, müssen die Entwicklungs-Header für die verwendete Audio-Bibliothek meist erst noch installiert werden. Als Audio-Bibliothek wird unter Linux-Systemen OSS, ALSA, Jack und PulseAudio unterstützt \cite{RTAudioAPIs}. Die Entwicklungs-Header für die Audio-Bibliotheken liegen je nach System -- oder genauer: je nach Paketverwaltungssystem -- in verschieden benannten Paketen. So heißt das Paket für die ALSA-Header unter Debian \texttt{libasound-dev} und unter Fedora \texttt{alsa-lib-devel}.
 Unter Linux und den meisten Unix-Betriebssystemen wird das Projekt kompiliert, indem zuerst mit dem Befehl \texttt{cmake -G ``Unix Makefiles''} aus der CMake-Beschreibung eine \texttt{Makefile} -- also eine Anleitung für das \texttt{make} Build-System -- erstellt wird. Daraufhin können mit dem Befehl \texttt{make} im Zielverzeichnis des vorherigen Kommandos die einzelnen Bibliotheken oder Programme kompiliert werden. So erstellt \texttt{make OHMCommLib} die Bibliothek \textbf{OHmCommLib}, die in weitere Programme eingebunden werden kann (siehe Abschnitt \ref{configurationUsages}). \texttt{make OHMComm} erstellt das ausführbare Programm \textbf{OHMComm} und \texttt{make Tests} die Test-Suite für das Projekt.
+
 \subsection{Build unter Windows}
-Zum Erstellen des Projekt unter Windows wird eine aktuelle Version von \textbf{CMake} und die zu benutzende \textbf{Entwicklungsumgebung} welche von CMake unterstützt wird benötigt.
+Zum Erstellen des Projekts unter Windows wird eine aktuelle Version von \textbf{CMake} und die zu benutzende \textbf{Entwicklungsumgebung}, welche von CMake unterstützt wird, benötigt.
 Für einen sauberen Entwicklungsprozess ist es zu empfehlen sich ein Build Verzeichnis außerhalb des Sourcecodes anzulegen (Out-of-Source Build).
 
 \begin{figure}[htp]
 \centering
-\includegraphics[width=.50\textwidth]{images/CMake}
+\includegraphics[width=.80\textwidth]{images/CMake}
 \caption{CMake Konfiguration unter Windows 7}
 \label{Fig:CMake}
 \end{figure}
 
-Es wird CMake mitgeteilt wo sich der Source Code \texttt{Browse Source} und das Build Verzeichnis \texttt{Browse Build} befindet. 
+Es wird CMake mitgeteilt wo sich der Source Code \texttt{Browse Source} und das Build Verzeichnis \texttt{Browse Build} befindet \textcolor{red}{SATZ IST FEHLERHAFT}.
 Mittels \texttt{Configure} wird der Compiler und die verwendete Entwicklungsumgebung definiert.
-Anschließend wir ausgewählt welche Audio Bibliothek verwendet wird, unter Windows wird \textit{ASIO}, \textit{DS} und \textit{WASAPI} unterstützt. Wahlweise kann auch \textit{CppTest} aktiviert werden falls Tests durchführen werden sollen.
-Die Einstellungen werden durch nochmaligen druck auf \texttt{Configure} bestätigt und über \texttt{Generate} werden die Projekt Dateien im vorher definierten Build Verzeichnis erstellt.
+Anschließend wird ausgewählt welche Audio Bibliothek verwendet wird, unter Windows wird \textit{ASIO}, \textit{DS} und \textit{WASAPI} unterstützt. Wahlweise kann auch \textit{CppTest} aktiviert werden falls Tests durchführen werden sollen.
+Die Einstellungen werden durch nochmaligen Druck auf \texttt{Configure} bestätigt und über \texttt{Generate} werden die Projektdateien im vorher definierten Buildverzeichnis erstellt.
 
-Es wird die \textit{Entwicklungsumgebung} mit den generierten Projekt Dateien gestartet und angewiesen das Projekt zu Compilieren.
+Es wird die \textit{Entwicklungsumgebung} mit den generierten Projekt Dateien gestartet und angewiesen das Projekt zu kompilieren.
 
-Im Verzeichnis \texttt{build/Release/} findet sich bei der Verwendung von Visual Studio und Compilierung mit Release Optionen das ausführbare Programm \textbf{OHMComm.exe} und die OHMComm Bibliothek \textbf{OHMComm.lib}.
+Im Verzeichnis \texttt{build/Release/} findet sich bei der Verwendung von Visual Studio und Kompilierung mit Release Optionen das ausführbare Programm \textbf{OHMComm.exe} und die OHMComm Bibliothek \textbf{OHMComm.lib}.
 
 \section{Softwarearchitektur}
 \subsection{Konfiguration und Verwendung}
