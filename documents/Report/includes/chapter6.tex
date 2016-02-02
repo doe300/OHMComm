@@ -2,7 +2,18 @@
 \section{Projektergebnis}
 TODO: Evtl auch Vergleich mit Zielen/Aufgabenstellung
 \section{Anwendungsmöglichkeiten}
-\section{Erweiterungsmöglichkeiten}
-TODO: Derzeit in Planung/Entwicklung: SIP für Konfiguration, Codecs A-law, $\mu$-law und Amplifier als Prozessoren
+Das OHMComm Framework kann als fertige plattformunabhängige Bibliothek für VoIP-Kommunikation in anderen Programme eingebaut werden. Dafür wird ein \texttt{OHMComm}-Objekt erstellt, konfiguriert (bevorzugt über die \texttt{LibraryConfiguration}) und die Kommunikation gestartet. Da die komplette Aktivität des Frameworks in anderen Threads (für Audioverarbeitung, Empfangen,, RTCP, ...) abläuft, wird der aufrufende Thread nicht blockiert und die Kommunikation kann von dem verwendenden Programm wieder beendet werden. Da OHMComm alle verwendeten Bibliotheken mitliefert und eine kleine und wohldefinierte Schnittstelle bietet, lässt es sich sehr einfach in andere Programme einbauen.
+Ein Beispiel der Anwendbarkeit zeigt die in Kapitel \ref{prototypProgram} beschriebene prototypische Konsolenanwendung, die z.B. verwendet werden kann, um auf die Schnelle eine Audioübertragung zwischen zwei Geräten aufzubauen. Anhand dieser Beispielanwendung lassen sich sehr einfach die verschiedenen Konfigurationsmodi und Einstellungsmöglichkeiten ausprobieren. Der Code dazu (bestehend aus der Datei \texttt{OHMCommStandalone.cpp}) zeigt ein kurzes und vollständiges Beispiel, wie das Framework richtig eingebunden werden kann.
 
-TODO: Zusätzlich möglich: sämtliche Codecs als Prozessoren, Filter, Vrestärker, Konverter als Prozessoren, weitere Audio-handler
+TODO: erweitern? richtig?
+\section{Erweiterungsmöglichkeiten}
+Aufgrund des modularen Aufbaus des kompletten Frameworks, lässt es sich sehr einfach erweitern. Vorgesehene Erweiterungen für das Framework gliedern sich in die folgenden Kategorien:
+\begin{description}
+\item[Parameter:] Alle existierenden Parameter können -- soweit einmal registriert -- von allen Audioprozessoren verwendet werden. Ebenso ist es sehr einfach, neue Parameter zu registrieren, die bei der Konfiguration des Frameworks automatisch beachtet und mit Werten versehen werden.
+\item[Audioschnittstellen:] Derzeit wird als einzige Schnittstelle zur Audiohardware die Bibliothek RTAudio verwendet. Jedoch kann die Audiobibliothek einfach ausgetauscht werden, indem eine neue Kindklasse von \texttt{AudioHandler} erstellt und zur \texttt{AudioHandlerFactory} hinzugefügt wird, die auf einer anderen Audiobibliothek aufbaut. So könnte z.B. PortAudio, eine plattformunabhängige C-Audioschnittstelle, angebunden werden.
+\item[Audioprozessoren:] In die Verarbeitungskette (siehe Abschnitt \ref{processingChain}) können beliebige neue Prozessoren für Audiodaten hinzugefügt werden. Dafür muss nur die neu erstellte Kindklasse von \texttt{AudioProcessor} in \texttt{AudioProcessorFactory} registriert werden und beim Start der Anwendung ausgewählt werden. Ebenso können -- wie bereits erwähnt -- neue Parameter für die Konfiguration der neuen Audioprozessoren registriert werden.
+\item[Netzwerkschnittstellen:] Auch neue Schnittstellen für Netzwerkprotokolle, wie TCP, lassen sich durch Erstellen neuer Kindklassen von \texttt{NetworkWrapper} und Ersetzen der Aufrufe von \texttt{UDPWrapper} hinzufügen.
+\end{description}
+Derzeit sind Erweiterungen zu dem bestehenden Framework in Planung oder bereits in Entwicklung, wie die Konfiguration über das Session Initiation Protocol (SIP), sowie den Audiocodecs G.711 A-law und $\mu$-law, den Standardformaten der digitalen Telefonie.
+\\
+Im Allgemeinen können in die bestehende Architektur eine Vielzahl an zusätzlichen Funktionalitäten fest oder auch optional hinzugefügt werden. So z.B. weitere Audiocodecs, Hochpass- oder Tiefpassfilter zum Herausfiltern von Rauschen oder Hintergrundgeräuschen, Verstärker für die Lautstärke des abgespielten Signals, Prozessoren, die die Audiokonversation mitschneiden und viele mehr.
