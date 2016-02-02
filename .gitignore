@@ -225,3 +225,6 @@ rtaudio_static.lib
 /documents/**/*.toc
 /documents/**/*.blg
 /documents/**/*.synctex
+/documents/**/*.dvi
+/documents/**/*.tcp
+/documents/**/*.tps

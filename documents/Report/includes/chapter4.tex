@@ -1,4 +1,72 @@
 \chapter{Implementierung}
+In diesem Kapitel wird auf Implementierungsdetails des Entwurfs eingegangen. Hierbei ist zu beachten, dass aus Platzgründen der vorliegende Code eventuell in gekürzter oder geänderter Form dargestellt wird und unvollständig ist. Dennoch verdeutlichen die Codebeispiele die wesentlichsten Details der Implementierung und sind gemäß des Entwurfs umgesetzt.
+
+\section{Verarbeitungskette}
+Die Verarbeitungskette ist ein Teil des \texttt{AudioHandlers} und der wichtigen Komponenten des Frameworks. Sie ist die Schnittstelle mit der anderen Klassen an der Audioverarbeitung teilnehmen können. Im folgenden Kapitel wird erörtert wie diese implementiert wurde.
+
+\subsection{Interface für Audioverarbeitungsklassen}
+Alle Audioverarbeitungsklassen müssen die abstrakte Klasse \texttt{AudioProcessor} implementieren, siehe Listening \ref{Code:AudioProcessor}.
+
+\begin{lstlisting}[caption={Interface des AudioProcessors},label={Code:AudioProcessor}]
+class AudioProcessor {
+public:
+	AudioProcessor(const std::string name);
+	virtual unsigned int processInputData(void *inputBuffer, int inputBufferByteSize) = 0;
+	virtual unsigned int processOutputData(void *outputBuffer,  int outputBufferByteSize) = 0;
+}
+\end{lstlisting}
+Der Konstruktor in Zeile 4 erwartet als Parameter den Namen des Audioprozessors, damit dieser später eindeutig identifiziert werden kann. Die beiden Verarbeitungsmethoden in Zeile 5 und 6 sind virtuell, daher müssen alle Unterklassen diese implementieren. 
+
+\subsection{An- und Abmeldeprozess im AudioHandler}
+Listening \ref{Code:AudioHandlerAdd} zeigt die Schnittstelle zum An- und Abmelden von Audioprozessoren des \texttt{AudioHandlers}. Die Methode \texttt{addProcessor()} fügt einen Audioprozessor in die Audioverarbeitungsliste ein, falls er schon nicht vorhanden ist, und \texttt{removeProcessor()} ist die entsprechende Löschmethode. Als Liste wird hier der Standardcontainer \texttt{std::vector} benutzt. Bei diesem werden neue Elemente am Ende der Liste eingefügt.
+
+\begin{lstlisting}[caption={An- und Abmeldeprozess von Audioprozessoren im AudioHandler},label={Code:AudioHandlerAdd}]
+bool AudioHandler::addProcessor(AudioProcessor *audioProcessor)
+{
+	if (hasAudioProcessor(audioProcessor) == false) {
+		audioProcessors.push_back(std::unique_ptr<AudioProcessor>(audioProcessor));
+		return true;
+	}
+	return false;
+}
+
+bool AudioHandler::removeAudioProcessor(AudioProcessor *audioProcessor) {
+	for (size_t i = 0; i < audioProcessors.size(); i++)
+	{
+		if ((audioProcessors.at(i))->getName() == audioProcessor->getName()) {
+			audioProcessors.erase(audioProcessors.begin() + i);
+			return true;
+		}	
+	}
+	return false;
+}
+\end{lstlisting}
+
+\subsection{Verarbeitungsprozess}
+Listening \ref{Code:AudioHandlerProcess} zeigt den Verarbeitungsprozess. Die Methode \texttt{processAudioInput()} wird vom AudioHandler aufgerufen, falls Daten vom Mikrofon zur Verarbeitung anliegen. Dort wird von jedem angemeldeten Audioprozessor die entsprechende \texttt{processInputData()} -Methode aufgerufen. Als Parameter werden die Daten des Mikrofons und deren Datengröße übergeben. Die Verarbeitungsreihenfolge entspricht der Anmeldereihenfolge. Die Verarbeitung im Buffer erfolgt in-place, daher auf den übergebenen Buffer. Falls ein Audioprozessor zu Beginn die Daten manipuliert, so sind diese Daten für alle nachfolgenden Prozessoren ebenfalls geändert. Im Umkehrschluss heißt dies, um wieder an die Ursprungsdaten zu gelangen, müssen die ausgeführten Änderungen in umgekehrte Reihenfolge rückgängig gemacht zu werden. \texttt{processAudioOutput()} wird aufgerufen, wenn die Soundkarte bereit ist Audiodaten abzuspielen. Hierzu werden von allen Audioprozessoren die \texttt{processOutputData()} - Methoden aufgerufen. Jedoch ist hierbei die Aufrufreihenfolge umgekehrt, siehe Zeile 13. Dadurch wird der Ursprungszustand der Audiodaten hergestellt und diese können wieder abgespielt werden.
+
+\begin{lstlisting}[caption={Verarbeitungsprozess des AudioHandlers},label={Code:AudioHandlerProcess}]
+void AudioHandler::processAudioInput(void *inputBuffer,  int inputBufferByteSize)
+{
+	unsigned int bufferSize = inputBufferByteSize;
+	for (unsigned int i = 0; i < audioProcessors.size(); i++)
+	{
+		bufferSize = audioProcessors.at(i)->processInputData(inputBuffer, bufferSize);
+	}
+}
+
+void AudioHandler::processAudioOutput(void *outputBuffer, int outputBufferByteSize)
+{
+	unsigned int bufferSize = outputBufferByteSize;
+	for (unsigned int i = audioProcessors.size(); i > 0; i--)
+	{
+		bufferSize = audioProcessors.at(i-1)->processOutputData(outputBuffer, bufferSize);
+	}
+}
+}\end{lstlisting}
+
+\section{RTPListener}
+
 TODO: Kapitel zur Umsetzung der Konfiguration??
 
 TODO: Umsetzung der passiven Konfiguration. Was/wie wird übertragen? Flowchart/Workflow der Konfiguration (Stalling bis Konfiguration empfangen/gesendet)
