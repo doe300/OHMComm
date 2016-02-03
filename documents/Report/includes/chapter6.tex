@@ -4,8 +4,6 @@ TODO: Evtl auch Vergleich mit Zielen/Aufgabenstellung
 \section{Anwendungsmöglichkeiten}
 Das OHMComm Framework kann als fertige plattformunabhängige Bibliothek für VoIP-Kommunikation in anderen Programme eingebaut werden. Dafür wird ein \texttt{OHMComm}-Objekt erstellt, konfiguriert (bevorzugt über die \texttt{LibraryConfiguration}) und die Kommunikation gestartet. Da die komplette Aktivität des Frameworks in anderen Threads (für Audioverarbeitung, Empfangen,, RTCP, ...) abläuft, wird der aufrufende Thread nicht blockiert und die Kommunikation kann von dem verwendenden Programm wieder beendet werden. Da OHMComm alle verwendeten Bibliotheken mitliefert und eine kleine und wohldefinierte Schnittstelle bietet, lässt es sich sehr einfach in andere Programme einbauen.
 Ein Beispiel der Anwendbarkeit zeigt die in Kapitel \ref{prototypProgram} beschriebene prototypische Konsolenanwendung, die z.B. verwendet werden kann, um auf die Schnelle eine Audioübertragung zwischen zwei Geräten aufzubauen. Anhand dieser Beispielanwendung lassen sich sehr einfach die verschiedenen Konfigurationsmodi und Einstellungsmöglichkeiten ausprobieren. Der Code dazu (bestehend aus der Datei \texttt{OHMCommStandalone.cpp}) zeigt ein kurzes und vollständiges Beispiel, wie das Framework richtig eingebunden werden kann.
-
-TODO: erweitern? richtig?
 \section{Erweiterungsmöglichkeiten}
 Aufgrund des modularen Aufbaus des kompletten Frameworks, lässt es sich sehr einfach erweitern. Vorgesehene Erweiterungen für das Framework gliedern sich in die folgenden Kategorien:
 \begin{description}
