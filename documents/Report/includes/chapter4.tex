@@ -67,6 +67,18 @@ void AudioHandler::processAudioOutput(void *outputBuffer, int outputBufferByteSi
 
 \section{RTPListener}
 
-TODO: Kapitel zur Umsetzung der Konfiguration??
-
-TODO: Umsetzung der passiven Konfiguration. Was/wie wird übertragen? Flowchart/Workflow der Konfiguration (Stalling bis Konfiguration empfangen/gesendet)
+\section{Passive Konfiguration}
+\label{passiveConfiguration}
+Die passive Konfiguration aus Abschnitt \ref{configurationUsages} wird mithilfe von \textbf{Application-defined} RTCP-Paketen aus Abschnitt \ref{rtcp} umgesetzt. Hierfür wird für die Konfiguration einer Sitzung der Klient \textbf{A} mit der Option \enquote{Konfigurations-Anfrage aktivieren} (oder dem Parameter \texttt{--wait-for-passive}) gestartet, um eine Anfrage einer passiven Konfiguration zu ermöglichen. Klient \textbf{B} wird mit dem Parameter \texttt{--passive} ausgeführt. Klient \textbf{A} konfiguriert das OHMComm-Framework, startet jedoch noch keine Kommunikation, sondern nur den RTCP-Thread und wartet dort auf eine Anfrage für eine passive Konfiguration. Klient \textbf{B} sendet eine RTCP Application-defined Nachricht an \textbf{A}, die die Anfrage einer passiven Konfiguration darstellt. Daraufhin antwortet \textbf{A} mit einem weiteren RTCP-Paket, das die Werte der passiven Konfiguration (Abtastrate, Audioformat, Audiocodecs, Anzahl der Kanäle sowie die Puffergröße) beinhaltet. Dieses Paket wird von \textbf{B} empfangen und die Konfiguration ausgelesen. Daraufhin können beide Seiten das Übertragen von Audiodaten beginnen. Durch die Übertragung aller relevanten Informationen (Einstellungen der Audiobibliothek sowie die verwendeten Audiocodecs) wird garantiert, dass die gesendeten Daten von der anderen Instanz auch verstanden und verwendet werden können. Um die passive Konfiguration zu starten, wird für den Klienten \textbf{B} nur die IP-Adresse und der Port des Klienten \textbf{A} benötigt, wohingegen \textbf{A} komplett wie bereits beschrieben konfiguriert werden kann. Der Ablauf einer passiven Konfiguration ist schematisch in Listing \ref{lst:passiveConfiguration} dargestellt:
+\begin{lstlisting}[keepspaces=true,numbers=none,label=lst:passiveConfiguration,caption=Ablauf der passiven Konfiguration,xleftmargin=.2\textwidth, xrightmargin=.2\textwidth]
+Client B                            Client A
+  |                                       |
+  |         Konfigurationsanfrage         |
+  |-------------------------------------->|
+  |                                       |
+  |         passive Konfiguration         |
+  |<--------------------------------------|
+  |                                       |
+  |             Kommunikation             |
+  |<------------------------------------->|
+\end{lstlisting}
