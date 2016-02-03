@@ -10,7 +10,6 @@
 
 #include "ConfigurationMode.h"
 #include "UserInput.h"
-#include "RtAudio.h"
 
 /*!
  * Configuration utilizing UserInput to ask the user for settings

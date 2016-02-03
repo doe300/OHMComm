@@ -9,6 +9,7 @@
 
 #include "AudioHandlerFactory.h"
 #include "AudioProcessorFactory.h"
+#include RTAUDIO_HEADER
 
 bool InteractiveConfiguration::runConfiguration()
 {

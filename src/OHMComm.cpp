@@ -11,7 +11,6 @@
 #include "AudioProcessorFactory.h"
 #include "AudioHandlerFactory.h"
 #include "UserInput.h"
-#include "RtAudio.h"
 #include "ConfigurationMode.h"
 #include "rtp/RTCPHandler.h"
 

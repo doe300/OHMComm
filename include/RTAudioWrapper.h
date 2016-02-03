@@ -2,7 +2,7 @@
 
 #define	RTAUDIOWRAPPER_H
 
-#include "RtAudio.h"
+#include RTAUDIO_HEADER
 #include "AudioHandler.h"
 #include "math.h" // ceiling
 #include <memory> // unique_ptr

@@ -1,3 +1,4 @@
+#ifdef OPUS_HEADER //Only compile, if opus is linked
 #include "codecs/ProcessorOpus.h"
 
 ProcessorOpus::ProcessorOpus(const std::string name, int opusApplication) : 
@@ -160,3 +161,4 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
     }
 }
 
+#endif

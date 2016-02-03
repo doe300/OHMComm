@@ -1,8 +1,8 @@
+#ifdef OPUS_HEADER //Only compile, if opus is linked
 #ifndef PROCESSOROPUS_H
-
 #define PROCESSOROPUS_H
 #include "AudioProcessor.h"
-#include "opus.h"
+#include OPUS_HEADER
 
 #include <iostream>
 
@@ -66,4 +66,5 @@ private:
 	unsigned long rtaudioFormat;
 
 };
+#endif
 #endif

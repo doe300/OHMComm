@@ -24,13 +24,39 @@ endif()
 ####
 # Dependencies
 ####
-# Set output copy path
-add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
-add_subdirectory(lib/opus-1.1 build/opus)
+# Opus - http://opus-codec.org/
+#Try to find precompiled library
+find_library(OPUS_LIBRARY NAMES opus libopus)
+find_path(OPUS_HEADER_PATH "opus.h" HINTS lib/opus-1.1/include)
+if(OPUS_LIBRARY)
+	message(STATUS "Opus library found: " ${OPUS_LIBRARY})
+	#Set header to default include path
+	add_definitions(-DOPUS_HEADER="opus/opus.h")
+elseif(OPUS_HEADER_PATH)
+	message(STATUS "Compiling provided opus-library in version 1.1")
+	# Compile ourselves and set correct header-path
+	add_subdirectory(lib/opus-1.1 build/opus)
+	add_definitions(-DOPUS_HEADER="../lib/opus-1.1/include/opus.h")
+else()
+	message(WARNING "No opus library found")
+endif()
 
-#Include headers in the project settings (as search-path for header-files)
-include_directories ("${PROJECT_SOURCE_DIR}/lib/rtaudio-4.1.1")
-include_directories ("${PROJECT_SOURCE_DIR}/lib/opus-1.1/include")
+# RTAudio - http://www.music.mcgill.ca/~gary/rtaudio/
+#Try to find precompiled library
+find_library(RTAUDIO_LIBRARY NAMES rtaudio librtaudio)
+find_path(RTAUDIO_HEADER_PATH "RtAudio.h" HINTS lib/rtaudio-4.1.1)
+if(RTAUDIO_LIBRARY)
+	message(STATUS "RTAudio library found: " ${RTAUDIO_LIBRARY})
+	#Set header to default include path
+	add_definitions(-DRTAUDIO_HEADER="RtAudio.h")
+elseif(RTAUDIO_HEADER_PATH)
+	message(STATUS "Compiling provided rtaudio-library in version 4.1.1")
+	# Compile ourselves and set correct header-path
+	add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
+	add_definitions(-DRTAUDIO_HEADER="../lib/rtaudio-4.1.1/RtAudio.h")
+else()
+	message(WARNING "No RtAudio library found")
+endif()
 
 ####
 # Main files

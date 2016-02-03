@@ -7,7 +7,7 @@
 
 #include "config/ParameterConfiguration.h"
 #include "AudioHandlerFactory.h"
-#include "RtAudio.h"
+#include RTAUDIO_HEADER
 
 ParameterConfiguration::ParameterConfiguration(const Parameters& params) : ConfigurationMode(), params(params)
 {
