@@ -2,7 +2,7 @@
 In diesem Kapitel wird auf Implementierungsdetails des Entwurfs eingegangen. Hierbei ist zu beachten, dass aus Platzgründen der vorliegende Code eventuell in gekürzter oder geänderter Form dargestellt wird und unvollständig ist. Dennoch verdeutlichen die Codebeispiele die wesentlichsten Details der Implementierung und sind gemäß des Entwurfs umgesetzt.
 
 \section{Verarbeitungskette}
-Die Verarbeitungskette ist ein Teil des \texttt{AudioHandlers} und der wichtigen Komponenten des Frameworks. Sie ist die Schnittstelle mit der anderen Klassen an der Audioverarbeitung teilnehmen können. Im folgenden Kapitel wird erörtert wie diese implementiert wurde.
+Die Verarbeitungskette ist ein Teil des \texttt{AudioHandlers} und einer der wichtigen Komponenten des Frameworks. Sie ist die Schnittstelle mit der anderen Klassen an der Audioverarbeitung teilnehmen können. Im folgenden Kapitel wird erörtert wie diese implementiert wurde.
 
 \subsection{Interface für Audioverarbeitungsklassen}
 Alle Audioverarbeitungsklassen müssen die abstrakte Klasse \texttt{AudioProcessor} implementieren, siehe Listening \ref{Code:AudioProcessor}.
@@ -65,10 +65,6 @@ void AudioHandler::processAudioOutput(void *outputBuffer, int outputBufferByteSi
 }
 }\end{lstlisting}
 
-\section{RTAudio}
-(RTAUDIOWRAPPER) Callback-Methoden - Aufsplittung, Konfiguration von RTAudio, Aufruf der Callback-Methode durch die Hardware
-
-
 \section{Factory-Klassen}
 Die beiden Factory-Klassen \texttt{AudioHandlerFactory} und \texttt{AudioProcessorFactory} sind vom Aufbau identisch, deshalb wird im folgenden nur die \texttt{AudioHandlerFactory} erklärt. \texttt{AudioProcessorFactory} verhält sich analog dazu. Die Factory-Klassen haben die Aufgabe die Instantiierung in Methoden auszulagern, damit das Programmieren auf Schnittstellen gewährleistet wird. Methoden die Instantiierung übernehmen werden auch Fabrikmethoden genannt \cite{Goll2013}[S.243]. Listening \ref{Code:AudioHandlerFactory} zeigt die Fabrikmethode der \texttt{AudioHandlerFactory}. Als Parameter wird der Name der zu erzeugende Klasse entgegen genommen. Der Rückgabewert der Funktion entspricht den abstrakten und gemeinsamen Basistypen.
 
@@ -83,22 +79,53 @@ std::unique_ptr<AudioHandler> AudioHandlerFactory::getAudioHandler(std::string n
 }
 \end{lstlisting}
 
-
-
 \section{RTPListener}
+\texttt{RTPListener} ermöglicht das asynchrone Empfangen von Paketen durch das Erstellen eines eignen Threads. Die wichtigsten Methoden der Klasse sind im Listening \ref{RTPListener} dargestellt. Die \texttt{startUp()}-Methode startet den Thread und \texttt{shutdown()} beendet ihn wieder. Sobald der Thread startet wird \texttt{runThread()} aufgerufen. Tatsächlich ist diese Methode komplexer, wurde jedoch für das Beispiel auf das wesentliche gekürzt. In der Schleife wird die blockierende \texttt{receiveData()}-Funktion aufgerufen. Übertragene Packete werden im Jitter-Buffer zwischengespeichert, siehe Zeile 14. Die empfangenen Pakete können anschließend aus dem Jitter-Buffer von anderen Threads ausgelesen werden. Der \texttt{RTPListener} wartet anschließend wieder auf neue ankommende Pakete.
 
+\begin{lstlisting}[caption={Die wichtigsten Methoden des RTPListeners},label={Code:RTPListener}]
+void RTPListener::startUp()
+{
+    threadRunning = true;
+    receiveThread = std::thread(&RTPListener::runThread, this);
+}
+
+void RTPListener::shutdown(){
+	threadRunning = false;
+}
+
+void RTPListener::runThread() {
+	while(threadRunning) {
+		int receivedSize = this->wrapper->receiveData(rtpHandler.getWorkBuffer(), rtpHandler.getMaximumPackageSize());
+		auto result = buffer->addPackage(rtpHandler, receivedSize - RTP_HEADER_MIN_SIZE);
+	}
+}
+\end{lstlisting}
+
+\section{RTAudio}
+(RTAUDIOWRAPPER) Callback-Methoden - Aufsplittung, Konfiguration von RTAudio, Aufruf der Callback-Methode durch die Hardware
+
+\FloatBarrier
 \section{Passive Konfiguration}
 \label{passiveConfiguration}
 Die passive Konfiguration aus Abschnitt \ref{configurationUsages} wird mithilfe von \textbf{Application-defined} RTCP-Paketen aus Abschnitt \ref{rtcp} umgesetzt. Hierfür wird für die Konfiguration einer Sitzung der Klient \textbf{A} mit der Option \enquote{Konfigurations-Anfrage aktivieren} (oder dem Parameter \texttt{--wait-for-passive}) gestartet, um eine Anfrage einer passiven Konfiguration zu ermöglichen. Klient \textbf{B} wird mit dem Parameter \texttt{--passive} ausgeführt. Klient \textbf{A} konfiguriert das OHMComm-Framework, startet jedoch noch keine Kommunikation, sondern nur den RTCP-Thread und wartet dort auf eine Anfrage für eine passive Konfiguration. Klient \textbf{B} sendet eine RTCP Application-defined Nachricht an \textbf{A}, die die Anfrage einer passiven Konfiguration darstellt. Daraufhin antwortet \textbf{A} mit einem weiteren RTCP-Paket, das die Werte der passiven Konfiguration (Abtastrate, Audioformat, Audiocodecs, Anzahl der Kanäle sowie die Puffergröße) beinhaltet. Dieses Paket wird von \textbf{B} empfangen und die Konfiguration ausgelesen. Daraufhin können beide Seiten das Übertragen von Audiodaten beginnen. Durch die Übertragung aller relevanten Informationen (Einstellungen der Audiobibliothek sowie die verwendeten Audiocodecs) wird garantiert, dass die gesendeten Daten von der anderen Instanz auch verstanden und verwendet werden können. Um die passive Konfiguration zu starten, wird für den Klienten \textbf{B} nur die IP-Adresse und der Port des Klienten \textbf{A} benötigt, wohingegen \textbf{A} komplett wie bereits beschrieben konfiguriert werden kann. Der Ablauf einer passiven Konfiguration ist schematisch in Listing \ref{lst:passiveConfiguration} dargestellt:
-\begin{lstlisting}[keepspaces=true,numbers=none,label=lst:passiveConfiguration,caption=Ablauf der passiven Konfiguration,xleftmargin=.2\textwidth, xrightmargin=.2\textwidth]
-Client B                            Client A
-  |                                       |
-  |         Konfigurationsanfrage         |
-  |-------------------------------------->|
-  |                                       |
-  |         passive Konfiguration         |
-  |<--------------------------------------|
-  |                                       |
-  |             Kommunikation             |
-  |<------------------------------------->|
-\end{lstlisting}
+\newline
+\begin{figure}[htp]
+\centering
+\includegraphics[width=.75\textwidth]{../img/passiveConfiguration}
+\caption{Ablauf der passiven Konfiguration}
+\label{lst:passiveConfiguration}
+\end{figure}
+
+\FloatBarrier
+%\begin{lstlisting}[keepspaces=true,numbers=none,label=lst:passiveConfiguration,caption=Ablauf der passiven Konfiguration,xleftmargin=.2\textwidth, xrightmargin=.2\textwidth]
+%Client B                            Client A
+%  |                                       |
+%  |         Konfigurationsanfrage         |
+%  |-------------------------------------->|
+%  |                                       |
+%  |         passive Konfiguration         |
+%  |<--------------------------------------|
+%  |                                       |
+%  |             Kommunikation             |
+%  |<------------------------------------->|
+%\end{lstlisting}
