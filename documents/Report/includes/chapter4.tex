@@ -15,10 +15,10 @@ public:
 	virtual unsigned int processOutputData(void *outputBuffer,  int outputBufferByteSize) = 0;
 }
 \end{lstlisting}
-Der Konstruktor in Zeile 4 erwartet als Parameter den Namen des Audioprozessors, damit dieser später eindeutig identifiziert werden kann. Die beiden Verarbeitungsmethoden in Zeile 5 und 6 sind virtuell, daher müssen alle Unterklassen diese implementieren. 
+Der Konstruktor in Zeile 4 erwartet als Parameter den Namen des Audioprozessors, damit dieser später eindeutig identifiziert werden kann. Die beiden Verarbeitungsmethoden in Zeile 5 und 6 sind virtuell, daher müssen alle Unterklassen diese implementieren. Diese Methoden stellen die Schnittstelle zur Audioverarbeitung dar und haben als Parameter jeweils den Buffer sowie die Buffergröße.
 
 \subsection{An- und Abmeldeprozess im AudioHandler}
-Listening \ref{Code:AudioHandlerAdd} zeigt die Schnittstelle zum An- und Abmelden von Audioprozessoren des \texttt{AudioHandlers}. Die Methode \texttt{addProcessor()} fügt einen Audioprozessor in die Audioverarbeitungsliste ein, falls er noch nicht vorhanden ist, und \texttt{removeProcessor()} ist die entsprechende Löschmethode. Als Liste wird hier der Standardcontainer \texttt{std::vector} benutzt. Bei diesem werden neue Elemente am Ende der Liste eingefügt.
+Listening \ref{Code:AudioHandlerAdd} zeigt die Schnittstelle zum An- und Abmelden von Audioprozessoren im \texttt{AudioHandlers} an. Die Methode \texttt{addProcessor()} fügt einen Audioprozessor in die Audioverarbeitungsliste ein, falls er noch nicht vorhanden ist, und \texttt{removeProcessor()} ist die entsprechende Löschmethode. Als Liste wird hier der Standardcontainer \texttt{std::vector} benutzt. Bei diesem werden neue Elemente am Ende der Liste eingefügt.
 
 \begin{lstlisting}[caption={An- und Abmeldeprozess von Audioprozessoren im AudioHandler},label={Code:AudioHandlerAdd}]
 bool AudioHandler::addProcessor(AudioProcessor *audioProcessor)
@@ -64,6 +64,26 @@ void AudioHandler::processAudioOutput(void *outputBuffer, int outputBufferByteSi
 	}
 }
 }\end{lstlisting}
+
+\section{RTAudio}
+(RTAUDIOWRAPPER) Callback-Methoden - Aufsplittung, Konfiguration von RTAudio, Aufruf der Callback-Methode durch die Hardware
+
+
+\section{Factory-Klassen}
+Die beiden Factory-Klassen \texttt{AudioHandlerFactory} und \texttt{AudioProcessorFactory} sind vom Aufbau identisch, deshalb wird im folgenden nur die \texttt{AudioHandlerFactory} erklärt. \texttt{AudioProcessorFactory} verhält sich analog dazu. Die Factory-Klassen haben die Aufgabe die Instantiierung in Methoden auszulagern, damit das Programmieren auf Schnittstellen gewährleistet wird. Methoden die Instantiierung übernehmen werden auch Fabrikmethoden genannt \cite{Goll2013}[S.243]. Listening \ref{Code:AudioHandlerFactory} zeigt die Fabrikmethode der \texttt{AudioHandlerFactory}. Als Parameter wird der Name der zu erzeugende Klasse entgegen genommen. Der Rückgabewert der Funktion entspricht den abstrakten und gemeinsamen Basistypen.
+
+\begin{lstlisting}[caption={Fabrikmethode der AudioHandlerFactory},label={Code:AudioHandlerFactory}]
+std::unique_ptr<AudioHandler> AudioHandlerFactory::getAudioHandler(std::string name) {
+	if (name == RTAUDIO_WRAPPER)
+	{
+		std::unique_ptr<RtAudioWrapper> rtaudiowrapper(new RtAudioWrapper);
+		return std::move(rtaudiowrapper);
+	}
+	throw std::invalid_argument("No AudioHandler for this name!");
+}
+\end{lstlisting}
+
+
 
 \section{RTPListener}
 

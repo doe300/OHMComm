@@ -1,0 +1,21 @@
+Projektmanagement
+Präsentation
+Bericht
+
+Architektur
+RTAudio
+Opus
+RTP
+Buffer
+Netzwerk
+Statistik
+Tests
+Konfiguration
+Plattformunabhängigkeit (CMAKE)
+
+
+Kamal:
+
+Jonas:
+
+Daniel:

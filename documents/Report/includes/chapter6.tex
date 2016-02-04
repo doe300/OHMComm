@@ -20,5 +20,9 @@ Derzeit sind Erweiterungen zu dem bestehenden Framework in Planung oder bereits 
 Im Allgemeinen können in die bestehende Architektur eine Vielzahl an zusätzlichen Funktionalitäten fest oder auch optional hinzugefügt werden. So z.B. weitere Audiocodecs, Hochpass- oder Tiefpassfilter zum Herausfiltern von Rauschen oder Hintergrundgeräuschen, Verstärker für die Lautstärke des abgespielten Signals, Prozessoren, die die Audiokonversation mitschneiden und viele mehr.
 
 \section{Fazit}
-Das Hauptziel des Projektes war die Erstellung eines plattformunabhängigen Audiokommunikationsframework. Dieses Ziel wurde im Rahmen des IT-Projektes erreicht. OHMComm verfügt über eine Schnittstelle zur Hardware, die sich austauschen und erweitern lässt.
+Das Hauptziel des Projektes war die Erstellung eines plattformunabhängigen Audiokommunikationsframework. Dieses Ziel wurde im Rahmen des IT-Projektes erreicht, da alle funktionalen und nicht-funktionalen Anforderungen umgesetzt worden sind. Durch die iterative Vorgehensweise erfolgte eine stufenweise Einarbeitung in die Themen
+
+Jedoch lässt Aspekt Qualität der Umsetzung unterschiedlich interpretieren.
+
+ OHMComm verfügt \texttt{AudioHandler} über eine abstrakte Schnittstelle zur Hardware, welche austauschbar und erweiterbar ist. Die Klasse lässt sich über die vordefinierte Struktur \texttt{AudioConfiguration} konfigurieren. Mit der Verarbeitungskette steht eine flexible, leistungsfähige und benutzerfreundliche Schnittstelle zur Audioverarbeitung zur Verfügung. Die Kompressions- und Netzwerkklassen sind Beispiele für die Verwendung der Verarbeitungskette. Mit Opus wurde ein sehr leistungsfähiger und performanter Codec mit sehr guter Kompressionsrate im Framework integriert. Die Netzwerkinterface und der Jitter-Buffer sind ebenfalls abstrakte Schnittstellen, daher offen für Erweiterungen und ermöglichen die Austauschbarkeit der Komponenten. Das für die Übertragung zuständige RTP-Protokoll ist ebenfalls gemäß dem Standard des IETF implementiert. Die Erfassung von statistischen Werten lässt sich zur Laufzeit bei Bedarf einschalten.
 
