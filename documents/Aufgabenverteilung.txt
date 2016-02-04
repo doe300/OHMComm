@@ -1,4 +1,4 @@
-Projektmanagement
+﻿Projektmanagement
 Präsentation
 Bericht
 
@@ -15,7 +15,31 @@ Plattformunabhängigkeit (CMAKE)
 
 
 Kamal:
-
+	Bericht:
+		- Erstellung des Latex Templates
+		- Grobentwurf durch Erstellung des Inhaltsverzeichnis
+		- Erstellung der Grafiken
+		- Berichtskapitel:
+			- Einleitung
+				- Was ist OHMComm?
+				- Projektbeschreibung
+				- Aufbau des Berichts
+			- Anforderungsanalyse
+				- Funktionale Anforderungen
+				- Nicht-Funktionale Anforderungen
+				- Übersicht aller Anforderungen
+			- Entwurf
+				- Audio-Schnittstelle
+				- Verarbeitungskette
+				- Austauschbarkeit und Instantiierung
+				- RTPListener
+				- Dokumentation
+			- Implementierung
+				- Verarbeitungskette
+				- Factory-Klassen
+				- RTPListener
+			- Schlussbemerkungen
+				- Fazit
 Jonas:
 
 Daniel:
