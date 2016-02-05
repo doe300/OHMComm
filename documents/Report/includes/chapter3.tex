@@ -277,3 +277,13 @@ Aus diesen gemessenen Werten werden beim Beenden des Frameworks verschiedene rel
 \end{itemize}
 
 \section{Dokumentation}
+Für die Dokumentation wird das Tool Doxygen verwendet. Es unterstützt eine Vielzahl an Programmiersprachen und ist plattformunabhängig. Die Dokumentation des Quellcodes erfolgt im Quellcode selbst. Hier zu werden Kommentare mit besonderer Syntax verwendet, aus denen später die Dokumentation generiert werden kann. Dokumentationsformate sind HTML, RTF (MS-Word), PostScript, PDF oder Unix-Manpages. Es gibt unterschiedliche Stile für Dokumentationskommentare. OHMComm verwendet den QT-Style, da dieser häufig für C++ Projekte eingesetzt wird. Listing \ref{Code:QTstyle} zeigt wie eine solche Dokumentation im Quellcode aussehen kann. Kommentare zum Dokumentieren werden mit /*! eingeleitet. Die Parameter werden mit \/param und die Rückgabewerte mit \/return beschrieben. Doxygen erwartet, als Konsolenanwendung, einen Parameter mit den Einstellungen für die Dokumentation zum Generierien. Der Aufruf erfolgt mit \texttt{doxygen <config-file>}.
+
+\begin{lstlisting}[caption={Code-Dokumentation im QT-Style},label={Code:QTstyle}, numbers=none]
+	/*! Beschreibung der Methode
+	 * /param a Parameterbeschreibung
+	 * /param b Parameterbeschreibung
+	 * /return Was wird zuckgegeben
+	 */ 
+	int testMe(int a, char *b);
+\end{lstlisting}

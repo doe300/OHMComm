@@ -60,7 +60,7 @@
 % Config 2: Palatino mit guten Fonts für tt und serifenlos
 \usepackage{mathpazo} % Palatino, mal was anderes
 \usepackage[scaled=.95]{helvet}
-\usepackage{palatino }
+\usepackage{palatino}
 
 % Config 3: New Century Schoolbook sieht auch nett aus (macht auch tt und serifenlos)
 %\usepackage{newcent}
@@ -84,6 +84,10 @@
 % Für farbige Schriften 
 \usepackage{color}
 
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
 \lstset{ %
   backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
   basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
@@ -92,7 +96,7 @@
   captionpos=b,                    % sets the caption-position to bottom
   commentstyle=\color{mygreen},    % comment style
   deletekeywords={...},            % if you want to delete keywords from the given language
-	otherkeywords={*,...},           % if you want to add more keywords to the set
+	otherkeywords={...},           % if you want to add more keywords to the set
   escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
   extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
   frame=none,	                   % adds a frame around the code
@@ -108,6 +112,9 @@
   tabsize=1,	                   % sets default tabsize to 2 spaces
 }
 
+%\lstdefinestyle{foo}{
+%  moredelim=[is][\color{red}\underbar]{@}{@}
+%}
 
 \begin{document}
 
@@ -115,27 +122,31 @@
 \begin{titlepage}
   \begin{center}
     % Kopf der Seite
-    \parbox[t]{8cm}{
-      % \textsf würde das Aussehen der ersten Seite ruinieren, 
-      % wer will, soll das selbst außen rum machen...
-      TH Nürnberg Georg Simon Ohm\\
-      Fakultät Informatik \\
+    \parbox[t]{14cm}{
+		\centering
+      {\fontfamily{ppl}\selectfont
+			\Large
+				Technische Hochschule Nürnberg Georg Simon Ohm \\
+				Fakultät Informatik
+			}
 	}
+	\\[3cm]
     \vfill    
-    {\LARGE Projektbericht} \\[0.5cm]
-    {\large im Rahmen des Moduls IT-Projekt} \\[5mm]
-    \rule{\textwidth}{1pt}\\[0.5cm]
-    {\begin{spacing}{1.15} \huge \bfseries OHMComm \\Plattformunabhängiges Framework zur Audioübertragung \\ \end{spacing}}
-    \rule{\textwidth}{1pt}    
-    \vfill    
-    \begin{tabular}{ll} % Mitte der Seite
-      Vorgelegt von & Daniel Stadelmann, Jonas Ziegler, Kamal Bhatti \\
-      am & \today \\
-      Betreuer & Prof. Dr. M. Tessmann \\
-    \end{tabular}    
+    {\fontfamily{ppl}\selectfont \huge IT-Projektbericht} \\[0.5cm]
+    %{\large im Rahmen des Moduls IT-Projekt} \\[5mm]
+    %\rule{\textwidth}{1pt}\\[0.5cm]
+    {\fontfamily{ppl}\selectfont \LARGE \bfseries OHMComm \\ Entwicklung eines plattformunabhängiges Framework zur Audioübertragung}
+    %\rule{\textwidth}{1pt}    
     \vfill
+    {
+			\fontfamily{ppl}\selectfont
+      Verfasser \\ \large Daniel Stadelmann \\ Jonas Ziegler \\ Kamal Bhatti \\ \mbox{ } \\
+      \normalsize Datum \\ \large \today \\ \mbox{ } \\
+      \normalsize Betreuer \\ \large Prof. Dr. M. Teßmann \\
+    } 
 \end{center}
 \end{titlepage}
+
 \cleardoublepage
 
 % Zusammenfassung
