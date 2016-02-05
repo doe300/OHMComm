@@ -43,3 +43,18 @@ Kamal:
 Jonas:
 
 Daniel:
+	Projektmanagement
+	Präsentation (1/3)
+	Bericht (~1/3)
+
+	Architektur:
+		- Factory-Pattern für AudioHandler und -Prozessoren
+	RTP
+	Buffer
+	Netzwerk
+	Statistik
+	Tests
+	Konfiguration
+	Plattformunabhängigkeit:
+		- Konfiguration für Linux
+		- Travis CI Testsystem aufgesetzt
