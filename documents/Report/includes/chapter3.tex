@@ -257,8 +257,33 @@ Die Methode \texttt{startUp()} startet den \texttt{RTP"-Listener} in einem separ
 \FloatBarrier
 
 \section{Konkrete Softwarekomponenten}
-\subsection{RTAudio}
-\label{sec:RTAudio}
+\subsection{RtAudio}
+\label{sec:RtAudio}
+Als Audiowrapper wird RtAudio eingesetzt. RtAudio wird entwickelt von Gary P. Scavone Professor an der McGill Uni in Kanada. RtAdudio dient als Programmierschnittstelle engl. Application Programming Interface(API) zwischen den Betriebssystemabhängigen API's und OHMComm. RtAudio unterstützt eine Vielzahl von API's. Aufgeschlüsselt nach Betriebssystem sind diese:
+
+\begin{description}
+\item[Microsoft Windows:]~\par
+\begin{itemize}
+\item Audio Stream Input/Output (ASIO)
+\item DirectSound
+\item Windows Audio Session API (WASAPI)
+\end{itemize}
+\item[Mac OS X:]~\par
+\begin{itemize}
+\item CoreAudio
+\item Jack Audio Connection Kit(Jack)
+\end{itemize}
+\item[GNU/Linux:]~\par
+\begin{itemize}
+\item Advanced Linux Sound Architecture (ALSA)
+\item Open Sound System (OSS)
+\item PulseAudio
+\item Jack Audio Connection Kit(Jack)
+\end{itemize} 
+\end{description}
+
+Ein Alternativer Audiowrapper wären PortAudio welcher aber in C geschrieben ist. Da OHMComm und RtAudio aber in C++ geschrieben sind ist dies die bessere Kombination.
+
 \subsection{Opus}
 \section{Statistiken}
 Ein weiteres Feature des OHMComm-Frameworks ist das Sammeln und Anzeigen von statistischen Daten. Die verschiedenen Statistiken wurden eingebaut, um die Performance einzelner Abschnitte der Verarbeitungskette zu messen, sowie die Richtigkeit der Handhabung von RTP-Paketen und frei gewählter Werte zu beweisen. Im Laufe des Programms werden eine Vielzahl an verschiedenen statistischen Daten gesammelt. Darunter fallen:
