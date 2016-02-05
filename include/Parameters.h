@@ -32,11 +32,11 @@ enum class ParameterCategory : char
 struct Parameter
 {
     //flag determining whether this parameter is required
-    const static unsigned short FLAG_REQUIRED = 0x1;
+    static constexpr unsigned short FLAG_REQUIRED = 0x1;
     //flag determining whether this parameter has a value
-    const static unsigned short FLAG_HAS_VALUE = 0x2;
+    static constexpr unsigned short FLAG_HAS_VALUE = 0x2;
     //flag determining whether this parameter calls another configuration-mode
-    const static unsigned short FLAG_CONFIGURATION_MODE = 0x4;
+    static constexpr unsigned short FLAG_CONFIGURATION_MODE = 0x4;
     
     //The category of this parameter
     const ParameterCategory category;
@@ -224,7 +224,7 @@ private:
     // A list of all available parameters
     //we use list for easier sorting
     static std::list<Parameter> availableParameters;
-    static const unsigned int tabSize{5};
+    static constexpr unsigned int tabSize{5};
 
     //Prints a help-line for a single parameter
     void printParameterHelp(const Parameter& param) const;

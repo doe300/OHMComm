@@ -4,9 +4,6 @@
 
 Participant ParticipantDatabase::participants[ParticipantDatabase::MAX_PARTICIPANTS] = {{},{}};
 
-//!Treat as silence after 500ms of no input
-const unsigned short ProcessorRTP::SILENCE_DELAY = 500;
-
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
                            std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType), lastPackageWasSilent(false)
 {
@@ -75,7 +72,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     ParticipantDatabase::self().extendedHighestSequenceNumber += 1;
     Statistics::incrementCounter(Statistics::COUNTER_FRAMES_SENT, userData->nBufferFrames);
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_SENT, 1);
-    Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTP_HEADER_MIN_SIZE);
+    Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTPHeader::MIN_HEADER_SIZE);
     Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT, inputBufferByteSize);
 
     //no changes in buffer-size

@@ -16,20 +16,6 @@
 #endif
 
 /*!
- * Minimum size of a RTP-Header in bytes, without any CSRCs set
- */
-static const unsigned int RTP_HEADER_MIN_SIZE = 12;
-/*!
- * Maximum size of a RTP-Header with all CSRCs set.
- */
-static const unsigned int RTP_HEADER_MAX_SIZE = 72;
-
-/*!
- * Minimum size for RTP header-extensions, 4 Byte
- */
-static const unsigned int RTP_HEADER_EXTENSION_MIN_SIZE = 4;
-
-/*!
  * A RTP header extension has the following format:
  *
  *  0                   1                   2                   3
@@ -65,6 +51,11 @@ private:
     uint32_t* extensions;
     
 public:
+    /*!
+    * Minimum size for RTP header-extensions, 4 Byte
+    */
+    static constexpr unsigned int MIN_EXTENSION_SIZE{4};
+    
     RTPHeaderExtension(uint16_t length) : profile_field(0), length(length)
     {
         if(length > 0)
@@ -290,17 +281,27 @@ private:
     //also watch out for byte-order and order of fields
     //uint32_t csrc_list[15];
     
-    static const unsigned int shiftVersion = 6;
-    static const unsigned int shiftPadding = 5;
-    static const unsigned int shiftExtension = 4;
-    static const unsigned int shiftMarker = 7;
+    static constexpr unsigned int shiftVersion = 6;
+    static constexpr unsigned int shiftPadding = 5;
+    static constexpr unsigned int shiftExtension = 4;
+    static constexpr unsigned int shiftMarker = 7;
     
 public:
     
     /*!
+     * Minimum size of a RTP-Header in bytes, without any CSRCs set
+     */
+    static constexpr unsigned int MIN_HEADER_SIZE{12};
+    
+    /*!
+     * Maximum size of a RTP-Header with all CSRCs set.
+     */
+    static constexpr unsigned int MAX_HEADER_SIZE{72};
+    
+    /*!
      * The version-flag of a RTP package is always 2
      */
-    static const unsigned int VERSION = 2;
+    static constexpr unsigned int VERSION{2};
     
     RTPHeader() : data{0}
     {

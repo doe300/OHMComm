@@ -42,7 +42,8 @@ public:
     bool cleanUp();
 private:
     //! Delay until treating input as silence
-    static const unsigned short SILENCE_DELAY;
+    //!Treat as silence after 500ms of no input
+    static constexpr unsigned short SILENCE_DELAY{500};
     std::shared_ptr<NetworkWrapper> networkObject;
     std::unique_ptr<RTPPackageHandler> rtpPackage;
     std::shared_ptr<RTPBufferHandler> rtpBuffer;

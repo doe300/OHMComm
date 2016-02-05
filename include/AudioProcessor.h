@@ -11,11 +11,6 @@
 #include "rtp/RTPHeader.h"
 
 /*!
- * This AudioProcessor supports any buffer-length
- */
-const int BUFFER_SIZE_ANY = -1;
-
-/*!
  * Information about the stream to be passed to the process-methods of AudioProcessor.
  * Details of the values are specified by the used AudioIO-implementation
  */
@@ -54,6 +49,11 @@ struct StreamData
 class AudioProcessor
 {
 public:
+    /*!
+     * This AudioProcessor supports any buffer-length
+     */
+    static constexpr int BUFFER_SIZE_ANY{1};
+    
     AudioProcessor(const std::string name);
 
     virtual ~AudioProcessor()

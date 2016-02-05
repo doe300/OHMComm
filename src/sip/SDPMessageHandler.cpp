@@ -13,6 +13,13 @@
 
 SIPUserAgent sipUserAgents[2] = {{},{}};
 
+const std::string SessionDescription::SDP_ATTRIBUTE_RTPMAP("rtpmap");
+const std::string SessionDescription::SDP_ATTRIBUTE_FMTP("fmtp");
+const std::string SessionDescription::SDP_ATTRIBUTE_RTCP("rtcp");
+const std::string SessionDescription::SDP_MEDIA_RTP("RTP/AVP");
+const std::string SessionDescription::SDP_MEDIA_SRTP("RTP/SAVP");
+const std::string SDPMessageHandler::MIME_SDP="application/sdp";
+
 SDPMessageHandler::SDPMessageHandler()
 {
 }
@@ -246,7 +253,7 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
 {
     std::cout << "SDP: Reading media descriptions..." << std::endl;
     std::vector<MediaDescription> results;
-    const std::vector<std::string> mediaFields = sdp.getFieldValues(SDP_MEDIA);
+    const std::vector<std::string> mediaFields = sdp.getFieldValues(SessionDescription::SDP_MEDIA);
     for(const std::string& mediaField : mediaFields)
     {
         //m=<media> <port> <proto> <fmt> ...
@@ -259,7 +266,7 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
         const int port = atoi(mediaField.substr(index, mediaField.find(' ', index)- index).data());
         index = mediaField.find(' ', index) + 1;
         const std::string protocol = mediaField.substr(index, mediaField.find(' ', index) - index);
-        if(SDP_MEDIA_RTP.compare(protocol) != 0 && SDP_MEDIA_SRTP.compare(protocol) != 0)
+        if(SessionDescription::SDP_MEDIA_RTP.compare(protocol) != 0 && SessionDescription::SDP_MEDIA_SRTP.compare(protocol) != 0)
         {
             //skip non-(S)RTP
             continue;
@@ -313,7 +320,7 @@ NetworkConfiguration SDPMessageHandler::readRTCPAttribute(const SessionDescripti
     NetworkConfiguration config{0};
     config.remoteIPAddress = "";
     //a=rtcp:<port> [<nettype> <addrtype> <connection-address>]
-    const std::string rtcpAttribute = sdp.getAttribute(SDP_ATTRIBUTE_RTCP);
+    const std::string rtcpAttribute = sdp.getAttribute(SessionDescription::SDP_ATTRIBUTE_RTCP);
     if(rtcpAttribute.empty())
     {
         //no custom RTCP-config set
@@ -338,7 +345,7 @@ NetworkConfiguration SDPMessageHandler::readRTCPAttribute(const SessionDescripti
 MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, const unsigned int payloadType)
 {
     //a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding parameters>]
-    const std::string rtpMap = sdp.getAttribute(SDP_ATTRIBUTE_RTPMAP, std::to_string(payloadType));
+    const std::string rtpMap = sdp.getAttribute(SessionDescription::SDP_ATTRIBUTE_RTPMAP, std::to_string(payloadType));
     if(rtpMap.empty())
     {
         return std::move(MediaDescription{});
@@ -360,7 +367,7 @@ MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, con
 void SDPMessageHandler::readFormatParameters(MediaDescription& descr, const SessionDescription& sdp, const unsigned int payloadType)
 {
     
-    const std::string fmtParams = sdp.getAttribute(SDP_ATTRIBUTE_FMTP, std::to_string(payloadType));
+    const std::string fmtParams = sdp.getAttribute(SessionDescription::SDP_ATTRIBUTE_FMTP, std::to_string(payloadType));
     if(fmtParams.empty())
     {
         return;

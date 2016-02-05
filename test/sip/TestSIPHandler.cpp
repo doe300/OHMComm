@@ -8,7 +8,7 @@
 #include "TestSIPHandler.h"
 #include "UDPWrapper.h"
 
-TestSIPHandler::TestSIPHandler() : Suite(), handler({2060, "192.168.178.123", SIP_DEFAULT_PORT}, "dummy", [this](const MediaDescription, const NetworkConfiguration, const NetworkConfiguration){TEST_FAIL("Wrong configuration accepted!");})
+TestSIPHandler::TestSIPHandler() : Suite(), handler({2060, "192.168.178.123", SIPHandler::SIP_DEFAULT_PORT}, "dummy", [this](const MediaDescription, const NetworkConfiguration, const NetworkConfiguration){TEST_FAIL("Wrong configuration accepted!");})
 {
 //    TEST_ADD(TestSIPHandler::testSIPThread);
 #ifdef EXTENDED_SIP_TEST

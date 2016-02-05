@@ -18,13 +18,7 @@ const std::vector<std::string> STUNClient::STUN_SERVERS = {
     "stunserver.org"
 };
 
-const unsigned short STUNClient::DEFAULT_STUN_PORT{3478};
 const std::string STUNClient::DEFAULT_SOURCE_IP{"0.0.0.0"};
-const unsigned short STUNClient::LOCAL_PORT{54320};
-const uint32_t STUNClient::MAGIC_COOKIE{0x2112A442};
-const unsigned short STUNClient::BUFFER_SIZE{2048};
-const uint8_t STUNClient::STUN_HEADER_SIZE{20};
-const uint8_t STUNClient::MAX_RETRIES{8};
 
 STUNClient::STUNClient()
 {

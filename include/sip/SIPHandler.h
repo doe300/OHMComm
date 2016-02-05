@@ -18,19 +18,18 @@
 #include "SDPMessageHandler.h"
 #include "SIPPackageHandler.h"
 
-#define SIP_BUFFER_SIZE 2048
-
-//A list of all allowed SIP-methods
-const std::string SIP_ALLOW_METHODS = Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");
-
-//A list of all accepted MIME-types
-const std::string SIP_ACCEPT_TYPES = Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
-
-const unsigned short SIP_DEFAULT_PORT =5060;
-
 class SIPHandler
 {
 public:
+    
+    //A list of all allowed SIP-methods
+    static const std::string SIP_ALLOW_METHODS;
+    
+    //A list of all accepted MIME-types
+    static const std::string SIP_ACCEPT_TYPES;
+    
+    //The default port for SIP, as of RFC 3261
+    static constexpr unsigned short SIP_DEFAULT_PORT{5060};
     
     SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction);
     
@@ -56,6 +55,7 @@ public:
     static std::string generateCallID(const std::string& host);
     
 private:
+    static constexpr unsigned short SIP_BUFFER_SIZE{2048};
     enum class SessionState
     {
         /*!

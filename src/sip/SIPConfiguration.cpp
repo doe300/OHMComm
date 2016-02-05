@@ -138,7 +138,7 @@ void SIPConfiguration::setConfig(const MediaDescription& media, const NetworkCon
     SupportedFormat format = media.getFormat();
     for(const KeyValuePair<std::string>& param : media.formatParams.fields)
     {
-        if(FORMAT_OPUS_DTX.compare(param.key) == 0 && param.value.compare("1") == 0)
+        if(SupportedFormat::FORMAT_OPUS_DTX.compare(param.key) == 0 && param.value.compare("1") == 0)
         {
             //if the other side supports DTX, we do too
             //add "Gain Control" to calculate the silence-threshold

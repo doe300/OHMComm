@@ -42,7 +42,7 @@ private:
     void setConfig(const MediaDescription& media, const NetworkConfiguration& rtpConfig, const NetworkConfiguration& customRTCPConfig);
     
     //Wait a maximum of 30 secs
-    static const int MAX_WAIT_TIME{30000};
+    static constexpr int MAX_WAIT_TIME{30000};
 };
 
 #endif	/* SIPCONFIGURATION_H */

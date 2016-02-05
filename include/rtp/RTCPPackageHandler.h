@@ -23,9 +23,9 @@ class RTCPPackageHandler
 {
 public:
 
-    static const uint8_t RTCP_HEADER_SIZE = sizeof(RTCPHeader);
-    static const uint8_t RTCP_SENDER_INFO_SIZE = sizeof(SenderInformation);
-    static const uint8_t RTCP_RECEPTION_REPORT_SIZE = sizeof(ReceptionReport);
+    static constexpr uint8_t RTCP_HEADER_SIZE = sizeof(RTCPHeader);
+    static constexpr uint8_t RTCP_SENDER_INFO_SIZE = sizeof(SenderInformation);
+    static constexpr uint8_t RTCP_RECEPTION_REPORT_SIZE = sizeof(ReceptionReport);
 
     RTCPPackageHandler();
 

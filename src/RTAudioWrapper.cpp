@@ -405,7 +405,7 @@ unsigned int RtAudioWrapper::findOptimalBufferSize(unsigned int defaultBufferSiz
             {
                 continue;
             }
-            if(processorBufferSizes[procIndex][sizeIndex] == BUFFER_SIZE_ANY)
+            if(processorBufferSizes[procIndex][sizeIndex] == AudioProcessor::BUFFER_SIZE_ANY)
             {
                 processorSupportAll[procIndex] = true;
                 continue;
@@ -420,7 +420,7 @@ unsigned int RtAudioWrapper::findOptimalBufferSize(unsigned int defaultBufferSiz
                 //we already checked all sizes below sizeIndex
                 for(unsigned int checkSizeIndex = sizeIndex; checkSizeIndex < processorBufferSizes[checkProcIndex].size(); checkSizeIndex ++)
                 {
-                    if(processorBufferSizes[checkProcIndex][checkSizeIndex] == suggestedBufferSize || processorBufferSizes[checkProcIndex][checkSizeIndex] == BUFFER_SIZE_ANY)
+                    if(processorBufferSizes[checkProcIndex][checkSizeIndex] == suggestedBufferSize || processorBufferSizes[checkProcIndex][checkSizeIndex] == AudioProcessor::BUFFER_SIZE_ANY)
                     {
                         singleProcessorAccepted = true;
                         //break;

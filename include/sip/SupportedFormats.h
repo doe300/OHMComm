@@ -11,9 +11,6 @@
 #include <string>
 #include <vector>
 
-const std::string FORMAT_OPUS_DTX("usedtx");
-const std::string FORMAT_OPUS_FEC("useinbandfec");
-
 struct SupportedFormat
 {
     // media name for LPCM samples
@@ -22,6 +19,11 @@ struct SupportedFormat
     static const std::string MEDIA_PCMA;
     //media name for G.711 mu-law samples
     static const std::string MEDIA_PCMU;
+    
+    //parameter name for opus DTX
+    static const std::string FORMAT_OPUS_DTX;
+    //parameter name for opus FEC
+    static const std::string FORMAT_OPUS_FEC;
     
     const unsigned int payloadType;
     const std::string encoding;

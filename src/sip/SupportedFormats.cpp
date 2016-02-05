@@ -8,9 +8,12 @@ const std::string SupportedFormat::MEDIA_LPCM("LPCM");
 const std::string SupportedFormat::MEDIA_PCMA("PCMA");
 const std::string SupportedFormat::MEDIA_PCMU("PCMU");
 
+const std::string SupportedFormat::FORMAT_OPUS_DTX("usedtx");
+const std::string SupportedFormat::FORMAT_OPUS_FEC("useinbandfec");
+
 std::vector<SupportedFormat> SupportedFormats::availableFormats = {};
 
-const SupportedFormat* SupportedFormats::OPUS_48000 = SupportedFormats::registerFormat(SupportedFormat(PayloadType::OPUS, "opus", 48000, 2, AudioProcessorFactory::OPUS_CODEC, false, std::string(FORMAT_OPUS_DTX).append("=1; ").append(FORMAT_OPUS_FEC).append("=0")));
+const SupportedFormat* SupportedFormats::OPUS_48000 = SupportedFormats::registerFormat(SupportedFormat(PayloadType::OPUS, "opus", 48000, 2, AudioProcessorFactory::OPUS_CODEC, false, std::string(SupportedFormat::FORMAT_OPUS_DTX).append("=1; ").append(SupportedFormat::FORMAT_OPUS_FEC).append("=0")));
 const SupportedFormat* SupportedFormats::G711_PCMA = SupportedFormats::registerFormat(SupportedFormat(PayloadType::PCMA, SupportedFormat::MEDIA_PCMA, 8000, 1, AudioProcessorFactory::G711_PCMA, true));
 const SupportedFormat* SupportedFormats::G711_PCMU = SupportedFormats::registerFormat(SupportedFormat(PayloadType::PCMU, SupportedFormat::MEDIA_PCMU, 8000, 1, AudioProcessorFactory::G711_PCMU, true));
 const SupportedFormat* SupportedFormats::L16_2_44100 = SupportedFormats::registerFormat(SupportedFormat(PayloadType::L16_2, SupportedFormat::MEDIA_LPCM, 44100, 2, "", true));

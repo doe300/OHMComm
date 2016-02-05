@@ -13,27 +13,6 @@
 #include "rtp/RTPHeader.h"
 #include "sip/SupportedFormats.h"
 
-/*!
- * The MIME-type for SDP: application/sdp
- */
-const std::string MIME_SDP="application/sdp";
-
-const char SDP_VERSION='v';
-const char SDP_ORIGIN='c';
-const char SDP_SESSION_NAME='s';
-const char SDP_CONNECTION='c';
-const char SDP_TIMING='t';
-const char SDP_MEDIA='m';
-const char SDP_ATTRIBUTE='a';
-
-const std::string SDP_ATTRIBUTE_RTPMAP("rtpmap");
-const std::string SDP_ATTRIBUTE_FMTP("fmtp");
-//specifies RTCP-port, if not consecutive to RTP-port, see RFC 3605
-const std::string SDP_ATTRIBUTE_RTCP("rtcp");
-
-const std::string SDP_MEDIA_RTP("RTP/AVP");
-const std::string SDP_MEDIA_SRTP("RTP/SAVP");
-
 struct SessionKey : public KeyValuePair<char>
 {
     SessionKey() : KeyValuePair<char>()
@@ -97,6 +76,22 @@ struct MediaDescription
 
 struct SessionDescription : public KeyValuePairs<SessionKey>
 {
+    static constexpr char SDP_VERSION='v';
+    static constexpr char SDP_ORIGIN='c';
+    static constexpr char SDP_SESSION_NAME='s';
+    static constexpr char SDP_CONNECTION='c';
+    static constexpr char SDP_TIMING='t';
+    static constexpr char SDP_MEDIA='m';
+    static constexpr char SDP_ATTRIBUTE='a';
+    
+    static const std::string SDP_ATTRIBUTE_RTPMAP;
+    static const std::string SDP_ATTRIBUTE_FMTP;
+    //specifies RTCP-port, if not consecutive to RTP-port, see RFC 3605
+    static const std::string SDP_ATTRIBUTE_RTCP;
+
+    static const std::string SDP_MEDIA_RTP;
+    static const std::string SDP_MEDIA_SRTP;
+    
     /*!
      * \param tag The attribute-tag to search for
      * \param firstValue The (optional) first part of the attribute-value
@@ -140,6 +135,11 @@ struct SessionDescription : public KeyValuePairs<SessionKey>
 class SDPMessageHandler
 {
 public:
+    
+    /*!
+     * The MIME-type for SDP: application/sdp
+     */
+    static const std::string MIME_SDP;
     SDPMessageHandler();
 
     /*!

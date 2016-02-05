@@ -15,29 +15,6 @@
 
 #include "Utility.h"
 
-typedef uint16_t STUNMessageType;
-
-static const STUNMessageType STUN_BINDING_REQUEST = 0x0001;
-static const STUNMessageType STUN_BINDING_RESPONSE = 0x0101;
-static const STUNMessageType STUN_BINDING_ERROR_RESPONSE = 0x0111;
-//list is not exhaustive (see: https://www.iana.org/assignments/stun-parameters/stun-parameters.txt)
-
-typedef uint16_t STUNAttributeType;
-
-static const STUNAttributeType STUN_INVALID_ATTRIBUTE = 0x0000;
-static const STUNAttributeType STUN_MAPPED_ADDRESS = 0x0001;
-static const STUNAttributeType STUN_CHANGE_REQUEST = 0x0003;
-static const STUNAttributeType STUN_USERNAME = 0x0006;
-static const STUNAttributeType STUN_MESSAGE_INTEGRITY = 0x0008;
-static const STUNAttributeType STUN_ERROR_CODE = 0x0009;
-static const STUNAttributeType STUN_UNKNOWN_ATTRIBUTES = 0x000A;
-static const STUNAttributeType STUN_XOR_MAPPED_ADDRESS = 0x8020;
-static const STUNAttributeType STUN_ALTERNATE_SERVER = 0x8023;
-//list is not exhaustive (see: https://www.iana.org/assignments/stun-parameters/stun-parameters.txt)
-
-static const uint16_t MAPPED_ADDRESS_IPv4 = 0x1;
-static const uint16_t MAPPED_ADDRESS_IPv6 = 0x2;
-
 /*!
  * STUN client for RFC 5389
  * 
@@ -64,14 +41,37 @@ public:
     const std::tuple<bool, std::string, unsigned short> retrieveSIPInfo();
     
 private:
+    typedef uint16_t STUNMessageType;
+
+    static constexpr STUNMessageType STUN_BINDING_REQUEST = 0x0001;
+    static constexpr STUNMessageType STUN_BINDING_RESPONSE = 0x0101;
+    static constexpr STUNMessageType STUN_BINDING_ERROR_RESPONSE = 0x0111;
+    //list is not exhaustive (see: https://www.iana.org/assignments/stun-parameters/stun-parameters.txt)
+
+    typedef uint16_t STUNAttributeType;
+
+    static constexpr STUNAttributeType STUN_INVALID_ATTRIBUTE = 0x0000;
+    static constexpr STUNAttributeType STUN_MAPPED_ADDRESS = 0x0001;
+    static constexpr STUNAttributeType STUN_CHANGE_REQUEST = 0x0003;
+    static constexpr STUNAttributeType STUN_USERNAME = 0x0006;
+    static constexpr STUNAttributeType STUN_MESSAGE_INTEGRITY = 0x0008;
+    static constexpr STUNAttributeType STUN_ERROR_CODE = 0x0009;
+    static constexpr STUNAttributeType STUN_UNKNOWN_ATTRIBUTES = 0x000A;
+    static constexpr STUNAttributeType STUN_XOR_MAPPED_ADDRESS = 0x8020;
+    static constexpr STUNAttributeType STUN_ALTERNATE_SERVER = 0x8023;
+    //list is not exhaustive (see: https://www.iana.org/assignments/stun-parameters/stun-parameters.txt)
+
+    static constexpr uint16_t MAPPED_ADDRESS_IPv4 = 0x1;
+    static constexpr uint16_t MAPPED_ADDRESS_IPv6 = 0x2;
+
     static const std::vector<std::string> STUN_SERVERS;
-    static const unsigned short DEFAULT_STUN_PORT;
+    static constexpr unsigned short DEFAULT_STUN_PORT{3478};
     static const std::string DEFAULT_SOURCE_IP;
-    static const unsigned short LOCAL_PORT;
-    static const uint32_t MAGIC_COOKIE;
-    static const unsigned short BUFFER_SIZE;
-    static const uint8_t STUN_HEADER_SIZE;
-    static const uint8_t MAX_RETRIES;
+    static constexpr unsigned short LOCAL_PORT{54320};
+    static constexpr uint32_t MAGIC_COOKIE{0x2112A442};
+    static constexpr unsigned short BUFFER_SIZE{2048};
+    static constexpr uint8_t STUN_HEADER_SIZE{20};
+    static constexpr uint8_t MAX_RETRIES{8};
     char buffer[2048];
     std::string transactionID;
     
