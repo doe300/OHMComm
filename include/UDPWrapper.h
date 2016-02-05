@@ -3,7 +3,6 @@
 
 #include "configuration.h"
 #include "NetworkWrapper.h"
-#include <string.h> //for strerror
 
 /*!
  * NetworkWrapper implementation using the UDP protocol
@@ -21,7 +20,6 @@ public:
     int receiveData(void *buffer, unsigned int bufferSize = 0);
 
     void closeNetwork();
-    std::wstring getLastError() const;
 private:
     bool isIPv6;
     int Socket;

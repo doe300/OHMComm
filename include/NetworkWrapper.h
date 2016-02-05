@@ -3,26 +3,19 @@
 
 #include <iostream>
 #include <string>
+#include <string.h> //for strerror
 
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
-
-// Defines OS-independant flag to close socket
-#define SHUTDOWN_BOTH SD_BOTH   // 2
-#define INTERRUPTED_BY_SYSTEM_CALL WSAEINTR
 #else
 #include <sys/socket.h> // socket(), connect()
 #include <arpa/inet.h> // sockaddr_in
 #include <stdexcept>
 #include <unistd.h> //socklen_t
-
-// Defines OS-independant flag to close socket
-#define SHUTDOWN_BOTH SHUT_RDWR // 2
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
 #define WSAETIMEDOUT 10060  //Dummy-support for WSAPI timeout-error
-#define INTERRUPTED_BY_SYSTEM_CALL EINTR
 #endif
 
 /*!
@@ -65,7 +58,7 @@ public:
     /*!
      * Returns the last error code and a human-readable description
      */
-    virtual std::wstring getLastError() const = 0;
+    virtual std::wstring getLastError() const;
 
     /*!
      * Closes the underlying socket
@@ -79,6 +72,15 @@ public:
      */
     static bool isIPv6(const std::string ipAddress);
 protected:
+    
+    // Defines OS-independant flag to close socket
+#ifdef _WIN32
+    static constexpr int SHUTDOWN_BOTH{SD_BOTH};
+    static constexpr int INTERRUPTED_BY_SYSTEM_CALL{WSAEINTR};
+#else
+    static constexpr int SHUTDOWN_BOTH{SHUT_RDWR};
+    static constexpr int INTERRUPTED_BY_SYSTEM_CALL{EINTR};
+#endif
     
     /*!
      * \return whether the recv()-method has returned because of a timeout
