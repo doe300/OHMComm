@@ -10,7 +10,7 @@ class ProcessorOpus : public AudioProcessor
 {
 public:
 
-    //! constructor, initialises the OpusApplication type
+    //! constructor, initialises the OpusApplication type and the OpusEncoderObject and OpusDecoderObject
     ProcessorOpus(const std::string name, int opusApplication);
 
     //! returns supported Audio Formats by Opus: only rtaudio SINT16 or FLOAT32 supported
