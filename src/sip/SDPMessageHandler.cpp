@@ -13,6 +13,15 @@
 
 SIPUserAgent sipUserAgents[2] = {{},{}};
 
+//clang seems to need the static char-fields to be declared for linker to find them
+constexpr char SessionDescription::SDP_VERSION;
+constexpr char SessionDescription::SDP_ORIGIN;
+constexpr char SessionDescription::SDP_SESSION_NAME;
+constexpr char SessionDescription::SDP_CONNECTION;
+constexpr char SessionDescription::SDP_TIMING;
+constexpr char SessionDescription::SDP_MEDIA;
+constexpr char SessionDescription::SDP_ATTRIBUTE;
+
 const std::string SessionDescription::SDP_ATTRIBUTE_RTPMAP("rtpmap");
 const std::string SessionDescription::SDP_ATTRIBUTE_FMTP("fmtp");
 const std::string SessionDescription::SDP_ATTRIBUTE_RTCP("rtcp");

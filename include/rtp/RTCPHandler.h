@@ -68,8 +68,7 @@ private:
     bool threadRunning = false;
     
     //send SR every X seconds
-    //standard-conform minimum interval of 5 seconds (no need to be adaptive, as long as we only have one remote) (RFC3550 Section 6.2)
-    static constexpr std::chrono::seconds sendSRInterval{5};
+    static const std::chrono::seconds sendSRInterval;
     std::chrono::system_clock::time_point lastSRReceived;
     std::chrono::system_clock::time_point lastSRSent;
     std::vector<SourceDescription> sourceDescriptions;
