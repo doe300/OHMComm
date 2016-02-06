@@ -151,7 +151,7 @@ auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsig
 }
 \end{lstlisting}
 
-Welche die processAudioInput und processAudioOutput Methode aufruft und somit die einzelnen Prozessoren durchläuft.
+Welche die processAudioInput und processAudioOutput Methode aufruft und somit die einzelnen Prozessoren durchläuft. \textcolor{red}{TODO: Auf Buffer eingehen}
 
 \begin{lstlisting}[caption={callback Methode im RtAudioWrapper},label={Code:RtAudio}]
 auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int
@@ -207,11 +207,6 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
         lengthEncodedPacketInBytes = opus_encode_float(OpusEncoderObject, (const float *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
         return lengthEncodedPacketInBytes;
     }
-    else
-    {
-        std::cerr << "[Opus-processInputData-Error]No matching encoder found, AudioFormat possibly not supported" << std::endl;
-        return 0;
-    }
 }
 \end{lstlisting}
 
@@ -246,11 +241,6 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
         userData->nBufferFrames = numberOfDecodedSamples;
         const unsigned int outputBufferInBytes = (numberOfDecodedSamples * sizeof(float) * outputDeviceChannels);
         return outputBufferInBytes;
-    }
-    else
-    {
-        std::cerr << "[Opus-processOutputData-Error]No matching decoder found, AudioFormat possibly not supported" << std::endl;
-        return 0;
     }
 }
 \end{lstlisting}
