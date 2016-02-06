@@ -101,8 +101,69 @@ void RTPListener::runThread() {
 }
 \end{lstlisting}
 
-\section{RTAudio}
-(RTAUDIOWRAPPER) Callback-Methoden - Aufsplittung, Konfiguration von RTAudio, Aufruf der Callback-Methode durch die Hardware
+\section{RtAudio}
+
+Der RtAudioWrapper bietet drei Modi zur Audiokommunikation, diese sind RecordingMode, PlaybackMode und DuplexMode. Bei den ersten beiden Modi wird entweder nur der input oder der output Stream übergeben um nur Sound aufzunehmen oder abzuspielen. Dagegen benutzt der letzte Modus DuplexMode den input und output Stream um ein simultanes aufnehmen und abspielen von Audio Daten zu ermöglichen.
+
+Die RtAudio-API wird mittels eines Objekts, dessen Namen auf rtaudio definiert wurde gesteuert.
+
+\begin{lstlisting}[caption={RtAudio Objekt und StreamParameter},label={Code:RtAudio}]
+RtAudio rtaudio;
+RtAudio::StreamParameters input, output;
+\end{lstlisting}
+
+Zu beginn wird per Flag(flagPrepare) geprüft ob die prepare()-Methode von RtAudioWrapper ausgeführt wurde - welche überprüft ob die Output und Input Stream Parameter konfiguriert wurden - und alle AudioProzessoren mittels der prepare()-Methode des AudioHandler ihre Unterstützten Parameter gemeldet haben und sich auf einen gleichen Parametersatz einigen konnten. Wenn dies nicht der Fall ist wird ein Fehler ausgegeben mit dem Hinweis das die AudioProzessoren zuerst konfiguriert werden müssen bevor der RtAudio Stream gestartet werden kann.
+
+Dem rtaudio Objekt werden per openStream()-Methode die benötigten Parameter mitgeteilt, welche folgenden Inhalt haben:
+
+\begin{description}
+\item[output] Der Output Stream Parameter welcher die deviceID also die ID des Hardware Geräts welches die Audio Signale ausgeben soll und die Anzahl der zu benutzenden Channels enthält. Diese wurden entweder per setDefaultAudioConfig()-Methode des RtAudioWrapper oder per FileConfiguration, InteractiveConfiguration oder ParameterConfiguration festgelegt.
+\item [input] Der Input Parameter welcher die deviceID des Audio Geräts - welches die Audio Signale aufnimmt - und die Anzahl der aufzunehmenden Channels enthält. Dieser wurde ebenfalls vorher mittels einer der verschiedenen Konfigurations-Modi konfiguriert.
+\item [audioConfiguration.audioFormatFlag] : Das Audio Format Flag welches das Audio Format definiert welches durch den AudioHandler durch abfragen der AudioProzessoren ausgehandelt wurde.
+\item [audioConfiguration.sampleRate] Die Sample Rate welche vom AudioHandler durch abfragen der AudioProzessoren ausgehandelt wurde.
+\item [audioConfiguration.framesPerPackage] Die Anzahl der Frames per Package also die Größe des Audio Buffers. Diese Größe wurde auch vom AudioHandler durch abfragen der AudioProzessoren ausgehandelt
+\item [RtAudioWrapper::callbackHelper] Die Callback Methode welche von der RtAudio-API aufgerufen wird wenn Audio Daten vorhanden sind.
+\item [this] Eine Referenz auf das eigene Callback Objekt. Um innerhalb der Callback Methode auf benötigte Informationen zuzugreifen.
+\end{description}
+
+Anschließend wird die RtAudio-API mittels startStream() gestartet.
+
+\begin{lstlisting}[caption={Start des Duplex Mode im RtAudioWrapper},label={Code:RtAudio}]
+void RtAudioWrapper::startDuplexMode()
+{
+    if (this->flagPrepared)
+    {
+        this->rtaudio.openStream(&output, &input, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
+        this->rtaudio.startStream();
+    }
+    else
+        std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
+}
+\end{lstlisting}
+
+Der callbackHelper erstellt daraufhin ein rtAudioWrapper Objekt und ruft dessen callback Methode auf. \textcolor{red}{TODO: Begründung wieso zweistufiger Callback}
+
+\begin{lstlisting}[caption={callbackHelper Methode im RtAudioWrapper},label={Code:RtAudio}]
+auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int
+{
+    RtAudioWrapper *rtAudioWrapper = static_cast <RtAudioWrapper*> (rtAudioWrapperObject);
+    return rtAudioWrapper->callback(outputBuffer, inputBuffer, nBufferFrames, streamTime, status, nullptr);
+}
+\end{lstlisting}
+
+Welche die processAudioInput und processAudioOutput Methode aufruft und somit die einzelnen Prozessoren durchläuft.
+
+\begin{lstlisting}[caption={callback Methode im RtAudioWrapper},label={Code:RtAudio}]
+auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int
+{
+	(...)
+	this->processAudioInput(inputBuffer, inputBufferByteSize, streamData);
+	(...)
+	this->processAudioOutput(outputBuffer, outputBufferByteSize, streamData);
+	
+	return 0;
+}
+\end{lstlisting}
 
 \FloatBarrier
 \section{Passive Konfiguration}
