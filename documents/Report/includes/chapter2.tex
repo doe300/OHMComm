@@ -1,13 +1,13 @@
 \chapter{Anforderungsanalyse}
-In diesem Kapitel sollen aus der Projektbeschreibung und die daraus resultierenden konkreten Anforderungen für das Framework erstellt werden. 
+In diesem Kapitel sollen aus der Projektbeschreibung die daraus resultierenden konkreten Anforderungen für das Framework erstellt werden. 
 
 \section{Funktionale Anforderungen}
-	In diesem Kapitel wird aus der Projektbeschreibung, die funktionalen Anforderungen ermittelt und definiert. Die funktionale Anforderungen werden in zusammenhängenden Gruppen eingeteilt.
+	In diesem Abschnitt werden aus der Projektbeschreibung die funktionalen Anforderungen ermittelt und definiert. Die funktionalen Anforderungen werden in zusammenhängenden Gruppen eingeteilt.
 
 	\begin{itemize} 
 		\item Schnittstelle zur Audiohardware
 
-		Es muss eine entsprechende Schnittstelle zur Audiohardware, Mikrofone und Lautsprecher, erstellt werden. Diese wird benötigt, um die Audiodaten zu übertragen und abzuspielen. Da ein Computer über mehr als ein Lautsprecher und Mikrofon verfügen kann, muss hier eine entsprechende Auswahlmöglichkeit existieren. Desweiteren müssen Konfigurationsmöglichkeiten vorhanden sein um z.B. bestimmte Abtastrate auszuwählen.
+		Es muss eine entsprechende Schnittstelle zur Audiohardware, Mikrofone und Lautsprecher, erstellt werden. Diese wird benötigt, um die Audiodaten aufzunehmen und abzuspielen. Da ein Computer über mehr als ein Lautsprecher und Mikrofon verfügen kann, muss hier eine entsprechende Auswahlmöglichkeit existieren. Desweiteren müssen Konfigurationsmöglichkeiten vorhanden sein um z.B. bestimmte Abtastrate auszuwählen.
 			
 		\item Audiokompression
 
@@ -23,7 +23,7 @@ In diesem Kapitel sollen aus der Projektbeschreibung und die daraus resultierend
 				
 		\item Jitter-Buffer (RTPBuffer)
 
-		Der Buffer hat die Aufgabe die Paketreihenfolge von den empfangenen Paketen wiederherzustellen, da diese nicht gewährleistet werden kann mit dem UDP-Protokoll. Dadurch erhöht sich die Audioqualität. Der Buffer soll einen bestimmten Füllstand erreichen, bevor die Audiowiedergabe beginnt.
+		Der Buffer hat die Aufgabe die Paketreihenfolge der empfangenen Pakete wiederherzustellen, da diese mit dem UDP-Protokoll nicht gewährleistet werden kann. Dadurch erhöht sich die Audioqualität. Der Buffer soll einen bestimmten Füllstand erreichen, bevor die Audiowiedergabe beginnt.
 				
 		\item Prototypische Voice-over-IP Konsolenanwendungen
 
@@ -88,7 +88,7 @@ Es wird eine Übersicht aller Anforderungen mit kurzen Beschreibungen erstellt, 
 		\end{compactenum}
 	\item Prototypische Voice-over-IP-Konsolenanwendung \label{FA:Konsolenanwendung}
 		\begin{compactenum}[1.]
-			\item Basiert auf das Framework und ermöglicht die Audiokommunikation zwischen zwei Anwendern \label{FA:Konsolenanwendung:Audiokommunikation}
+			\item Basiert auf dem Framework und ermöglicht die Audiokommunikation zwischen zwei Anwendern \label{FA:Konsolenanwendung:Audiokommunikation}
 			\item Nimmt Parameter beim Programmstart entgegen und verarbeitet sie \label{FA:Konsolenanwendung:Parameter}
 		\end{compactenum}
 	\item Statistik \label{FA:Statistik}
