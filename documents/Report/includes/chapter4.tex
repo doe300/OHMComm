@@ -2,7 +2,7 @@
 In diesem Kapitel wird auf Implementierungsdetails des Entwurfs eingegangen. Hierbei ist zu beachten, dass aus Platzgründen der vorliegende Code eventuell in gekürzter oder geänderter Form dargestellt wird und unvollständig ist. Dennoch verdeutlichen die Codebeispiele die wesentlichsten Details der Implementierung und sind gemäß des Entwurfs umgesetzt.
 
 \section{Verarbeitungskette}
-Die Verarbeitungskette ist ein Teil des \texttt{AudioHandlers} und einer der wichtigen Komponenten des Frameworks. Sie ist die Schnittstelle mit der anderen Klassen an der Audioverarbeitung teilnehmen können. Im folgenden Kapitel wird erörtert wie diese implementiert wurde.
+Die Verarbeitungskette ist ein Teil des \texttt{AudioHandlers} und einer der wichtigen Komponenten des Frameworks. Sie ist die Schnittstelle, mit der anderen Klassen an der Audioverarbeitung teilnehmen können. Im folgenden Kapitel wird erörtert, wie diese implementiert wurde.
 
 \subsection{Interface für Audioverarbeitungsklassen}
 Alle Audioverarbeitungsklassen müssen die abstrakte Klasse \texttt{AudioProcessor} implementieren, siehe Listening \ref{Code:AudioProcessor}.
@@ -66,7 +66,7 @@ void AudioHandler::processAudioOutput(void *outputBuffer, int outputBufferByteSi
 }\end{lstlisting}
 
 \section{Factory-Klassen}
-Die beiden Factory-Klassen \texttt{AudioHandlerFactory} und \texttt{AudioProcessorFactory} sind vom Aufbau identisch, deshalb wird im folgenden nur die \texttt{AudioHandlerFactory} erklärt. \texttt{AudioProcessorFactory} verhält sich analog dazu. Die Factory-Klassen haben die Aufgabe die Instantiierung in Methoden auszulagern, damit das Programmieren auf Schnittstellen gewährleistet wird. Methoden die Instantiierung übernehmen werden auch Fabrikmethoden genannt \cite{Goll2013}[S.243]. Listening \ref{Code:AudioHandlerFactory} zeigt die Fabrikmethode der \texttt{AudioHandlerFactory}. Als Parameter wird der Name der zu erzeugende Klasse entgegen genommen. Der Rückgabewert der Funktion entspricht den abstrakten und gemeinsamen Basistypen.
+Die beiden Factory-Klassen \texttt{AudioHandlerFactory} und \texttt{AudioProcessorFac\-tory} sind vom Aufbau identisch, deshalb wird im folgenden nur die \texttt{AudioHandler\-Factory} erklärt. \texttt{AudioProcessorFactory} verhält sich analog dazu. Die Factory-Klassen haben die Aufgabe die Instantiierung in Methoden auszulagern, damit das Programmieren auf Schnittstellen gewährleistet wird. Methoden die Instantiierung übernehmen werden auch Fabrikmethoden genannt \cite{Goll2013}[S.243]. Listening \ref{Code:AudioHandlerFactory} zeigt die Fabrikmethode der \texttt{AudioHandlerFactory}. Als Parameter wird der Name der zu erzeugende Klasse entgegen genommen. Der Rückgabewert der Funktion entspricht den abstrakten und gemeinsamen Basistypen.
 
 \begin{lstlisting}[caption={Fabrikmethode der AudioHandlerFactory},label={Code:AudioHandlerFactory}]
 std::unique_ptr<AudioHandler> AudioHandlerFactory::getAudioHandler(std::string name) {
@@ -103,7 +103,7 @@ void RTPListener::runThread() {
 
 \section{RtAudio}
 
-Der RtAudioWrapper bietet drei Modi zur Audiokommunikation, diese sind RecordingMode, PlaybackMode und DuplexMode. Bei den ersten beiden Modi wird entweder nur der input oder der output Stream übergeben um nur Sound aufzunehmen oder abzuspielen. Dagegen benutzt der letzte Modus DuplexMode den input und output Stream um ein simultanes aufnehmen und abspielen von Audio Daten zu ermöglichen.
+Der RtAudioWrapper bietet drei Modi zur Audiokommunikation, diese sind RecordingMode, PlaybackMode und DuplexMode. Bei den ersten beiden Modi wird entweder nur der Input- oder der Output-Stream übergeben um nur Sound aufzunehmen oder abzuspielen. Dagegen benutzt der letzte Modus DuplexMode den input und output Stream um ein simultanes aufnehmen und abspielen von Audio Daten zu ermöglichen.
 
 Die RtAudio-API wird mittels eines Objekts, dessen Namen auf rtaudio definiert wurde gesteuert.
 
@@ -112,21 +112,21 @@ RtAudio rtaudio;
 RtAudio::StreamParameters input, output;
 \end{lstlisting}
 
-Zu beginn wird per Flag(flagPrepare) geprüft ob die prepare()-Methode von RtAudioWrapper ausgeführt wurde - welche überprüft ob die Output und Input Stream Parameter konfiguriert wurden - und alle AudioProzessoren mittels der prepare()-Methode des AudioHandler ihre Unterstützten Parameter gemeldet haben und sich auf einen gleichen Parametersatz einigen konnten. Wenn dies nicht der Fall ist wird ein Fehler ausgegeben mit dem Hinweis das die AudioProzessoren zuerst konfiguriert werden müssen bevor der RtAudio Stream gestartet werden kann.
+Zu Beginn wird per Flag (\texttt{flagPrepare}) geprüft ob die \texttt{prepare()}-Methode von RtAudioWrapper bereits ausgeführt worden ist -- welche überprüft ob die Output und Input Stream Parameter konfiguriert sind -- und ob alle AudioProzessoren mittels der \texttt{prepare()}-Methode des AudioHandler ihre Unterstützten Parameter gemeldet haben und sich auf einen gleichen Parametersatz einigen konnten. Wenn dies nicht der Fall ist, wird ein Fehler ausgegeben, mit dem Hinweis, dass die AudioProzessoren zuerst konfiguriert werden müssen, bevor der RtAudio Stream gestartet werden kann.
 
-Dem rtaudio Objekt werden per openStream()-Methode die benötigten Parameter mitgeteilt, welche folgenden Inhalt haben:
+Dem \texttt{rtaudio}-Objekt werden per \texttt{openStream()}-Methode die benötigten Parameter mitgeteilt, welche folgenden Inhalt haben:
 
 \begin{description}
-\item[output] Der Output Stream Parameter welcher die deviceID also die ID des Hardware Geräts welches die Audio Signale ausgeben soll und die Anzahl der zu benutzenden Channels enthält. Diese wurden entweder per setDefaultAudioConfig()-Methode des RtAudioWrapper oder per FileConfiguration, InteractiveConfiguration oder ParameterConfiguration festgelegt.
-\item [input] Der Input Parameter welcher die deviceID des Audio Geräts - welches die Audio Signale aufnimmt - und die Anzahl der aufzunehmenden Channels enthält. Dieser wurde ebenfalls vorher mittels einer der verschiedenen Konfigurations-Modi konfiguriert.
-\item [audioConfiguration.audioFormatFlag] : Das Audio Format Flag welches das Audio Format definiert welches durch den AudioHandler durch abfragen der AudioProzessoren ausgehandelt wurde.
-\item [audioConfiguration.sampleRate] Die Sample Rate welche vom AudioHandler durch abfragen der AudioProzessoren ausgehandelt wurde.
-\item [audioConfiguration.framesPerPackage] Die Anzahl der Frames per Package also die Größe des Audio Buffers. Diese Größe wurde auch vom AudioHandler durch abfragen der AudioProzessoren ausgehandelt
-\item [RtAudioWrapper::callbackHelper] Die Callback Methode welche von der RtAudio-API aufgerufen wird wenn Audio Daten vorhanden sind.
-\item [this] Eine Referenz auf das eigene Callback Objekt. Um innerhalb der Callback Methode auf benötigte Informationen zuzugreifen.
+\item[output] Der Output Stream Parameter, welcher die \texttt{deviceID}, also die ID des Hardware Geräts, welches die Audiosignale ausgeben soll und die Anzahl der zu benutzenden Channels enthält. Diese sind entweder per \texttt{setDefaultAudio\-Config()}-Methode des RtAudioWrapper oder per FileConfiguration, InteractiveConfiguration oder ParameterConfiguration vorher festgelegt worden.
+\item [input] Der Input Parameter welcher die \texttt{deviceID} des Audiogeräts, welches die Audiosignale aufnimmt, und die Anzahl der aufzunehmenden Channels enthält. Dieser ist ebenfalls bereits mittels einer der verschiedenen Konfigurationsmodi konfiguriert.
+\item [audioConfiguration.audioFormatFlag] : Das Audioformat-Flag, welches das Audioformat definiert, welches durch den AudioHandler durch Abfragen der AudioProzessoren ausgehandelt wurde.
+\item [audioConfiguration.sampleRate] Die Sample Rate, die vom AudioHandler durch Abfragen der AudioProzessoren ausgehandelt wurde.
+\item [audioConfiguration.framesPerPackage] Die Anzahl der Frames per Package, also die Größe des Audiobuffers. Diese Größe wurde auch vom AudioHandler durch Abfragen der AudioProzessoren ausgehandelt
+\item [RtAudioWrapper::callbackHelper] Die Callback-Methode, welche von der RtAudio-API aufgerufen wird, wenn Audiodaten vorhanden sind.
+\item [this] Eine Referenz auf das eigene Callback-Objekt, um innerhalb der Callback-Methode auf benötigte Informationen zuzugreifen.
 \end{description}
 
-Anschließend wird die RtAudio-API mittels startStream() gestartet.
+Anschließend wird die RtAudio-API mittels \texttt{startStream()} gestartet.
 
 \begin{lstlisting}[caption={Start des Duplex Mode im RtAudioWrapper},label={Code:RtAudio}]
 void RtAudioWrapper::startDuplexMode()
@@ -141,9 +141,9 @@ void RtAudioWrapper::startDuplexMode()
 }
 \end{lstlisting}
 
-Der callbackHelper erstellt daraufhin ein rtAudioWrapper Objekt und ruft dessen callback Methode auf. \textcolor{red}{TODO: Begründung wieso zweistufiger Callback}
+Der \texttt{callbackHelper()} erstellt daraufhin ein \texttt{RtAudioWrapper}-Objekt und ruft dessen \texttt{callback()}-Methode auf. \textcolor{red}{TODO: Begründung wieso zweistufiger Callback}
 
-\begin{lstlisting}[caption={callbackHelper Methode im RtAudioWrapper},label={Code:RtAudio}]
+\begin{lstlisting}[caption={\texttt{callbackHelper()}-Methode im RtAudioWrapper},label={Code:RtAudio}]
 auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int
 {
     RtAudioWrapper *rtAudioWrapper = static_cast <RtAudioWrapper*> (rtAudioWrapperObject);
@@ -151,7 +151,7 @@ auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsig
 }
 \end{lstlisting}
 
-Welche die processAudioInput und processAudioOutput Methode aufruft und somit die einzelnen Prozessoren durchläuft. \textcolor{red}{TODO: Auf Buffer eingehen}
+Diese ruft die  die Methodne \texttt{processAudioInput()} und \texttt{processAudioOutput()} auf und durchläuft somit die einzelnen Prozessoren. \textcolor{red}{TODO: Auf Buffer eingehen}
 
 \begin{lstlisting}[caption={callback Methode im RtAudioWrapper},label={Code:RtAudio}]
 auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int
@@ -167,9 +167,9 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
 
 \section{Opus}
 
-Der Opus Codec welcher zum encoden und decoden der Audio Daten benutzt wird wurde als Prozessor in OHMComm eingebunden.
+Der Opus-Codec, der zum Encoden und Decoden der Audiodaten benutzt wird wurde als Prozessor in OHMComm eingebunden.
 
-Der Konstruktor des Opus Prozessor erstellt bei der Instanziierung jeweils ein Encoder und Decoder Objekt. Außerdem wird ihm ein Name gegeben und der Opus Application Type\textcolor{red}{TODO: ref OpusApplication Type im Entwurf} wird gewählt.
+Der Konstruktor des Opus-Prozessors erstellt bei der Instanziierung jeweils ein Encoder- und Decoder-Objekt. Außerdem wird ihm ein Name gegeben und der Opus-Application-Type\textcolor{red}{TODO: ref OpusApplication Type im Entwurf} wird gewählt.
 
 \begin{lstlisting}[caption={Instanziierung des Opus Prozessors},label={Code:Opus}]
 ProcessorOpus::ProcessorOpus(const std::string name, int opusApplication) : 
@@ -179,18 +179,26 @@ ProcessorOpus::ProcessorOpus(const std::string name, int opusApplication) :
 }
 \end{lstlisting}
 
-Das Encodieren der Audio Daten geschieht in der processInputData()-Methode des Opus Prozessors. Zu Beginn wird die Variable lengthEncodedPacketInBytes deklariert in welcher die Größe der Audio Daten nach ihrer Encodierung gespeichert wird. Anschließend wir geprüft ob Daten im Signed Inter 16 Format oder im Float 32 Format vorliegen.
-Abhängig davon wir die opus\_encode()-Methode aufgerufen welche folgende Parameter benötigt:
+Das Encodieren der Audiodaten geschieht in der \texttt{processInputData()}-Methode des Opus-Prozessors. Zu Beginn wird die Variable \texttt{lengthEncodedPacketInBytes} deklariert in der die Größe der Audiodaten nach ihrer Encodierung gespeichert wird. Anschließend wir geprüft ob Daten im 16-bit Signed-Inter-Format oder im 32-bit Float-Format vorliegen.
+Abhängig davon wir die \texttt{opus\_encode()}-Methode aufgerufen, welche folgende Parameter benötigt:
 
 \begin{description}
+<<<<<<< HEAD
 \item[OpusEncoderObject] Das bei der Instanziierung erzeugte und in der configure()-Methode konfigurierte Opus Encoder Objekt.
 \item[inputBuffer] Der ins opus\_int16 oder Float 32 Format gecastete InputBuffer Pointer welcher die Input Audio Daten der Soundkarte enthält.
 \item[userData->nBufferFrames] Die Anzahl der Samples(per Channel) welche sich im InputBuffer befinden.
 \item[inputBuffer] Char-Pointer der Anzeigt wohin die Encodierten Audio Daten geschrieben werden sollen. Da wir auf dem inputBuffer Arbeiten und keinen extra Speicherplatz für Encodierte Daten haben, ist dies der selbe Speicherbereich aus dem wir die Daten gelesen haben.
 \item[userData->maxBufferSize] Maximal Größe des Speicherbereichs wohin die Encodierten Daten geschrieben werden.
+=======
+\item[OpusEncoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus Encoder-Objekt.
+\item[(opus\_int16 *)inputBuffer] Der ins \texttt{opus\_int16} oder 32-bit Float gecastete InputBuffer-Pointer, welcher die Input-Audiodaten der Soundkarte enthält.
+\item[userData->nBufferFrames] Die Anzahl der Samples(per Channel), die sich im InputBuffer befinden.
+\item[(unsigned char *)inputBuffer] Char-Pointer, der anzeigt, wohin die encodierten Audiodaten geschrieben werden sollen. Da wir auf dem inputBuffer arbeiten und keinen extra Speicherplatz für encodierte Daten haben, ist dies der selbe Speicherbereich aus dem wir die Daten gelesen haben.
+\item[userData->maxBufferSize] Maximal Größe des Speicherbereichs, auf den die encodierten Daten geschrieben werden.
+>>>>>>> origin/master
 \end{description}
 
-Als Rückgabewert geben wir die neue Größe des inputBuffers weiter. 
+Als Rückgabewert geben wir die neue Größe des \texttt{inputBuffers} weiter. 
 
 
 \begin{lstlisting}[caption={Encodieren von Audio Daten mittels Opus},label={Code:Opus}]
@@ -210,19 +218,27 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
 }
 \end{lstlisting}
 
-Das Decodieren geschieht auf ähnliche weise wie das Encodieren der Audio Daten.
-Zuerst wird eine Variable angelegt in welcher wir die Anzahl der Decodierten Samples speichern (numberOfDecodedSamples) welche wir von der opus\_decode()-Methode als Rückgabewert bekommen. Es wird wieder geprüft ob die Daten im Signed Integer 16 Format oder im Float 32 Format decodiert werden sollen. Anschließend wird die opus\_decode()-Methode mit folgenden Parametern aufgerufen :
+Das Decodieren geschieht auf ähnliche Weise wie das Encodieren der Audiodaten.
+Zuerst wird eine Variable angelegt, in der wir die Anzahl der decodierten Samples speichern (\texttt{numberOfDecodedSamples}), welche wir von der \texttt{opus\_decode()}-Methode als Rückgabewert bekommen. Es wird wieder geprüft, ob die Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format decodiert werden sollen. Anschließend wird die \texttt{opus\_decode()}-Methode mit folgenden Parametern aufgerufen :
 
 \begin{description}
+<<<<<<< HEAD
 \item[OpusDecoderObject] Das bei der Instanziierung erzeugte und in der configure()-Methode konfigurierte Opus Decoder Objekt.
 \item[outputBuffer] Char Pointer auf die Encodierten Audio Daten
 \item[outputBufferByteSize] Größe des OutputBuffers
 \item[outputBuffer] Pointer wohin die Decodierten Audio Daten geschrieben werden sollen entweder im Signed Integer 16 oder Float 32 Format.
 \item[userData->maxBufferSize] Maximal Größe des Speicherbereichs welcher die Decodierten Daten aufnimmt.
+=======
+\item[OpusDecoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus-Decoder-Objekt.
+\item[(unsigned char *)outputBuffer] Char-Pointer auf die encodierten Audiodaten
+\item[outputBufferByteSize] Größe des OutputBuffers
+\item[(opus\_int16 *)outputBuffer] Pointer, auf den Speicherbereich, auf den die decodierten Audiodaten geschrieben werden sollen, entweder im 16-bit Signed-Integer oder 32-bit Float Format.
+\item[userData->maxBufferSize] Maximal Größe des Speicherbereichs, der die decodierten Daten aufnimmt.
+>>>>>>> origin/master
 \item[0] Möglicher Platz für ein Flag welches Anzeigt ob in-band forward error correction data vorhanden ist, was nicht der Fall ist.
 \end{description}
 
-Da wir als Rückgabewert von opus\_decode() die Anzahl der Decodierten Samples bekommen, die Prozessoren aber als Rückgabewert die Größe des OutputBuffers zurückgeben sollen muss diese noch Mittels der Anzahl der Decodierten Samples mal der Größe des gewünschten Formates mal der Anzahl der Channels (numberOfDecodedSamples * sizeof(opus\_int16) * outputDeviceChannels) berechnet werden.
+Da wir als Rückgabewert von \texttt{opus\_decode()} die Anzahl der decodierten Samples bekommen, die Prozessoren aber als Rückgabewert die Größe des OutputBuffers zurückgeben sollen, muss diese noch Mittels der Anzahl der decodierten Samples mal der Größe des gewünschten Formates mal der Anzahl der Channels (numberOfDecodedSamples * sizeof(opus\_int16) * outputDeviceChannels) berechnet werden.
 
 \begin{lstlisting}[caption={Decodieren von Audio Daten mittels Opus},label={Code:Opus}]
 unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
@@ -248,7 +264,7 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
 \FloatBarrier
 \section{Passive Konfiguration}
 \label{passiveConfiguration}
-Die passive Konfiguration aus Abschnitt \ref{configurationUsages} wird mithilfe von \textbf{Application-defined} RTCP-Paketen aus Abschnitt \ref{rtcp} umgesetzt. Hierfür wird für die Konfiguration einer Sitzung der Klient \textbf{A} mit der Option \enquote{Konfigurations-Anfrage aktivieren} (oder dem Parameter \texttt{--wait-for-passive}) gestartet, um eine Anfrage einer passiven Konfiguration zu ermöglichen. Klient \textbf{B} wird mit dem Parameter \texttt{--passive} ausgeführt. Klient \textbf{A} konfiguriert das OHMComm-Framework, startet jedoch noch keine Kommunikation, sondern nur den RTCP-Thread und wartet dort auf eine Anfrage für eine passive Konfiguration. Klient \textbf{B} sendet eine RTCP Application-defined Nachricht an \textbf{A}, die die Anfrage einer passiven Konfiguration darstellt. Daraufhin antwortet \textbf{A} mit einem weiteren RTCP-Paket, das die Werte der passiven Konfiguration (Abtastrate, Audioformat, Audiocodecs, Anzahl der Kanäle sowie die Puffergröße) beinhaltet. Dieses Paket wird von \textbf{B} empfangen und die Konfiguration ausgelesen. Daraufhin können beide Seiten das Übertragen von Audiodaten beginnen. Durch die Übertragung aller relevanten Informationen (Einstellungen der Audiobibliothek sowie die verwendeten Audiocodecs) wird garantiert, dass die gesendeten Daten von der anderen Instanz auch verstanden und verwendet werden können. Um die passive Konfiguration zu starten, wird für den Klienten \textbf{B} nur die IP-Adresse und der Port des Klienten \textbf{A} benötigt, wohingegen \textbf{A} komplett wie bereits beschrieben konfiguriert werden kann. Der Ablauf einer passiven Konfiguration ist schematisch in Listing \ref{lst:passiveConfiguration} dargestellt:
+Die passive Konfiguration aus Abschnitt \ref{configurationUsages} wird mithilfe von \textbf{Application-defined} RTCP-Paketen aus Abschnitt \ref{rtcp} umgesetzt. Hierfür wird für die Konfiguration einer Sitzung der Klient \textbf{A} mit der Option \enquote{Konfigurationsanfrage aktivieren} (oder dem Parameter \texttt{--wait-for-passive}) gestartet, um eine Anfrage einer passiven Konfiguration zu ermöglichen. Klient \textbf{B} wird mit dem Parameter \texttt{--passive} ausgeführt. Klient \textbf{A} konfiguriert das OHMComm-Framework, startet jedoch noch keine Kommunikation, sondern nur den RTCP-Thread und wartet dort auf eine Anfrage für eine passive Konfiguration. Klient \textbf{B} sendet eine RTCP Application-defined Nachricht an \textbf{A}, die die Anfrage einer passiven Konfiguration darstellt. Daraufhin antwortet \textbf{A} mit einem weiteren RTCP-Paket, das die Werte der passiven Konfiguration (Abtastrate, Audioformat, Audiocodecs, Anzahl der Kanäle sowie die Puffergröße) beinhaltet. Dieses Paket wird von \textbf{B} empfangen und die Konfiguration ausgelesen. Daraufhin können beide Seiten das Übertragen von Audiodaten beginnen. Durch die Übertragung aller relevanten Informationen (Einstellungen der Audiobibliothek sowie die verwendeten Audiocodecs) wird garantiert, dass die gesendeten Daten von der anderen Instanz auch verstanden und verwendet werden können. Um die passive Konfiguration zu starten, wird für den Klienten \textbf{B} nur die IP-Adresse und der Port des Klienten \textbf{A} benötigt, wohingegen \textbf{A} komplett wie bereits beschrieben konfiguriert werden kann. Der Ablauf einer passiven Konfiguration ist schematisch in Listing \ref{lst:passiveConfiguration} dargestellt:
 \newline
 \begin{figure}[htp]
 \centering
