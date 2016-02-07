@@ -183,19 +183,11 @@ Das Encodieren der Audiodaten geschieht in der \texttt{processInputData()}-Metho
 Abhängig davon wir die \texttt{opus\_encode()}-Methode aufgerufen, welche folgende Parameter benötigt:
 
 \begin{description}
-<<<<<<< HEAD
 \item[OpusEncoderObject] Das bei der Instanziierung erzeugte und in der configure()-Methode konfigurierte Opus Encoder Objekt.
 \item[inputBuffer] Der ins opus\_int16 oder Float 32 Format gecastete InputBuffer Pointer welcher die Input Audio Daten der Soundkarte enthält.
 \item[userData->nBufferFrames] Die Anzahl der Samples(per Channel) welche sich im InputBuffer befinden.
 \item[inputBuffer] Char-Pointer der Anzeigt wohin die Encodierten Audio Daten geschrieben werden sollen. Da wir auf dem inputBuffer Arbeiten und keinen extra Speicherplatz für Encodierte Daten haben, ist dies der selbe Speicherbereich aus dem wir die Daten gelesen haben.
 \item[userData->maxBufferSize] Maximal Größe des Speicherbereichs wohin die Encodierten Daten geschrieben werden.
-=======
-\item[OpusEncoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus Encoder-Objekt.
-\item[(opus\_int16 *)inputBuffer] Der ins \texttt{opus\_int16} oder 32-bit Float gecastete InputBuffer-Pointer, welcher die Input-Audiodaten der Soundkarte enthält.
-\item[userData->nBufferFrames] Die Anzahl der Samples(per Channel), die sich im InputBuffer befinden.
-\item[(unsigned char *)inputBuffer] Char-Pointer, der anzeigt, wohin die encodierten Audiodaten geschrieben werden sollen. Da wir auf dem inputBuffer arbeiten und keinen extra Speicherplatz für encodierte Daten haben, ist dies der selbe Speicherbereich aus dem wir die Daten gelesen haben.
-\item[userData->maxBufferSize] Maximal Größe des Speicherbereichs, auf den die encodierten Daten geschrieben werden.
->>>>>>> origin/master
 \end{description}
 
 Als Rückgabewert geben wir die neue Größe des \texttt{inputBuffers} weiter. 
@@ -222,19 +214,11 @@ Das Decodieren geschieht auf ähnliche Weise wie das Encodieren der Audiodaten.
 Zuerst wird eine Variable angelegt, in der wir die Anzahl der decodierten Samples speichern (\texttt{numberOfDecodedSamples}), welche wir von der \texttt{opus\_decode()}-Methode als Rückgabewert bekommen. Es wird wieder geprüft, ob die Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format decodiert werden sollen. Anschließend wird die \texttt{opus\_decode()}-Methode mit folgenden Parametern aufgerufen :
 
 \begin{description}
-<<<<<<< HEAD
 \item[OpusDecoderObject] Das bei der Instanziierung erzeugte und in der configure()-Methode konfigurierte Opus Decoder Objekt.
 \item[outputBuffer] Char Pointer auf die Encodierten Audio Daten
 \item[outputBufferByteSize] Größe des OutputBuffers
 \item[outputBuffer] Pointer wohin die Decodierten Audio Daten geschrieben werden sollen entweder im Signed Integer 16 oder Float 32 Format.
 \item[userData->maxBufferSize] Maximal Größe des Speicherbereichs welcher die Decodierten Daten aufnimmt.
-=======
-\item[OpusDecoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus-Decoder-Objekt.
-\item[(unsigned char *)outputBuffer] Char-Pointer auf die encodierten Audiodaten
-\item[outputBufferByteSize] Größe des OutputBuffers
-\item[(opus\_int16 *)outputBuffer] Pointer, auf den Speicherbereich, auf den die decodierten Audiodaten geschrieben werden sollen, entweder im 16-bit Signed-Integer oder 32-bit Float Format.
-\item[userData->maxBufferSize] Maximal Größe des Speicherbereichs, der die decodierten Daten aufnimmt.
->>>>>>> origin/master
 \item[0] Möglicher Platz für ein Flag welches Anzeigt ob in-band forward error correction data vorhanden ist, was nicht der Fall ist.
 \end{description}
 
