@@ -184,9 +184,9 @@ Abhängig davon wir die opus\_encode()-Methode aufgerufen welche folgende Parame
 
 \begin{description}
 \item[OpusEncoderObject] Das bei der Instanziierung erzeugte und in der configure()-Methode konfigurierte Opus Encoder Objekt.
-\item[(opus\_int16 *)inputBuffer] Der ins opus\_int16 oder Float 32 Format gecastete InputBuffer Pointer welcher die Input Audio Daten der Soundkarte enthält.
+\item[inputBuffer] Der ins opus\_int16 oder Float 32 Format gecastete InputBuffer Pointer welcher die Input Audio Daten der Soundkarte enthält.
 \item[userData->nBufferFrames] Die Anzahl der Samples(per Channel) welche sich im InputBuffer befinden.
-\item[(unsigned char *)inputBuffer] Char-Pointer der Anzeigt wohin die Encodierten Audio Daten geschrieben werden sollen. Da wir auf dem inputBuffer Arbeiten und keinen extra Speicherplatz für Encodierte Daten haben, ist dies der selbe Speicherbereich aus dem wir die Daten gelesen haben.
+\item[inputBuffer] Char-Pointer der Anzeigt wohin die Encodierten Audio Daten geschrieben werden sollen. Da wir auf dem inputBuffer Arbeiten und keinen extra Speicherplatz für Encodierte Daten haben, ist dies der selbe Speicherbereich aus dem wir die Daten gelesen haben.
 \item[userData->maxBufferSize] Maximal Größe des Speicherbereichs wohin die Encodierten Daten geschrieben werden.
 \end{description}
 
@@ -215,9 +215,9 @@ Zuerst wird eine Variable angelegt in welcher wir die Anzahl der Decodierten Sam
 
 \begin{description}
 \item[OpusDecoderObject] Das bei der Instanziierung erzeugte und in der configure()-Methode konfigurierte Opus Decoder Objekt.
-\item[(unsigned char *)outputBuffer] Char Pointer auf die Encodierten Audio Daten
+\item[outputBuffer] Char Pointer auf die Encodierten Audio Daten
 \item[outputBufferByteSize] Größe des OutputBuffers
-\item[(opus\_int16 *)outputBuffer] Pointer wohin die Decodierten Audio Daten geschrieben werden sollen entweder im Signed Integer 16 oder Float 32 Format.
+\item[outputBuffer] Pointer wohin die Decodierten Audio Daten geschrieben werden sollen entweder im Signed Integer 16 oder Float 32 Format.
 \item[userData->maxBufferSize] Maximal Größe des Speicherbereichs welcher die Decodierten Daten aufnimmt.
 \item[0] Möglicher Platz für ein Flag welches Anzeigt ob in-band forward error correction data vorhanden ist, was nicht der Fall ist.
 \end{description}
