@@ -136,10 +136,6 @@ class SDPMessageHandler
 {
 public:
     
-    /*!
-     * The MIME-type for SDP: application/sdp
-     */
-    static const std::string MIME_SDP;
     SDPMessageHandler();
 
     /*!

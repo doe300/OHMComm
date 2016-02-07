@@ -17,10 +17,10 @@ protected:
     
     /*!
      * \param adaptionCycle The number of package receptions before adapting the playout delay
-     * \param startPackagesDelay the initial playout delay
+     * \param initialPackagesDelay the initial playout delay
      */
-    PlayoutPointAdaption(const uint16_t adaptionCycle, const uint16_t startPackagesDelay = 0) : adaptionCycle(adaptionCycle),
-            numDelayPackages(startPackagesDelay), numLateLosses(0), numWrites(0)
+    PlayoutPointAdaption(const uint16_t adaptionCycle, const uint16_t initialPackagesDelay = 0) : adaptionCycle(adaptionCycle),
+            numDelayPackages(initialPackagesDelay), numLateLosses(0), numWrites(0)
     {
         
     }

@@ -27,6 +27,11 @@
 const std::string SIP_VERSION("SIP/2.0");
 
 /*!
+ * The MIME-type for SDP: application/sdp
+ */
+const std::string MIME_SDP="application/sdp";
+
+/*!
  * The MIME multipart type for mixed content: multipart/mixed
  */
 const std::string MIME_MULTIPART_MIXED("multipart/mixed");
@@ -612,12 +617,6 @@ class SIPPackageHandler
 {
 public:
     SIPPackageHandler();
-    
-    static inline const std::string createSIPURI(const std::string& user, const std::string& host, int port)
-    {
-        //sip:user@host[:port]
-        return (std::string("sip:") + user + "@") + host + (port > 0 ? std::string(":") + std::to_string(port): std::string());
-    }
     
     static const std::string createRequestPackage(const SIPRequestHeader& header, const std::string& requestBody);
     

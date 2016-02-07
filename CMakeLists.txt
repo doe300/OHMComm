@@ -9,12 +9,17 @@ project (OHMComm)
 SET(BUILD_SHARED_LIBS ON)
 # Option to enable/disable test-program
 option(BUILD_TESTING "Build testing program" ON)
+option(BUILD_DEBUG "Build with debugging symbols. Otherwise build for performance" OFF)
 
 # append usage of C++ to compiler flags, also optimize for speed and enable all warnings
 if(NOT MSVC)
 	# the following instruction causes warnings in visual studio, 
 	# therefore enable it only when MSVC-compiler is not used
-	LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wextra -Wno-missing-field-initializers -pthread")
+	if(BUILD_DEBUG)
+		LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -g3 -Wextra -Wno-missing-field-initializers -pthread")
+	else()
+		LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wextra -Wno-missing-field-initializers -pthread")
+	endif()
 else()
 	# visual studio specific flags
 	set(CMAKE_CXX_FLAGS "/W3 /D_UNICODE /DUNICODE /DNOMINMAX")

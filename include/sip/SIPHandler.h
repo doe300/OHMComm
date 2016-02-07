@@ -14,7 +14,7 @@
 #include <exception>
 #include <chrono>
 
-#include "UDPWrapper.h"
+#include "NetworkWrapper.h"
 #include "SDPMessageHandler.h"
 #include "SIPPackageHandler.h"
 

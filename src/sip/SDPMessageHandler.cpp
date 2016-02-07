@@ -11,8 +11,6 @@
 #include "sip/SIPPackageHandler.h"
 #include "rtp/ParticipantDatabase.h"
 
-SIPUserAgent sipUserAgents[2] = {{},{}};
-
 //clang seems to need the static char-fields to be declared for linker to find them
 constexpr char SessionDescription::SDP_VERSION;
 constexpr char SessionDescription::SDP_ORIGIN;
@@ -27,7 +25,6 @@ const std::string SessionDescription::SDP_ATTRIBUTE_FMTP("fmtp");
 const std::string SessionDescription::SDP_ATTRIBUTE_RTCP("rtcp");
 const std::string SessionDescription::SDP_MEDIA_RTP("RTP/AVP");
 const std::string SessionDescription::SDP_MEDIA_SRTP("RTP/SAVP");
-const std::string SDPMessageHandler::MIME_SDP="application/sdp";
 
 SDPMessageHandler::SDPMessageHandler()
 {

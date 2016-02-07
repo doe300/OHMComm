@@ -21,8 +21,14 @@ struct SIPUserAgent
     std::string ipAddress;
     unsigned short port;
 
-    /* Declared in SIPHandler.cpp */
-    const std::string getSIPURI() const;
+    /*!
+     * \return the SIP-URI in the format sip:<userName>@<hostName|ipAddress>[:<port>]
+     */
+    const inline std::string getSIPURI() const
+    {
+        //sip:user@host[:port]
+        return (std::string("sip:") + userName + "@") + (hostName.empty() ? ipAddress : hostName) + (port > 0 ? std::string(":") + std::to_string(port): std::string());
+    }
 };
 
 struct Participant
