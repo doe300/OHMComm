@@ -45,7 +45,7 @@ PayloadType GainControl::getSupportedPlayloadType() const
 
 bool GainControl::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
 {
-    const std::string gainParameter = configMode->getCustomConfiguration(TARGET_GAIN->longName, "Insert gain to apply on the volume", "1.0");
+    const std::string gainParameter = configMode->getCustomConfiguration(TARGET_GAIN->longName, "Insert gain to apply on the volume", "0.0");
     numInputChannels = audioConfig.inputDeviceChannels;
     try
     {

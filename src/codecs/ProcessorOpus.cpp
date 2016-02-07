@@ -1,5 +1,6 @@
 #ifdef OPUS_HEADER //Only compile, if opus is linked
 #include "codecs/ProcessorOpus.h"
+#include "Parameters.h"
 
 ProcessorOpus::ProcessorOpus(const std::string name, int opusApplication) : 
     AudioProcessor(name), OpusEncoderObject(nullptr), OpusDecoderObject(nullptr)
@@ -67,6 +68,9 @@ bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::
 
     OpusEncoderObject = opus_encoder_create(audioConfig.sampleRate, audioConfig.inputDeviceChannels, OpusApplication, &ErrorCode);
     OpusDecoderObject = opus_decoder_create(audioConfig.sampleRate, audioConfig.outputDeviceChannels, &ErrorCode);
+    
+    //enable DTX for Opus, if enabled generally
+    opus_encoder_ctl(OpusEncoderObject, OPUS_SET_DTX(configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX")));
 
     if (ErrorCode == OPUS_OK)
     {
@@ -123,18 +127,22 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
     if (rtaudioFormat == AudioConfiguration::AUDIO_FORMAT_SINT16)
     {
         lengthEncodedPacketInBytes = opus_encode(OpusEncoderObject, (opus_int16 *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
-        return lengthEncodedPacketInBytes;
     }
     else if (rtaudioFormat == AudioConfiguration::AUDIO_FORMAT_FLOAT32)
     {
         lengthEncodedPacketInBytes = opus_encode_float(OpusEncoderObject, (const float *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
-        return lengthEncodedPacketInBytes;
     }
     else
     {
         std::cerr << "[Opus-processInputData-Error]No matching encoder found, AudioFormat possibly not supported" << std::endl;
         return 0;
     }
+    //if output length is 1, DTX is applied
+    if(lengthEncodedPacketInBytes == 1)
+    {
+        userData->isSilentPackage = true;
+    }
+    return lengthEncodedPacketInBytes;
 }
 
 unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
