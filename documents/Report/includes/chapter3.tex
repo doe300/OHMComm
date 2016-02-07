@@ -283,27 +283,32 @@ Als Audiowrapper wird RtAudio eingesetzt. RtAudio wird entwickelt von Gary P. Sc
 \end{itemize} 
 \end{description}
 
-Ein alternativer plattformunabhängiger Audiowrapper wäre PortAudio, was jedoch in C geschrieben ist. Da OHMComm und RtAudio in C++ geschrieben sind, ist dies die bessere Kombination.
+Ein alternativer plattformunabhängiger Audiowrapper wäre PortAudio, welcher jedoch in C geschrieben ist. Da OHMComm und RtAudio in C++ geschrieben sind, ist dies die bessere Kombination.
 
 \subsection{Opus}
 
-Als Audiocodec wird Opus eingesetzt. Opus ist ein Codec zur verlustbehafteten Kompression von Audiodaten. Opus ist speziell für Echtzeitanwendungen konzipiert und deshalb bestens geeignet für das OHMComm-Framework. Er wird unter einer OpenSource-Lizenz als royalty-free Codec, also ein Codec ohne Lizenzkosten, vertrieben. Alternative Codec wären AAC-LD oder AAC-ELD, welche aber Lizenzkostenpflichtig sind und deshalb nicht für OHMComm in Frage kommen. Opus ist ein Hybridcodec, welcher eine Transformationsschicht \textbf{CELT} als Nachfolger von Vorbis (Entwickelt von der Xiph.Org Foundation) und ein Linear Predictive Coding(LPC) namens \textbf{SILK} (Ursprünglich Entwickelt von Skype Technologies) zur Audiokompression einsetzt.
+Als Audiocodec wird Opus eingesetzt. Opus ist ein Codec zur verlustbehafteten Kompression von Audiodaten. Opus ist speziell für Echtzeitanwendungen konzipiert und deshalb bestens geeignet für das OHMComm-Framework. Er wird unter einer OpenSource-Lizenz als royalty-free Codec, also ein Codec ohne Lizenzkosten, vertrieben. Opus ist ein Hybridcodec, welcher eine Transformationsschicht \textbf{CELT} als Nachfolger von Vorbis (Entwickelt von der Xiph.Org Foundation) und ein Linear Predictive Coding(LPC) namens \textbf{SILK} (Ursprünglich Entwickelt von Skype Technologies) zur Audiokompression einsetzt.
 
 Viele bekannte Anwendungen setzten ebenfalls auf Opus als Audiocodec, darunter TeamSpeak, die Webbrowser Firefox und Chrome -- innerhalb ihrer WebRTC Implementierungen, da dort Opus vom Standard vorausgesetzt wird -- und Android 5 (Lollipop), welches eine native Unterstützung von Opus bietet.
 
 Weitere Feature von Opus sind:
 
 \begin{itemize}
+\label{Opus Sample Rate}
 \item Unterstütze Sampling Raten: 8000, 12000, 16000, 24000, und 48000Hz
 \item 3 Application Modi:
 \begin{itemize}
+\label{Opus Application Modi}
 \item OPUS\_APPLICATION\_VOIP: Optimiert auf Sprachverständlichkeit
-\item OPUS\_APPLICATION\_AUDIO: Optimiert auf Klanggenuss z.B. für Musik
+\item OPUS\_APPLICATION\_AUDIO: Optimiert auf Klanggenuss, für Musik
 \item OPUS\_APPLICATION\_RESTRICTED\_LOWDELAY: Optimiert auf kleinstmögliche Latenz
 \end{itemize}
+\label{Opus Audioframe}
 \item Audioframegrößen von 2.5 ms bis 60 ms
 \item Mono und Stereo Support
 \end{itemize}
+
+Alternative Codecs wären AAC-LD oder AAC-ELD, welche aber Lizenzkostenpflichtig sind und deshalb nicht für OHMComm in Frage kommen.
 
 \section{Statistiken}
 Ein weiteres Feature des OHMComm-Frameworks ist das Sammeln und Anzeigen von statistischen Daten (siehe Anforderung \ref{FA:Statistik}). Die verschiedenen Statistiken wurden eingebaut, um die Performance einzelner Abschnitte der Verarbeitungskette zu messen, sowie die Richtigkeit der Handhabung von RTP-Paketen und frei gewählter Werte (wie der Buffergröße und Abspiellatenz) zu beweisen. Im Laufe des Programms werden eine Vielzahl an verschiedenen statistischen Daten gesammelt. Darunter fallen:
