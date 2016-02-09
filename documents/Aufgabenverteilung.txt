@@ -3,7 +3,7 @@ Präsentation
 Bericht
 
 Architektur
-RTAudio
+RtAudio
 Opus
 RTP
 Buffer
@@ -41,7 +41,15 @@ Kamal:
 			- Schlussbemerkungen
 				- Fazit
 Jonas:
-
+	Projektmanagement
+	Präsentation
+	Bericht
+	RtAudio
+	Opus
+	Tests
+	Konfiguration
+	Plattformunabhängigkeit (CMAKE)
+	
 Daniel:
 	Projektmanagement
 	Präsentation (1/3)

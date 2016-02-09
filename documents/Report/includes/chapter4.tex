@@ -103,7 +103,7 @@ void RTPListener::runThread() {
 
 \section{RtAudio}
 
-Der RtAudioWrapper bietet drei Modi zur Audiokommunikation, diese sind RecordingMode, PlaybackMode und DuplexMode. Bei den ersten beiden Modi wird entweder nur der Input- oder der Output-Stream übergeben um nur Sound aufzunehmen oder abzuspielen. Dagegen benutzt der letzte Modus DuplexMode den input und output Stream um ein simultanes aufnehmen und abspielen von Audio Daten zu ermöglichen.
+Der \textbf{RtAudioWrapper} bietet drei Modi zur Audiokommunikation, diese sind \textit{RecordingMode}, \textit{PlaybackMode} und \textit{DuplexMode}. Bei den ersten beiden Modi wird entweder nur der Input- oder der Output-Stream übergeben um nur Sound aufzunehmen oder abzuspielen. Dagegen benutzt der letzte Modus(DuplexMode) den input und output Stream um ein simultanes aufnehmen und abspielen von Audio Daten zu ermöglichen.
 
 Die RtAudio-API wird mittels eines Objekts, dessen Namen auf rtaudio definiert wurde gesteuert.
 
@@ -112,7 +112,7 @@ RtAudio rtaudio;
 RtAudio::StreamParameters input, output;
 \end{lstlisting}
 
-Um den Duplex Modus zu starten wird zuerst per Flag (\texttt{flagPrepare}) geprüft ob die \texttt{prepare()}-Methode von RtAudioWrapper bereits ausgeführt worden ist -- welche überprüft ob die Output und Input Stream Parameter konfiguriert sind -- und ob alle AudioProzessoren mittels der \texttt{prepare()}-Methode des AudioHandler ihre Unterstützten Parameter gemeldet haben und sich auf einen gleichen Parametersatz einigen konnten. Wenn dies nicht der Fall ist, wird ein Fehler ausgegeben, mit dem Hinweis, dass die AudioProzessoren zuerst konfiguriert werden müssen, bevor der RtAudio Stream gestartet werden kann.
+Um den \textit{Duplex Modus} zu starten wird zuerst per Flag (\texttt{flagPrepare}) geprüft ob die \texttt{prepare()}-Methode von RtAudioWrapper bereits ausgeführt worden ist -- welche überprüft ob die Output und Input Stream Parameter konfiguriert sind -- und ob alle AudioProzessoren mittels der \texttt{prepare()}-Methode des AudioHandler ihre Unterstützten Parameter gemeldet haben und sich auf einen gleichen Parametersatz einigen konnten. Wenn dies nicht der Fall ist, wird ein Fehler ausgegeben, mit dem Hinweis, dass die AudioProzessoren zuerst konfiguriert werden müssen, bevor der RtAudio Stream gestartet werden kann.
 
 Dem \texttt{rtaudio}-Objekt werden per \texttt{openStream()}-Methode die benötigten Parameter mitgeteilt, welche folgenden Inhalt haben:
 
@@ -149,7 +149,7 @@ auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsig
 }
 \end{lstlisting}
 
-Die callback()-Methode des RtAudioWrapper ruft die Methoden \texttt{processAudioInput()} und \texttt{processAudioOutput()} auf welche die einzelnen Prozessoren durchläuft und folgende Parameter enthält :
+Die \texttt{callback()}-Methode des RtAudioWrapper ruft die Methoden \texttt{processAudioInput()} und \texttt{processAudioOutput()} auf welche die einzelnen Prozessoren durchläuft und folgende Parameter enthält :
 \begin{description}
 \item[inputBuffer] Pointer auf den Speicherbereich der die input Audio Daten enthält.
 \item[outputBuffer] Pointer auf den Speicherbereich der die output Audio Daten enthält.
@@ -170,9 +170,9 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
 
 \section{Opus}
 
-Der Opus-Codec, der zum Encoden und Decoden der Audiodaten benutzt wird wurde als Prozessor in OHMComm eingebunden.
+Der \textbf{Opus-Codec}, welcher zum \textit{Encoden} und \textit{Decoden} der Audiodaten benutzt wird wurde als Prozessor in OHMComm eingebunden.
 
-Der Konstruktor des Opus-Prozessors erstellt bei der Instanziierung jeweils ein Encoder- und Decoder-Objekt. Außerdem wird ihm ein Name gegeben und der Opus-Application-Type (siehe \ref{Opus Application Modi}) wird gewählt.
+Der \textit{Konstruktor} des Opus-Prozessors erstellt bei der Instanziierung jeweils ein Encoder- und Decoder-Objekt. Außerdem wird ihm ein Name gegeben und der Opus-Application-Type (siehe \ref{Opus Application Modi}) wird gewählt.
 
 \begin{lstlisting}[caption={Instanziierung des Opus Prozessors},label={Code:Opus Instanziierung}]
 ProcessorOpus::ProcessorOpus(const std::string name, int opusApplication) : AudioProcessor(name), OpusEncoderObject(nullptr), OpusDecoderObject(nullptr)
@@ -200,7 +200,7 @@ bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::
 }
 \end{lstlisting}
 
-Das Encodieren der Audiodaten geschieht in der \texttt{processInputData()}-Methode des Opus-Prozessors. Zu Beginn wird die Variable \texttt{lengthEncodedPacketInBytes} deklariert in der die Größe der Audiodaten nach ihrer Encodierung gespeichert wird. Anschließend wir geprüft ob Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format vorliegen.
+Das \textit{Encodieren} der Audiodaten geschieht in der \texttt{processInputData()}-Methode des Opus-Prozessors. Zu Beginn wird die Variable \texttt{lengthEncodedPacketInBytes} deklariert in der die Größe der Audiodaten nach ihrer Encodierung gespeichert wird. Anschließend wir geprüft ob Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format vorliegen.
 Abhängig davon wir die entsprechende \texttt{opus\_encode()}-Methode aufgerufen, welche folgende Parameter benötigt:
 
 \begin{description}
@@ -231,7 +231,7 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
 }
 \end{lstlisting}
 
-Das Decodieren geschieht auf ähnliche Weise wie das Encodieren der Audio Daten innerhalb der \texttt{processOutputData()}-Methode.
+Das \textit{Decodieren} geschieht auf ähnliche Weise wie das Encodieren der Audio Daten innerhalb der \texttt{processOutputData()}-Methode.
 Zuerst wird eine Variable angelegt, in der die Anzahl der decodierten Samples gespeichert wird(\texttt{numberOfDecodedSamples}), welche von der \texttt{opus\_decode()}-Methode als Rückgabewert zurückgeliefert wird. Es wird wieder geprüft, ob die Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format decodiert werden sollen. Anschließend wird die \texttt{opus\_decode()}-Methode mit folgenden Parametern aufgerufen :
 
 \begin{description}
@@ -243,7 +243,7 @@ Zuerst wird eine Variable angelegt, in der die Anzahl der decodierten Samples ge
 \item[0] Möglicher Platz für ein Flag welches Anzeigt ob in-band forward error correction Daten vorhanden sind, was nicht der Fall ist.
 \end{description}
 
-Da wir als Rückgabewert von \texttt{opus\_decode()} die Anzahl der decodierten Samples bekommen, die Prozessoren aber als Rückgabewert die Größe des OutputBuffers zurückgeben sollen, muss diese noch Mittels der Anzahl der decodierten Samples multipliziert mit der Größe des gewünschten Formates multipliziert mit der Anzahl der Channels \texttt{(numberOfDecodedSamples * sizeof(opus\_int16) * outputDeviceChannels)} berechnet werden.
+Da wir als \textit{Rückgabewert} von \texttt{opus\_decode()} die Anzahl der decodierten Samples bekommen, die Prozessoren aber als Rückgabewert die Größe des OutputBuffers zurückgeben sollen, muss diese noch Mittels der Anzahl der decodierten Samples multipliziert mit der Größe des gewünschten Formates multipliziert mit der Anzahl der Channels \texttt{(numberOfDecodedSamples * sizeof(opus\_int16) * outputDeviceChannels)} berechnet werden.
 
 \begin{lstlisting}[caption={Decodieren von Audio Daten mittels Opus},label={Code:Opus Decodieren}]
 unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)

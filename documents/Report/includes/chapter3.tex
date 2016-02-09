@@ -4,7 +4,7 @@ In diesem Abschnitt wird die interne Projektverwaltung, die Werkzeuge zur Projek
 Die Aufgabenstellung und der Fortschritt des Projekts wurde fortlaufen in Treffen mit \textit{Herrn Professor Teßmann} besprochen. Zwischen den Treffen stand \textit{Herr Professor Teßmann} jederzeit für persönliche und schriftliche Fragen zur Verfügung.
 
 \subsection{GitHub}
-Zur kollaborativen Versionsverwaltung wird der Online-Service \textbf{GitHub} \cite{GitHub} verwendet, welcher für OpenSource Projekte kostenlos öffentliche Repositories zur Verfügung stellt. Da das Projekt unter der \textbf{MIT-Lizenz} \cite{GitHub:OHMComm License} entwickelt wird, ist die Nutzung eines öffentlichen Repositories ein Vorteil hinsichtlich auf eine mögliche Weiterentwicklung und einer guten Akzeptanz in der OpenSource-Community.
+Zur kollaborativen Versionsverwaltung wird der Online-Service \textbf{GitHub} \cite{GitHub} verwendet, welcher für OpenSource Projekte kostenlos öffentliche Repositories zur Verfügung stellt. Da das Projekt unter der \textbf{MIT-Lizenz} \cite{GitHub:OHMCommLicense} entwickelt wird, ist die Nutzung eines öffentlichen Repositories ein Vorteil hinsichtlich auf eine mögliche Weiterentwicklung und einer guten Akzeptanz in der OpenSource-Community.
 
 Das GitHub-Repository bietet die Möglichkeit den Code, welcher lokal entwickelt wird, in das Repository hochzuladen, so dass immer ein konsistenter gleicher Versionsstand vorhanden ist. Außerdem gibt es die Möglichkeit für einzelne Teilprojekte eigene \textbf{Branches} zu erstellen, so dass auf diesen unabhängig vom Master-Branch, in welchem alle Teile zusammenfließen, entwickelt werden kann.
 
@@ -16,7 +16,7 @@ Da das Ziel \ref{NFA:Plattformunabhängigkeit} des Projektes ist, plattformunabh
 Hierfür wurde das plattformunabhängige Build Werkzeug CMake \cite{Cmake}, welches auch unter einer OpenSource Lizenz (BSD-Lizenz) \cite{Cmake:License} erhältlich ist, verwendet. CMake erlaubt es für unterschiedliche IDEs Projektdateien zu erstellen, so dass für die Entwicklung nicht eine spezifische Entwicklungsumgebung benötigt wird, sondern mit mehreren, auch betriebssystemunabhängigen IDEs, entwickelt werden kann.
 
 \subsection{IDEs}
-Als IDEs kamen \textbf{Visual Studio} \cite{Visual Studio} unter Windows 7 und Windows 10 zum Einsatz. Zu Beginn des Projekts in Version Visual Studio 2013, in der zweiten Hälfte des Projekts dann in Version Visual Studio 2015, welches eine bessere Unterstützung für C++11 Sprachfeatures enthält \cite{Visual Studio:C++11}. Unter Fedora 21 wurde \textbf{Netbeans} \cite{NetBeans} in Version 8 eingesetzt.
+Als IDEs kamen \textbf{Visual Studio} \cite{VisualStudio} unter Windows 7 und Windows 10 zum Einsatz. Zu Beginn des Projekts in Version Visual Studio 2013, in der zweiten Hälfte des Projekts dann in Version Visual Studio 2015, welches eine bessere Unterstützung für C++11 Sprachfeatures enthält \cite{VisualStudio:C++11}. Unter Fedora 21 wurde \textbf{Netbeans} \cite{NetBeans} in Version 8 eingesetzt.
 
 \subsection{Testumgebung}
 Zum Testen des Codes wurden mehrere unterschiedliche Testumgebungen eingesetzt. Dabei wurden \textbf{rechnerübergreifende Tests} des Verbindungsaufbaus und der Verbindungsqualität über \textit{LAN}, \textit{WLAN} und \textit{WAN} mit verschiedenen Betriebssystemen durchgeführt. 
@@ -260,7 +260,7 @@ Die Methode \texttt{startUp()} startet den \texttt{RTP"-Listener} in einem separ
 \section{Konkrete Softwarekomponenten}
 \subsection{RtAudio}
 \label{sec:RtAudio}
-Als Audiowrapper wird RtAudio \cite{RtAudio} eingesetzt. RtAudio wird entwickelt von Gary P. Scavone, Professor an der McGill Uni in Kanada, und wird unter der MIT-Lizenz  vertrieben \cite{RtAudio:License}. RtAudio dient als Programmierschnittstelle, engl. Application Programming Interface(API), zwischen den Betriebssystemabhängigen APIs und OHMComm. RtAudio unterstützt eine Vielzahl von APIs. Aufgeschlüsselt nach Betriebssystem sind diese \cite{RTAudioAPIs}
+Als \textbf{Audiowrapper} wird RtAudio \cite{RtAudio} eingesetzt. RtAudio wird entwickelt von \textit{Gary P. Scavone}, Professor an der McGill Uni in Kanada, und wird unter der \textit{MIT-Lizenz} vertrieben \cite{RtAudio:License}. RtAudio dient als Programmierschnittstelle, engl. Application Programming Interface(API), zwischen den Betriebssystemabhängigen APIs und OHMComm. RtAudio unterstützt eine Vielzahl von APIs. Aufgeschlüsselt nach Betriebssystem sind diese \cite{RTAudioAPIs}:
 
 \begin{description}
 \item[Microsoft Windows:]~\par
@@ -283,15 +283,15 @@ Als Audiowrapper wird RtAudio \cite{RtAudio} eingesetzt. RtAudio wird entwickelt
 \end{itemize} 
 \end{description}
 
-Ein alternativer plattformunabhängiger Audiowrapper wäre PortAudio \cite{Portaudio}, welcher jedoch in C geschrieben ist. Da OHMComm und RtAudio in C++ geschrieben sind, ist dies die bessere Kombination.
+Ein alternativer plattformunabhängiger Audiowrapper wäre \textit{PortAudio} \cite{Portaudio}, welcher jedoch in C geschrieben ist. Da OHMComm und RtAudio in C++ geschrieben sind, ist dies die bessere Kombination.
 
 \subsection{Opus}
 
-Als Audiocodec wird Opus \cite{Opus} eingesetzt. Opus ist ein Codec zur verlustbehafteten Kompression von Audiodaten. Opus ist speziell für Echtzeitanwendungen konzipiert und deshalb bestens geeignet für das OHMComm-Framework. Er wird unter einer OpenSource-Lizenz \cite{Opus:License} als royalty-free Codec, also ein Codec ohne Lizenzkosten, vertrieben. Opus ist ein Hybridcodec, welcher eine Transformationsschicht \textbf{CELT} als Nachfolger von Vorbis (Entwickelt von der Xiph.Org Foundation) \cite{CELT} und ein Linear Predictive Coding(LPC) namens \textbf{SILK} (Ursprünglich Entwickelt von Skype Technologies) \cite{SILK} zur Audiokompression einsetzt.
+Als \textbf{Audiocodec} wird Opus \cite{Opus} eingesetzt. Opus ist ein Codec zur verlustbehafteten Kompression von Audiodaten. Opus ist speziell für \textit{Echtzeitanwendungen} konzipiert und deshalb bestens geeignet für das OHMComm-Framework. Er wird unter einer \textit{OpenSource-Lizenz} \cite{Opus:License} als royalty-free Codec, also ein Codec ohne Lizenzkosten, vertrieben. Opus ist ein \textit{Hybridcodec}, welcher eine Transformationsschicht \textbf{CELT} (Entwickelt von der Xiph.Org Foundation) \cite{CELT} und ein Linear Predictive Coding(LPC) namens \textbf{SILK} (Ursprünglich Entwickelt von Skype Technologies) \cite{SILK} zur Audiokompression einsetzt.
 
-Viele bekannte Anwendungen setzten ebenfalls auf Opus als Audiocodec, darunter TeamSpeak \cite{TeamSpeak:Opus}, die Webbrowser Firefox \cite{Firefox:Opus} und Chrome \cite{Chrome:Opus} -- innerhalb ihrer WebRTC Implementierungen, da dort Opus vom Standard vorausgesetzt wird \cite{WebRTC:Opus} -- und Android 5 (Lollipop), welches eine native Unterstützung von Opus bietet \cite{Android5:Opus}.
+Viele bekannte Anwendungen setzten ebenfalls auf Opus als Audiocodec, darunter \textit{TeamSpeak} \cite{TeamSpeak:Opus}, die \textit{Webbrowser} Firefox \cite{Firefox:Opus} und Chrome \cite{Chrome:Opus} -- innerhalb ihrer WebRTC Implementierungen, da dort Opus vom Standard vorausgesetzt wird \cite{WebRTC:Opus} -- und \textit{Android 5} (Lollipop), welches eine native Unterstützung von Opus bietet \cite{Android5:Opus}.
 
-Weitere Feature von Opus sind \cite{Opus:API}
+Weitere Feature von Opus sind \cite{Opus:API}:
 
 \begin{itemize}
 \label{Opus Sample Rate}
@@ -308,7 +308,7 @@ Weitere Feature von Opus sind \cite{Opus:API}
 \item Mono und Stereo Support
 \end{itemize}
 
-Alternative Codecs wären AAC-LD oder AAC-ELD, welche aber Lizenzkostenpflichtig \cite{AAC:LD-ELD} sind und deshalb nicht für OHMComm in Frage kommen.
+Alternative Codecs wären \textit{AAC-LD} oder \textit{AAC-ELD}, welche aber Lizenzkostenpflichtig \cite{AAC:LD-ELD} sind und deshalb nicht für OHMComm in Frage kommen.
 
 \section{Statistiken}
 Ein weiteres Feature des OHMComm-Frameworks ist das Sammeln und Anzeigen von statistischen Daten (siehe Anforderung \ref{FA:Statistik}). Die verschiedenen Statistiken wurden eingebaut, um die Performance einzelner Abschnitte der Verarbeitungskette zu messen, sowie die Richtigkeit der Handhabung von RTP-Paketen und frei gewählter Werte (wie der Buffergröße und Abspiellatenz) zu beweisen. Im Laufe des Programms werden eine Vielzahl an verschiedenen statistischen Daten gesammelt. Darunter fallen:
