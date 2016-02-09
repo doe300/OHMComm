@@ -1,22 +1,22 @@
 \chapter{Entwurf}
 \section{Projektverwaltung und Werkzeuge}
-In diesem Abschnitt wird die interne Projektverwaltung, die Werkzeuge zur Projektverwaltung und die Werkzeuge zur Projektrealisierung beschrieben.
-Die Aufgabenstellung und der Fortschritt des Projekts wurde fortlaufen in Treffen mit \textit{Herrn Professor Teßmann} besprochen. Zwischen den Treffen stand \textit{Herr Professor Teßmann} jederzeit für persönliche und schriftliche Fragen zur Verfügung.
+In diesem Abschnitt werden die interne Projektverwaltung, die Werkzeuge zur Projektverwaltung und die Werkzeuge zur Projektrealisierung beschrieben.
+Die Aufgabenstellung und der Fortschritt des Projekts wurden fortlaufen in Treffen mit \textit{Herrn Professor Teßmann} besprochen. Zwischen den Treffen stand \textit{Herr Professor Teßmann} jederzeit für persönliche und schriftliche Fragen zur Verfügung.
 
 \subsection{GitHub}
-Zur kollaborativen Versionsverwaltung wird der Online-Service \textbf{GitHub} \cite{GitHub} verwendet, welcher für OpenSource Projekte kostenlos öffentliche Repositories zur Verfügung stellt. Da das Projekt unter der \textbf{MIT-Lizenz} \cite{GitHub:OHMComm License} entwickelt wird, ist die Nutzung eines öffentlichen Repositories ein Vorteil hinsichtlich auf eine mögliche Weiterentwicklung und einer guten Akzeptanz in der OpenSource-Community.
+Zur kollaborativen Versionsverwaltung wird der Online-Service \textbf{GitHub} \cite{GitHub} verwendet, welcher für OpenSource Projekte kostenlos öffentliche Repositories zur Verfügung stellt. Da das Projekt unter der \textbf{MIT-Lizenz} entwickelt wird, ist die Nutzung eines öffentlichen Repositories ein Vorteil hinsichtlich auf eine mögliche Weiterentwicklung und einer guten Akzeptanz in der OpenSource-Community.
 
-Das GitHub-Repository bietet die Möglichkeit den Code, welcher lokal entwickelt wird, in das Repository hochzuladen, so dass immer ein konsistenter gleicher Versionsstand vorhanden ist. Außerdem gibt es die Möglichkeit für einzelne Teilprojekte eigene \textbf{Branches} zu erstellen, so dass auf diesen unabhängig vom Master-Branch, in welchem alle Teile zusammenfließen, entwickelt werden kann.
+Das GitHub-Repository bietet die Möglichkeit, den Code, welcher lokal entwickelt wird, in das Repository hochzuladen, so dass immer ein konsistenter gleicher Versionsstand vorhanden ist. Außerdem gibt es die Möglichkeit, für einzelne Teilprojekte eigene \textbf{Branches} zu erstellen, so dass auf diesen unabhängig vom Master-Branch, in dem alle Teile zusammenfließen, entwickelt werden kann.
 
 Zur Fehlerverwaltung wird das bereits Integrierte \textbf{Issue System} von GitHub verwendet. Mit diesem ist es möglich die Issues zu priorisieren, mit Tags zu versehen, einzelnen Projektmitgliedern zuzuweisen und den Bearbeitungsstand zu dokumentieren. Der weitere Vorteil hiervon ist, das jedes Projektmitglied automatisch eine Benachrichtigung über neue Issues und Aktualisierungen erhält und somit bei der Fehleranalyse helfen kann.
 Außerdem wurden einzelne \textbf{Milestones} erstellt, welche sich an den fortlaufenden Besprechungen orientierten und somit laufend Ziele bei der Projektdurchführung definierten. Nach der Erreichung großer Projektziele wurden Versionsstände als \textbf{Releases} getaggt, so dass ersichtlich wurde, welchen funktionellen Umfang der Code in diesem Stadium hat.
 
 \subsection{CMake}
 Da das Ziel \ref{NFA:Plattformunabhängigkeit} des Projektes ist, plattformunabhängig zu sein, wird eine Möglichkeit benötigt unterschiedliche \textbf{integrierte Entwicklungsumgebungen (IDEs)} zu unterstützen.
-Hierfür wurde das plattformunabhängige Build Werkzeug CMake \cite{Cmake}, welches auch unter einer OpenSource Lizenz (BSD-Lizenz) \cite{Cmake:License} erhältlich ist, verwendet. CMake erlaubt es für unterschiedliche IDEs Projektdateien zu erstellen, so dass für die Entwicklung nicht eine spezifische Entwicklungsumgebung benötigt wird, sondern mit mehreren, auch betriebssystemunabhängigen IDEs, entwickelt werden kann.
+Hierfür wurde das plattformunabhängige Build Werkzeug CMake \cite{Cmake}, welches auch unter einer OpenSource Lizenz (BSD-Lizenz) erhältlich ist, verwendet. CMake erlaubt es für unterschiedliche IDEs Projektdateien zu erstellen, so dass für die Entwicklung nicht eine spezifische Entwicklungsumgebung benötigt wird, sondern mit mehreren, auch betriebssystemunabhängigen IDEs, entwickelt werden kann.
 
 \subsection{IDEs}
-Als IDEs kamen \textbf{Visual Studio} \cite{Visual Studio} unter Windows 7 und Windows 10 zum Einsatz. Zu Beginn des Projekts in Version Visual Studio 2013, in der zweiten Hälfte des Projekts dann in Version Visual Studio 2015, welches eine bessere Unterstützung für C++11 Sprachfeatures enthält \cite{Visual Studio:C++11}. Unter Fedora 21 wurde \textbf{Netbeans} \cite{NetBeans} in Version 8 eingesetzt.
+Als IDEs kamen \textbf{Visual Studio} unter Windows 7 und Windows 10 zum Einsatz. Zu Beginn des Projekts in Version Visual Studio 2013, in der zweiten Hälfte des Projekts dann in Version Visual Studio 2015, welches eine bessere Unterstützung für C++11 Sprachfeatures enthält \cite{VisualStudio:C++11}. Unter Fedora 21 wurde \textbf{Netbeans} in Version 8 eingesetzt.
 
 \subsection{Testumgebung}
 Zum Testen des Codes wurden mehrere unterschiedliche Testumgebungen eingesetzt. Dabei wurden \textbf{rechnerübergreifende Tests} des Verbindungsaufbaus und der Verbindungsqualität über \textit{LAN}, \textit{WLAN} und \textit{WAN} mit verschiedenen Betriebssystemen durchgeführt. 
@@ -38,7 +38,7 @@ Zum Erstellen des Projektes OHMComm unter Unix-Systemen wird neben einem C++11-f
 Unter Linux und den meisten Unix-Betriebssystemen wird das Projekt kompiliert, indem zuerst mit dem Befehl \texttt{cmake -G ``Unix Makefiles''} aus der CMake-Beschreibung eine \texttt{Makefile} -- also eine Anleitung für das \texttt{make} Build-System -- erstellt wird. Daraufhin können mit dem Befehl \texttt{make} im Zielverzeichnis des vorherigen Kommandos die einzelnen Bibliotheken oder Programme kompiliert werden. So erstellt \texttt{make OHMCommLib} die Bibliothek \textbf{OHmCommLib} (das eigentliche Framework), die in weitere Programme eingebunden werden kann (siehe Abschnitt \ref{configurationUsages}). \texttt{make OHMComm} erstellt das ausführbare Programm \textbf{OHMComm} (siehe Ziel \ref{FA:Konsolenanwendung}) und \texttt{make Tests} die Test-Suite für das Projekt.
 
 \subsection{Build unter Windows}
-Zum Erstellen des Projekts unter Windows wird eine aktuelle Version von \textbf{CMake} \cite{Cmake} und die zu benutzende \textbf{Entwicklungsumgebung}, welche von CMake unterstützt wird, benötigt.
+Zum Erstellen des Projekts unter Windows wird eine aktuelle Version von \textbf{CMake} und die zu benutzende \textbf{Entwicklungsumgebung}, welche von CMake unterstützt wird, benötigt.
 Für einen sauberen Entwicklungsprozess ist es zu empfehlen, sich ein Build Verzeichnis außerhalb des Sourcecodes anzulegen (Out-of-Source Build).
 
 \begin{figure}[htp]
@@ -63,7 +63,7 @@ Im Verzeichnis \texttt{build/Release/} findet sich bei der Verwendung von Visual
 Um OHMComm verwenden zu können, müssen vorher eine Vielzahl an Einstellungen getroffen werden. Diese Einstellungen gliedern sich in folgende Bereiche:
 \begin{description}
 \item[Audio-Konfiguration:]Einstellungen für die Soundkarte, wie die Wahl des Formats zum Aufnehmen oder Abspielen, die Anzahl der Kanäle, die Abtastrate oder die verwendeten Audiogeräte. Die Auswahl der Geräte für die Aufnahme und Ausgabe können unabhängig vom Kommunikationspartner eingestellt werden. Andere Einstellungen (Audioformat, Kanäle und Abtastrate) müssen jedoch mit dem Gesprächspartner abgestimmt oder auf kompatible Werte umgerechnet werden.
-\item[Prozessoren-Konfiguration:]Hierunter fällt die Auswahl der verwendeten Audioprozessoren und die Reihenfolge, in der die Prozessoren verkettet werden (siehe Abschnitt \ref{processingChain}). Ebenso besitzen manche Prozessoren eigene Einstellungsmöglichkeiten, um deren Funktionsweise zu regeln. Die meisten Prozessoren und Prozessoreinstellungen fordern keine Anpassung der Konfiguration des Gesprächspartners. Ausnahmen sind hier die Audiocodecs, die von beiden Programmen gleich konfiguriert verwendet werden müssen, um die encodierten Daten wieder richtig decodieren zu können.
+\item[Prozessoren-Konfiguration:]Hierunter fällt die Auswahl der verwendeten Audioprozessoren und die Reihenfolge, in der die Prozessoren verkettet werden (siehe Abschnitt \ref{processingChain}). Ebenso besitzen manche Prozessoren eigene Einstellungsmöglichkeiten, um deren Funktionsweise zu regeln. Die meisten Prozessoren und Prozessoreinstellungen fordern keine Anpassung der Konfiguration des Gesprächspartners. Ausnahmen sind hier die Audiocodecs, die von beiden Programmen gleich konfiguriert verwendet werden müssen um die encodierten Daten wieder richtig decodieren zu können.
 \item[Netzwerk-Konfiguration:]Bestimmt den zu verwendenden Port zum Empfangen und Senden von Paketen auf dem lokalen Rechner, sowie die IP-Adresse und den Port des Rechners des Kommunikationspartners. Die Ports und die Adresse des jeweils anderen Rechners müssen vorher zwischen den Gesprächspartner abgestimmt werden, um eine Duplex-Kommunikation einrichten zu können. Bei der Netzwerk-Konfiguration ist zu beachten, dass bei Kommunikation über ein WAN (Wide Area Network) eine von außen erreichbare IP-Adresse gewählt wird evtl. auch Port-Weiterleitungen eingerichtet werden müssen.
 \item[Sonstige Konfiguration:] Hier zählen sonstige, rein optionale Einstellungen, die die eigentliche Audiokommunikation nicht beeinflussen, wie das Messen der Ausführungsdauer der verwendeten Prozessoren, das Schreiben des Logs in eine Datei sowie die informativen Daten, die bei RTCP SDES-Paketen gesendet werden (siehe Abschnitt \ref{rtcp}). Da diese Einstellungen nur das lokale Programm betreffen, müssen sie nicht mit dem Gesprächspartner abgestimmt werden.
 \end{description}
@@ -259,7 +259,7 @@ Die Methode \texttt{startUp()} startet den \texttt{RTP"-Listener} in einem separ
 \section{Konkrete Softwarekomponenten}
 \subsection{RtAudio}
 \label{sec:RtAudio}
-Als Audiowrapper wird RtAudio \cite{RtAudio} eingesetzt. RtAudio wird entwickelt von Gary P. Scavone, Professor an der McGill Uni in Kanada, und wird unter der MIT-Lizenz  vertrieben \cite{RtAudio:License}. RtAudio dient als Programmierschnittstelle, engl. Application Programming Interface(API), zwischen den Betriebssystemabhängigen APIs und OHMComm. RtAudio unterstützt eine Vielzahl von APIs. Aufgeschlüsselt nach Betriebssystem sind diese \cite{RTAudioAPIs}
+Als Audiowrapper wird RtAudio \cite{RtAudio} eingesetzt. RtAudio wird entwickelt von Gary P. Scavone, Professor an der McGill Uni in Kanada, und wird unter der MIT-Lizenz  vertrieben. RtAudio dient als Programmierschnittstelle, engl. Application Programming Interface(API), zwischen den Betriebssystemabhängigen APIs und OHMComm. RtAudio unterstützt eine Vielzahl von APIs. Aufgeschlüsselt nach Betriebssystem sind diese \cite{RTAudioAPIs}
 
 \begin{description}
 \item[Microsoft Windows:]~\par
@@ -286,11 +286,11 @@ Ein alternativer plattformunabhängiger Audiowrapper wäre PortAudio \cite{Porta
 
 \subsection{Opus}
 
-Als Audiocodec wird Opus \cite{Opus} eingesetzt. Opus ist ein Codec zur verlustbehafteten Kompression von Audiodaten. Opus ist speziell für Echtzeitanwendungen konzipiert und deshalb bestens geeignet für das OHMComm-Framework. Er wird unter einer OpenSource-Lizenz \cite{Opus:License} als royalty-free Codec, also ein Codec ohne Lizenzkosten, vertrieben. Opus ist ein Hybridcodec, welcher eine Transformationsschicht \textbf{CELT} als Nachfolger von Vorbis (Entwickelt von der Xiph.Org Foundation) \cite{CELT} und ein Linear Predictive Coding(LPC) namens \textbf{SILK} (Ursprünglich Entwickelt von Skype Technologies) \cite{SILK} zur Audiokompression einsetzt.
+Als Audiocodec wird Opus \cite{Opus} eingesetzt. Opus ist ein Codec zur verlustbehafteten Kompression von Audiodaten. Opus ist speziell für Echtzeitanwendungen konzipiert und deshalb bestens geeignet für das OHMComm-Framework. Er wird unter einer OpenSource-Lizenz als royalty-free Codec, also ein Codec ohne Lizenzkosten, vertrieben. Opus ist ein Hybridcodec, welcher eine Transformationsschicht \textbf{CELT} als Nachfolger von Vorbis (Entwickelt von der Xiph.Org Foundation) \cite{CELT} und ein Linear Predictive Coding(LPC) namens \textbf{SILK} (Ursprünglich Entwickelt von Skype Technologies) \cite{SILK} zur Audiokompression einsetzt.
 
-Viele bekannte Anwendungen setzten ebenfalls auf Opus als Audiocodec, darunter TeamSpeak \cite{TeamSpeak:Opus}, die Webbrowser Firefox \cite{Firefox:Opus} und Chrome \cite{Chrome:Opus} -- innerhalb ihrer WebRTC Implementierungen, da dort Opus vom Standard vorausgesetzt wird \cite{WebRTC:Opus} -- und Android 5 (Lollipop), welches eine native Unterstützung von Opus bietet \cite{Android5:Opus}.
+Viele bekannte Anwendungen setzten ebenfalls auf Opus als Audiocodec, darunter TeamSpeak, die Webbrowser Firefox und Chrome  -- innerhalb ihrer WebRTC Implementierungen, da dort Opus vom Standard vorausgesetzt wird \cite[Abschnitt 3]{WebRTC:Opus} -- und Android 5 (Lollipop), welches eine native Unterstützung von Opus bietet.
 
-Weitere Feature von Opus sind \cite{Opus:API}
+Weitere Feature von Opus sind
 
 \begin{itemize}
 \label{Opus Sample Rate}
@@ -307,7 +307,7 @@ Weitere Feature von Opus sind \cite{Opus:API}
 \item Mono und Stereo Support
 \end{itemize}
 
-Alternative Codecs wären AAC-LD oder AAC-ELD, welche aber Lizenzkostenpflichtig \cite{AAC:LD-ELD} sind und deshalb nicht für OHMComm in Frage kommen.
+Alternative Codecs wären AAC-LD oder AAC-ELD, welche aber Lizenzkostenpflichtig sind und deshalb nicht für OHMComm in Frage kommen.
 
 \section{Statistiken}
 Ein weiteres Feature des OHMComm-Frameworks ist das Sammeln und Anzeigen von statistischen Daten (siehe Anforderung \ref{FA:Statistik}). Die verschiedenen Statistiken wurden eingebaut, um die Performance einzelner Abschnitte der Verarbeitungskette zu messen, sowie die Richtigkeit der Handhabung von RTP-Paketen und frei gewählter Werte (wie der Buffergröße und Abspiellatenz) zu beweisen. Im Laufe des Programms werden eine Vielzahl an verschiedenen statistischen Daten gesammelt. Darunter fallen:

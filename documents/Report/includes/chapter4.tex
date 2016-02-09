@@ -232,7 +232,7 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
 \end{lstlisting}
 
 Das Decodieren geschieht auf ähnliche Weise wie das Encodieren der Audio Daten innerhalb der \texttt{processOutputData()}-Methode.
-Zuerst wird eine Variable angelegt, in der die Anzahl der decodierten Samples gespeichert wird(\texttt{numberOfDecodedSamples}), welche von der \texttt{opus\_decode()}-Methode als Rückgabewert zurückgeliefert wird. Es wird wieder geprüft, ob die Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format decodiert werden sollen. Anschließend wird die \texttt{opus\_decode()}-Methode mit folgenden Parametern aufgerufen :
+Zuerst wird eine Variable angelegt, in der die Anzahl der decodierten Samples gespeichert wird(\texttt{numberOfDeco\-dedSamples}), welche von der \texttt{opus\_decode()}-Methode als Rückgabewert zurückgeliefert wird. Es wird wieder geprüft, ob die Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format decodiert werden sollen. Anschließend wird die \texttt{opus\_decode()}-Methode mit folgenden Parametern aufgerufen :
 
 \begin{description}
 \item[OpusDecoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus Decoder Objekt.
