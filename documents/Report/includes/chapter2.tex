@@ -12,7 +12,7 @@ In diesem Kapitel sollen aus der Projektbeschreibung die daraus resultierenden k
 		\item Audiokompression
 
 		Wie bereits erwähnt ist eine Audiokommunikation ohne entsprechende Datenkompression praktisch nicht realisierbar. Es muss eine allgemeine Schnittstelle für Dekodierer erstellt werden, die durch beliebige Audiocodecs erweitern lässt. Außerdem muss mindestens ein Codec integriert werden, um die Praxistauglichkeit des Frameworks zu gewährleisten.
-			
+			\pagebreak
 		\item Netzwerkschicht
 
 		Für den Verbindungsaufbau und -abbau sowie der Datenübertragung muss ebenfalls eine Schicht erstellt werden. Dabei müssen auch Verbindungsdaten verwaltet und verarbeitet werden. Die Übertragung basiert auf UDP.
@@ -27,7 +27,7 @@ In diesem Kapitel sollen aus der Projektbeschreibung die daraus resultierenden k
 				
 		\item Prototypische Voice-over-IP Konsolenanwendungen
 
-		Diese Anwendung soll alle Funktionen des Frameworks testen. Dadurch kann sichergestellt werden, dass das Framework die gewünschte Funktionalität tatsächlich umsetzt und anbietet. Die Hauptaufgabe der Testanwendung ist es, die Kommunikation zwischen zwei Anwendern zu ermöglichen. Die Anwendung soll sich mit Parameter konfigurieren lassen. 
+		Diese Anwendung soll alle Funktionen des Frameworks testen. Dadurch kann sichergestellt werden, dass das Framework die gewünschte Funktionalität tatsächlich anbietet. Die Hauptaufgabe der Testanwendung ist es, die Kommunikation zwischen zwei Anwendern zu ermöglichen. Die Anwendung soll sich mit Parameter konfigurieren lassen. 
 				
 		\item Statistik
 
@@ -41,15 +41,15 @@ Hier werden aus der Projektbeschreibung die nicht-funktionalen Anforderungen erm
 \begin{itemize} 
 \item Plattformunabhängigkeit
 
-Ist einer der zentralen Ziele des Frameworks. Es soll unter Windows, Linux und OS X funktionieren. Daraus folgt, dass eine Kommunikation zwischen einen Windows-Client und Linux-Client, oder einer sonstigen beliebigen Konstellation funktioniert, da die Funktionsweise immer identisch ist. Diesbezüglich wurde der Einsatz von CMake, ein Buildtool für C++, festgelegt.
-		
+Ist einer der zentralen Ziele des Frameworks. Es soll unter Windows, Linux und OS X funktionieren. Daraus folgt, dass eine Kommunikation zwischen einen Windows-Client und Linux-Client, oder einer sonstigen beliebigen Konstellation funktioniert, da die Funktionsweise immer identisch ist. Diesbezüglich wurde der Einsatz von CMake -- ein Buildtool für C++ -- festgelegt.
+		\pagebreak
 \item Performanz
 
-Latenzen sollten für eine flüssige und störungsfreie Kommunikation so gering wie möglich gehalten werden. Daraus resultiert auch die Wahl der Programmiersprache C++. In der weiteren Entwicklungsphase gilt es diesen Aspekt mit erhöhter Priorität betrachten.
+Latenzen sollten für eine flüssige und störungsfreie Kommunikation so gering wie möglich gehalten werden. Daraus resultiert auch die Wahl der Programmiersprache C++. In der weiteren Entwicklungsphase gilt es diesen Aspekt mit erhöhter Priorität zu betrachten.
 		
 \item Prinzipien des objektorientierten Designs
 
-Das Framework soll nach den Prinzipien des objektorientierten Designs entwickelt werden. Darunter versteht man Konventionen zur Komplexitätsreduzierung in der Softwareentwicklung, wodurch die Software wartungs- und änderungsfreundlicher wird \cite{Lahres2009}[Kap. 3]. Das Framework soll modular aufgebaut sein, so dass die Komponenten auch einzeln nutzbar sind. Außerdem soll es möglich sein die Klassen zu erweitern und auszutauschen. Konfigurationsmöglichkeiten sollen möglichst zur Laufzeit stattfinden. 
+Das Framework soll nach den Prinzipien des objektorientierten Designs entwickelt werden. Darunter versteht man Konventionen zur Komplexitätsreduzierung in der Softwareentwicklung, wodurch die Software wartungs- und änderungsfreundlicher wird \cite{Lahres2009}[Kap. 3]. Das Framework soll modular aufgebaut sein, so dass die Komponenten auch einzeln nutzbar sind. Außerdem soll es möglich sein, die Klassen zu erweitern und auszutauschen. Konfigurationsmöglichkeiten sollen möglichst zur Laufzeit stattfinden. 
 		
 \item Dokumentation
 
