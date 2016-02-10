@@ -149,7 +149,7 @@ auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsig
 }
 \end{lstlisting}
 
-Die \texttt{callback()}-Methode des RtAudioWrapper ruft die Methoden \texttt{processAudioInput()} und \texttt{processAudioOutput()} auf welche die einzelnen Prozessoren durchläuft und folgende Parameter enthält :
+Die \texttt{callback()}-Methode des RtAudioWrapper ruft die Methoden \texttt{processAudio\-Input()} und \texttt{processAudioOutput()} auf welche die einzelnen Prozessoren durchläuft und folgende Parameter enthält :
 \begin{description}
 \item[inputBuffer] Pointer auf den Speicherbereich der die input Audio Daten enthält.
 \item[outputBuffer] Pointer auf den Speicherbereich der die output Audio Daten enthält.
@@ -200,7 +200,7 @@ bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::
 }
 \end{lstlisting}
 
-Das \textit{Encodieren} der Audiodaten geschieht in der \texttt{processInputData()}-Methode des Opus-Prozessors. Zu Beginn wird die Variable \texttt{lengthEncodedPacketInBytes} deklariert in der die Größe der Audiodaten nach ihrer Encodierung gespeichert wird. Anschließend wir geprüft ob Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format vorliegen.
+Das \textit{Encodieren} der Audiodaten geschieht in der \texttt{processInputData()}-Methode des Opus-Prozessors. Zu Beginn wird die Variable \texttt{lengthEncodedPacketIn\-Bytes} deklariert in der die Größe der Audiodaten nach ihrer Encodierung gespeichert wird. Anschließend wir geprüft ob Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format vorliegen.
 Abhängig davon wir die entsprechende \texttt{opus\_encode()}-Methode aufgerufen, welche folgende Parameter benötigt:
 
 \begin{description}
@@ -232,7 +232,7 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
 \end{lstlisting}
 
 Das \textit{Decodieren} geschieht auf ähnliche Weise wie das Encodieren der Audio Daten innerhalb der \texttt{processOutputData()}-Methode.
-Zuerst wird eine Variable angelegt, in der die Anzahl der decodierten Samples gespeichert wird(\texttt{numberOfDecodedSamples}), welche von der \texttt{opus\_decode()}-Methode als Rückgabewert zurückgeliefert wird. Es wird wieder geprüft, ob die Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format decodiert werden sollen. Anschließend wird die \texttt{opus\_decode()}-Methode mit folgenden Parametern aufgerufen:
+Zuerst wird eine Variable angelegt, in der die Anzahl der decodierten Samples gespeichert wird(\texttt{numberOfDecoded\-Samples}), welche von der \texttt{opus\_decode()}-Methode als Rückgabewert zurückgeliefert wird. Es wird wieder geprüft, ob die Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format decodiert werden sollen. Anschließend wird die \texttt{opus\_decode()}-Methode mit folgenden Parametern aufgerufen:
 
 \begin{description}
 \item[OpusDecoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus Decoder Objekt.
