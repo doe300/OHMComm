@@ -117,13 +117,13 @@ Um den \textit{Duplex Modus} zu starten wird zuerst per Flag (\texttt{flagPrepar
 Dem \texttt{rtaudio}-Objekt werden per \texttt{openStream()}-Methode die benötigten Parameter mitgeteilt, welche folgenden Inhalt haben:
 
 \begin{description}
-\item[output] Der Output Stream Parameter, welcher die \texttt{deviceID}, also die ID des Hardware Geräts, welches die Audiosignale ausgeben soll und die Anzahl der zu benutzenden Channels enthält. Diese sind entweder per \texttt{setDefaultAudio\-Config()}-Methode des RtAudioWrapper oder per FileConfiguration, InteractiveConfiguration oder ParameterConfiguration vorher festgelegt worden.
-\item [input] Der Input Parameter welcher die \texttt{deviceID} des Audiogeräts, welches die Audiosignale aufnimmt, und die Anzahl der aufzunehmenden Channels enthält. Dieser ist ebenfalls bereits mittels einer der verschiedenen Konfigurationsmodi konfiguriert worden.
-\item [audioConfiguration.audioFormatFlag] : Das Audioformat-Flag, welches das Audioformat definiert(z.B. SINT16 oder FLOAT32), welches durch den AudioHandler durch Abfragen der AudioProzessoren ausgehandelt wurde.
-\item [audioConfiguration.sampleRate] Die Sample Rate, die vom AudioHandler durch Abfragen der AudioProzessoren ausgehandelt wurde.
-\item [audioConfiguration.framesPerPackage] Die Anzahl der Frames per Package, also die Größe des Audiobuffers. Diese Größe wurde auch vom AudioHandler durch Abfragen der AudioProzessoren ausgehandelt
-\item [RtAudioWrapper::callbackHelper] Die Callback-Methode, welche von der RtAudio-API aufgerufen wird, wenn Audiodaten vorhanden sind.
-\item [this] Eine Referenz auf das eigene Callback-Objekt, um innerhalb der Callback-Methode auf benötigte Informationen zuzugreifen.
+\item[output] Der Output Stream Parameter, welcher die \texttt{deviceID}, also die ID des Hardware Geräts, welches die Audiosignale ausgeben soll und die Anzahl der zu benutzenden \textit{Channels} enthält. Diese sind entweder per \texttt{setDefaultAudio\-Config()}-Methode des RtAudioWrapper oder per \textit{FileConfiguration}, \textit{InteractiveConfiguration} oder \textit{ParameterConfiguration} vorher festgelegt worden.
+\item [input] Der Input Parameter welcher die \texttt{deviceID} des Audiogeräts, welches die Audiosignale aufnimmt, und die Anzahl der aufzunehmenden \textit{Channels} enthält. Dieser ist ebenfalls bereits mittels einer der verschiedenen Konfigurationsmodi konfiguriert worden.
+\item [audioConfiguration.audioFormatFlag] : Das Audioformat-Flag, welches das \textit{Audioformat} definiert(z.B. SINT16 oder FLOAT32), welches durch den AudioHandler durch Abfragen der AudioProzessoren ausgehandelt wurde.
+\item [audioConfiguration.sampleRate] Die \textit{Sample Rate}, die vom AudioHandler durch Abfragen der AudioProzessoren ausgehandelt wurde.
+\item [audioConfiguration.framesPerPackage] Die Anzahl der \textit{Frames} per Package, also die Größe des Audiobuffers. Diese Größe wurde auch vom AudioHandler durch Abfragen der AudioProzessoren ausgehandelt
+\item [RtAudioWrapper::callbackHelper] Die \textit{Callback-Methode}, welche von der RtAudio-API aufgerufen wird, wenn Audiodaten vorhanden sind.
+\item [this] Eine Referenz auf das eigene \textit{Callback-Objekt}, um innerhalb der Callback-Methode auf benötigte Informationen zuzugreifen.
 \end{description}
 
 Anschließend wird die RtAudio-API mittels \texttt{startStream()} gestartet.
@@ -139,7 +139,7 @@ void RtAudioWrapper::startDuplexMode()
 }
 \end{lstlisting}
 
-Der \texttt{callbackHelper()} erstellt daraufhin ein \texttt{RtAudioWrapper}-Objekt und ruft dessen \texttt{callback()}-Methode auf. Diese Aufteilung wurde gewählt da hierdurch besser ersichtlich ist wo es sich um Eingabedaten(von der RtAudio-API \texttt{callbackHelper()}-Methode) und wo um Ausgabedaten(zu den AudioProzessoren \texttt{callback()}-Methode) handelt.
+Der \texttt{callbackHelper()} erstellt daraufhin ein \texttt{RtAudioWrapper}-Objekt und ruft dessen \texttt{callback()}-Methode auf. Diese Aufteilung wurde gewählt da hierdurch besser ersichtlich ist wo es sich um \textit{Eingabedaten}(von der RtAudio-API \texttt{callbackHelper()}-Methode) und wo um \textit{Ausgabedaten}(zu den AudioProzessoren \texttt{callback()}-Methode) handelt.
 
 \begin{lstlisting}[caption={\texttt{callbackHelper()}-Methode im RtAudioWrapper},label={Code:RtAudio CallbackHelper}]
 auto RtAudioWrapper::callbackHelper(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *rtAudioWrapperObject) -> int
@@ -155,7 +155,7 @@ Die \texttt{callback()}-Methode des RtAudioWrapper ruft die Methoden \texttt{pro
 \item[outputBuffer] Pointer auf den Speicherbereich der die output Audio Daten enthält.
 \item[inputBufferByteSize] Größe der Daten die im inputBuffer vorhanden sind.
 \item[outputBufferByteSize] Größe der Daten die im outputBuffer vorhanden sind.
-\item[streamData] Struct welcher zusätzliche Informationen zu den Daten im Audio Buffer enthält, wie die Anzahl der Frames im Buffer(nBufferFrames), die Aktuelle Zeit des Streams(streamTime) und die Maximale Anzahl der Daten welche in den Buffer geschrieben werden könne(maxBufferSize).
+\item[streamData] Struct welcher zusätzliche Informationen zu den Daten im Audio Buffer enthält, wie die Anzahl der Frames im Buffer(\texttt{nBufferFrames}), die Aktuelle Zeit des Streams(\texttt{streamTime}) und die Maximale Anzahl der Daten welche in den Buffer geschrieben werden könne(\texttt{maxBufferSize}).
 \end{description}
 
 \begin{lstlisting}[caption={callback Methode im RtAudioWrapper},label={Code:RtAudio Callback}]
@@ -170,7 +170,7 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
 
 \section{Opus}
 
-Der \textbf{Opus-Codec}, welcher zum \textit{Encoden} und \textit{Decoden} der Audiodaten benutzt wird wurde als Prozessor in OHMComm eingebunden.
+Der \textbf{Opus-Codec}, welcher zum \textit{Encoden} und \textit{Decoden} der Audiodaten benutzt wird wurde als \textit{Prozessor} in OHMComm eingebunden.
 
 Der \textit{Konstruktor} des Opus-Prozessors erstellt bei der Instanziierung jeweils ein Encoder- und Decoder-Objekt. Außerdem wird ihm ein Name gegeben und der Opus-Application-Type (siehe \ref{Opus Application Modi}) wird gewählt.
 
@@ -183,11 +183,11 @@ ProcessorOpus::ProcessorOpus(const std::string name, int opusApplication) : Audi
 
 Anschließend werden die Encoder- und Decoder-Objekte in der \texttt{configure()}-Methode konfiguriert. Dies geschieht mit dem Aufruf der \texttt{opus\_encoder\_create()} bzw. \texttt{opus\_decoder\_create()}-Methoden. Die Parameter hierbei sind:
 \begin{description}
-\item[audioConfig.sampleRate] Die SampleRate der Audio Daten. Welche einen der von Opus unterstützen Werte haben muss siehe \ref{Opus Sample Rate}.
-\item[audioConfig.inputDeviceChannels] Die Anzahl der input Channels.
-\item[audioConfig.outputDeviceChannels] Die Anzahl der output Channels.
-\item[OpusApplication] Der Opus-Application-Type siehe \ref{Opus Application Modi}.
-\item[ErrorCode] Eine Variable welche im Fehlerfall den Error Code zur Fehlerbehandlung enthält.
+\item[audioConfig.sampleRate] Die \textit{Sample Rate} der Audio Daten. Welche einen der von Opus unterstützen Werte haben muss siehe \ref{Opus Sample Rate}.
+\item[audioConfig.inputDeviceChannels] Die Anzahl der input \textit{Channels}.
+\item[audioConfig.outputDeviceChannels] Die Anzahl der output \textit{Channels}.
+\item[OpusApplication] Der \textit{Opus-Application-Type} siehe \ref{Opus Application Modi}.
+\item[ErrorCode] Eine Variable welche im Fehlerfall den \textit{Error Code} zur Fehlerbehandlung enthält.
 \end{description}
 
 \begin{lstlisting}[caption={Konfiguration der Opus Encoder und Decoder-Objekte},label={Code:Opus Konfiguration}]
@@ -204,10 +204,10 @@ Das \textit{Encodieren} der Audiodaten geschieht in der \texttt{processInputData
 Abhängig davon wir die entsprechende \texttt{opus\_encode()}-Methode aufgerufen, welche folgende Parameter benötigt:
 
 \begin{description}
-\item[OpusEncoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus Encoder Objekt.
-\item[inputBuffer] Der ins 16-bit Signed-Integer oder 32-bit Float Format gecastete InputBuffer Pointer welcher die Input Audio Daten der Soundkarte enthält.
-\item[userData->nBufferFrames] Die Anzahl der Samples(per Channel) welche sich im InputBuffer befinden. Da Opus Audioframegrößen von 2.5ms bis 60ms unterstützt (siehe \ref{Opus Audioframe}), muss die Anzahl der Samples auch in diesem Bereich liegen. Bei 48kHz Sample Rate und einer Audioframegröße von 20ms also 960 Samples pro Channel.
-\item[inputBuffer] Char-Pointer der Anzeigt wohin die Encodierten Audio Daten geschrieben werden sollen. Da wir auf dem inputBuffer Arbeiten und keinen extra Speicherplatz für Encodierte Daten haben, ist dies der selbe Speicherbereich aus dem wir die Daten gelesen haben.
+\item[OpusEncoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus \textit{Encoder Objekt}.
+\item[inputBuffer] Der ins 16-bit Signed-Integer oder 32-bit Float Format gecastete \textit{InputBuffer} Pointer welcher die Input Audio Daten der Soundkarte enthält.
+\item[userData->nBufferFrames] Die Anzahl der \textit{Samples}(per Channel) welche sich im InputBuffer befinden. Da Opus Audioframegrößen von 2.5ms bis 60ms unterstützt (siehe \ref{Opus Audioframe}), muss die Anzahl der Samples auch in diesem Bereich liegen. Bei 48kHz Sample Rate und einer Audioframegröße von 20ms also 960 Samples pro Channel.
+\item[inputBuffer] Char-Pointer der Anzeigt wohin die Encodierten Audio Daten geschrieben werden sollen. Da wir auf dem \textit{InputBuffer} Arbeiten und keinen extra Speicherplatz für Encodierte Daten haben, ist dies der selbe Speicherbereich aus dem wir die Daten gelesen haben.
 \item[userData->maxBufferSize] Maximal Größe des Speicherbereichs wohin die Encodierten Daten geschrieben werden.
 \end{description}
 
@@ -235,12 +235,12 @@ Das \textit{Decodieren} geschieht auf ähnliche Weise wie das Encodieren der Aud
 Zuerst wird eine Variable angelegt, in der die Anzahl der decodierten Samples gespeichert wird(\texttt{numberOfDecoded\-Samples}), welche von der \texttt{opus\_decode()}-Methode als Rückgabewert zurückgeliefert wird. Es wird wieder geprüft, ob die Daten im 16-bit Signed-Integer-Format oder im 32-bit Float-Format decodiert werden sollen. Anschließend wird die \texttt{opus\_decode()}-Methode mit folgenden Parametern aufgerufen:
 
 \begin{description}
-\item[OpusDecoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus Decoder Objekt.
+\item[OpusDecoderObject] Das bei der Instanziierung erzeugte und in der \texttt{configure()}-Methode konfigurierte Opus \textit{Decoder Objekt}.
 \item[outputBuffer] Char-Pointer auf die Encodierten Audio Daten.
 \item[outputBufferByteSize] Größe des OutputBuffers.
 \item[outputBuffer] Pointer wohin die Decodierten Audio Daten geschrieben werden sollen entweder im Signed Integer 16 oder Float 32 Format.
-\item[userData->maxBufferSize] Maximal Anzahl der Samples welche in den Speicherbereich der Decodierten Daten geschrieben werden können.
-\item[0] Möglicher Platz für ein Flag welches Anzeigt ob in-band forward error correction Daten vorhanden sind, was nicht der Fall ist.
+\item[userData->maxBufferSize] Maximal Anzahl der \textit{Samples} welche in den Speicherbereich der Decodierten Daten geschrieben werden können.
+\item[0] Möglicher Platz für ein \textit{Flag} welches Anzeigt ob in-band forward error correction Daten vorhanden sind, was nicht der Fall ist.
 \end{description}
 
 Da wir als \textit{Rückgabewert} von \texttt{opus\_decode()} die Anzahl der decodierten Samples bekommen, die Prozessoren aber als Rückgabewert die Größe des OutputBuffers zurückgeben sollen, muss diese noch Mittels der Anzahl der decodierten Samples multipliziert mit der Größe des gewünschten Formates multipliziert mit der Anzahl der Channels \texttt{(numberOfDecodedSamples * sizeof(opus\_int16) * outputDeviceChannels)} berechnet werden.
