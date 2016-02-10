@@ -221,7 +221,8 @@ rtaudio_static.lib
 /documents/**/*.out
 /documents/**/*.bbl
 /documents/**/*.gz
-/documents/**/*.pdf
+/documents/Report/**/*.pdf
+/documents/Report-Template/**/*.pdf
 /documents/**/*.toc
 /documents/**/*.blg
 /documents/**/*.synctex
