@@ -4,7 +4,7 @@
  * 
  * Created on February 10, 2016, 1:21 PM
  */
-
+#ifdef PORTAUDIO_HEADER //Only compile, if PortAudio is linked
 #include <exception>
 
 #include "PortAudioWrapper.h"
@@ -285,3 +285,4 @@ PaSampleFormat PortAudioWrapper::mapSampleFormat(const unsigned int sampleFormat
     //fall back to worst quality
     return paInt8;
 }
+#endif /* PORTAUDIO_HEADER */
