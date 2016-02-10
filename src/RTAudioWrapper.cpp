@@ -247,7 +247,7 @@ const std::vector<AudioHandler::AudioDevice>& RtAudioWrapper::getAudioDevices()
             if(deviceInfo.probed)
             {
                 devices.push_back({deviceInfo.name, deviceInfo.outputChannels, deviceInfo.inputChannels, 
-                        deviceInfo.isDefaultOutput, deviceInfo.isDefaultInput, deviceInfo.nativeFormats, deviceInfo.sampleRates});
+                        deviceInfo.isDefaultOutput, deviceInfo.isDefaultInput, (unsigned int)deviceInfo.nativeFormats, deviceInfo.sampleRates});
             }
         }
     }

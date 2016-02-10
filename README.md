@@ -1,5 +1,5 @@
 # OHMComm
-IT-Project at the [faculty for Computer Science of the technical university Georg Simon Ohm Nürnberg](http://www.th-nuernberg.de/seitenbaum/fakultaeten/informatik/page.html) in summer semester 2015 and winter semester 2015/2016 to create a platform-independent voice-over-IP peer-to-peer communication program in C++.
+This project started as an IT-Project at the [faculty for Computer Science of the technical university Georg Simon Ohm Nürnberg](http://www.th-nuernberg.de/seitenbaum/fakultaeten/informatik/page.html) in summer semester 2015 and winter semester 2015/2016 to create a platform-independent voice-over-IP peer-to-peer communication program in C++.
 
 [![Build Status](https://travis-ci.org/doe300/OHMComm.svg)](https://travis-ci.org/doe300/OHMComm)
 [![Build Status](https://ci.appveyor.com/api/projects/status/58fv0pln0jv270am?svg=true)](https://ci.appveyor.com/project/doe300/ohmcomm)
@@ -8,7 +8,9 @@ IT-Project at the [faculty for Computer Science of the technical university Geor
 
 This program is currently developed under linux (Fedora 22) and Windows (7/8) and tested under Mac OS X.
 
-OHMComm is based upon [RtAudio](http://www.music.mcgill.ca/~gary/rtaudio/) and therefore supports all audio-libraries supported by RtAudio (see [RtAudio API-Notes](http://www.music.mcgill.ca/~gary/rtaudio/apinotes.html)). The audio-data are (optionally but highly recommended) encoded with the included [opus-codec](http://www.opus-codec.org/).
+OHMComm is based upon [RtAudio](http://www.music.mcgill.ca/~gary/rtaudio/) and therefore supports all audio-libraries supported by RtAudio (see [RtAudio API-Notes](http://www.music.mcgill.ca/~gary/rtaudio/apinotes.html)). 
+The audio-data are (optionally but highly recommended) encoded with the included [opus-codec](http://www.opus-codec.org/).
+As of version 0.8, RtAudio as well as Opus are optional and [PortAudio](http://www.portaudio.com/) is also supported as audio-library.
 
 ## Build it
 
