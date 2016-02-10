@@ -455,3 +455,26 @@ unsigned int RtAudioWrapper::findOptimalBufferSize(unsigned int defaultBufferSiz
     
     return 0;
 }
+
+const std::vector<AudioHandler::AudioDevice>& RtAudioWrapper::getAudioDevices()
+{
+    static std::vector<AudioDevice> devices{};
+    
+    if(devices.empty())
+    {
+        //initial add all audio devices
+        unsigned int availableAudioDevices = rtaudio.getDeviceCount();
+        for(unsigned int i = 0; i < availableAudioDevices; i++)
+        {
+            RtAudio::DeviceInfo deviceInfo = rtaudio.getDeviceInfo(i);
+            if(deviceInfo.probed)
+            {
+                devices.push_back({deviceInfo.name, deviceInfo.outputChannels, deviceInfo.inputChannels, 
+                        deviceInfo.isDefaultOutput, deviceInfo.isDefaultInput, deviceInfo.nativeFormats, deviceInfo.sampleRates});
+            }
+        }
+    }
+    
+    return devices;
+}
+

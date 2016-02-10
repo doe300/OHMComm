@@ -10,6 +10,7 @@
 
 #include "ConfigurationMode.h"
 #include "UserInput.h"
+#include "AudioHandler.h"
 
 /*!
  * Configuration utilizing UserInput to ask the user for settings
@@ -29,7 +30,7 @@ public:
 
 private:
 
-    void interactivelyConfigureAudioDevices();
+    void interactivelyConfigureAudioDevices(std::unique_ptr<AudioHandler>&& handler);
     void interactivelyConfigureNetwork();
     void interactivelyConfigureProcessors();
 };

@@ -11,6 +11,7 @@
 #include <limits>
 
 //silence threshold is at -30dB (since -40dB seems to be absolute silence)
+//Opus uses a lower silence-threshold
 const double GainControl::SILENCE_THRESHOLD = fromDB(-30);
 const Parameter* GainControl::TARGET_GAIN = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'g', "gain", "Specifies the amplification, in dB", "0"));
 double GainControl::lowerSampleLimit = std::numeric_limits<double>::max();

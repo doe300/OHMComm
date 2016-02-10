@@ -44,6 +44,8 @@ public:
     void setDefaultAudioConfig();
     auto prepare(const std::shared_ptr<ConfigurationMode> configMode) -> bool;
     auto getBufferSize() -> unsigned int;
+    
+    const std::vector<AudioDevice>& getAudioDevices();
 
     /* Callbacks */
     auto callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData) -> int;

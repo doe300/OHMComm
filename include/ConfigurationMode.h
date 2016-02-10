@@ -22,10 +22,12 @@ class ConfigurationMode : public PlaybackListener
 {
     
     //TODO split configuration into audio-config and local-config (everything not of interest to the remote device)
-    //or at least make sure, all configuration-modes can configure both (SIP/passive e.g. can't configure local config)
+    //or at least make sure, all configuration-modes can configure both (SIP/passive e.g. can't configure local config, e.g gain, profiling, ...)
     //-> fall back to parameters/any other mode? (would need to retrieve values without being fully configured)
     
     //TODO allow for configuration of buffer-delay or make adaptive
+    
+    //TODO cache values for keys for all modes, so they can be reused
 public:
     ConfigurationMode();
     virtual ~ConfigurationMode();

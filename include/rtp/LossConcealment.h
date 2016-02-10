@@ -23,7 +23,7 @@ protected:
     /*!
      * \param maxPackageRepetitions the maximum times a single package is repeated to conceal subsequent lost packages
      */
-    LossConcealment(const uint16_t maxPackageRepetitions = 2) : maxPackageRepetitions(maxPackageRepetitions), 
+    LossConcealment(const uint16_t maxPackageRepetitions = DEFAULT_PACKAGE_REPETITIONS) : maxPackageRepetitions(maxPackageRepetitions), 
             numRepeatedPackages(0), lastReceivedSequenceNumber(0)
     {
         
@@ -54,6 +54,8 @@ protected:
         //we are under the repetition threshold, so repeat last successful package, if possible
         if(numRepeatedPackages <= maxPackageRepetitions && repeatLastPackage(package, lastReceivedSequenceNumber))
         {
+            //XXX fade out volume on multiple losses (relative to maximum repetitions)???
+            // see http://flylib.com/books/en/4.245.1.63/1/
             return;
         }
         //fall back to default concealment
@@ -77,10 +79,10 @@ protected:
     {
         //TODO switch to comfort noise
         package.createSilencePackage();
-        package.setActualPayloadSize(package.getMaximumPayloadSize());
     }
     
 private:
+    static constexpr unsigned int DEFAULT_PACKAGE_REPETITIONS{2};
     const uint16_t maxPackageRepetitions;
     uint16_t numRepeatedPackages;
     uint16_t lastReceivedSequenceNumber;

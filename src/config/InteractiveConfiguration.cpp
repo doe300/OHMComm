@@ -9,7 +9,6 @@
 
 #include "AudioHandlerFactory.h"
 #include "AudioProcessorFactory.h"
-#include RTAUDIO_HEADER
 
 bool InteractiveConfiguration::runConfiguration()
 {
@@ -32,7 +31,7 @@ bool InteractiveConfiguration::runConfiguration()
             audioHandlerName = *audioHandlers.begin();
         }
         std::cout << "Using AudioHandler: " << audioHandlerName << std::endl;
-        interactivelyConfigureAudioDevices();
+        interactivelyConfigureAudioDevices(std::move(AudioHandlerFactory::getAudioHandler(audioHandlerName)));
         useDefaultAudioConfig = false;
     }
     else
@@ -80,77 +79,70 @@ bool InteractiveConfiguration::isCustomConfigurationSet(const std::string key, c
     return UserInput::inputBoolean(message, false, 0);
 }
 
-void InteractiveConfiguration::interactivelyConfigureAudioDevices()
+void InteractiveConfiguration::interactivelyConfigureAudioDevices(std::unique_ptr<AudioHandler>&& handler)
 {
     UserInput::printSection("Audio configuration");
 
-    RtAudio AudioDevices;
-    // Determine the number of available Audio Devices
-    unsigned int availableAudioDevices = AudioDevices.getDeviceCount();
-    std::vector<std::string> audioDeviceNames(availableAudioDevices);
+    std::vector<std::string> audioDeviceNames{};
 
     std::cout << "Available Audio Devices: " << std::endl;
     std::cout << std::endl;
     // printing available Audio Devices
-    RtAudio::DeviceInfo DeviceInfo;
 
-    unsigned int DefaultOutputDeviceID = 0;
-    unsigned int DefaultInputDeviceID = 0;
+    unsigned int defaultOutputDeviceIndex = 0;
+    unsigned int defaultInputDeviceIndex = 0;
 
-    for (unsigned int i = 0 ; i < availableAudioDevices ; i++)
+    unsigned int index = 0;
+    for (const AudioHandler::AudioDevice& device : handler->getAudioDevices())
     {
-        DeviceInfo = AudioDevices.getDeviceInfo(i);
-        if (DeviceInfo.probed == true) //Audio Device successfully probed
+        std::cout << "Device ID: " << index << std::endl;
+        std::cout << "Device Name = " << device.name << std::endl;
+        std::cout << "Maximum output channels = " << device.outputChannels << std::endl;
+        std::cout << "Maximum input channels = " << device.inputChannels << std::endl;
+        std::cout << "Default output: ";
+        if (device.defaultOutputDevice == true)
         {
-            std::cout << "Device ID: " << i << std::endl;
-            std::cout << "Device Name = " << DeviceInfo.name << std::endl;
-            std::cout << "Maximum output channels = " << DeviceInfo.outputChannels << std::endl;
-            std::cout << "Maximum input channels = " << DeviceInfo.inputChannels << std::endl;
-            std::cout << "Maximum duplex channels = " << DeviceInfo.duplexChannels << std::endl;
-            std::cout << "Default output: ";
-            if (DeviceInfo.isDefaultOutput == true)
-            {
-                std::cout << "Yes" << std::endl;
-                DefaultOutputDeviceID = i;
+            std::cout << "Yes" << std::endl;
+            defaultOutputDeviceIndex = index;
 
-            }
-            else
-            {
-                std::cout << "No" << std::endl;
-            }
-            std::cout << "Default input: ";
-            if (DeviceInfo.isDefaultInput == true)
-            {
-                std::cout << "Yes" << std::endl;
-                DefaultInputDeviceID = i;
-            }
-            else
-            {
-                std::cout << "No" << std::endl;
-            }
-            std::cout << "Supported Sample Rates: ";
-            for (unsigned int sampleRate : DeviceInfo.sampleRates)
-            {
-                std::cout << sampleRate << " ";
-            }
-            std::cout << std::endl;
-            std::cout << "Native Audio Formats Flag = " << DeviceInfo.nativeFormats << std::endl;
-            std::cout << std::endl;
-
-            audioDeviceNames[i] = (DeviceInfo.name + (DeviceInfo.isDefaultInput && DeviceInfo.isDefaultOutput ? " (default in/out)" :
-                (DeviceInfo.isDefaultInput ? " (default in)" : (DeviceInfo.isDefaultOutput ? " (default out)" : ""))));
         }
+        else
+        {
+            std::cout << "No" << std::endl;
+        }
+        std::cout << "Default input: ";
+        if (device.defaultInputDevice == true)
+        {
+            std::cout << "Yes" << std::endl;
+            defaultInputDeviceIndex = index;
+        }
+        else
+        {
+            std::cout << "No" << std::endl;
+        }
+        std::cout << "Supported Sample Rates: ";
+        for (unsigned int sampleRate : device.sampleRates)
+        {
+            std::cout << sampleRate << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "Native Audio Formats Flag = " << device.nativeFormats << std::endl;
+        std::cout << std::endl;
+
+        audioDeviceNames.push_back((device.name + (device.defaultInputDevice && device.defaultOutputDevice ? " (default in/out)" :
+            (device.defaultInputDevice ? " (default in)" : (device.defaultOutputDevice ? " (default out)" : "")))));
+        ++index;
     }
 
     //Choose output Device
-    unsigned int OutputDeviceID = UserInput::selectOptionIndex("Choose output Device ID", audioDeviceNames, DefaultOutputDeviceID);
+    unsigned int selectedOutputDeviceIndex = UserInput::selectOptionIndex("Choose output Device ID", audioDeviceNames, defaultOutputDeviceIndex);
 
-    RtAudio::DeviceInfo OutputDeviceInfo = AudioDevices.getDeviceInfo(OutputDeviceID);
+    AudioHandler::AudioDevice outputDevice = handler->getAudioDevices()[selectedOutputDeviceIndex];
 
     //Configure ID of the Output Audio Device
-    audioConfig.outputDeviceID = OutputDeviceID;
+    audioConfig.outputDeviceID = selectedOutputDeviceIndex;
     std::cout << "-> Using output Device ID: " << audioConfig.outputDeviceID << std::endl;
-    std::cout << "-> Using output Device Name: " << OutputDeviceInfo.name << std::endl;
+    std::cout << "-> Using output Device Name: " << outputDevice.name << std::endl;
 
     //Configure outputDeviceChannels (we always use stereo)
     audioConfig.outputDeviceChannels = 2;
@@ -158,14 +150,14 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices()
     //sample-rate, audio-format and buffer-size is defined by the enabled Processors so we can skip them
 
     //Choose input Device
-    unsigned int InputDeviceID = UserInput::selectOptionIndex("Choose input Device ID", audioDeviceNames, DefaultInputDeviceID);
+    unsigned int selectedInputDeviceIndex = UserInput::selectOptionIndex("Choose input Device ID", audioDeviceNames, defaultInputDeviceIndex);
 
-    RtAudio::DeviceInfo InputDeviceInfo = AudioDevices.getDeviceInfo(InputDeviceID);
+    AudioHandler::AudioDevice inputDevice  = handler->getAudioDevices()[selectedInputDeviceIndex];
 
     //Configure ID of the Input Audio Device
-    audioConfig.inputDeviceID = InputDeviceID;
+    audioConfig.inputDeviceID = selectedInputDeviceIndex;
     std::cout << "-> Using input Device ID " << audioConfig.inputDeviceID << std::endl;
-    std::cout << "-> Using input Device Name: " << InputDeviceInfo.name << std::endl;
+    std::cout << "-> Using input Device Name: " << inputDevice.name << std::endl;
 
     //Configure inputDeviceChannels (we always use stereo)
     audioConfig.inputDeviceChannels = 2;

@@ -183,6 +183,7 @@ void Statistics::printStatistics(std::ostream& outputStream)
             << prettifyPercentage(counters[RTP_BUFFER_MAXIMUM_USAGE]/(double)counters[RTP_BUFFER_LIMIT]) << "%)"
             << std::endl;
     //Compression statistics
+    //TODO is wrong, does not account for silence-packages
     outputStream << std::endl;
     outputStream << "+++ Compression statistics +++" << std::endl;
     outputStream << "Compressed " << prettifyByteSize(counters[COUNTER_PAYLOAD_BYTES_RECORDED]) << " of audio-data into "

@@ -7,7 +7,6 @@
 
 #include "config/ParameterConfiguration.h"
 #include "AudioHandlerFactory.h"
-#include RTAUDIO_HEADER
 
 ParameterConfiguration::ParameterConfiguration(const Parameters& params) : ConfigurationMode(), params(params)
 {
@@ -73,14 +72,15 @@ bool ParameterConfiguration::runConfiguration()
 
 void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inputDeviceID)
 {
-    RtAudio audioDevices;
-    if(outputDeviceID < 0)
+    std::unique_ptr<AudioHandler> handler = AudioHandlerFactory::getAudioHandler(audioHandlerName);
+    unsigned int index = 0;
+    for(const AudioHandler::AudioDevice& device : handler->getAudioDevices())
     {
-        outputDeviceID = audioDevices.getDefaultOutputDevice();
-    }
-    if(inputDeviceID < 0)
-    {
-        inputDeviceID = audioDevices.getDefaultInputDevice();
+        if(device.defaultOutputDevice && outputDeviceID < 0)
+            outputDeviceID = index;
+        if(device.defaultInputDevice && inputDeviceID < 0)
+            inputDeviceID = index;
+        ++index;
     }
     //we always use stereo
     audioConfig.outputDeviceChannels = 2;

@@ -17,7 +17,7 @@ void AudioHandler::printAudioProcessorOrder(std::ostream& OutputStream) const
     }
 }
 
-auto AudioHandler::addProcessor(AudioProcessor *audioProcessor) -> bool
+bool AudioHandler::addProcessor(AudioProcessor *audioProcessor)
 {
     if (hasAudioProcessor(audioProcessor) == false) {
         audioProcessors.push_back(std::unique_ptr<AudioProcessor>(audioProcessor));
@@ -31,7 +31,7 @@ auto AudioHandler::addProcessor(AudioProcessor *audioProcessor) -> bool
     return false;
 }
 
-auto AudioHandler::removeAudioProcessor(AudioProcessor *audioProcessor) -> bool
+bool AudioHandler::removeAudioProcessor(AudioProcessor *audioProcessor)
 {
     for (size_t i = 0; i < audioProcessors.size(); i++)
     {
@@ -47,7 +47,7 @@ auto AudioHandler::removeAudioProcessor(AudioProcessor *audioProcessor) -> bool
     return false;
 }
 
-auto AudioHandler::removeAudioProcessor(std::string nameOfAudioProcessor) -> bool
+bool AudioHandler::removeAudioProcessor(std::string nameOfAudioProcessor)
 {
     for (size_t i = 0; i < audioProcessors.size(); i++)
     {
@@ -64,14 +64,14 @@ auto AudioHandler::removeAudioProcessor(std::string nameOfAudioProcessor) -> boo
     return false;
 }
 
-auto AudioHandler::clearAudioProcessors() -> bool
+bool AudioHandler::clearAudioProcessors()
 {
     audioProcessors.clear();
     Statistics::removeAllProfilers();
     return true;
 }
 
-auto AudioHandler::configureAudioProcessors(const std::shared_ptr<ConfigurationMode> configMode) -> bool
+bool AudioHandler::configureAudioProcessors(const std::shared_ptr<ConfigurationMode> configMode)
 {
     for (const auto& processor : audioProcessors)
     {
@@ -83,7 +83,7 @@ auto AudioHandler::configureAudioProcessors(const std::shared_ptr<ConfigurationM
     return true;
 }
 
-auto AudioHandler::cleanUpAudioProcessors() -> bool
+bool AudioHandler::cleanUpAudioProcessors()
 {
 	for (const auto& processor : audioProcessors)
 	{
@@ -94,7 +94,7 @@ auto AudioHandler::cleanUpAudioProcessors() -> bool
 	return true;
 }
 
-auto AudioHandler::hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool
+bool AudioHandler::hasAudioProcessor(AudioProcessor *audioProcessor) const
 {
     for (const auto& processor : audioProcessors)
     {
@@ -104,7 +104,7 @@ auto AudioHandler::hasAudioProcessor(AudioProcessor *audioProcessor) const -> bo
     return false;
 }
 
-auto AudioHandler::hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool
+bool AudioHandler::hasAudioProcessor(std::string nameOfAudioProcessor) const
 {
     for (const auto& processor : audioProcessors)
     {
@@ -114,7 +114,7 @@ auto AudioHandler::hasAudioProcessor(std::string nameOfAudioProcessor) const -> 
     return false;
 }
 
-auto AudioHandler::getAudioConfiguration()->AudioConfiguration
+AudioConfiguration AudioHandler::getAudioConfiguration()
 {
     return this->audioConfiguration;
 }
@@ -137,12 +137,12 @@ void AudioHandler::processAudioInput(void *inputBuffer, const unsigned int &inpu
     }
 }
 
-auto AudioHandler::isAudioConfigSet() const -> bool
+bool AudioHandler::isAudioConfigSet() const
 {
     return flagAudioConfigSet;
 }
 
-auto AudioHandler::isPrepared() const -> bool
+bool AudioHandler::isPrepared() const
 {
     return flagPrepared;
 }
