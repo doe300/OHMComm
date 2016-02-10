@@ -72,13 +72,50 @@ Kamal:
 
 Jonas:
 	Projektmanagement
+		- Klärungen von Organisatorischem
+		- Regelmäßige Teilnahme an Projektmeetings und Aufgabenverteilung
+		- Erstellung von Branches und Tickets
 	Präsentation
+		-RtAudio
+		-Opus
+		-Statistiken
 	Bericht
+		- Erstellung von Grafiken
+		- Berichtskapitel:
+			- Entwurf
+			- Projektverwaltung und Werkzeuge
+				- GitHub
+				- CMake
+				- IDEs
+				- Testumgebung
+			- Build Prozess
+				- CMake
+				- Build unter Windows
+			- Konkrete Softwarekomponenten
+				- RtAudio
+				- Opus
+			- Implementierung
+				- RtAudio
+				- Opus
+			- Prototypische Voice-over-IP Konsolenanwendungen
+				- Ziel der Anwendung
 	RtAudio
+		- RtAudio Konfiguration
+		- Codereview des RtAudioWrappers
 	Opus
+		- CMake Integration von LibOpus
+		- Erstellung des OpusProcessors
 	Tests
+		- Durchführung von Netzwerktests(WLAN,WAN)
+		- IPv6 Netzwerktests
 	Konfiguration
+		- Manuelle Konfiguration von RtAudio
 	Plattformunabhängigkeit (CMAKE)
+		- CMake Integration von Opus
+		- Optimierung der CMake Dateien für Visual-Studio
+		- Diverse Visual-Studio Anpassungen
+		- Static Build Support für Visual-Studio
+		- Unicode Support
 	
 Daniel:
 	Projektmanagement:
