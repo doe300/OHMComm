@@ -215,6 +215,34 @@ protected:
      */
     bool configureAudioProcessors(const std::shared_ptr<ConfigurationMode> configMode);
     bool cleanUpAudioProcessors();
+    
+    /*!
+     * Automatically selects the best audio format out of the supported formats
+     */
+    unsigned int autoSelectAudioFormat(unsigned int supportedFormats);
+
+    /*!
+     * Returns the sample-rate as number of the best supported sample-rate flag
+     */
+    unsigned int autoSelectSampleRate(unsigned int supportedRatesFlag);
+
+    /*!
+     * "Asks" the AudioProcessors for supported audio-configuration and uses the sample-rate, frame-size and
+     * number of samples per package all processors can agree on
+     *
+     * \return whether all processors could agree on a value for every field
+     */
+    bool queryProcessorSupport();
+
+    /*!
+     * Maps the supported sample-rates from the device to the flags specified in AudioConfiguration
+     */
+    unsigned int mapDeviceSampleRates(std::vector<unsigned int> sampleRates);
+
+    /*!
+     * Returns the best match for the number of buffered frames according to all processors
+     */
+    unsigned int findOptimalBufferSize(unsigned int defaultBufferSize);
 };
 
 #endif

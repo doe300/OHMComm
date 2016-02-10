@@ -59,8 +59,19 @@ elseif(RTAUDIO_HEADER_PATH)
 	# Compile ourselves and set correct header-path
 	add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
 	add_definitions(-DRTAUDIO_HEADER="../lib/rtaudio-4.1.1/RtAudio.h")
-else()
-	message(WARNING "No RtAudio library found")
+endif()
+
+# PortAudio - http://www.portaudio.com/
+#Try to find precompiled library
+find_library(PORTAUDIO_LIBRARY NAMES portaudio libportaudio)
+if(PORTAUDIO_LIBRARY)
+	message(STATUS "PortAudio library found: " ${PORTAUDIO_LIBRARY})
+	#Set header to default include path
+	add_definitions(-DPORTAUDIO_HEADER="portaudio.h")
+endif()
+
+if(NOT RTAUDIO_LIBRARY AND NOT RTAUDIO_HEADER_PATH AND NOT PORTAUDIO_LIBRARY)
+	message(WARNING "No supported audio-library found!")
 endif()
 
 ####
