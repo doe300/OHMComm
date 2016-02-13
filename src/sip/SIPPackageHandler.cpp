@@ -176,7 +176,7 @@ void SIPPackageHandler::checkSIPHeader(const SIPHeader* header)
     {
         throw std::invalid_argument("Invalid From header-field!");
     }
-    if(std::get<1>(SIPGrammar::readNamedAddress(toField.substr(0, fromField.find_last_of('>')+1), 0)).protocol.empty())
+    if(std::get<1>(SIPGrammar::readNamedAddress(toField.substr(0, toField.find_last_of('>')+1), 0)).protocol.empty())
     {
         throw std::invalid_argument("Invalid To header-field!");
     }

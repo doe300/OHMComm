@@ -129,18 +129,25 @@ std::string SIPGrammar::toSIPURI(const SIPURI& sipURI)
 
 std::tuple<std::string, SIPGrammar::SIPURI> SIPGrammar::readNamedAddress(const std::string& namedAddress, const unsigned short defaultPort)
 {
-    if(namedAddress.find('<')== std::string::npos || namedAddress.find('>') == std::string::npos)
+    const std::string::size_type openIndex = namedAddress.find('<');
+    std::string namePart;
+    if(openIndex == std::string::npos || namedAddress.find('>') == std::string::npos)
     {
+        //there is no name-part
+        namePart = "";
         return std::make_tuple("", SIPURI{});
     }
-    const auto openIndex = namedAddress.find('<');
-    std::string namePart = Utility::trim(namedAddress.substr(0, openIndex));
-    if(!namePart.empty() && namePart[0] == '"' && namePart[namePart.size()-1] =='"')
+    else
     {
-        //remove surrounding '"'s
-        namePart = namePart.substr(1, namePart.size()-2);
+        std::string namePart = Utility::trim(namedAddress.substr(0, openIndex));
+        if(!namePart.empty() && namePart[0] == '"' && namePart[namePart.size()-1] =='"')
+        {
+            //remove surrounding '"'s
+            namePart = namePart.substr(1, namePart.size()-2);
+        }
     }
-    return std::make_tuple(namePart, readSIPURI(namedAddress.substr(openIndex + 1, namedAddress.find_last_of('>') - openIndex - 1), defaultPort));
+    const std::string::size_type length = openIndex == std::string::npos ? namedAddress.size() : (namedAddress.find_last_of('>') - openIndex - 1);
+    return std::make_tuple(namePart, readSIPURI(namedAddress.substr(openIndex + 1, length), defaultPort));
 }
 
 std::string SIPGrammar::toNamedAddress(const SIPURI& sipURI, const std::string& name)

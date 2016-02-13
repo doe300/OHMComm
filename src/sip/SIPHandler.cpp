@@ -341,6 +341,10 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     {
         responseBody = SIPPackageHandler::readResponsePackage(buffer, packageLength, responseHeader);
         std::cout << "SIP: Response received: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+        //TODO if we invite somebody, the ACK for the OK has no user-name set, because the info is updated later
+        //workaround:
+        if(ParticipantDatabase::remote().userAgent.userName.empty())
+            ParticipantDatabase::remote().userAgent.userName = std::get<1>(responseHeader.getAddress()).user;
         ParticipantDatabase::remote().userAgent.tag = responseHeader.getRemoteTag();
         SIPPackageHandler::checkSIPHeader(&responseHeader);
     }

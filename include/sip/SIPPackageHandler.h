@@ -285,12 +285,7 @@ struct SIPHeader : KeyValuePairs<HeaderField>
         {
             return std::make_tuple("", SIPGrammar::SIPURI{});
         }
-        const std::string::size_type closingIndex = headerField.find_last_of('>');
-        if(closingIndex == std::string::npos)
-        {
-            return SIPGrammar::readNamedAddress(headerField, -1);
-        }
-        return SIPGrammar::readNamedAddress(headerField.substr(0, closingIndex - 1), -1);
+        return SIPGrammar::readNamedAddress(headerField, -1);
     }
 };
 
