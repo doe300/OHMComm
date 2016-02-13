@@ -9,6 +9,7 @@
 
 #include "Utility.h"
 #include "sip/STUNClient.h"
+#include "network/NetworkGrammars.h"
 
 #ifdef _WIN32
 #include <stdio.h>
@@ -95,6 +96,9 @@ Utility::AddressType Utility::getNetworkType(const std::string& remoteAddress)
 
 std::string Utility::getAddressForHostName(const std::string& hostName)
 {
+    if(NetworkGrammars::isIPv4Address(hostName) || NetworkGrammars::isIPv6Address(hostName))
+        return hostName;
+    
     std::string ipAddress;
     addrinfo* info;
     if(getaddrinfo(hostName.c_str(), nullptr, nullptr, &info) != 0)

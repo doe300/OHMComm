@@ -7,6 +7,7 @@
 
 #include "config/ParameterConfiguration.h"
 #include "AudioHandlerFactory.h"
+#include "Utility.h"
 
 ParameterConfiguration::ParameterConfiguration(const Parameters& params) : ConfigurationMode(), params(params)
 {
@@ -46,7 +47,7 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params) : Confi
     }
 
     //get network configuration from parameters
-    networkConfig.remoteIPAddress = params.getParameterValue(Parameters::REMOTE_ADDRESS);
+    networkConfig.remoteIPAddress = Utility::getAddressForHostName(params.getParameterValue(Parameters::REMOTE_ADDRESS));
     networkConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).c_str());
     networkConfig.remotePort = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
 
