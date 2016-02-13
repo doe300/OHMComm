@@ -17,16 +17,23 @@ class TestSIPHandler : public Test::Suite
 {
 public:
     TestSIPHandler();
+    
+    ~TestSIPHandler()
+    {
+    }
 
     void testSIPThread();
     
     void testSIPProtocol(const int index);
     
-    virtual bool setup();
-    
-    virtual void tear_down();
+    virtual bool before(const std::string& methodName);
+
+    virtual void after(const std::string& methodName, const bool success);
+
 private:
-    SIPHandler handler;
+    std::unique_ptr<SIPHandler> handler;
+    
+    void dummyHandler();
 };
 
 #endif	/* TESTSIPHANDLER_H */

@@ -74,7 +74,7 @@ namespace Test
             testMethods.push_back(TestMethod(funcName, method));
             totalTestMethods++;
         }
-
+        
         template<typename T, typename U>
         inline void addTest(SingleArgTestMethod<T> method, const std::string& funcName, const U& arg)
         {
@@ -86,6 +86,7 @@ namespace Test
         inline void testSucceeded(Assertion&& assertion)
         {
             assertion.method = currentTestMethodName;
+            assertion.args = currentTestMethodArgs;
             assertion.suite = suiteName;
             output->printSuccess(assertion);
         }
@@ -94,6 +95,7 @@ namespace Test
         {
             currentTestSucceeded = false;
             assertion.method = currentTestMethodName;
+            assertion.args = currentTestMethodArgs;
             assertion.suite = suiteName;
             output->printFailure(assertion);
         }
@@ -158,16 +160,45 @@ namespace Test
             TestMethod(const std::string& name, SimpleTestMethod method) : name(name), functor(method), argString({})
             {
             }
-
+            
             template<typename T>
             TestMethod(const std::string& name, SingleArgTestMethod<T> method, const T& arg) : 
-                name(name), functor(std::bind(method, std::placeholders::_1, arg)), argString(std::to_string(arg))
+                name(name), functor(std::bind(method, std::placeholders::_1, arg)), argString(joinStrings(arg))
             {
             }
             
+            TestMethod(const std::string& name, SingleArgTestMethod<std::string> method, const std::string& arg) : 
+                name(name), functor(std::bind(method, std::placeholders::_1, arg)), argString(std::string("\"")+arg+"\"")
+            {
+            }
+                
             inline void operator()(Suite* suite) const
             {
                 functor(suite);
+            }
+            
+            template<typename T, typename... R>
+            static inline std::string joinStrings(const T& t, const R&... remainder)
+            {
+                if(sizeof...(R) == 0)
+                    return std::to_string(t);
+                return (std::to_string(t) + ", ") + joinStrings(remainder...);
+            }
+            
+            template<typename... R>
+            static inline std::string joinStrings(const std::string& t, const R&... remainder)
+            {
+                //special case to enquote std::string
+                if(sizeof...(R) == 0)
+                    return std::string("\"")+t+"\"";
+                return (std::string("\"")+t+"\", ") + joinStrings(remainder...);
+            }
+            
+            template<typename... R>
+            static inline std::string joinStrings(const R&... remainder)
+            {
+                //is never called, but must exist to not throw compilation errors
+                return "";
             }
         };
         std::string suiteName;
@@ -177,6 +208,7 @@ namespace Test
 
         unsigned int positiveTestMethods;
         std::string currentTestMethodName;
+        std::string currentTestMethodArgs;
         bool currentTestSucceeded;
         std::chrono::microseconds totalDuration;
         Output* output;

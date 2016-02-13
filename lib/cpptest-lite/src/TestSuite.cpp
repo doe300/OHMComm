@@ -60,6 +60,7 @@ std::pair<bool, std::chrono::microseconds> Suite::runTestMethod(const TestMethod
     errno = 0;
     bool exceptionThrown = false;
     currentTestMethodName = method.name;
+    currentTestMethodArgs = method.argString;
     currentTestSucceeded = true;
     output->initializeTestMethod(suiteName, method.name, method.argString);
     //run before() before every test

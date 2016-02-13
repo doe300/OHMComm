@@ -38,22 +38,23 @@ namespace Test
         std::string suite;
         const std::string file;
         std::string method;
+        std::string args;
         const int lineNumber;
         std::string errorMessage;
         const std::string userMessage;
 
         Assertion(const char* fileName, const int lineNumber, std::string errorMessage, const char* userMessage) :
-        suite(""), file(fileName), method(""), lineNumber(lineNumber), errorMessage(errorMessage), userMessage(userMessage)
+        suite(""), file(fileName), method(""), args(""), lineNumber(lineNumber), errorMessage(errorMessage), userMessage(userMessage)
         {
         }
 
         Assertion(const char* fileName, const int lineNumber, const char* userMessage) :
-        suite(""), file(fileName), method(""), lineNumber(lineNumber), errorMessage(""), userMessage(userMessage)
+        suite(""), file(fileName), method(""), args(""), lineNumber(lineNumber), errorMessage(""), userMessage(userMessage)
         {
         }
 
         Assertion(const char* fileName, const int lineNumber) :
-        suite(""), file(fileName), method(""), lineNumber(lineNumber), errorMessage(""), userMessage("")
+        suite(""), file(fileName), method(""), args(""), lineNumber(lineNumber), errorMessage(""), userMessage("")
         {
         }
     };

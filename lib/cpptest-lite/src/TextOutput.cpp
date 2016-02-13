@@ -56,7 +56,7 @@ void TextOutput::printSuccess(const Assertion& assertion)
 
 void TextOutput::printFailure(const Assertion& assertion)
 {
-    stream << "Test '" << assertion.method << "' failed!" << std::endl;
+    stream << "Test '" << assertion.method << '(' << (assertion.args.empty() ? "" : assertion.args) << ")' failed!" << std::endl;
     stream << "\tSuite: " << assertion.suite << std::endl;
     stream << "\tFile: " << Private::getFileName(assertion.file) << std::endl;
     stream << "\tLine: " << assertion.lineNumber << std::endl;
