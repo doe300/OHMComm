@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "NetworkWrapper.h"
+#include "network/NetworkWrapper.h"
 
 std::wstring NetworkWrapper::getLastError() const
 {

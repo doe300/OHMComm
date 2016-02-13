@@ -5,7 +5,7 @@
  * Created on June 14, 2015, 10:05 AM
  */
 
-#include "NetworkWrappingProcessor.h"
+#include "network/NetworkWrappingProcessor.h"
 
 NetworkWrappingProcessor::NetworkWrappingProcessor(std::string name, NetworkWrapper *wrapper): AudioProcessor(name), wrapper(wrapper)
 {

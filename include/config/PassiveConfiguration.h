@@ -10,7 +10,7 @@
 
 #include "ConfigurationMode.h"
 #include "rtp/RTCPPackageHandler.h"
-#include "UDPWrapper.h"
+#include "network/UDPWrapper.h"
 
 /*!
  * Passive configuration, the application will ask its communication-partner for its audio-configuration

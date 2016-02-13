@@ -1,18 +1,18 @@
-#include "UDPWrapper.h"
+#include "network/TCPWrapper.h"
 
-UDPWrapper::UDPWrapper(unsigned short portIncoming, const std::string remoteIPAddress, unsigned short portOutgoing) :
-localAddress({0}), remoteAddress({0})
+TCPWrapper::TCPWrapper(unsigned short localPort, const std::string remoteIPAddress, unsigned short remotePort) :
+    localAddress({0}), remoteAddress({0})
 {
-    initializeNetworkConfig(portIncoming, remoteIPAddress, portOutgoing);
-    initializeNetwork();
+	initializeNetworkConfig(localPort, remoteIPAddress, remotePort);
+	initializeNetwork();
 }
 
-UDPWrapper::UDPWrapper(const NetworkConfiguration& networkConfig) :
-UDPWrapper(networkConfig.localPort, networkConfig.remoteIPAddress, networkConfig.remotePort)
+TCPWrapper::TCPWrapper(const NetworkConfiguration& networkConfig) :
+    TCPWrapper(networkConfig.localPort, networkConfig.remoteIPAddress, networkConfig.remotePort)
 {
 }
 
-UDPWrapper::~UDPWrapper()
+TCPWrapper::~TCPWrapper()
 {
     if(Socket >= 0)
     {
@@ -20,25 +20,26 @@ UDPWrapper::~UDPWrapper()
     }
 }
 
-void UDPWrapper::initializeNetwork()
+
+void TCPWrapper::initializeNetwork()
 {
-    startWinsock();
-    createSocket();
+	startWinsock();
+	createSocket();
 }
 
-void UDPWrapper::startWinsock()
+void TCPWrapper::startWinsock()
 {
-    // Starting Winsock for Windows
-#ifdef _WIN32
-    WSADATA w;
-    if (int result = WSAStartup(MAKEWORD(2, 2), &w) != 0)
-    {
-        std::cerr << "Failed to start Winsock 2! Error #" << result << std::endl;
-    }
-#endif
+	// Starting Winsock for Windows
+	#ifdef _WIN32
+	WSADATA w;
+	if (int result = WSAStartup(MAKEWORD(2, 2), &w) != 0)
+	{
+		std::cerr << "Failed to start Winsock 2! Error #" << result << std::endl;
+	}
+	#endif
 }
 
-void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::string remoteIPAddress, unsigned short remotePort)
+void TCPWrapper::initializeNetworkConfig(unsigned short localPort, const std::string remoteIPAddress, unsigned short remotePort)
 {
     if(NetworkWrapper::isIPv6(remoteIPAddress))
     {
@@ -68,18 +69,19 @@ void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
     }
 }
 
-bool UDPWrapper::createSocket()
+
+bool TCPWrapper::createSocket()
 {
     unsigned int addressLength = getSocketAddressLength();
     // AF_INET - creating an IPv4 based socket
     // AF_INET6 - creating an IPv6 based socket
     if(isIPv6)
     {
-        this->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+        this->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
     }
     else
     {
-        this->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        this->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     }
     if (Socket == INVALID_SOCKET)
     {
@@ -100,14 +102,10 @@ bool UDPWrapper::createSocket()
     timeout.tv_usec = 0;
 #endif
     int yes = 1;
-    setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof (timeout));
+    setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
     //we need to allow reuse-address for fast re-binding after closing
-    if(setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, (char*) &yes, sizeof (int)) < 0)
-    {
-        perror("setsockopt");
-        std::wcout << "Reuse: " << getLastError() << std::endl;
-    }
-
+    setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, (char*) &yes, sizeof (int));
+    
     if (bind(Socket, (sockaddr*)&(this->localAddress), addressLength) == SOCKET_ERROR)
     {
         std::wcerr << "Error binding the socket: " << getLastError() << std::endl;
@@ -117,21 +115,31 @@ bool UDPWrapper::createSocket()
     {
         std::cout << "Local port bound." << std::endl;
     }
+    
+    if(connect(Socket, (sockaddr*)&(this->remoteAddress), addressLength) == SOCKET_ERROR)
+    {
+        std::wcerr << "Error connecting the socket: " << getLastError() << std::endl;
+        return false;
+    }
+    else
+    {
+        std::cout << "Connection established." << std::endl;
+    }
     return true;
 }
 
-int UDPWrapper::sendData(const void *buffer, const unsigned int bufferSize)
+int TCPWrapper::sendData(const void *buffer, const unsigned int bufferSize)
 {
-    return sendto(this->Socket, (char*) buffer, (int) bufferSize, 0, (sockaddr*)&(this->remoteAddress), getSocketAddressLength());
+    return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->remoteAddress), getSocketAddressLength());
 }
 
-int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
+int TCPWrapper::receiveData(void *buffer, unsigned int bufferSize)
 {
-#ifdef _WIN32
-    int localAddrLen = sizeof (localAddress);
-#else
+    #ifdef _WIN32
+    int localAddrLen = sizeof(localAddress);
+    #else
     unsigned int localAddrLen = getSocketAddressLength();
-#endif
+    #endif
     int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->localAddress), &localAddrLen);
     if (result == -1)
     {
@@ -145,25 +153,25 @@ int UDPWrapper::receiveData(void *buffer, unsigned int bufferSize)
     return result;
 }
 
-void UDPWrapper::closeNetwork()
+void TCPWrapper::closeNetwork()
 {
     if(Socket != INVALID_SOCKET)
     {
         shutdown(Socket, SHUTDOWN_BOTH);
-#ifdef _WIN32
+        #ifdef _WIN32
         closesocket(Socket);
-#else
+        #else
         close(Socket);
-#endif
+        #endif
         Socket = INVALID_SOCKET;
     }
 }
 
-int UDPWrapper::getSocketAddressLength()
+int TCPWrapper::getSocketAddressLength()
 {
     if(isIPv6)
     {
         return sizeof(sockaddr_in6);
     }
-    return sizeof (sockaddr_in);
+    return sizeof(sockaddr_in);
 }

@@ -13,7 +13,7 @@
 #include "ConfigurationMode.h"
 #include "AudioHandler.h"
 #include "rtp/RTPBuffer.h"
-#include "NetworkWrapper.h"
+#include "network/NetworkWrapper.h"
 #include "rtp/RTPListener.h"
 #include "rtp/RTCPHandler.h"
 

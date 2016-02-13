@@ -2,8 +2,8 @@
 #define TESTNETWORKWRAPPERS_H
 
 #include "cpptest.h"
-#include "NetworkWrapper.h"
-#include "UDPWrapper.h"
+#include "network/NetworkWrapper.h"
+#include "network/UDPWrapper.h"
 
 class TestNetworkWrappers : public Test::Suite
 {

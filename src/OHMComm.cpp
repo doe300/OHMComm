@@ -6,7 +6,7 @@
  */
 
 #include "OHMComm.h"
-#include "UDPWrapper.h"
+#include "network/UDPWrapper.h"
 #include "rtp/ProcessorRTP.h"
 #include "AudioProcessorFactory.h"
 #include "AudioHandlerFactory.h"

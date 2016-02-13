@@ -13,7 +13,7 @@
 #include "PlaybackListener.h"
 #include "ParticipantDatabase.h"
 #include "RTPBufferHandler.h"
-#include "NetworkWrapper.h"
+#include "network/NetworkWrapper.h"
 
 /*!
  * Listening-thread for incoming RTP-packages

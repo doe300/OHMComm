@@ -4,7 +4,7 @@
 #include "ParticipantDatabase.h"
 #include "AudioProcessor.h"
 #include "RTPPackageHandler.h"
-#include "NetworkWrapper.h"
+#include "network/NetworkWrapper.h"
 #include "RTPBufferHandler.h"
 
 /*!

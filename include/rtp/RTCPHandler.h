@@ -12,7 +12,7 @@
 #include <memory>
 #include <thread>
 #include <chrono> // clock, tick
-#include "NetworkWrapper.h"
+#include "network/NetworkWrapper.h"
 #include "ParticipantDatabase.h"
 #include "RTCPPackageHandler.h"
 #include "ConfigurationMode.h"
