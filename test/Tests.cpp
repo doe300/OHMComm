@@ -75,6 +75,12 @@ int main(int argc, char** argv)
     TestSIPHandler testSIP;
     testSIP.run(output);
     
+    TestNetworkGrammars testNetGrammars;
+    testNetGrammars.run(output);
+    
+    TestSIPGrammar testSIPGrammar;
+    testSIPGrammar.run(output);
+    
     TestSTUNClient testSTUN;
     testSTUN.run(output);
     

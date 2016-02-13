@@ -9,7 +9,7 @@
 
 #include "sip/SIPHandler.h"
 #include "rtp/ParticipantDatabase.h"
-#include "UDPWrapper.h"
+#include "network/UDPWrapper.h"
 
 const std::string SIPHandler::SIP_ALLOW_METHODS = Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");
 const std::string SIPHandler::SIP_ACCEPT_TYPES = Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
@@ -207,6 +207,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         requestBody = SIPPackageHandler::readRequestPackage(buffer, packageLength, requestHeader);
         std::cout << "SIP: Request received: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
         ParticipantDatabase::remote().userAgent.tag = requestHeader.getRemoteTag();
+        SIPPackageHandler::checkSIPHeader(&requestHeader);
     }
     catch(const std::invalid_argument& error)
     {
@@ -335,164 +336,184 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
 void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLength)
 {
     SIPResponseHeader responseHeader;
-    std::string responseBody = SIPPackageHandler::readResponsePackage(buffer, packageLength, responseHeader);
-    std::cout << "SIP: Response received: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
-    ParticipantDatabase::remote().userAgent.tag = responseHeader.getRemoteTag();
-    if(responseHeader.statusCode >= 100 && responseHeader.statusCode < 200)
+    std::string responseBody;
+    try
     {
-        //for all provisional status-codes - do nothing
+        responseBody = SIPPackageHandler::readResponsePackage(buffer, packageLength, responseHeader);
+        std::cout << "SIP: Response received: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+        ParticipantDatabase::remote().userAgent.tag = responseHeader.getRemoteTag();
+        SIPPackageHandler::checkSIPHeader(&responseHeader);
     }
-    else if(responseHeader.statusCode == SIP_RESPONSE_OK_CODE)
+    catch(const std::invalid_argument& error)
     {
-        //we have success - acknowledge reception
-        sendAckRequest();
-        //action depending on request
-        const std::string requestCommand = responseHeader.getRequestCommand();
-        if (SIP_REQUEST_INVITE.compare(requestCommand) == 0 && (responseHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(responseHeader)))
+        //fired on invalid IP-address or any error while parsing request
+        std::cout << "SIP: Received bad response: " << error.what() << std::endl;
+        return;
+    }
+    try
+    {
+        if(responseHeader.statusCode >= 100 && responseHeader.statusCode < 200)
         {
-            //adds support for multipart containing SDP (RFC 5621)
-            if(SIPPackageHandler::hasMultipartBody(responseHeader))
+            //for all provisional status-codes - do nothing
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_OK_CODE)
+        {
+            //we have success - acknowledge reception
+            sendAckRequest();
+            //action depending on request
+            const std::string requestCommand = responseHeader.getRequestCommand();
+            if (SIP_REQUEST_INVITE.compare(requestCommand) == 0 && (responseHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(responseHeader)))
             {
-                //we only need the SDP part of the body
-                responseBody = SIPPackageHandler::readMultipartBody(responseHeader, responseBody)[MIME_SDP];
-                if(responseBody.empty())
+                //adds support for multipart containing SDP (RFC 5621)
+                if(SIPPackageHandler::hasMultipartBody(responseHeader))
                 {
-                    std::cout << "SIP: Received multi-part OK without SDP body!" << std::endl;
-                    shutdownInternal();
-                    return;
+                    //we only need the SDP part of the body
+                    responseBody = SIPPackageHandler::readMultipartBody(responseHeader, responseBody)[MIME_SDP];
+                    if(responseBody.empty())
+                    {
+                        std::cout << "SIP: Received multi-part OK without SDP body!" << std::endl;
+                        shutdownInternal();
+                        return;
+                    }
                 }
-            }
-            NetworkConfiguration rtpConfig;
+                NetworkConfiguration rtpConfig;
 
-            rtpConfig.localPort = DEFAULT_NETWORK_PORT;
-            //OK for INVITES contains SDP with selected media, as well as IP/session-data of remote
-            const SessionDescription sdp = SDPMessageHandler::readSessionDescription(responseBody);
-            rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
-            //extract MEDIA-data for selected media-type
-            const std::vector<MediaDescription> selectedMedias = SDPMessageHandler::readMediaDescriptions(sdp);
-            unsigned short mediaIndex = 0;
-            //select best media
-            if (selectedMedias.size() < 1) {
-                std::cerr << "SIP: Could not agree on audio-configuration, aborting!" << std::endl;
-                shutdownInternal();
-            }
-            //support for SDP offer/answer model (RFC 3264)
-            //if medias > 1, select best media-type
-            mediaIndex = selectBestMedia(selectedMedias);
-            
-            rtpConfig.remotePort = selectedMedias[mediaIndex].port;
+                rtpConfig.localPort = DEFAULT_NETWORK_PORT;
+                //OK for INVITES contains SDP with selected media, as well as IP/session-data of remote
+                const SessionDescription sdp = SDPMessageHandler::readSessionDescription(responseBody);
+                rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
+                //extract MEDIA-data for selected media-type
+                const std::vector<MediaDescription> selectedMedias = SDPMessageHandler::readMediaDescriptions(sdp);
+                unsigned short mediaIndex = 0;
+                //select best media
+                if (selectedMedias.size() < 1) {
+                    std::cerr << "SIP: Could not agree on audio-configuration, aborting!" << std::endl;
+                    shutdownInternal();
+                }
+                //support for SDP offer/answer model (RFC 3264)
+                //if medias > 1, select best media-type
+                mediaIndex = selectBestMedia(selectedMedias);
 
-            //update remote SIP-URI
-            updateNetworkConfig();
-            std::cout << "SIP: Our INVITE was accepted, initializing communication" << std::endl;
-            
-            //start communication
-            startCommunication(selectedMedias[mediaIndex], rtpConfig, SDPMessageHandler::readRTCPAttribute(sdp));
+                rtpConfig.remotePort = selectedMedias[mediaIndex].port;
+
+                //update remote SIP-URI
+                updateNetworkConfig();
+                std::cout << "SIP: Our INVITE was accepted, initializing communication" << std::endl;
+
+                //start communication
+                startCommunication(selectedMedias[mediaIndex], rtpConfig, SDPMessageHandler::readRTCPAttribute(sdp));
+            }
+            else
+            {
+                std::cout << "Currently not supported: " << requestCommand << std::endl;
+                std::cout << "SIP: Please file a bug report at: " << OHMCOMM_HOMEPAGE << std::endl;
+            }
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_MULTIPLE_CHOICES_CODE || responseHeader.statusCode == SIP_RESPONSE_AMBIGUOUS_CODE)
+        {
+            //select first choice (Contact) and try again
+            updateNetworkConfig(&responseHeader);
+            sendInviteRequest();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_MOVED_PERMANENTLY_CODE || responseHeader.statusCode == SIP_RESPONSE_MOVED_TEMPORARILY_CODE)
+        {
+            //change remote-address and retry
+            updateNetworkConfig(&responseHeader);
+            sendInviteRequest();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_BAD_REQUEST_CODE)
+        {
+            std::cout << "SIP: We sent bad request: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+            std::cout << "SIP: Please file a bug report at: " << OHMCOMM_HOMEPAGE << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_UNAUTHORIZED_CODE || responseHeader.statusCode == SIP_RESPONSE_PROXY_AUTHENTICATION_REQUIRED_CODE)
+        {
+            std::cout << "SIP: Server requires authorization!" << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_FORBIDDEN_CODE)
+        {
+            std::cout << "SIP: Access forbidden!" << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_NOT_FOUND_CODE)
+        {
+            std::cout << "SIP: Request-URI not found!" << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_METHOD_NOT_ALLOWED_CODE)
+        {
+            std::cout << "SIP: Server didn't allow our request-method!" << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_NOT_ACCEPTABLE_CODE || responseHeader.statusCode == SIP_RESPONSE_NOT_ACCEPTABLE_HERE_CODE)
+        {
+            std::cout << "SIP: Request could not be accepted: " << responseHeader.reasonPhrase << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_TIMEOUT_CODE || responseHeader.statusCode == SIP_RESPONSE_GONE_CODE)
+        {
+            std::cout << "SIP: Could not reach communication partner!" << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_ENTITY_TOO_LARGE_CODE || responseHeader.statusCode == SIP_RESPONSE_REQUEST_URI_TOO_LONG_CODE
+                || responseHeader.statusCode == SIP_RESPONSE_UNSUPPORTED_MEDIA_TYPE_CODE || responseHeader.statusCode == SIP_RESPONSE_UNSUPPORTED_SCHEME_CODE)
+        {
+            std::cout << "SIP: Remote could not handle our request:" << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_EXTENSION_REQUIRED_CODE)
+        {
+            std::cout << "SIP: Remote requires an extension, we do not support!" << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_TEMPORARILY_UNAVAILABLE_CODE)
+        {
+            std::cout << "SIP: Communication partner temporarily unavailable: " << responseHeader.reasonPhrase << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_LOOP_DETECTED_CODE || responseHeader.statusCode == SIP_RESPONSE_TOO_MANY_HOPS_CODE)
+        {
+            std::cout << "SIP: Network-error: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_BUSY_CODE || responseHeader.statusCode == SIP_RESPONSE_BUSY_EVERYWHERE_CODE
+                || responseHeader.statusCode == SIP_RESPONSE_DECLINE_CODE)
+        {
+            //remote is busy or call was declined
+            std::cout << "SIP: Could not establish connection: " << responseHeader.reasonPhrase << std::endl;
+            sendAckRequest();
+            state  = SessionState::SHUTDOWN;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_TERMINATED_CODE)
+        {
+            //we are working on an already terminated request
+            shutdown();
+        }
+        else if(responseHeader.statusCode >= 500 && responseHeader.statusCode < 600)
+        {
+            //for all remote server errors - notify and shut down
+            std::cout << "SIP: Remote server error: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+            shutdown();
+        }
+        else if(responseHeader.statusCode == SIP_RESPONSE_DOES_NOT_EXIST_ANYWHERE_CODE)
+        {
+            std::cout << "SIP: Requested user does not exist!" << std::endl;
+            shutdown();
         }
         else
         {
-            std::cout << "Currently not supported: " << requestCommand << std::endl;
+            std::cout << "SIP: Received unsupported response: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
             std::cout << "SIP: Please file a bug report at: " << OHMCOMM_HOMEPAGE << std::endl;
         }
     }
-    else if(responseHeader.statusCode == SIP_RESPONSE_MULTIPLE_CHOICES_CODE || responseHeader.statusCode == SIP_RESPONSE_AMBIGUOUS_CODE)
+    catch(const std::exception& error)
     {
-        //select first choice (Contact) and try again
-        updateNetworkConfig(&responseHeader);
-        sendInviteRequest();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_MOVED_PERMANENTLY_CODE || responseHeader.statusCode == SIP_RESPONSE_MOVED_TEMPORARILY_CODE)
-    {
-        //change remote-address and retry
-        updateNetworkConfig(&responseHeader);
-        sendInviteRequest();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_BAD_REQUEST_CODE)
-    {
-        std::cout << "SIP: We sent bad request: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
-        std::cout << "SIP: Please file a bug report at: " << OHMCOMM_HOMEPAGE << std::endl;
+        sendResponse(SIP_RESPONSE_SERVER_ERROR_CODE, SIP_RESPONSE_SERVER_ERROR, nullptr);
+        std::cerr << "SIP: Server-error: " << error.what() << std::endl;
         shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_UNAUTHORIZED_CODE || responseHeader.statusCode == SIP_RESPONSE_PROXY_AUTHENTICATION_REQUIRED_CODE)
-    {
-        std::cout << "SIP: Server requires authorization!" << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_FORBIDDEN_CODE)
-    {
-        std::cout << "SIP: Access forbidden!" << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_NOT_FOUND_CODE)
-    {
-        std::cout << "SIP: Request-URI not found!" << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_METHOD_NOT_ALLOWED_CODE)
-    {
-        std::cout << "SIP: Server didn't allow our request-method!" << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_NOT_ACCEPTABLE_CODE || responseHeader.statusCode == SIP_RESPONSE_NOT_ACCEPTABLE_HERE_CODE)
-    {
-        std::cout << "SIP: Request could not be accepted: " << responseHeader.reasonPhrase << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_TIMEOUT_CODE || responseHeader.statusCode == SIP_RESPONSE_GONE_CODE)
-    {
-        std::cout << "SIP: Could not reach communication partner!" << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_ENTITY_TOO_LARGE_CODE || responseHeader.statusCode == SIP_RESPONSE_REQUEST_URI_TOO_LONG_CODE
-            || responseHeader.statusCode == SIP_RESPONSE_UNSUPPORTED_MEDIA_TYPE_CODE || responseHeader.statusCode == SIP_RESPONSE_UNSUPPORTED_SCHEME_CODE)
-    {
-        std::cout << "SIP: Remote could not handle our request:" << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_EXTENSION_REQUIRED_CODE)
-    {
-        std::cout << "SIP: Remote requires an extension, we do not support!" << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_TEMPORARILY_UNAVAILABLE_CODE)
-    {
-        std::cout << "SIP: Communication partner temporarily unavailable: " << responseHeader.reasonPhrase << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_LOOP_DETECTED_CODE || responseHeader.statusCode == SIP_RESPONSE_TOO_MANY_HOPS_CODE)
-    {
-        std::cout << "SIP: Network-error: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_BUSY_CODE || responseHeader.statusCode == SIP_RESPONSE_BUSY_EVERYWHERE_CODE
-            || responseHeader.statusCode == SIP_RESPONSE_DECLINE_CODE)
-    {
-        //remote is busy or call was declined
-        std::cout << "SIP: Could not establish connection: " << responseHeader.reasonPhrase << std::endl;
-        sendAckRequest();
-        state  = SessionState::SHUTDOWN;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_TERMINATED_CODE)
-    {
-        //we are working on an already terminated request
-        shutdown();
-    }
-    else if(responseHeader.statusCode >= 500 && responseHeader.statusCode < 600)
-    {
-        //for all remote server errors - notify and shut down
-        std::cout << "SIP: Remote server error: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
-        shutdown();
-    }
-    else if(responseHeader.statusCode == SIP_RESPONSE_DOES_NOT_EXIST_ANYWHERE_CODE)
-    {
-        std::cout << "SIP: Requested user does not exist!" << std::endl;
-        shutdown();
-    }
-    else
-    {
-        std::cout << "SIP: Received unsupported response: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
-        std::cout << "SIP: Please file a bug report at: " << OHMCOMM_HOMEPAGE << std::endl;
     }
 }
 
@@ -592,11 +613,11 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
     {
         //set values for remote user/host and remote-address into SIP user agent database
         //this enables receiving INVITES from user agents other than the one, we sent the initial INVITE to
-        std::tuple<std::string, std::string,std::string, int> remoteAddress = header->getAddress();
+        std::tuple<std::string, SIPGrammar::SIPURI> remoteAddress = header->getAddress();
         ParticipantDatabase::remote().userAgent.userName = std::get<0>(remoteAddress);
-        ParticipantDatabase::remote().userAgent.hostName = std::get<1>(remoteAddress);
-        ParticipantDatabase::remote().userAgent.ipAddress = std::get<2>(remoteAddress);
-        ParticipantDatabase::remote().userAgent.port = std::get<3>(remoteAddress) == -1 ? SIP_DEFAULT_PORT : std::get<3>(remoteAddress);
+        ParticipantDatabase::remote().userAgent.hostName = std::get<1>(remoteAddress).host;
+        ParticipantDatabase::remote().userAgent.ipAddress = Utility::getAddressForHostName(std::get<1>(remoteAddress).host);
+        ParticipantDatabase::remote().userAgent.port = std::get<1>(remoteAddress).port == -1 ? SIP_DEFAULT_PORT : std::get<1>(remoteAddress).port;
     }
     //check if configuration has changed
     if(sipConfig.remotePort != ParticipantDatabase::remote().userAgent.port ||

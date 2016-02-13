@@ -7,7 +7,7 @@
 
 #include "sip/SDPMessageHandler.h"
 #include "rtp/RTCPHeader.h"
-#include "NetworkWrapper.h"
+#include "network/NetworkWrapper.h"
 #include "sip/SIPPackageHandler.h"
 #include "rtp/ParticipantDatabase.h"
 

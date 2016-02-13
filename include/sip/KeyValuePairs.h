@@ -126,6 +126,19 @@ struct KeyValuePairs
         return std::move(results);
     }
     
+    template<typename keyType = typename KeyValueType::type>
+    bool hasKey(const keyType& fieldKey) const
+    {
+        for(const KeyValueType& pair : fields)
+        {
+            if(isSame(pair.key, fieldKey))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
 private:
     //TODO compact form of header-fields
     inline bool isSame(const std::string& s1, const std::string& s2) const

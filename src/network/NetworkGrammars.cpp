@@ -14,7 +14,7 @@ const auto flags = std::regex_constants::icase|std::regex_constants::optimize|st
 std::tuple<std::string, int> NetworkGrammars::toHostAndPort(const std::string& hostAndPort, const int defaultPort)
 {
     //there are several possibilities:
-    //there is not ':', so we only have a host
+    //there is no ':', so we only have a host
     if(hostAndPort.find(':') == std::string::npos)
     {
         if(isValidHost(hostAndPort))
@@ -51,7 +51,7 @@ std::tuple<std::string, int> NetworkGrammars::toHostAndPort(const std::string& h
 
 bool NetworkGrammars::isValidDomainName(const std::string& hostName)
 {
-    static const std::regex hostNameRegex{"^((([A-Za-z]|)|([A-Za-z]|)(([A-Za-z]|)|\\-)*([A-Za-z]|))\\.)*([A-Za-zA-Za-z](([A-Za-z]|)|\\-)*([A-Za-z]|))(\\.){0,1}$", flags};
+    static const std::regex hostNameRegex{"^((\\w(\\w|\\-)*\\w)\\.)*(\\w(\\w|\\-)*\\w)(\\.){0,1}$", flags};
     return std::regex_match(hostName, hostNameRegex, std::regex_constants::match_default);
 }
 
@@ -63,7 +63,7 @@ bool NetworkGrammars::isIPv4Address(const std::string& address)
 
 bool NetworkGrammars::isIPv6Address(const std::string& address)
 {
-    static const std::regex ipv6Regex{"^((\\:)*|(\\:)*\\:\\:((\\:)*){0,1}|\\:\\:((\\:)*){0,1})(\\:[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}){0,1}$", flags};
+    static const std::regex ipv6Regex{"^(([0-9]|%x41\\-46|%x61\\-66){1,4}(\\:([0-9]|%x41\\-46|%x61\\-66){1,4})*|([0-9]|%x41\\-46|%x61\\-66){1,4}(\\:([0-9]|%x41\\-46|%x61\\-66){1,4})*\\:\\:(([0-9]|%x41\\-46|%x61\\-66){1,4}(\\:([0-9]|%x41\\-46|%x61\\-66){1,4})*){0,1}|\\:\\:(([0-9]|%x41\\-46|%x61\\-66){1,4}(\\:([0-9]|%x41\\-46|%x61\\-66){1,4})*){0,1})(\\:[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}){0,1}$", flags};
     return std::regex_match(address, ipv6Regex, std::regex_constants::match_default);
 }
 

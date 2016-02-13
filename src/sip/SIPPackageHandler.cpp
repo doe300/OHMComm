@@ -133,6 +133,59 @@ std::map<std::string, std::string> SIPPackageHandler::readMultipartBody(const SI
     return parts;
 }
 
+void SIPPackageHandler::checkSIPHeader(const SIPHeader* header)
+{
+    if(header == nullptr)
+    {
+        throw std::invalid_argument("Can't check nullptr!");
+    }
+    /*
+     * Taken from RFC 3261 (Section 20)
+     * 
+     * This list is not exhaustive and only lists header-fields which are used in OHMComm
+     * 
+     * Header field          Request    Response
+     * ___________________________________________________
+     * Call-ID                mandatory  mandatory
+     * Contact                mandatory  1xx, 2xx, 3xx,485
+     * From                   mandatory  mandatory
+     * To                     mandatory  mandatory
+     * Via                    mandatory  mandatory
+     */
+    //1. check all required fields
+    if(!header->hasKey(SIP_HEADER_CALL_ID))
+        throw std::invalid_argument("Missing Call-ID header-field!");
+    if(!header->hasKey(SIP_HEADER_FROM))
+        throw std::invalid_argument("Missing From header-field!");
+    if(!header->hasKey(SIP_HEADER_TO))
+        throw std::invalid_argument("Missing To header-field!");
+    if(!header->hasKey(SIP_HEADER_VIA))
+        throw std::invalid_argument("Missing Via header-field!");
+    if(dynamic_cast<const SIPRequestHeader*>(header) != nullptr)
+    {
+        if(!header->hasKey(SIP_HEADER_CONTACT))
+            throw std::invalid_argument("Missing Contact header-field!");
+        
+    }
+    //2. check syntax/values of required fields
+    //From/To have identical syntax
+    const std::string fromField = header->operator [](SIP_HEADER_FROM);
+    const std::string toField = header->operator [](SIP_HEADER_TO);
+    //we need to cut after the closing '>' because From/To allows more parameters afterwards
+    if(std::get<1>(SIPGrammar::readNamedAddress(fromField.substr(0, fromField.find_last_of('>')+1), 0)).protocol.empty())
+    {
+        throw std::invalid_argument("Invalid From header-field!");
+    }
+    if(std::get<1>(SIPGrammar::readNamedAddress(toField.substr(0, fromField.find_last_of('>')+1), 0)).protocol.empty())
+    {
+        throw std::invalid_argument("Invalid To header-field!");
+    }
+    const std::string viaField = header->operator [](SIP_HEADER_VIA);
+    if(std::get<1>(SIPGrammar::readViaAddress(viaField, 0)).host.empty())
+    {
+        throw std::invalid_argument("Invalid Via header-field!");
+    }
+}
 
 void SIPPackageHandler::writeHeaderFields(std::stringstream& stream, std::vector<HeaderField> fields, unsigned int contentSize)
 {
