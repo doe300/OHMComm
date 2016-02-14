@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 
 #include "Utility.h"
 #include "sip/STUNClient.h"
@@ -228,6 +229,17 @@ int Utility::waitForUserInput(const int waitInMS)
     return -1;
 }
 
+std::vector<std::string> Utility::splitString(const std::string& input, const char delimiter)
+{
+    std::vector<std::string> result;
+    std::stringstream in(input);
+    std::string token;
+    while(std::getline(in, token, delimiter))
+    {
+        result.push_back(token);
+    }
+    return result;
+}
 
 std::string Utility::getExternalLocalIPAddress()
 {

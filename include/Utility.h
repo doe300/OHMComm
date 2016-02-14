@@ -132,6 +132,17 @@ public:
      * \return The key-code of the first character input or -1 if no input was performed
      */
     static int waitForUserInput(const int waitInMS);
+    
+    /*!
+     * Splits a string by the given delimiter, including empty tokens
+     * 
+     * \param input The string to split
+     * 
+     * \param delimiter The delimiter to split at
+     * 
+     * \return a vector of tokens
+     */
+    static std::vector<std::string> splitString(const std::string& input, const char delimiter);
 
 private:
     

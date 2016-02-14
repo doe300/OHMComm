@@ -20,9 +20,9 @@ SIPGrammar::SIPURI SIPGrammar::readSIPURI(const std::string& sipURI, const unsig
 {
     static const std::regex sipURIRegex{"^(sips?)\\:(([^:@\\s]+)(\\:([^@\\s]*)){0,1}@){0,1}([^\\;\\?]+)(;[^\\?]+)*(\\?.+){0,1}$", flags};
     static const std::regex userRegex{"^(([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66)|(&|\\=|\\+|\\$|,|;|\\?|/))+$", flags};
-    static const std::regex passwordRegex{"(([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66)|&|\\=|\\+|\\$|,)*", flags};
-    static const std::regex parameterRegex{"(((\\[|\\]|/|\\:|&|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))+)(\\=(((\\[|\\]|/|\\:|&|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))+)){0,1}", flags};
-    static const std::regex headerRegex{"((((\\[|\\]|/|\\?|\\:|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))+)\\=(((\\[|\\]|/|\\?|\\:|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))*))", flags};
+    static const std::regex passwordRegex{"^(([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66)|&|\\=|\\+|\\$|,)*$", flags};
+    static const std::regex parameterRegex{"^(((\\[|\\]|/|\\:|&|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))+)(\\=(((\\[|\\]|/|\\:|&|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))+)){0,1}$", flags};
+    static const std::regex headerRegex{"^((((\\[|\\]|/|\\?|\\:|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))+)\\=(((\\[|\\]|/|\\?|\\:|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))*))$", flags};
     //SIP-uri           = "sip"["s"]":" [ userinfo ] hostport
     //with 
     // userinfo         = ( username ) [ ":" password ] "@"
@@ -65,24 +65,30 @@ SIPGrammar::SIPURI SIPGrammar::readSIPURI(const std::string& sipURI, const unsig
     if(!result.str(7).empty())  //there are URI parameters
     {
         //skip initial ';'
-        std::string parametersString = result.str(7).substr(1);
-        std::smatch parameterResult;
-        while(std::regex_search(parametersString, parameterResult, parameterRegex))
+        const std::vector<std::string> parameters = Utility::splitString(result.str(7).substr(1), ';');
+        for(const std::string& parameter : parameters)
         {
+            std::smatch parameterResult;
+            if(!std::regex_match(parameter, parameterResult, parameterRegex))
+            {
+                return SIPURI{};
+            }
             uri.parameters[parameterResult.str(1)] = parameterResult.str(9);
-            parametersString = parameterResult.suffix().str();
         }
     }
     
     if(!result.str(8).empty())  //there are headers
     {
         //skip initial '?'
-        std::string headersString = result.str(8).substr(1);
-        std::smatch headersResult;
-        while(std::regex_search(headersString, headersResult, headerRegex))
+        const std::vector<std::string> headerFields = Utility::splitString(result.str(8).substr(1), '&');
+        for(const std::string& headerField : headerFields)
         {
+            std::smatch headersResult;
+            if(!std::regex_match(headerField, headersResult, headerRegex))
+            {
+                return SIPURI{};
+            }
             uri.headers[headersResult.str(2)] = headersResult.str(9);
-            headersString = headersResult.suffix().str();
         }
     }
     
@@ -181,7 +187,6 @@ std::tuple<std::string, SIPGrammar::SIPURI> SIPGrammar::readViaAddress(const std
         return std::make_tuple("", SIPURI{});
     }
     const SIPURI sipURI = readSIPURI(std::string("sip:") + result.str(2), defaultPort);
-    //TODO test host for connectivity??
     return std::make_tuple(protocol, sipURI);
 }
 

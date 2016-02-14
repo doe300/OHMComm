@@ -63,7 +63,7 @@ public:
      */
     static int toPort(const std::string& port);
     
-    static constexpr int INVALID_PORT{-1};
+    static const int INVALID_PORT{-1};
 };
 
 #endif	/* NETWORKGRAMMARS_H */
