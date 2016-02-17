@@ -276,14 +276,14 @@ struct SIPHeader : KeyValuePairs<HeaderField>
      * 
      * \return the remote user-name and address
      */
-    const std::tuple<std::string, SIPGrammar::SIPURI> getAddress() const
+    const SIPGrammar::SIPAddress getAddress() const
     {
         //read contact-field
         //Contact/From: [<user-name>] "<sip:"<user>"@"<host>[":"<port>]">"
         const std::string& headerField = this->operator [](SIP_HEADER_CONTACT).empty() ? this->operator [](SIP_HEADER_FROM) : this->operator [](SIP_HEADER_CONTACT);
         if(headerField.empty())
         {
-            return std::make_tuple("", SIPGrammar::SIPURI{});
+            return SIPGrammar::SIPAddress{"", {}, {}};
         }
         return SIPGrammar::readNamedAddress(headerField, -1);
     }

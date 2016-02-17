@@ -15,6 +15,7 @@
 const std::string SIPGrammar::PROTOCOL_SIP("sip");
 const std::string SIPGrammar::PROTOCOL_SIPS("sips");
 const auto flags = std::regex_constants::icase|std::regex_constants::optimize|std::regex_constants::ECMAScript;
+//TODO rewrite to throw invalid_arguments!!
 
 SIPGrammar::SIPURI SIPGrammar::readSIPURI(const std::string& sipURI, const unsigned short defaultPort)
 {
@@ -23,13 +24,6 @@ SIPGrammar::SIPURI SIPGrammar::readSIPURI(const std::string& sipURI, const unsig
     static const std::regex passwordRegex{"^(([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66)|&|\\=|\\+|\\$|,)*$", flags};
     static const std::regex parameterRegex{"^(((\\[|\\]|/|\\:|&|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))+)(\\=(((\\[|\\]|/|\\:|&|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))+)){0,1}$", flags};
     static const std::regex headerRegex{"^((((\\[|\\]|/|\\?|\\:|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))+)\\=(((\\[|\\]|/|\\?|\\:|\\+|\\$)|([A-Za-z0-9]|(\\-|_|\\.|\\!|~|\\*|'|\\(|\\)))|%([0-9]|%x41\\-46|%x61\\-66)([0-9]|%x41\\-46|%x61\\-66))*))$", flags};
-    //SIP-uri           = "sip"["s"]":" [ userinfo ] hostport
-    //with 
-    // userinfo         = ( username ) [ ":" password ] "@"
-    // hostport         =  host [ ":" port ]
-    // host             =  hostname / IPv4address / IPv6reference
-    // port             =  1*DIGIT
-    // ...
     std::smatch result;
     if(!std::regex_match(sipURI, result, sipURIRegex, std::regex_constants::match_default))
     {
@@ -45,6 +39,7 @@ SIPGrammar::SIPURI SIPGrammar::readSIPURI(const std::string& sipURI, const unsig
     {
         return SIPURI{};
     }
+    //host[:port] MUST NOT be empty
     if(result.str(6).empty())
     {
         return SIPURI{};
@@ -62,6 +57,7 @@ SIPGrammar::SIPURI SIPGrammar::readSIPURI(const std::string& sipURI, const unsig
     uri.host = std::get<0>(hostAndPort);
     uri.port = std::get<1>(hostAndPort);
     
+    //URI parameters may be empty
     if(!result.str(7).empty())  //there are URI parameters
     {
         //skip initial ';'
@@ -77,6 +73,7 @@ SIPGrammar::SIPURI SIPGrammar::readSIPURI(const std::string& sipURI, const unsig
         }
     }
     
+    //headers may be empty
     if(!result.str(8).empty())  //there are headers
     {
         //skip initial '?'
@@ -133,15 +130,16 @@ std::string SIPGrammar::toSIPURI(const SIPURI& sipURI)
     return ss.str();
 }
 
-std::tuple<std::string, SIPGrammar::SIPURI> SIPGrammar::readNamedAddress(const std::string& namedAddress, const unsigned short defaultPort)
+SIPGrammar::SIPAddress SIPGrammar::readNamedAddress(const std::string& namedAddress, const unsigned short defaultPort)
 {
+    //syntax for SIP token (RFC 3261, section 25.1)
+    static const std::regex tokenRegex{"^([[:alnum:]]|\\-|\\.|\\!|\\%|\\*|\\_|\\+|\\`|\\'|\\~)+$", flags};
     const std::string::size_type openIndex = namedAddress.find('<');
-    std::string namePart;
-    if(openIndex == std::string::npos || namedAddress.find('>') == std::string::npos)
+    SIPAddress result;
+    if(openIndex == std::string::npos && namedAddress.find('>') == std::string::npos)
     {
         //there is no name-part
-        namePart = "";
-        return std::make_tuple("", SIPURI{});
+        result.displayName = "";
     }
     else
     {
@@ -151,9 +149,45 @@ std::tuple<std::string, SIPGrammar::SIPURI> SIPGrammar::readNamedAddress(const s
             //remove surrounding '"'s
             namePart = namePart.substr(1, namePart.size()-2);
         }
+        //check name syntax - only if name was not surrounded by quotes
+        else if(!std::regex_match(namePart, tokenRegex))
+        {
+            //name-part does not match the grammar
+            return {"", {}, {}};
+        }
+        result.displayName = namePart;
+        //after the '>' there can be additional parameters
+        //(";" token "=" (token|host|quoted-string))*
+        std::string::size_type semiColonIndex = namedAddress.find(';', namedAddress.find('>'));
+        std::string::size_type equalIndex;
+        while(semiColonIndex != std::string::npos)
+        {
+            equalIndex = namedAddress.find('=', semiColonIndex);
+            if(equalIndex == std::string::npos)
+            {
+                //parameter has no value, invalid
+                return {"", {}, {}};
+            }
+            const std::string parameterKey = namedAddress.substr(semiColonIndex + 1, equalIndex - (semiColonIndex + 1));
+            if(!std::regex_match(parameterKey, tokenRegex))
+            {
+                //parameter-key is wrong
+                return {"", {}, {}};
+            }
+            //XXX out of simplicity, we currently accept any non-empty value
+            semiColonIndex = namedAddress.find(';', semiColonIndex + 1);
+            const std::string parameterValue = namedAddress.substr(equalIndex + 1, semiColonIndex - (equalIndex + 1));
+            if(parameterValue.empty())
+            {
+                //parameter-value can't be empty
+                return {"", {}, {}};
+            }
+            result.parameters[parameterKey] = parameterValue;
+        }
     }
     const std::string::size_type length = openIndex == std::string::npos ? namedAddress.size() : (namedAddress.find_last_of('>') - openIndex - 1);
-    return std::make_tuple(namePart, readSIPURI(namedAddress.substr(openIndex + 1, length), defaultPort));
+    result.uri = readSIPURI(namedAddress.substr(openIndex + 1, length), defaultPort);
+    return result;
 }
 
 std::string SIPGrammar::toNamedAddress(const SIPURI& sipURI, const std::string& name)

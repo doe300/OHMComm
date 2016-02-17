@@ -51,14 +51,25 @@ std::tuple<std::string, int> NetworkGrammars::toHostAndPort(const std::string& h
 
 bool NetworkGrammars::isValidDomainName(const std::string& hostName)
 {
-    static const std::regex hostNameRegex{"^((\\w(\\w|\\-)*\\w)\\.)*(\\w(\\w|\\-)*\\w)(\\.){0,1}$", flags};
+    if(hostName.size() > 64)
+        //domains can't be more than 64 characters
+        return false;
+    //TLD must be optional to allow for "localhost" and any other host-name which is not a domain-name (e.g. for local network)
+    static const std::regex hostNameRegex{"^(([[:alnum:]]([[:alnum:]]|\\-)*[[:alnum:]])\\.)*([[:alnum:]]([[:alnum:]]|\\-)*[[:alnum:]])(\\.[[:alpha:]]{2,3}){0,1}$", flags};
     return std::regex_match(hostName, hostNameRegex, std::regex_constants::match_default);
 }
 
 bool NetworkGrammars::isIPv4Address(const std::string& address)
 {
-    static const std::regex ipv4Regex{"^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$", flags};
-    return std::regex_match(address, ipv4Regex, std::regex_constants::match_default);
+    static const std::regex ipv4Regex{"^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})$", flags};
+    std::smatch result;
+    if(!std::regex_match(address, result, ipv4Regex, std::regex_constants::match_default))
+    {
+        return false;
+    }
+    uint16_t firstByte = atoi(result.str(1).data());
+    uint16_t lastByte = atoi(result.str(4).data());
+    return firstByte != 0 && firstByte <= 255 && atoi(result.str(2).data()) <= 255 && atoi(result.str(3).data()) <= 255 && lastByte != 0 && lastByte <= 255;
 }
 
 bool NetworkGrammars::isIPv6Address(const std::string& address)
@@ -69,7 +80,8 @@ bool NetworkGrammars::isIPv6Address(const std::string& address)
 
 int NetworkGrammars::toPort(const std::string& port)
 {
-    static const std::regex portRegex{"^[0-9]+$", flags};
+    //maximum of 65535 -> 5 characters (when all leading zeros are ignored)
+    static const std::regex portRegex{"^0*[0-9]{1,5}$", flags};
     if(!std::regex_match(port, portRegex, std::regex_constants::match_default))
     {
         return INVALID_PORT;

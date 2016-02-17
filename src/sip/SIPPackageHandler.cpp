@@ -171,12 +171,11 @@ void SIPPackageHandler::checkSIPHeader(const SIPHeader* header)
     //From/To have identical syntax
     const std::string fromField = header->operator [](SIP_HEADER_FROM);
     const std::string toField = header->operator [](SIP_HEADER_TO);
-    //we need to cut after the closing '>' because From/To allows more parameters afterwards
-    if(std::get<1>(SIPGrammar::readNamedAddress(fromField.substr(0, fromField.find_last_of('>')+1), 0)).protocol.empty())
+    if(SIPGrammar::readNamedAddress(fromField, 0).uri.protocol.empty())
     {
         throw std::invalid_argument("Invalid From header-field!");
     }
-    if(std::get<1>(SIPGrammar::readNamedAddress(toField.substr(0, toField.find_last_of('>')+1), 0)).protocol.empty())
+    if(SIPGrammar::readNamedAddress(toField, 0).uri.protocol.empty())
     {
         throw std::invalid_argument("Invalid To header-field!");
     }

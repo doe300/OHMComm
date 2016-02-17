@@ -80,7 +80,6 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::testSTUNServer(c
             else if(transactionID.compare(transID) != 0)
             {
                 std::cout << "STUN: Transaction-IDs do not match!" << std::endl;
-                std::cout << transactionID << " is not " << std::string(transID, 12) << std::endl;
             }
             else //2. check attributes
             {

@@ -43,11 +43,11 @@ void TestSIPGrammar::testNamedAddress()
     const auto addressWithoutName = SIPGrammar::readNamedAddress(withoutName, 100);
     
     //assert correct reading
-    TEST_ASSERT(!std::get<0>(addressWithName).empty());
-    TEST_ASSERT(std::get<0>(addressWithoutName).empty());
+    TEST_ASSERT(!addressWithName.displayName.empty());
+    TEST_ASSERT(addressWithoutName.displayName.empty());
     
-    const std::string withNameGenerated = SIPGrammar::toNamedAddress(std::get<1>(addressWithName), std::get<0>(addressWithName));
-    const std::string withoutNameGenerated = SIPGrammar::toNamedAddress(std::get<1>(addressWithoutName), std::get<0>(addressWithoutName));
+    const std::string withNameGenerated = SIPGrammar::toNamedAddress(addressWithName.uri, addressWithName.displayName);
+    const std::string withoutNameGenerated = SIPGrammar::toNamedAddress(addressWithoutName.uri, addressWithoutName.displayName);
     
     //assert correct generation
     TEST_ASSERT(withName.compare(withNameGenerated) == 0);

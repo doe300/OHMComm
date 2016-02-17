@@ -43,7 +43,17 @@ public:
         {
         }
     };
+    
+    struct SIPAddressParameter : public KeyValuePair<std::string>
+    {
+        SIPAddressParameter() : KeyValuePair()
+        {
+        }
 
+        SIPAddressParameter(std::string key, std::string value) : KeyValuePair(key, value)
+        {
+        }
+    };
 
     static const std::string PROTOCOL_SIP;
     static const std::string PROTOCOL_SIPS;
@@ -58,12 +68,19 @@ public:
         KeyValuePairs<SIPURIParameter> parameters;
         KeyValuePairs<SIPURIHeader> headers;
     };
+    
+    struct SIPAddress
+    {
+        std::string displayName;
+        SIPURI uri;
+        KeyValuePairs<SIPAddressParameter> parameters;
+    };
 
     static SIPURI readSIPURI(const std::string& sipURI, const unsigned short defaultPort);
 
     static std::string toSIPURI(const SIPURI& sipURI);
 
-    static std::tuple<std::string, SIPURI> readNamedAddress(const std::string& namedAddress, const unsigned short defaultPort);
+    static SIPAddress readNamedAddress(const std::string& namedAddress, const unsigned short defaultPort);
     
     static std::string toNamedAddress(const SIPURI& sipURI, const std::string& name = "");
     

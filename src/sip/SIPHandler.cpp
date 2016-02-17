@@ -344,7 +344,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         //TODO if we invite somebody, the ACK for the OK has no user-name set, because the info is updated later
         //workaround:
         if(ParticipantDatabase::remote().userAgent.userName.empty())
-            ParticipantDatabase::remote().userAgent.userName = std::get<1>(responseHeader.getAddress()).user;
+            ParticipantDatabase::remote().userAgent.userName = responseHeader.getAddress().uri.user;
         ParticipantDatabase::remote().userAgent.tag = responseHeader.getRemoteTag();
         SIPPackageHandler::checkSIPHeader(&responseHeader);
     }
@@ -617,11 +617,11 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
     {
         //set values for remote user/host and remote-address into SIP user agent database
         //this enables receiving INVITES from user agents other than the one, we sent the initial INVITE to
-        std::tuple<std::string, SIPGrammar::SIPURI> remoteAddress = header->getAddress();
-        ParticipantDatabase::remote().userAgent.userName = std::get<0>(remoteAddress);
-        ParticipantDatabase::remote().userAgent.hostName = std::get<1>(remoteAddress).host;
-        ParticipantDatabase::remote().userAgent.ipAddress = Utility::getAddressForHostName(std::get<1>(remoteAddress).host);
-        ParticipantDatabase::remote().userAgent.port = std::get<1>(remoteAddress).port == -1 ? SIP_DEFAULT_PORT : std::get<1>(remoteAddress).port;
+        const SIPGrammar::SIPAddress remoteAddress = header->getAddress();
+        ParticipantDatabase::remote().userAgent.userName = remoteAddress.displayName;
+        ParticipantDatabase::remote().userAgent.hostName = remoteAddress.uri.host;
+        ParticipantDatabase::remote().userAgent.ipAddress = Utility::getAddressForHostName(remoteAddress.uri.host);
+        ParticipantDatabase::remote().userAgent.port = remoteAddress.uri.port == -1 ? SIP_DEFAULT_PORT : remoteAddress.uri.port;
     }
     //check if configuration has changed
     if(sipConfig.remotePort != ParticipantDatabase::remote().userAgent.port ||
