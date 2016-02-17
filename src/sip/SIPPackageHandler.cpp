@@ -168,6 +168,10 @@ void SIPPackageHandler::checkSIPHeader(const SIPHeader* header)
         
     }
     //2. check syntax/values of required fields
+    if(!SIPGrammar::isValidCallID(header->operator [](SIP_HEADER_CALL_ID)))
+    {
+        throw std::invalid_argument("Invalid Call-ID header-field!");
+    }
     //From/To have identical syntax
     const std::string fromField = header->operator [](SIP_HEADER_FROM);
     const std::string toField = header->operator [](SIP_HEADER_TO);

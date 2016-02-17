@@ -21,6 +21,8 @@ public:
     void testNamedAddress();
     
     void testToViaAddress();
+    
+    void testIsValidCallID();
 };
 
 #endif	/* TESTSIPGRAMMAR_H */

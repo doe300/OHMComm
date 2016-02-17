@@ -87,6 +87,8 @@ public:
     static std::tuple<std::string, SIPURI> readViaAddress(const std::string& viaField, const unsigned short defaultPort);
     
     static std::string toViaAddress(const SIPURI& sipURI, const std::string& protocolVersion);
+    
+    static bool isValidCallID(const std::string& callID);
 };
 
 #endif	/* SIPGRAMMAR_H */

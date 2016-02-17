@@ -12,6 +12,7 @@ TestSIPGrammar::TestSIPGrammar() : Suite()
     TEST_ADD(TestSIPGrammar::testSIPURI);
     TEST_ADD(TestSIPGrammar::testNamedAddress);
     TEST_ADD(TestSIPGrammar::testToViaAddress);
+    TEST_ADD(TestSIPGrammar::testIsValidCallID);
 }
 
 void TestSIPGrammar::testSIPURI()
@@ -66,4 +67,10 @@ void TestSIPGrammar::testToViaAddress()
     const std::string generatedAddress = SIPGrammar::toViaAddress(std::get<1>(readAddress), std::get<0>(readAddress));
 
     TEST_ASSERT(viaAddress.compare(generatedAddress) == 0);
+}
+
+void TestSIPGrammar::testIsValidCallID()
+{
+    TEST_ASSERT(SIPGrammar::isValidCallID("test@test.com"));
+    TEST_ASSERT(!SIPGrammar::isValidCallID("some stuff no ID"));
 }

@@ -229,3 +229,27 @@ std::string SIPGrammar::toViaAddress(const SIPURI& sipURI, const std::string& pr
     return (protocolVersion + " ") + toSIPURI(sipURI).substr(4);
 }
 
+bool SIPGrammar::isValidCallID(const std::string& callID)
+{
+    //syntax is: word [ "@" host ]
+    static const std::regex wordRegex{"^([[:alnum:]]|\\-|\\.|\\!|\\%|\\*|\\_|\\+|\\`|\\'|\\~|\\(|\\)|\\<|\\>|\\:|\\\\|\\\"|\\/|\\[|\\]|\\?|\\{|\\})+$", flags};
+    if(callID.empty())
+        return false;
+    const std::string::size_type index = callID.find('@');
+    if(index != std::string::npos)
+    {
+        //need to check both parts
+        if(index != callID.find_last_of('@'))
+        {
+            //more than one '@'
+            return false;
+        }
+        if(!std::regex_match(callID.substr(0, index), wordRegex))
+        {
+            //first part doesn't match
+            return false;
+        }
+        return NetworkGrammars::isValidHost(callID.substr(index+1));
+    }
+    return std::regex_match(callID,wordRegex);
+}
