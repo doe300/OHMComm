@@ -12,24 +12,15 @@
 
 #include <chrono>
 
-SIPConfiguration::SIPConfiguration(const NetworkConfiguration& sipConfig, bool profileProcessors, const std::string& logFile) : 
-    ConfigurationMode(), handler(sipConfig, "remote", [this](const MediaDescription media, const NetworkConfiguration rtpConfig, const NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0}), customConfig()
+SIPConfiguration::SIPConfiguration(const Parameters& params, const NetworkConfiguration& sipConfig) : 
+    ParameterConfiguration(params), handler(sipConfig, "remote", [this](const MediaDescription media, const NetworkConfiguration rtpConfig, const NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
 {
+    //overwrite settings from ParameterConfiguration
     useDefaultAudioConfig = false;
-    audioHandlerName = AudioHandlerFactory::getDefaultAudioHandlerName();
     networkConfig.localPort = DEFAULT_NETWORK_PORT;
     networkConfig.remoteIPAddress = sipConfig.remoteIPAddress;
-    profileProcessors = profileProcessors;
     waitForConfigurationRequest = false;
-    if(!logFile.empty())
-    {
-        logToFile = true;
-        logFileName = logFile;
-    }
-    else
-    {
-        logToFile = false;
-    }
+    isConfigurationDone = false;
 }
 
 SIPConfiguration::~SIPConfiguration()
@@ -78,26 +69,26 @@ const std::string SIPConfiguration::getCustomConfiguration(const std::string key
 {
     if(customConfig.count(key) != 0)
         return customConfig.at(key);
-    return defaultValue;
+    return ParameterConfiguration::getCustomConfiguration(key, message, defaultValue);
 }
 
 int SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
 {
     if(customConfig.count(key) != 0)
         return atoi(customConfig.at(key).data());
-    return defaultValue;
+    return ParameterConfiguration::getCustomConfiguration(key, message, defaultValue);
 }
 
 bool SIPConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
     if(customConfig.count(key) != 0)
         return atoi(customConfig.at(key).data());
-    return defaultValue;
+    return ParameterConfiguration::getCustomConfiguration(key, message, defaultValue);
 }
 
 bool SIPConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
-    return customConfig.count(key) != 0;
+    return customConfig.count(key) != 0 || ParameterConfiguration::isCustomConfigurationSet(key, message);
 }
 
 void SIPConfiguration::onRegister(PlaybackObservee* ohmComm)

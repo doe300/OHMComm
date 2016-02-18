@@ -8,13 +8,13 @@
 #ifndef SIPCONFIGURATION_H
 #define	SIPCONFIGURATION_H
 
-#include "ConfigurationMode.h"
+#include "config/ParameterConfiguration.h"
 #include "SIPHandler.h"
 
-class SIPConfiguration : public ConfigurationMode
+class SIPConfiguration : public ParameterConfiguration
 {
 public:
-    SIPConfiguration(const NetworkConfiguration& sipConfig, bool profileProcessors = false, const std::string& logFile = "");
+    SIPConfiguration(const Parameters& params, const NetworkConfiguration& sipConfig);
     
     ~SIPConfiguration();
     

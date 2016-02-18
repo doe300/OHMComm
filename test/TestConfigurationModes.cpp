@@ -179,7 +179,8 @@ void TestConfigurationModes::testFileConfiguration()
 
 void TestConfigurationModes::testSIPConfiguration()
 {
-    ConfigurationMode* config = new SIPConfiguration({54321, "127.0.0.1", SIPHandler::SIP_DEFAULT_PORT});
+    const Parameters params({}, {});
+    ConfigurationMode* config = new SIPConfiguration(params, {54321, "127.0.0.1", SIPHandler::SIP_DEFAULT_PORT});
     TEST_ASSERT_EQUALS(false, config->isConfigured());
     TEST_ASSERT(config->runConfiguration());
     TEST_ASSERT(config->isConfigured());
