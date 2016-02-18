@@ -89,6 +89,8 @@ public:
     static std::string toViaAddress(const SIPURI& sipURI, const std::string& protocolVersion);
     
     static bool isValidCallID(const std::string& callID);
+    
+    static bool isValidCSeq(const std::string& cSeq);
 };
 
 #endif	/* SIPGRAMMAR_H */

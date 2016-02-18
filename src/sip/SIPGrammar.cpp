@@ -253,3 +253,19 @@ bool SIPGrammar::isValidCallID(const std::string& callID)
     }
     return std::regex_match(callID,wordRegex);
 }
+
+bool SIPGrammar::isValidCSeq(const std::string& cSeq)
+{
+    //syntax: number " " method
+    const std::string::size_type index = cSeq.find(' ');
+    if(index == std::string::npos)
+        return false;
+    //check first part as number (unsigned 32 bit integer, smaller 2^31)
+    long sequenceNumber = strtol(cSeq.data(), nullptr, 10);
+    if(sequenceNumber <= 0 || sequenceNumber >= INT32_MAX)
+    {
+        return false;
+    }
+    //check for existence of second part
+    return !Utility::trim(cSeq.substr(index)).empty();
+}

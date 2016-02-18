@@ -151,6 +151,7 @@ void SIPPackageHandler::checkSIPHeader(const SIPHeader* header)
      * From                   mandatory  mandatory
      * To                     mandatory  mandatory
      * Via                    mandatory  mandatory
+     * CSeq                   mandatory  mandatory
      */
     //1. check all required fields
     if(!header->hasKey(SIP_HEADER_CALL_ID))
@@ -161,6 +162,8 @@ void SIPPackageHandler::checkSIPHeader(const SIPHeader* header)
         throw std::invalid_argument("Missing To header-field!");
     if(!header->hasKey(SIP_HEADER_VIA))
         throw std::invalid_argument("Missing Via header-field!");
+    if(!header->hasKey(SIP_HEADER_CSEQ))
+        throw std::invalid_argument("Missing CSeq header-field!");
     if(dynamic_cast<const SIPRequestHeader*>(header) != nullptr)
     {
         if(!header->hasKey(SIP_HEADER_CONTACT))
@@ -187,6 +190,11 @@ void SIPPackageHandler::checkSIPHeader(const SIPHeader* header)
     if(std::get<1>(SIPGrammar::readViaAddress(viaField, 0)).host.empty())
     {
         throw std::invalid_argument("Invalid Via header-field!");
+    }
+    const std::string cseqField = header->operator [](SIP_HEADER_CSEQ);
+    if(!SIPGrammar::isValidCSeq(cseqField))
+    {
+        throw std::invalid_argument("Invalid CSeq header-field!");
     }
 }
 
