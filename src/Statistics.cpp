@@ -117,7 +117,7 @@ void Statistics::removeAllProfilers()
 
 void Statistics::printStatistics(std::ostream& outputStream)
 {
-    double seconds = counters[TOTAL_ELAPSED_MILLISECONDS] / 1000.0;
+    const double seconds = counters[TOTAL_ELAPSED_MILLISECONDS] / 1000.0;
     if(seconds == 0)
     {
         outputStream << "Couldn't print statistics" << std::endl;
@@ -197,6 +197,11 @@ void Statistics::printStatistics(std::ostream& outputStream)
 
     // AudioProcessor statistics
     Statistics::printAudioProcessorStatistic(outputStream);
+    
+    //RTCP statistics
+    Statistics::printRTCPStatistics(outputStream);
+    
+    outputStream << std::endl;
 }
 
 void Statistics::printAudioProcessorStatistic(std::ostream& outputStream)
@@ -219,3 +224,31 @@ void Statistics::printAudioProcessorStatistic(std::ostream& outputStream)
                 << " microseconds in total (" << outputAverage << " microseconds per call)" << std::endl;
     }
 }
+
+void Statistics::printRTCPStatistics(std::ostream& outputStream)
+{
+    const double seconds = counters[TOTAL_ELAPSED_MILLISECONDS] / 1000.0;
+    outputStream << std::endl;
+    outputStream << "+++ RTCP statistics +++" << std::endl;
+    
+    outputStream << "Sent " << counters[RTCP_PACKAGES_SENT] << " RTCP packages ("
+            << (counters[RTCP_PACKAGES_SENT]/seconds) << " per second)" << std::endl;
+    outputStream << "Sent " << counters[RTCP_BYTES_SENT] << " bytes of RTCP headers ("
+            << prettifyByteSize(counters[RTCP_BYTES_SENT]) << ") in total ("
+            << prettifyByteSize(counters[RTCP_BYTES_SENT]/seconds) << "/s)"
+            << std::endl;
+    outputStream << "Used " << prettifyPercentage(counters[RTCP_BYTES_SENT] / 
+            (double)(counters[RTCP_BYTES_SENT] + counters[COUNTER_HEADER_BYTES_SENT] + counters[COUNTER_PAYLOAD_BYTES_SENT]))
+            << "% of outgoing bandwidth for RTCP" << std::endl;
+    
+    outputStream << "Received " << counters[RTCP_PACKAGES_RECEIVED] << " RTCP packages ("
+            << (counters[RTCP_PACKAGES_RECEIVED]/seconds) << " per second)" << std::endl;
+    outputStream << "Received " << counters[RTCP_BYTES_RECEIVED] << " bytes of RTCP headers ("
+            << prettifyByteSize(counters[RTCP_BYTES_RECEIVED]) << ") in total ("
+            << prettifyByteSize(counters[RTCP_BYTES_RECEIVED]/seconds) << "/s)"
+            << std::endl;
+    outputStream << "Used " << prettifyPercentage(counters[RTCP_BYTES_RECEIVED] / 
+            (double)(counters[RTCP_BYTES_RECEIVED] + counters[COUNTER_HEADER_BYTES_RECEIVED] + counters[COUNTER_PAYLOAD_BYTES_RECEIVED]))
+            << "% of incoming bandwidth for RTCP" << std::endl;
+}
+

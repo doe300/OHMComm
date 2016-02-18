@@ -97,6 +97,8 @@ void RTCPHandler::runThread()
         }
         else if (RTCPPackageHandler::isRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), receivedSize))
         {
+            Statistics::incrementCounter(Statistics::RTCP_PACKAGES_RECEIVED);
+            Statistics::incrementCounter(Statistics::RTCP_BYTES_RECEIVED, receivedSize);
             handleRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), (unsigned int)receivedSize);
         }
     }
@@ -214,6 +216,9 @@ void RTCPHandler::sendSourceDescription()
     const void* tmp = createSourceDescription(length);
     length += RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)tmp)->getLength());
     wrapper->sendData(buffer, length);
+    
+    Statistics::incrementCounter(Statistics::RTCP_PACKAGES_SENT);
+    Statistics::incrementCounter(Statistics::RTCP_BYTES_SENT, length);
 }
 
 void RTCPHandler::sendByePackage()
@@ -229,6 +234,8 @@ void RTCPHandler::sendByePackage()
     length += RTCPPackageHandler::getRTCPPackageLength(byeHeader.getLength());
     wrapper->sendData(buffer, length);
     
+    Statistics::incrementCounter(Statistics::RTCP_PACKAGES_SENT);
+    Statistics::incrementCounter(Statistics::RTCP_BYTES_SENT, length);
     std::cout << "RTCP: BYE-Package sent." << std::endl;
 }
 

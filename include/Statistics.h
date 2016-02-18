@@ -18,7 +18,6 @@
  */
 class Statistics
 {
-    //TODO RTCP-statistics # packages sent/received, # bytes sent/received
 public:
     static constexpr int COUNTER_PACKAGES_SENT{0};
     static constexpr int COUNTER_PACKAGES_RECEIVED{1};
@@ -36,6 +35,10 @@ public:
     static constexpr int TOTAL_ELAPSED_MILLISECONDS{13};
     static constexpr int RTP_BUFFER_MAXIMUM_USAGE{14};
     static constexpr int RTP_BUFFER_LIMIT{15};
+    static constexpr int RTCP_PACKAGES_SENT{16};
+    static constexpr int RTCP_PACKAGES_RECEIVED{17};
+    static constexpr int RTCP_BYTES_SENT{18};
+    static constexpr int RTCP_BYTES_RECEIVED{19};
 
     /*!
      * Increments the given counter by the value provided
@@ -120,6 +123,11 @@ private:
      * Internal helper-method to print audio-processor profiling results to given output-stream
      */
     static void printAudioProcessorStatistic(std::ostream& outputStream);
+    
+    /*!
+     * Helper-method to print RTCP statistics
+     */
+    static void printRTCPStatistics(std::ostream& outputStream);
 };
 
 
