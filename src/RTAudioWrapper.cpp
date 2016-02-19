@@ -244,18 +244,11 @@ const std::vector<AudioHandler::AudioDevice>& RtAudioWrapper::getAudioDevices()
         unsigned int availableAudioDevices = rtaudio.getDeviceCount();
         for(unsigned int i = 0; i < availableAudioDevices; i++)
         {
-            try
+            RtAudio::DeviceInfo deviceInfo = rtaudio.getDeviceInfo(i);
+            if(deviceInfo.probed)
             {
-                RtAudio::DeviceInfo deviceInfo = rtaudio.getDeviceInfo(i);
-                if(deviceInfo.probed)
-                {
-                    devices.push_back({deviceInfo.name, deviceInfo.outputChannels, deviceInfo.inputChannels, 
-                            deviceInfo.isDefaultOutput, deviceInfo.isDefaultInput, (unsigned int)deviceInfo.nativeFormats, deviceInfo.sampleRates});
-                }
-            }
-            catch(const RtError& error)
-            {
-                std::cerr << "RtAudio: error reading device info: " << error.what() << std::endl;
+                devices.push_back({deviceInfo.name, deviceInfo.outputChannels, deviceInfo.inputChannels, 
+                        deviceInfo.isDefaultOutput, deviceInfo.isDefaultInput, (unsigned int)deviceInfo.nativeFormats, deviceInfo.sampleRates});
             }
         }
     }
