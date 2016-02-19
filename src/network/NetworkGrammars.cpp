@@ -10,6 +10,9 @@
 
 #include "network/NetworkGrammars.h"
 
+//due to some problem with clang++, this can't be constexpr (or declared in the header)
+const int NetworkGrammars::INVALID_PORT{-1};
+
 const auto flags = std::regex_constants::icase|std::regex_constants::optimize|std::regex_constants::ECMAScript;
 
 std::tuple<std::string, int> NetworkGrammars::toHostAndPort(const std::string& hostAndPort, const int defaultPort)

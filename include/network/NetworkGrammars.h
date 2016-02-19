@@ -18,7 +18,7 @@ class NetworkGrammars
 {
 public:
 
-    static const int INVALID_PORT{-1};
+    static const int INVALID_PORT;
     
     /*!
      * Converts the given string into a host-part and a numerical port.

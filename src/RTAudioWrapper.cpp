@@ -139,6 +139,7 @@ void RtAudioWrapper::reset()
 auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
 {
     // calculate the input- and outputbuffer sizes
+    //TODO buffer-size can be changed by audio-library on open stream
     this->outputBufferByteSize = audioConfiguration.framesPerPackage * audioConfiguration.outputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
     this->inputBufferByteSize = audioConfiguration.framesPerPackage * audioConfiguration.inputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
 
@@ -150,7 +151,7 @@ auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
     this->output.deviceId = audioConfiguration.outputDeviceID;
     this->input.nChannels = audioConfiguration.inputDeviceChannels;
     this->output.nChannels = audioConfiguration.outputDeviceChannels;
-
+    
     return true;
 }
 
@@ -243,11 +244,18 @@ const std::vector<AudioHandler::AudioDevice>& RtAudioWrapper::getAudioDevices()
         unsigned int availableAudioDevices = rtaudio.getDeviceCount();
         for(unsigned int i = 0; i < availableAudioDevices; i++)
         {
-            RtAudio::DeviceInfo deviceInfo = rtaudio.getDeviceInfo(i);
-            if(deviceInfo.probed)
+            try
             {
-                devices.push_back({deviceInfo.name, deviceInfo.outputChannels, deviceInfo.inputChannels, 
-                        deviceInfo.isDefaultOutput, deviceInfo.isDefaultInput, (unsigned int)deviceInfo.nativeFormats, deviceInfo.sampleRates});
+                RtAudio::DeviceInfo deviceInfo = rtaudio.getDeviceInfo(i);
+                if(deviceInfo.probed)
+                {
+                    devices.push_back({deviceInfo.name, deviceInfo.outputChannels, deviceInfo.inputChannels, 
+                            deviceInfo.isDefaultOutput, deviceInfo.isDefaultInput, (unsigned int)deviceInfo.nativeFormats, deviceInfo.sampleRates});
+                }
+            }
+            catch(const RtError& error)
+            {
+                std::cerr << "RtAudio: error reading device info: " << error.what() << std::endl;
             }
         }
     }

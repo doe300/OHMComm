@@ -240,8 +240,11 @@ int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsi
     if (inputBuffer != nullptr)
     {
         //PortAudio input-buffer is read-only, so use own internal buffer
-        memcpy(&this->inputBuffer[0], inputBuffer, bufferSize);
-        this->processAudioInput(&this->inputBuffer[0], bufferSize, streamData);
+        const unsigned int inputBufferSize = frameCount * inputParams.channelCount * throwOnError(Pa_GetSampleSize(inputParams.sampleFormat));
+        memcpy(&this->inputBuffer[0], inputBuffer, inputBufferSize);
+        //FIXME throws segmentation fault in RTPPackageHandler::createNewRTPPackage
+        // but only when used with Opus (opus returns OPUS_BAD_ARG)
+        this->processAudioInput(&this->inputBuffer[0], inputBufferSize, streamData);
     }
 
     //reset maximum size, in case a processor illegally modifies it

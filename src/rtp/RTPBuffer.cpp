@@ -36,6 +36,9 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
         //if we receive our first package, we need to set minSequenceNumber
         //same for the first package after a silent period
         minSequenceNumber = receivedHeader->getSequenceNumber();
+        //TODO also, if we lost more then a certain number of consecutive packages, accept the next one
+        //(if its sequence-number is more than the last not-lost)
+        //-> this allows for continuation of communication for DTX, even if marked package gets lost
     }
 
     //we need to check for upper limit of range, because at some point a wrap around UINT16_MAX is expected behavior
