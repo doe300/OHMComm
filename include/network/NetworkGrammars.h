@@ -17,6 +17,8 @@
 class NetworkGrammars
 {
 public:
+
+    static const int INVALID_PORT{-1};
     
     /*!
      * Converts the given string into a host-part and a numerical port.
@@ -62,8 +64,6 @@ public:
      * \return the passed port-number as integer or INVALID_PORT
      */
     static int toPort(const std::string& port);
-    
-    static constexpr int INVALID_PORT{-1};
 };
 
 #endif	/* NETWORKGRAMMARS_H */
