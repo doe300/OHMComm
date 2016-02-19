@@ -43,6 +43,7 @@ private:
     PaStream* stream;
     unsigned int bufferSize;
     PaTime streamStartTime = 0;
+    std::vector<char> inputBuffer;
     
     static inline unsigned int throwOnError(PaError error)
     {
@@ -56,7 +57,7 @@ private:
     
     static int callbackHelper(const void *input, void *output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData );
     
-    int callback(void *inputBuffer, void *outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags);
+    int callback(const void *inputBuffer, void *outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags);
     
     bool initStreamParameters();
     

@@ -347,6 +347,22 @@ NetworkConfiguration SDPMessageHandler::readRTCPAttribute(const SessionDescripti
     return config;
 }
 
+void SDPMessageHandler::checkSessionDescription(const SessionDescription* sdp)
+{
+    if(sdp == nullptr)
+    {
+        throw std::invalid_argument("Can't check nullptr!");
+    }
+    //check version
+    if(!sdp->hasKey(SessionDescription::SDP_VERSION) || atoi((sdp->operator [](SessionDescription::SDP_VERSION)).data()) != 0)
+        throw std::invalid_argument("Invalid SDP version!");
+    //check origin
+    if(!sdp->hasKey(SessionDescription::SDP_ORIGIN))
+        throw std::invalid_argument("SDP origin missing!");
+    //check session
+    if(!sdp->hasKey(SessionDescription::SDP_SESSION_NAME))
+        throw std::invalid_argument("SDP session-name missing!");
+}
 
 MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, const unsigned int payloadType)
 {

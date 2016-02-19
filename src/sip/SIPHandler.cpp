@@ -208,6 +208,12 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         std::cout << "SIP: Request received: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
         ParticipantDatabase::remote().userAgent.tag = requestHeader.getRemoteTag();
         SIPPackageHandler::checkSIPHeader(&requestHeader);
+        if(!requestHeader.hasKey(SIP_HEADER_MAX_FORWARDS) || atoi(requestHeader[SIP_HEADER_MAX_FORWARDS].data()) <= 0)
+        {
+            //too many hops
+            sendResponse(SIP_RESPONSE_TOO_MANY_HOPS_CODE, SIP_RESPONSE_TOO_MANY_HOPS, &requestHeader);
+            return;
+        }
     }
     catch(const std::invalid_argument& error)
     {

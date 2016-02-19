@@ -6,6 +6,7 @@
  */
 #ifdef PORTAUDIO_HEADER //Only compile, if PortAudio is linked
 #include <exception>
+#include <string.h>
 
 #include "PortAudioWrapper.h"
 
@@ -150,6 +151,7 @@ bool PortAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMo
     if (resultA && resultB) {
         this->flagPrepared = true;
         bufferSize = audioConfiguration.framesPerPackage * Pa_GetSampleSize(inputParams.sampleFormat) * inputParams.channelCount;
+        inputBuffer.reserve(bufferSize);
         return true;
     }
 
@@ -204,11 +206,10 @@ std::vector<unsigned int> PortAudioWrapper::getSupportedSampleRates(const PaDevi
 int PortAudioWrapper::callbackHelper(const void* input, void* output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
 {
     PortAudioWrapper* wrapper = static_cast <PortAudioWrapper*>(userData);
-    //TODO does this cause errors?? writing into the input-buffer?
-    return wrapper->callback((void*)input, output, frameCount, timeInfo->currentTime, statusFlags);
+    return wrapper->callback(input, output, frameCount, timeInfo->currentTime, statusFlags);
 }
 
-int PortAudioWrapper::callback(void* inputBuffer, void* outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags)
+int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags)
 {
     if(statusFlags == paInputOverflow)
     {
@@ -237,7 +238,11 @@ int PortAudioWrapper::callback(void* inputBuffer, void* outputBuffer, unsigned l
     this->streamData->maxBufferSize = bufferSize;
     this->streamData->isSilentPackage = false;
     if (inputBuffer != nullptr)
-        this->processAudioInput(inputBuffer, bufferSize, streamData);
+    {
+        //PortAudio input-buffer is read-only, so use own internal buffer
+        memcpy(&this->inputBuffer[0], inputBuffer, bufferSize);
+        this->processAudioInput(&this->inputBuffer[0], bufferSize, streamData);
+    }
 
     //reset maximum size, in case a processor illegally modifies it
     this->streamData->maxBufferSize = bufferSize;

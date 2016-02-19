@@ -6,6 +6,7 @@
  */
 
 #include <regex>
+#include <stdlib.h>
 
 #include "network/NetworkGrammars.h"
 

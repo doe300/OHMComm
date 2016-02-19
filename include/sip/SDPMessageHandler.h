@@ -8,6 +8,9 @@
 #ifndef SDPMESSAGEHANDLER_H
 #define	SDPMESSAGEHANDLER_H
 
+#include <stdlib.h>
+#include <exception>
+
 #include "configuration.h"
 #include "KeyValuePairs.h"
 #include "rtp/RTPHeader.h"
@@ -169,6 +172,14 @@ public:
      * \return The custom RTCP configuration, if any
      */
     static NetworkConfiguration readRTCPAttribute(const SessionDescription& sdp);
+    
+    /*!
+     * Checks the correctness of the given SessionDescription.
+     * NOTE: This function throws std::invalid_argument exceptions with a informative messages in case of an error
+     * 
+     * \param sdp The SessionDescription to check
+     */
+    static void checkSessionDescription(const SessionDescription* sdp);
     
 private:
     
