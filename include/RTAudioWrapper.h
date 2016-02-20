@@ -2,7 +2,7 @@
 
 #define	RTAUDIOWRAPPER_H
 
-#include "RtAudio.h"
+#include RTAUDIO_HEADER
 #include "AudioHandler.h"
 #include "math.h" // ceiling
 #include <memory> // unique_ptr
@@ -44,6 +44,8 @@ public:
     void setDefaultAudioConfig();
     auto prepare(const std::shared_ptr<ConfigurationMode> configMode) -> bool;
     auto getBufferSize() -> unsigned int;
+    
+    const std::vector<AudioDevice>& getAudioDevices();
 
     /* Callbacks */
     auto callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData) -> int;
@@ -72,34 +74,6 @@ private:
 
     /* returns the actual input framesize in bytes */
     auto getInputFrameSize() -> int;
-
-    /*!
-     * Automatically selects the best audio format out of the supported formats
-     */
-    auto autoSelectAudioFormat(RtAudioFormat supportedFormats) -> RtAudioFormat;
-
-    /*!
-     * Returns the sample-rate as number of the best supported sample-rate flag
-     */
-    auto autoSelectSampleRate(unsigned int supportedRatesFlag) -> unsigned int;
-
-    /*!
-     * "Asks" the AudioProcessors for supported audio-configuration and uses the sample-rate, frame-size and
-     * number of samples per package all processors can agree on
-     *
-     * \return whether all processors could agree on a value for every field
-     */
-    bool queryProcessorSupport();
-
-    /*!
-     * Maps the supported sample-rates from the device to the flags specified in AudioConfiguration
-     */
-    unsigned int mapDeviceSampleRates(std::vector<unsigned int> sampleRates);
-
-    /*!
-     * Returns the best match for the number of buffered frames according to all processors
-     */
-    unsigned int findOptimalBufferSize(unsigned int defaultBufferSize);
 };
 
 #endif

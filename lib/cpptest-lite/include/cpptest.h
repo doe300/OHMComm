@@ -8,7 +8,7 @@
 #ifndef CPPTEST_H
 #define	CPPTEST_H
 
-#define CPPTEST_LITE_VERSION "0.1"
+#define CPPTEST_LITE_VERSION "0.4"
 
 #include "asserts.h"
 #include "TestSuite.h"

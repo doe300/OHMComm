@@ -301,13 +301,13 @@ bool RTCPPackageHandler::isRTCPPackage(const void* packageBuffer, const unsigned
     return true;
 }
 
-const unsigned int RTCPPackageHandler::getRTCPPackageLength(unsigned int lengthHeaderField)
+unsigned int RTCPPackageHandler::getRTCPPackageLength(unsigned int lengthHeaderField)
 {
     //"The length of this RTCP packet in 32-bit words minus one, including the header and any padding"
     return (lengthHeaderField + 1) * 4;
 }
 
-const unsigned int RTCPPackageHandler::getRTCPCompoundPackagesCount(const void* rtcpCompoundBuffer, const unsigned int maxPackageLength)
+unsigned int RTCPPackageHandler::getRTCPCompoundPackagesCount(const void* rtcpCompoundBuffer, const unsigned int maxPackageLength)
 {
     unsigned int remainingPackageLength = maxPackageLength;
     unsigned int numPackages = 0;
@@ -323,7 +323,7 @@ const unsigned int RTCPPackageHandler::getRTCPCompoundPackagesCount(const void* 
     return numPackages;
 }
 
-const uint8_t RTCPPackageHandler::calculateLengthField(uint16_t length)
+uint8_t RTCPPackageHandler::calculateLengthField(uint16_t length)
 {
     //4 byte = 32 bit
     //we need to always round up, so we add 3:

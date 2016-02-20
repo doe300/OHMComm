@@ -44,7 +44,7 @@ public:
 	 */
 	~RTPBufferPackage()
 	{
-		delete[] packageContent;
+		delete[] (char*)packageContent;
 	}
 
 	/*!

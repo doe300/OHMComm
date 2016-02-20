@@ -21,9 +21,21 @@ public:
     
     void testNetworkInfo();
     
+    void testAddressFromHostName();
+    
     void testTrim();
     
     void testEqualsIgnoreCase();
+    
+    void testReplaceAll();
+    
+    void testJoinStrings();
+    
+    void testDecodeURI();
+    
+    void testToHexString();
+    
+    void testWaitForUserInput();
 };
 
 #endif	/* TESTUTILITY_H */

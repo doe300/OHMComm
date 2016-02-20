@@ -4,7 +4,7 @@
 #include "ParticipantDatabase.h"
 #include "AudioProcessor.h"
 #include "RTPPackageHandler.h"
-#include "NetworkWrapper.h"
+#include "network/NetworkWrapper.h"
 #include "RTPBufferHandler.h"
 
 /*!
@@ -30,20 +30,28 @@ public:
      */
     ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
                  std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType);
-
+    
     unsigned int getSupportedAudioFormats() const;
     unsigned int getSupportedSampleRates() const;
     const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
+    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode);
 
     unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);
     unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
 
     bool cleanUp();
 private:
+    //! Delay until treating input as silence
+    //!Treat as silence after 500ms of no input
+    static constexpr unsigned short SILENCE_DELAY{500};
     std::shared_ptr<NetworkWrapper> networkObject;
-    RTPPackageHandler *rtpPackage = nullptr;
+    std::unique_ptr<RTPPackageHandler> rtpPackage;
     std::shared_ptr<RTPBufferHandler> rtpBuffer;
     const PayloadType payloadType;
+    bool isDTXEnabled;
+    bool lastPackageWasSilent;
+    unsigned short totalSilenceDelayPackages;
+    unsigned int currentSilenceDelayPackages;
     
     void initPackageHandler(unsigned int maxBufferSize);
 };

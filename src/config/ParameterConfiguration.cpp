@@ -7,7 +7,7 @@
 
 #include "config/ParameterConfiguration.h"
 #include "AudioHandlerFactory.h"
-#include "RtAudio.h"
+#include "Utility.h"
 
 ParameterConfiguration::ParameterConfiguration(const Parameters& params) : ConfigurationMode(), params(params)
 {
@@ -31,27 +31,23 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params) : Confi
     {
         inputDeviceID = atoi(params.getParameterValue(Parameters::INPUT_DEVICE).c_str());
     }
-    if(inputDeviceID >= 0 || outputDeviceID >= 0)
-    {
-        useDefaultAudioConfig = false;
-        fillAudioConfiguration(outputDeviceID, inputDeviceID);
-    }
-    else
-    {
-        useDefaultAudioConfig = true;
-    }
-    //TODO fix, so force audio-format or sample-rate works without device-parameter set
+    useDefaultAudioConfig = !(inputDeviceID >= 0 || outputDeviceID >= 0);
+    fillAudioConfiguration(outputDeviceID, inputDeviceID);
     if(params.isParameterSet(Parameters::FORCE_AUDIO_FORMAT))
     {
+        useDefaultAudioConfig =false;
+        audioConfig.audioFormatFlag = atoi(params.getParameterValue(Parameters::FORCE_AUDIO_FORMAT).c_str());
         audioConfig.forceAudioFormatFlag = atoi(params.getParameterValue(Parameters::FORCE_AUDIO_FORMAT).c_str());
     }
     if(params.isParameterSet(Parameters::FORCE_SAMPLE_RATE))
     {
+        useDefaultAudioConfig =false;
+        audioConfig.sampleRate = atoi(params.getParameterValue(Parameters::FORCE_SAMPLE_RATE).c_str());
         audioConfig.forceSampleRate = atoi(params.getParameterValue(Parameters::FORCE_SAMPLE_RATE).c_str());
     }
 
     //get network configuration from parameters
-    networkConfig.remoteIPAddress = params.getParameterValue(Parameters::REMOTE_ADDRESS);
+    networkConfig.remoteIPAddress = Utility::getAddressForHostName(params.getParameterValue(Parameters::REMOTE_ADDRESS));
     networkConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).c_str());
     networkConfig.remotePort = atoi(params.getParameterValue(Parameters::REMOTE_PORT).c_str());
 
@@ -77,14 +73,15 @@ bool ParameterConfiguration::runConfiguration()
 
 void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inputDeviceID)
 {
-    RtAudio audioDevices;
-    if(outputDeviceID < 0)
+    std::unique_ptr<AudioHandler> handler = AudioHandlerFactory::getAudioHandler(audioHandlerName);
+    unsigned int index = 0;
+    for(const AudioHandler::AudioDevice& device : handler->getAudioDevices())
     {
-        outputDeviceID = audioDevices.getDefaultOutputDevice();
-    }
-    if(inputDeviceID < 0)
-    {
-        inputDeviceID = audioDevices.getDefaultInputDevice();
+        if(device.defaultOutputDevice && outputDeviceID < 0)
+            outputDeviceID = index;
+        if(device.defaultInputDevice && inputDeviceID < 0)
+            inputDeviceID = index;
+        ++index;
     }
     //we always use stereo
     audioConfig.outputDeviceChannels = 2;
@@ -104,7 +101,7 @@ const std::string ParameterConfiguration::getCustomConfiguration(const std::stri
     return defaultValue;
 }
 
-const int ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+int ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
 {
     const Parameter* param = Parameters::getParameter(key);
     if(param != nullptr)
@@ -114,7 +111,7 @@ const int ParameterConfiguration::getCustomConfiguration(const std::string key, 
     return defaultValue;
 }
 
-const bool ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+bool ParameterConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
     const Parameter* param = Parameters::getParameter(key);
     if(param != nullptr)
@@ -124,7 +121,7 @@ const bool ParameterConfiguration::getCustomConfiguration(const std::string key,
     return defaultValue;
 }
 
-const bool ParameterConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+bool ParameterConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
     const Parameter* param = Parameters::getParameter(key);
     if(param != nullptr)

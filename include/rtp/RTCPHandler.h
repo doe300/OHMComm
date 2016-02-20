@@ -8,42 +8,60 @@
 #ifndef RTCPHANDLER_H
 #define	RTCPHANDLER_H
 
+#include <cmath>
 #include <memory>
 #include <thread>
 #include <chrono> // clock, tick
-#include "NetworkWrapper.h"
+#include "network/NetworkWrapper.h"
 #include "ParticipantDatabase.h"
 #include "RTCPPackageHandler.h"
 #include "ConfigurationMode.h"
 #include "Statistics.h"
+#include "PlaybackListener.h"
 
 /*!
  * The RTCPHandler manages a thread for RTCP-communication.
  * 
  * The port occupied by RTCP is per standard the RTP-port +1
  */
-class RTCPHandler
+class RTCPHandler : public PlaybackListener
 {
 public:
     RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
-                const std::function<void ()> startCallback, const std::function<void ()> stopCallback);
+                const std::function<void ()> startCallback);
     ~RTCPHandler();
     
     /*!
-     * Shuts down the receive-thread
+     * Shuts down the RTCP-thread
      */
     void shutdown();
 
     /*!
-     * Starts the receive-thread
+     * Starts the RTCP-thread
      */
     void startUp();
+    
+    /*!
+     * Registers the stop-callback
+     */
+    void onRegister(PlaybackObservee* ohmComm);
+
+    /*!
+     * Starts the RTCP-thread
+     */
+    void onPlaybackStart();
+
+    
+    /*!
+     * Shuts down the RTCP-thread
+     */
+    void onPlaybackStop();
     
 private:
     const std::unique_ptr<NetworkWrapper> wrapper;
     const std::shared_ptr<ConfigurationMode> configMode;
     const std::function<void ()> startAudioCallback;
-    const std::function<void ()> stopCallback;
+    std::function<void ()> stopCallback;
     RTCPPackageHandler rtcpHandler;
     
     std::thread listenerThread;
@@ -53,6 +71,7 @@ private:
     static const std::chrono::seconds sendSRInterval;
     std::chrono::system_clock::time_point lastSRReceived;
     std::chrono::system_clock::time_point lastSRSent;
+    std::vector<SourceDescription> sourceDescriptions;
     
     /*!
      * Method called in the parallel thread, receiving RTCP-packages and handling them

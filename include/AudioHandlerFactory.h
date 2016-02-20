@@ -15,6 +15,8 @@ class AudioHandlerFactory
 public:
     /*! Name for the RtAudioWrapper */
     static const std::string RTAUDIO_WRAPPER;
+    /*! name for the PortAudioWrapper */
+    static const std::string PORTAUDIO_WRAPPER;
 
     /*!
      * \param name The name of the audio-handler to create

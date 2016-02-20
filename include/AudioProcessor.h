@@ -8,12 +8,7 @@
 
 #include "configuration.h"
 #include "ConfigurationMode.h"
-#include "rtp/RTPPackageHandler.h"
-
-/*!
- * This AudioProcessor supports any buffer-length
- */
-const int BUFFER_SIZE_ANY = -1;
+#include "rtp/RTPHeader.h"
 
 /*!
  * Information about the stream to be passed to the process-methods of AudioProcessor.
@@ -35,6 +30,12 @@ struct StreamData
      * The maximum number of bytes to be stored in the input/output-buffer
      */
     unsigned int maxBufferSize;
+
+    /*!
+     * Whether the current package is a silent-package.
+     * A silence-package has all samples set to a volume of zero
+     */
+    bool isSilentPackage;
 };
 
 /*!
@@ -48,6 +49,11 @@ struct StreamData
 class AudioProcessor
 {
 public:
+    /*!
+     * This AudioProcessor supports any buffer-length
+     */
+    static constexpr int BUFFER_SIZE_ANY{1};
+    
     AudioProcessor(const std::string name);
 
     virtual ~AudioProcessor()

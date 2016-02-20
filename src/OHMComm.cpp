@@ -6,27 +6,22 @@
  */
 
 #include "OHMComm.h"
-#include "UDPWrapper.h"
+#include "network/UDPWrapper.h"
 #include "rtp/ProcessorRTP.h"
 #include "AudioProcessorFactory.h"
 #include "AudioHandlerFactory.h"
 #include "UserInput.h"
-#include "RtAudio.h"
 #include "ConfigurationMode.h"
 #include "rtp/RTCPHandler.h"
 
 OHMComm::OHMComm(ConfigurationMode* mode)
     : rtpBuffer(new RTPBuffer(256, 100, 0)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
 {
+    registerPlaybackListener(configurationMode);
 }
 
 OHMComm::~OHMComm()
 {
-    audioHandler.reset(nullptr);
-    listener.reset(nullptr);
-    networkWrapper.reset();
-    rtpBuffer.reset();
-    configurationMode.reset();
 }
 
 std::shared_ptr<ConfigurationMode> OHMComm::getConfigurationMode() const
@@ -34,7 +29,7 @@ std::shared_ptr<ConfigurationMode> OHMComm::getConfigurationMode() const
     return configurationMode;
 }
 
-const bool OHMComm::isConfigurationActive() const
+bool OHMComm::isConfigurationActive() const
 {
     return configurationActive;
 }
@@ -89,6 +84,11 @@ void OHMComm::startAudioThreads()
         //only the last non-default payload-type is required
         payloadType = proc->getSupportedPlayloadType() == PayloadType::ALL ? payloadType : proc->getSupportedPlayloadType();
     }
+    if(configurationMode->getPayloadType() != PayloadType::ALL)
+    {
+        //if we use a custom payload-type (e.g. for SIP-config), it must be set here
+        payloadType = (PayloadType)configurationMode->getPayloadType();
+    }
     configureRTPProcessor(profileProcessors, payloadType);
 
     //run threads
@@ -103,8 +103,8 @@ void OHMComm::startAudioThreads()
     //start RTCP-handler
     rtcpHandler.reset(new RTCPHandler(std::unique_ptr<NetworkWrapper>(
             new UDPWrapper(configurationMode->getRTCPNetworkConfiguration())), configurationMode, 
-            std::bind(&OHMComm::startAudio,this), createStopCallback()));
-    
+            std::bind(&OHMComm::startAudio,this)));
+    registerPlaybackListener(rtcpHandler);
     rtcpHandler->startUp();
     //if we don't wait for configuration, begin audio-playback
     //otherwise, the #startAudio()-method is called from the RTCPHandler
@@ -116,8 +116,9 @@ void OHMComm::startAudioThreads()
 
 void OHMComm::startAudio()
 {
-    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize(), createStopCallback()));
-    listener->startUp();
+    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize()));
+    registerPlaybackListener(listener);
+    notifyPlaybackStart();
     audioHandler->startDuplexMode();
     
     std::cout << "OHMComm started!" << std::endl;
@@ -135,10 +136,14 @@ void OHMComm::stopAudioThreads()
     running = false;
 
     audioHandler->stop();
-    listener->shutdown();
+    notifyPlaybackStop();
+    //we must close this after shutting down threads
     networkWrapper->closeNetwork();
-    rtcpHandler->shutdown();
-
+    
+    //give threads some time to shut down
+    //this is mostly to prevent from parallel logging to console
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    
     std::cout << "OHMComm stopped!" << std::endl;
     const std::pair<bool, std::string> logConfig = configurationMode->getLogToFileConfiguration();
     if(logConfig.first)

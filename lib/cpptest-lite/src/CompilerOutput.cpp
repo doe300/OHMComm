@@ -35,7 +35,7 @@ void CompilerOutput::printFailure(const Assertion& assertion)
 {
     std::string formatString(format, 0);
     //replace %file
-    unsigned int index = formatString.find(ARG_FILE);
+    std::string::size_type index = formatString.find(ARG_FILE);
     if(index != std::string::npos)
         formatString.replace(index, ARG_FILE.size(), assertion.file);
     //replace %line

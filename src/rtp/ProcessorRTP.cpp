@@ -1,10 +1,11 @@
 #include "rtp/ProcessorRTP.h"
 #include "Statistics.h"
+#include "Parameters.h"
 
-Participant participantDatabase[2] = {0};
+Participant ParticipantDatabase::participants[ParticipantDatabase::MAX_PARTICIPANTS] = {{},{}};
 
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
-                           std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType)
+                           std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType), lastPackageWasSilent(false)
 {
     this->networkObject = networkwrapper;
     this->rtpBuffer = buffer;
@@ -25,21 +26,53 @@ const std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sample
     return std::vector<int>({BUFFER_SIZE_ANY});
 }
 
+bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
+{
+    //check whether to enable DTX at all
+    isDTXEnabled = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
+    if(isDTXEnabled)
+    {
+        std::cout << "Using DTX after " << ProcessorRTP::SILENCE_DELAY << " ms of silence." << std::endl;
+        //calculate the number of packages to fill the specified delay
+        const double timeOfPackage = audioConfig.framesPerPackage / (double)audioConfig.sampleRate;
+        totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
+    }
+    return true;
+}
+
 unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
     // pack data into a rtp-package
-    if (rtpPackage == nullptr)
+    if (rtpPackage.get() == nullptr)
     {
         initPackageHandler(userData->maxBufferSize);
     }
+    if(isDTXEnabled && userData->isSilentPackage)
+    {
+        //wait a few packages (specified in time, not frames) until not sending anything to prevent too abrupt silence
+        ++currentSilenceDelayPackages;
+        if(currentSilenceDelayPackages > totalSilenceDelayPackages)
+        {
+            lastPackageWasSilent = true;
+            std::cout << "Not sending silent package" << std::endl;
+            return inputBufferByteSize;
+        }
+    }
     const void* newRTPPackage = rtpPackage->createNewRTPPackage(inputBuffer, inputBufferByteSize);
+    if(lastPackageWasSilent)
+    {
+        //set the marker bit after a silence period
+        ((RTPHeader*)newRTPPackage)->setMarker(true);
+        lastPackageWasSilent = false;
+        currentSilenceDelayPackages = 0;
+    }
     //only send the number of bytes really required: header + actual payload-size
     this->networkObject->sendData(newRTPPackage, rtpPackage->getRTPHeaderSize() + inputBufferByteSize);
 
-    participantDatabase[PARTICIPANT_SELF].extendedHighestSequenceNumber += 1;
+    ParticipantDatabase::self().extendedHighestSequenceNumber += 1;
     Statistics::incrementCounter(Statistics::COUNTER_FRAMES_SENT, userData->nBufferFrames);
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_SENT, 1);
-    Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTP_HEADER_MIN_SIZE);
+    Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTPHeader::MIN_HEADER_SIZE);
     Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT, inputBufferByteSize);
 
     //no changes in buffer-size
@@ -49,7 +82,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
 unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
     // unpack data from a rtp-package
-    if (rtpPackage == nullptr)
+    if (rtpPackage.get() == nullptr)
     {
         initPackageHandler(userData->maxBufferSize);
     }
@@ -62,12 +95,17 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
     }
     else if (result == RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW)
     {
+        userData->isSilentPackage = true;
         std::cerr << "Output Buffer underflow" << std::endl;
+    }
+    else
+    {
+        userData->isSilentPackage = false;
     }
 
     const void* recvAudioData = rtpPackage->getRTPPackageData();
     unsigned int receivedPayloadSize = rtpPackage->getActualPayloadSize();
-    memcpy(outputBuffer, recvAudioData, outputBufferByteSize);
+    memcpy(outputBuffer, recvAudioData, receivedPayloadSize);
 
     //set received payload size for all following processors to use
     return receivedPayloadSize;
@@ -75,25 +113,22 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
 
 bool ProcessorRTP::cleanUp()
 {
-    if(rtpPackage == nullptr)
+    if(rtpPackage.get() == nullptr)
     {
         //if we never sent a RTP-package, there is no need to end the communication
         return true;
     }
     std::cout << "Communication terminated." << std::endl;
-    //clean up send-buffer
-    delete rtpPackage;
-    rtpPackage = nullptr;
     return true;
 }
 
 void ProcessorRTP::initPackageHandler(unsigned int maxBufferSize)
 {
-    if(rtpPackage == nullptr)
+    if(rtpPackage.get() == nullptr)
     {
-        rtpPackage = new RTPPackageHandler(maxBufferSize, payloadType);
+        rtpPackage.reset(new RTPPackageHandler(maxBufferSize, payloadType));
     }
-    participantDatabase[PARTICIPANT_SELF].ssrc = rtpPackage->ssrc;
-    participantDatabase[PARTICIPANT_SELF].initialRTPTimestamp = rtpPackage->timestamp;
-    participantDatabase[PARTICIPANT_SELF].extendedHighestSequenceNumber = rtpPackage->sequenceNr;
+    ParticipantDatabase::self().ssrc = rtpPackage->ssrc;
+    ParticipantDatabase::self().initialRTPTimestamp = rtpPackage->timestamp;
+    ParticipantDatabase::self().extendedHighestSequenceNumber = rtpPackage->sequenceNr;
 }

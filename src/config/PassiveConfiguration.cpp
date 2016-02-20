@@ -113,17 +113,17 @@ const std::string PassiveConfiguration::getCustomConfiguration(const std::string
     return defaultValue;
 }
 
-const int PassiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+int PassiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
 {
     return defaultValue;
 }
 
-const bool PassiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+bool PassiveConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
     return defaultValue;
 }
 
-const bool PassiveConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+bool PassiveConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
     return false;
 }
@@ -151,7 +151,7 @@ const PassiveConfiguration::ConfigurationMessage PassiveConfiguration::readConfi
     return message;
 }
 
-unsigned int PassiveConfiguration::writeConfigurationMessage(void* buffer, unsigned int maxBufferSize, ConfigurationMessage& configMessage)
+int PassiveConfiguration::writeConfigurationMessage(void* buffer, unsigned int maxBufferSize, ConfigurationMessage& configMessage)
 {
     if(maxBufferSize < CONFIGURATION_MESSAGE_SIZE)
     {

@@ -1,8 +1,8 @@
+#ifdef OPUS_HEADER //Only compile, if opus is linked
 #ifndef PROCESSOROPUS_H
-
 #define PROCESSOROPUS_H
 #include "AudioProcessor.h"
-#include "opus.h"
+#include OPUS_HEADER
 
 #include <iostream>
 
@@ -61,15 +61,14 @@ public:
     ~ProcessorOpus();
 
 private:
-
-	OpusEncoder *OpusEncoderObject;
-	OpusDecoder *OpusDecoderObject;
-	int OpusApplication;
-	int ErrorCode;
-	//!number of outputDeviceChannels needed for the calculation of outputBytes in processOutputData
-	unsigned int outputDeviceChannels;
-	//!RtAudioFormat needed to decide if we need the floating point or the fixed-point implementation of opus-encode/decode
-	unsigned long rtaudioFormat;
-
+    OpusEncoder *OpusEncoderObject;
+    OpusDecoder *OpusDecoderObject;
+    int OpusApplication;
+    int ErrorCode;
+    //number of outputDeviceChannels needed for the calculation of outputBytes in processOutputData
+    unsigned int outputDeviceChannels;
+    //RtAudioFormat needed to decide if we need the floating point or the fixed-point implementation of opus-encode/decode
+    unsigned long rtaudioFormat;
 };
+#endif
 #endif

@@ -6,15 +6,19 @@
  */
 
 #include "Parameters.h"
+#include "Utility.h"
 #include <iomanip>
 #include <string.h>
+#include <fstream>
 
 std::list<Parameter> Parameters::availableParameters = {};
 //parameters must be registered after initializing the availableParameters
 const Parameter* Parameters::HELP = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, 'h', "help", "Print this help page and exit"));
+const Parameter* Parameters::LIST_LOCAL_ADDRESSES = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, 'n', "list-addresses", "Display the local addresses and exit"));
 const Parameter* Parameters::PASSIVE_CONFIGURATION = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, Parameter::FLAG_CONFIGURATION_MODE, 'P', "passive", "Enables passive configuration. The communication partner will decide the audio-configuration", ""));
 const Parameter* Parameters::WAIT_FOR_PASSIVE_CONFIG = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, 'W', "wait-for-passive", "Enables waiting for the remote to request passive-configuration. This flag must be set for passive configuration to work"));
-const Parameter* Parameters::CONFIGURATION_FILE = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, Parameter::FLAG_CONFIGURATION_MODE|Parameter::FLAG_HAS_VALUE, 'c', "configuration-file", "Enables the file-based configuration-mode. All configuration-values will be read from the file specified", ""));
+const Parameter* Parameters::SIP_LOCAL_PORT = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, Parameter::FLAG_CONFIGURATION_MODE|Parameter::FLAG_HAS_VALUE, 's', "sip-local-port", "Enables signaling and configuration via SIP. The value is the local SIP-port", "5060"));
+const Parameter* Parameters::SIP_REMOTE_PORT = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, Parameter::FLAG_CONFIGURATION_MODE|Parameter::FLAG_HAS_VALUE, 'c', "sip-remote-port", "Enables signaling and configuration via SIP. The value is the remote SIP-port", "5060"));
 const Parameter* Parameters::LOG_TO_FILE = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, 'f', "log-file", "Log statistics and profiling-information to file.", "OHMComm.log"));
 const Parameter* Parameters::AUDIO_HANDLER = Parameters::registerParameter(Parameter(ParameterCategory::AUDIO, 'H', "audio-handler", "Use this specific audio-handler. Defaults to the program-default audio-handler", ""));
 const Parameter* Parameters::INPUT_DEVICE = Parameters::registerParameter(Parameter(ParameterCategory::AUDIO, 'i', "input-device-id", "The id of the device used for audio-input. This value will fall back to the library-default", ""));
@@ -26,6 +30,7 @@ const Parameter* Parameters::REMOTE_PORT = Parameters::registerParameter(Paramet
 const Parameter* Parameters::LOCAL_PORT = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, Parameter::FLAG_REQUIRED|Parameter::FLAG_HAS_VALUE, 'l', "local-port", "The local port to listen on", std::to_string(DEFAULT_NETWORK_PORT)));
 const Parameter* Parameters::AUDIO_PROCESSOR = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'a', "add-processor", "The name of the audio-processor to add", ""));
 const Parameter* Parameters::PROFILE_PROCESSORS = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 't', "profile-processors", "Enables profiling of the the execution time of audio-processors"));
+const Parameter* Parameters::ENABLE_DTX = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, 'd', "enable-dtx", "Enables DTX to not send any packages, if silence is detected."));
 
 const Parameter* Parameters::SDES_CNAME = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'C', "sdes-cname", "The SDES CNAME (device name)", ""));
 const Parameter* Parameters::SDES_EMAIL = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'E', "sdes-email", "The SDES EMAIL (email-address)", ""));
@@ -92,89 +97,29 @@ bool Parameters::parseParameters(int argc, char* argv[])
     //if run with a single parameter not starting with '-', use it as configuration-file
     if(argc == 2 && argv[1][0] != '-')
     {
-        readParameters.push_back(ParameterValue(CONFIGURATION_FILE, std::string(argv[1])));
-        return true;
+        if(!parseParametersFromFile(std::string(argv[1])))
+        {
+            return false;
+        }
     }
-    readParameters.reserve(argc-1);
-    processorNames.reserve(5);
-    for(int index = 1; index < argc; index++)
+    else
     {
-        char* paramText = argv[index];
-        const Parameter* param = nullptr;
-        //1. check for '-' or '--'
-        unsigned long numSlashes = strspn(paramText, "--");
-        if(numSlashes == 0 || numSlashes > 2)
-        {
-            //Invalid argument syntax - print message and continue
-            std::cout << "Invalid syntax for parameter: " << paramText << std::endl;
-            std::cout << "See \"OHMComm --help\" for accepted parameters" << std::endl;
-            continue;
-        }
-        //2. get correct parameter
-        if(numSlashes == 1)
-        {
-            char shortParam = paramText[1];
-            for(const Parameter& p : availableParameters)
-            {
-                if(p.shortName == shortParam)
-                {
-                    param = &p;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            unsigned int posEqualsSign = std::string(paramText).find("=");
-            std::string longParam = std::string(paramText).substr(2, posEqualsSign-2);
-            for(const Parameter& p : availableParameters)
-            {
-                if(p.longName.compare(longParam) == 0)
-                {
-                    param = &p;
-                    break;
-                }
-            }
-        }
-        if(param == nullptr)
-        {
-            //Unrecognized argument - print message and continue
-            std::cout << "Parameter \"" << paramText << "\" not found, skipping." << std::endl;
-            std::cout << "See \"OHMComm --help\" for a list of all parameters" << std::endl;
-            continue;
-        }
-        std::string value;
-        //3. read value, if any
-        if(param->hasValue())
-        {
-            char* paramValue = strstr(paramText, "=");
-            if(paramValue != nullptr)
-            {
-                //we need to skip the '='
-                paramValue = paramValue + 1;
-                //value set via parameter
-                value = std::string(paramValue);
-            }
-            if(value.empty())
-            {
-                //No value set
-                std::cout << "No value set for parameter \"" << param->longName << "\", skipping." << std::endl;
-                std::cout << "See \"OHMComm --help\" for a list of parameters and their accepted values" << std::endl;
-                continue;
-            }
-        }
-        //4. set mapping
-        readParameters.push_back(ParameterValue(param, value));
-        //4.1 if audio-processor, add to list
-        if(param == AUDIO_PROCESSOR)
-        {
-            processorNames.push_back(value);
-        }
+        parseParametersCommandLine(argc, argv);
     }
     //print help page and exit if requested
     if(isParameterSet(HELP))
     {
         printHelpPage();
+        exit(0);
+    }
+    if(isParameterSet(LIST_LOCAL_ADDRESSES))
+    {
+        const std::string externalAddress = Utility::getLocalIPAddress(Utility::AddressType::ADDRESS_INTERNET);
+        std::cout << std::endl;
+        std::cout << "Listing local addresses:" << std::endl;
+        std::cout << std::setw(tabSize) << ' ' << "Loopback: " << Utility::getLocalIPAddress(Utility::AddressType::ADDRESS_LOOPBACK) << std::endl;
+        std::cout << std::setw(tabSize) << ' ' << "Local: " << Utility::getLocalIPAddress(Utility::AddressType::ADDRESS_LOCAL_NETWORK) << std::endl;
+        std::cout << std::setw(tabSize) << ' ' << "External: " << externalAddress << std::endl;
         exit(0);
     }
     //if we set another configuration-mode, we can skip the required-parameter check
@@ -208,8 +153,12 @@ const std::vector<std::string> Parameters::getAudioProcessors() const
 void Parameters::printHelpPage() const
 {
     std::cout << "OHMComm peer-to-peer voice-over-IP communication program running in version " << OHMCOMM_VERSION << std::endl;
-    std::cout << "Usage: OHMComm [option]" << std::endl;
+    std::cout << "Usage: OHMComm [option]" << std::endl
+            << std::setw(tabSize) << ' ' << "or OHMComm config-file" << std::endl
+            << std::setw(tabSize) << ' ' << "or OHMComm" << std::endl;
     std::cout << "When run without command-line arguments, the program will start in interactive mode." << std::endl;
+    std::cout << "Running the program with a file-path as single argument, the settings will be read from the specified file."
+            << " The path will be relative to the current working directory." << std::endl;
     std::cout << std::endl;
 
     std::cout << "General configuration:" << std::endl;
@@ -347,4 +296,166 @@ void Parameters::printParameterHelp(const Parameter& param) const
         std::cout << param.infoText;
     }
     std::cout << std::endl;
+}
+
+void Parameters::parseParametersCommandLine(int argc, char* argv[])
+{
+    readParameters.reserve(argc-1);
+    processorNames.reserve(5);
+    for(int index = 1; index < argc; index++)
+    {
+        char* paramText = argv[index];
+        const Parameter* param = nullptr;
+        //1. check for '-' or '--'
+        unsigned long numSlashes = strspn(paramText, "--");
+        if(numSlashes == 0 || numSlashes > 2)
+        {
+            //Invalid argument syntax - print message and continue
+            std::cout << "Invalid syntax for parameter: " << paramText << std::endl;
+            std::cout << "See \"OHMComm --help\" for accepted parameters" << std::endl;
+            continue;
+        }
+        //2. get correct parameter
+        if(numSlashes == 1)
+        {
+            char shortParam = paramText[1];
+            for(const Parameter& p : availableParameters)
+            {
+                if(p.shortName == shortParam)
+                {
+                    param = &p;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            unsigned int posEqualsSign = std::string(paramText).find("=");
+            std::string longParam = std::string(paramText).substr(2, posEqualsSign-2);
+            for(const Parameter& p : availableParameters)
+            {
+                if(p.longName.compare(longParam) == 0)
+                {
+                    param = &p;
+                    break;
+                }
+            }
+        }
+        if(param == nullptr)
+        {
+            //Unrecognized argument - print message and continue
+            std::cout << "Parameter \"" << paramText << "\" not found, skipping." << std::endl;
+            std::cout << "See \"OHMComm --help\" for a list of all parameters" << std::endl;
+            continue;
+        }
+        std::string value;
+        //3. read value, if any
+        if(param->hasValue())
+        {
+            char* paramValue = strstr(paramText, "=");
+            if(paramValue != nullptr)
+            {
+                //we need to skip the '='
+                paramValue = paramValue + 1;
+                //value set via parameter
+                value = std::string(paramValue);
+            }
+            if(value.empty())
+            {
+                //No value set
+                std::cout << "No value set for parameter \"" << param->longName << "\", skipping." << std::endl;
+                std::cout << "See \"OHMComm --help\" for a list of parameters and their accepted values" << std::endl;
+                continue;
+            }
+        }
+        //4. set mapping
+        readParameters.push_back(ParameterValue(param, value));
+        //4.1 if audio-processor, add to list
+        if(param == AUDIO_PROCESSOR)
+        {
+            processorNames.push_back(value);
+        }
+    }
+}
+
+
+bool Parameters::parseParametersFromFile(const std::string& configFile)
+{
+    try
+    {
+        std::cout << "Reading configuration file... " << configFile << std::endl;
+        //read configuration-file
+        std::fstream stream(configFile, std::fstream::in);
+        stream.exceptions ( std::ios::badbit );
+        std::string line;
+        std::string::size_type index;
+        std::string key, value;
+        if(!stream.is_open())
+        {
+            throw std::ios::failure("Could not open file!");
+        }
+        while(true)
+        {
+            std::getline(stream, line);
+            if(stream.eof()) break;
+            if(line.empty()) continue;
+            if(line[0] == '#') continue;
+            
+            const Parameter* param = nullptr;
+
+            //read key
+            index = line.find('=');
+            if(index == std::string::npos)
+            {
+                std::cerr << "Invalid configuration line: " << line << std::endl;
+                continue;
+            }
+            key = Utility::trim(line.substr(0, index));
+            for(const Parameter& p : availableParameters)
+            {
+                if(p.longName.compare(key) == 0)
+                {
+                    param = &p;
+                    break;
+                }
+            }
+            if(param == nullptr)
+            {
+                //Unrecognized argument - print message and continue
+                std::cout << "Parameter \"" << line << "\" not found, skipping." << std::endl;
+                std::cout << "See \"OHMComm --help\" for a list of all parameters" << std::endl;
+                continue;
+            }
+            index++;
+            //read value
+            value = Utility::trim(line.substr(index));
+            if(value[0] == '"')
+            {
+                value = value.substr(1, value.size()-2);
+                //unescape escapes
+                Utility::replaceAll(value, "\\\"", "\"");
+            }
+            else if(value.compare("true") == 0)
+                value = "1";
+            else if(value.compare("false") == 0)
+                value = "0";
+            //save value
+            readParameters.push_back(ParameterValue(param, value));
+            //4.1 if audio-processor, add to list
+            if(param == AUDIO_PROCESSOR)
+            {
+                processorNames.push_back(value);
+            }
+        }
+        stream.close();
+    }
+    catch(std::ios_base::failure f)
+    {
+        std::cerr << "Failed to read configuration-file!" << std::endl;
+        std::cerr << strerror(errno) << std::endl;
+        std::cerr << f.what() << std::endl;
+        return false;
+    }
+    std::cout << "Configuration-file read" << std::endl;
+    return true;
 }

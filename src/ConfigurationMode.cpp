@@ -83,9 +83,14 @@ const std::pair<bool, std::string> ConfigurationMode::getLogToFileConfiguration(
     return std::pair<bool, std::string>(logToFile, logFileName);
 }
 
-const bool ConfigurationMode::isWaitForConfigurationRequest() const
+bool ConfigurationMode::isWaitForConfigurationRequest() const
 {
     return waitForConfigurationRequest;
+}
+
+short ConfigurationMode::getPayloadType() const
+{
+    return payloadType;
 }
 
 void ConfigurationMode::updateAudioConfiguration(const AudioConfiguration& audioConfig)

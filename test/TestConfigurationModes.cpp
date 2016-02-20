@@ -13,6 +13,7 @@ TestConfigurationModes::TestConfigurationModes()
     TEST_ADD(TestConfigurationModes::testLibraryConfiguration);
     TEST_ADD(TestConfigurationModes::testPassiveConfiguration);
     TEST_ADD(TestConfigurationModes::testFileConfiguration);
+    TEST_ADD(TestConfigurationModes::testSIPConfiguration);
 }
 
 void TestConfigurationModes::testParameterConfiguration()
@@ -154,7 +155,10 @@ void TestConfigurationModes::testPassiveConfiguration()
 
 void TestConfigurationModes::testFileConfiguration()
 {
-    ConfigurationMode* mode = new FileConfiguration("../test/test.config");
+    char* args[] = {(char*)"progName", (char*)"../test/test.config"};
+    Parameters params({},{});
+    params.parseParameters(2, args);
+    ConfigurationMode* mode = new ParameterConfiguration(params);
     
     TEST_ASSERT_MSG(mode->runConfiguration(), "Reading configuration-file failed!");
     TEST_ASSERT_EQUALS(true, mode->getLogToFileConfiguration().first);
@@ -170,7 +174,21 @@ void TestConfigurationModes::testFileConfiguration()
     TEST_ASSERT_EQUALS(44100, audioConf.sampleRate);
     TEST_ASSERT_EQUALS(2, audioConf.audioFormatFlag);
     
-    TEST_ASSERT_EQUALS(std::string("value"), mode->getCustomConfiguration("key", "", "empty"));
-    
     delete mode;
+}
+
+void TestConfigurationModes::testSIPConfiguration()
+{
+    const Parameters params({}, {});
+    ConfigurationMode* config = new SIPConfiguration(params, {54321, "127.0.0.1", SIPHandler::SIP_DEFAULT_PORT});
+    TEST_ASSERT_EQUALS(false, config->isConfigured());
+    TEST_ASSERT(config->runConfiguration());
+    TEST_ASSERT(config->isConfigured());
+    
+    //test specific values
+    TEST_ASSERT_EQUALS(48000, config->getAudioConfiguration().forceSampleRate);
+    std::vector<std::string> procNames;
+    TEST_ASSERT(!config->getAudioProcessorsConfiguration(procNames));
+    TEST_ASSERT(procNames.size() == 1);
+    TEST_ASSERT(procNames[0].compare(AudioProcessorFactory::OPUS_CODEC) == 0);
 }

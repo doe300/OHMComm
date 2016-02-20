@@ -18,24 +18,27 @@
  */
 class Statistics
 {
-    //TODO RTCP-statistics # packages sent/received, # bytes sent/received
 public:
-    static const int COUNTER_PACKAGES_SENT{0};
-    static const int COUNTER_PACKAGES_RECEIVED{1};
-    static const int COUNTER_PACKAGES_LOST{2};
-    static const int COUNTER_FRAMES_SENT{3};
-    static const int COUNTER_FRAMES_RECORDED{4};
-    static const int COUNTER_FRAMES_RECEIVED{5};
-    static const int COUNTER_FRAMES_OUTPUT{6};
-    static const int COUNTER_HEADER_BYTES_SENT{7};
-    static const int COUNTER_HEADER_BYTES_RECEIVED{8};
-    static const int COUNTER_PAYLOAD_BYTES_SENT{9};
-    static const int COUNTER_PAYLOAD_BYTES_RECORDED{10};
-    static const int COUNTER_PAYLOAD_BYTES_RECEIVED{11};
-    static const int COUNTER_PAYLOAD_BYTES_OUTPUT{12};
-    static const int TOTAL_ELAPSED_MILLISECONDS{13};
-    static const int RTP_BUFFER_MAXIMUM_USAGE{14};
-    static const int RTP_BUFFER_LIMIT{15};
+    static constexpr int COUNTER_PACKAGES_SENT{0};
+    static constexpr int COUNTER_PACKAGES_RECEIVED{1};
+    static constexpr int COUNTER_PACKAGES_LOST{2};
+    static constexpr int COUNTER_FRAMES_SENT{3};
+    static constexpr int COUNTER_FRAMES_RECORDED{4};
+    static constexpr int COUNTER_FRAMES_RECEIVED{5};
+    static constexpr int COUNTER_FRAMES_OUTPUT{6};
+    static constexpr int COUNTER_HEADER_BYTES_SENT{7};
+    static constexpr int COUNTER_HEADER_BYTES_RECEIVED{8};
+    static constexpr int COUNTER_PAYLOAD_BYTES_SENT{9};
+    static constexpr int COUNTER_PAYLOAD_BYTES_RECORDED{10};
+    static constexpr int COUNTER_PAYLOAD_BYTES_RECEIVED{11};
+    static constexpr int COUNTER_PAYLOAD_BYTES_OUTPUT{12};
+    static constexpr int TOTAL_ELAPSED_MILLISECONDS{13};
+    static constexpr int RTP_BUFFER_MAXIMUM_USAGE{14};
+    static constexpr int RTP_BUFFER_LIMIT{15};
+    static constexpr int RTCP_PACKAGES_SENT{16};
+    static constexpr int RTCP_PACKAGES_RECEIVED{17};
+    static constexpr int RTCP_BYTES_SENT{18};
+    static constexpr int RTCP_BYTES_RECEIVED{19};
 
     /*!
      * Increments the given counter by the value provided
@@ -120,6 +123,11 @@ private:
      * Internal helper-method to print audio-processor profiling results to given output-stream
      */
     static void printAudioProcessorStatistic(std::ostream& outputStream);
+    
+    /*!
+     * Helper-method to print RTCP statistics
+     */
+    static void printRTCPStatistics(std::ostream& outputStream);
 };
 
 

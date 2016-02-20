@@ -36,7 +36,7 @@ const std::string LibraryConfiguration::getCustomConfiguration(const std::string
     return customConfig.at(key);
 }
 
-const int LibraryConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
+int LibraryConfiguration::getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const
 {
     if(customConfig.find(key) == customConfig.end())
     {
@@ -45,7 +45,7 @@ const int LibraryConfiguration::getCustomConfiguration(const std::string key, co
     return atoi(customConfig.at(key).data());
 }
 
-const bool LibraryConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
+bool LibraryConfiguration::getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const
 {
     if(customConfig.find(key) == customConfig.end())
     {
@@ -54,7 +54,7 @@ const bool LibraryConfiguration::getCustomConfiguration(const std::string key, c
     return atoi(customConfig.at(key).data());
 }
 
-const bool LibraryConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
+bool LibraryConfiguration::isCustomConfigurationSet(const std::string key, const std::string message) const
 {
     return customConfig.find(key) != customConfig.end();
 }

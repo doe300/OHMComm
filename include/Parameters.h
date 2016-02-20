@@ -32,11 +32,11 @@ enum class ParameterCategory : char
 struct Parameter
 {
     //flag determining whether this parameter is required
-    const static unsigned short FLAG_REQUIRED = 0x1;
+    static constexpr unsigned short FLAG_REQUIRED = 0x1;
     //flag determining whether this parameter has a value
-    const static unsigned short FLAG_HAS_VALUE = 0x2;
+    static constexpr unsigned short FLAG_HAS_VALUE = 0x2;
     //flag determining whether this parameter calls another configuration-mode
-    const static unsigned short FLAG_CONFIGURATION_MODE = 0x4;
+    static constexpr unsigned short FLAG_CONFIGURATION_MODE = 0x4;
     
     //The category of this parameter
     const ParameterCategory category;
@@ -135,9 +135,11 @@ class Parameters
 public:
 
     static const Parameter* HELP;
+    static const Parameter* LIST_LOCAL_ADDRESSES;
     static const Parameter* PASSIVE_CONFIGURATION;
     static const Parameter* WAIT_FOR_PASSIVE_CONFIG;
-    static const Parameter* CONFIGURATION_FILE;
+    static const Parameter* SIP_LOCAL_PORT;
+    static const Parameter* SIP_REMOTE_PORT;
     static const Parameter* LOG_TO_FILE;
     static const Parameter* AUDIO_HANDLER;
     static const Parameter* INPUT_DEVICE;
@@ -149,6 +151,7 @@ public:
     static const Parameter* LOCAL_PORT;
     static const Parameter* AUDIO_PROCESSOR;
     static const Parameter* PROFILE_PROCESSORS;
+    static const Parameter* ENABLE_DTX;
     
     static const Parameter* SDES_CNAME;
     static const Parameter* SDES_EMAIL;
@@ -188,7 +191,6 @@ public:
      *
      * \param argc The argument count
      * \param argv The arguments
-     * \param allProcessorNames The names of the audio-processors to print. This is only required for printing the help-page
      *
      * \return whether arguments have been set and parsed
      */
@@ -222,7 +224,7 @@ private:
     // A list of all available parameters
     //we use list for easier sorting
     static std::list<Parameter> availableParameters;
-    static const unsigned int tabSize{5};
+    static constexpr unsigned int tabSize{5};
 
     //Prints a help-line for a single parameter
     void printParameterHelp(const Parameter& param) const;
@@ -232,6 +234,16 @@ private:
 
     const std::vector<std::string> allAudioHandlerNames;
     const std::vector<std::string> allProcessorNames;
+    
+    /*!
+     * Extracts the parameter from the command line arguments
+     */
+    void parseParametersCommandLine(int argc, char* argv[]);
+    
+    /*!
+     * Reads the given file and retrieves parameters from it
+     */
+    bool parseParametersFromFile(const std::string& configFile);
 };
 
 #endif	/* PARAMETERS_H */

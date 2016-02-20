@@ -10,7 +10,7 @@
 
 #include "ConfigurationMode.h"
 #include "UserInput.h"
-#include "RtAudio.h"
+#include "AudioHandler.h"
 
 /*!
  * Configuration utilizing UserInput to ask the user for settings
@@ -24,13 +24,13 @@ public:
 
     virtual bool runConfiguration();
     const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
-    const int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
-    const bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
-    const bool isCustomConfigurationSet(const std::string key, const std::string message) const;
+    int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+    bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+    bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
 private:
 
-    void interactivelyConfigureAudioDevices();
+    void interactivelyConfigureAudioDevices(std::unique_ptr<AudioHandler>&& handler);
     void interactivelyConfigureNetwork();
     void interactivelyConfigureProcessors();
 };

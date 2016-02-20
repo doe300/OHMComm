@@ -5,13 +5,21 @@
  * Created on December 5, 2015, 4:14 PM
  */
 
+#include <iostream>
+#include <sstream>
+
 #include "Utility.h"
+#include "sip/STUNClient.h"
+#include "network/NetworkGrammars.h"
 
 #ifdef _WIN32
+#include <stdio.h>
 #include <WinSock2.h>
 #include <Windows.h>
 #include <ws2tcpip.h>
+#define STDIN_FILENO _fileno(stdin)
 #else
+#include <sys/select.h>
 #include <string.h>
 #include <unistd.h>
 #include <pwd.h>
@@ -87,13 +95,45 @@ Utility::AddressType Utility::getNetworkType(const std::string& remoteAddress)
     return AddressType::ADDRESS_INTERNET;
 }
 
+std::string Utility::getAddressForHostName(const std::string& hostName)
+{
+    if(NetworkGrammars::isIPv4Address(hostName) || NetworkGrammars::isIPv6Address(hostName))
+        return hostName;
+    
+    std::string ipAddress;
+    addrinfo* info;
+    if(getaddrinfo(hostName.c_str(), nullptr, nullptr, &info) != 0)
+    {
+        //handle error
+        return "";
+    }
+    char buffer[64] = {0};
+    addrinfo* cur = info;
+    while(cur != nullptr)
+    {
+        if(info->ai_family == AF_INET && info->ai_addr != nullptr)
+        {
+            inet_ntop(info->ai_family, &(((sockaddr_in*)info->ai_addr)->sin_addr), buffer, 64);
+            break;
+        }
+        else if(info->ai_family == AF_INET6 && info->ai_addr != nullptr)
+        {
+            inet_ntop(info->ai_family, &(((sockaddr_in6*)info->ai_addr)->sin6_addr), buffer, 64);
+            break;
+        }
+        cur = cur->ai_next;
+    }
+    ipAddress = buffer;
+    freeaddrinfo(info);
+    return ipAddress;
+}
 
 
 std::string Utility::trim(const std::string& in)
 {
     //https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
-    auto wsfront=std::find_if_not(in.begin(),in.end(),[](int c){return std::isspace(c);});
-    return std::string(wsfront,std::find_if_not(in.rbegin(),std::string::const_reverse_iterator(wsfront),[](int c){return std::isspace(c);}).base());
+    auto wsfront=std::find_if_not(in.begin(),in.end(), ::isspace);
+    return std::string(wsfront,std::find_if_not(in.rbegin(),std::string::const_reverse_iterator(wsfront), ::isspace).base());
 }
 
 bool Utility::equalsIgnoreCase(const std::string& s1, const std::string s2)
@@ -103,10 +143,102 @@ bool Utility::equalsIgnoreCase(const std::string& s1, const std::string s2)
         return false;
     }
 #ifdef _WIN32
-    return lstrcmpi(s1.data(), s2.data()) == 0;
+    return lstrcmpi((const wchar_t*)s1.data(), (const wchar_t*)s2.data()) == 0;
 #else
     return strcasecmp(s1.data(), s2.data()) == 0;
 #endif
+}
+
+std::string Utility::replaceAll(std::string str, const std::string& from, const std::string& to)
+{
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
+}
+
+std::string Utility::joinStrings(const std::vector<std::string>& vector, const std::string& delimiter)
+{
+    std::vector<std::string>::const_iterator it = vector.begin();
+    std::string result(*it);
+    ++it;
+    for(;it != vector.end();++it)
+    {
+        result.append(delimiter);
+        result.append(*it);
+    }
+    return result;
+}
+
+/* Converts a hex character to its integer value */
+inline char from_hex(char ch)
+{
+    return ::isdigit(ch) ? ch - '0' : ::tolower(ch) - 'a' + 10;
+}
+
+std::string Utility::decodeURI(const std::string& uri)
+{
+    //Taken from: http://www.geekhideout.com/urlcode.shtml
+    std::string result;
+    const char* pstr = uri.c_str();
+    while (*pstr != '\0')
+    {
+        if (*pstr == '%')
+        {
+            if (pstr[1] && pstr[2])
+            {
+                result += from_hex(pstr[1]) << 4 | from_hex(pstr[2]);
+                pstr += 2;
+            }
+        }
+        else if (*pstr == '+')
+        {
+            result += ' ';
+        }
+        else
+        {
+            result += *pstr;
+        }
+        pstr++;
+    }
+    return result;
+}
+
+std::string Utility::toHexString(unsigned int number)
+{
+    //a 32 bit number has at most 8 hexadecimal digits
+    char tmp[8] = {'\0'};
+    sprintf(tmp, "%X", number);
+    return std::string(tmp);
+}
+
+int Utility::waitForUserInput(const int waitInMS)
+{
+    fd_set readFDs;
+    FD_ZERO(&readFDs);
+    FD_SET(STDIN_FILENO, &readFDs);
+    timeval waitFor{waitInMS/1000, (waitInMS%1000)*1000};
+    timeval* waitForPtr = waitInMS == -1 ? nullptr : &waitFor;
+    const int result = select(1, &readFDs, nullptr, nullptr, waitForPtr);
+    if(result)
+    {
+        return std::cin.get();
+    }
+    return -1;
+}
+
+std::vector<std::string> Utility::splitString(const std::string& input, const char delimiter)
+{
+    std::vector<std::string> result;
+    std::stringstream in(input);
+    std::string token;
+    while(std::getline(in, token, delimiter))
+    {
+        result.push_back(token);
+    }
+    return result;
 }
 
 std::string Utility::getExternalLocalIPAddress()
@@ -174,15 +306,37 @@ std::string Utility::getExternalLocalIPAddress()
 
 std::string Utility::getExternalNetworkIPAddress()
 {
-    //let some server give us our external IP
-    const std::string remoteServer = "http://checkip.dyndns.org/";
-    
-    //TODO
-    //1. open TCP connection
-    //2. send something - anything
-    //3. read response
-    //4. extract IP address
+    //use STUN to get our external IP/port
+    STUNClient stun;
+    auto result = stun.retrieveSIPInfo();
+    if(std::get<0>(result))
+    {
+        return std::get<1>(result);
+    }
     return "";
+    
+    //old code, uses one single server and no standard protocol
+//    //1. open TCP connection
+//    TCPWrapper network(55555, "91.198.22.70", 80);
+//    //2. send something - anything
+//    const std::string message("anything\r\n\r\n");
+//    network.sendData(message.c_str(), message.size());
+//    //3. read response
+//    char buffer[1024] = {0};
+//    if(network.receiveData(buffer, 1023) == TCPWrapper::RECEIVE_TIMEOUT)
+//    {
+//        //we timed out - don't delay the application too much
+//        return "";
+//    }
+//    std::string response = buffer;
+//    //4. extract IP address
+//    std::string::size_type index = response.find("<body>");
+//    if(index != std::string::npos)
+//    {
+//        index = response.find(':', index) + 2;
+//        return response.substr(index, response.find('<', index) - index);
+//    }
+//    return "";
 }
 
 bool Utility::isLocalNetwork(const std::string& ipAddress)

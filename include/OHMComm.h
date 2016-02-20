@@ -8,10 +8,12 @@
 #ifndef OHMCOMM_H
 #define	OHMCOMM_H
 
+#include "PlaybackListener.h"
+
 #include "ConfigurationMode.h"
 #include "AudioHandler.h"
 #include "rtp/RTPBuffer.h"
-#include "NetworkWrapper.h"
+#include "network/NetworkWrapper.h"
 #include "rtp/RTPListener.h"
 #include "rtp/RTCPHandler.h"
 
@@ -26,10 +28,10 @@
  *
  * There are several modes, the OHMComm can run in. For a full list, see the ConfigurationMode subclasses
  */
-class OHMComm
+class OHMComm : public PlaybackObservee
 {
 public:
-
+    
     /*!
      * Creates a new OHMComm with the given configuration-mode
      */
@@ -56,7 +58,7 @@ public:
      *
      * \return Whether the configuration is active
      */
-    const bool isConfigurationActive() const;
+    bool isConfigurationActive() const;
 
     /*!
      * \param runConfiguration Whether to run configuration if not yet configured
@@ -80,11 +82,13 @@ public:
      */
     bool isRunning() const;
     
+    std::function<void ()> createStopCallback();
+    
 private:
 
-    std::shared_ptr<RTPBufferHandler> rtpBuffer;
+    const std::shared_ptr<RTPBufferHandler> rtpBuffer;
     /*! Overall mode of configuration */
-    std::shared_ptr<ConfigurationMode> configurationMode;
+    const std::shared_ptr<ConfigurationMode> configurationMode;
     /*! Flag, whether this object can be configured */
     bool configurationActive = true;
     /*! Flag, whether this OHMComm is currently being executed */
@@ -93,11 +97,10 @@ private:
     //Configuration fields
     std::unique_ptr<AudioHandler> audioHandler;
     std::shared_ptr<NetworkWrapper> networkWrapper;
-    std::unique_ptr<RTPListener> listener;
-    std::unique_ptr<RTCPHandler> rtcpHandler;
+    std::shared_ptr<RTPListener> listener;
+    std::shared_ptr<RTCPHandler> rtcpHandler;
 
     void configureRTPProcessor(bool profileProcessors, const PayloadType payloadType);
-    std::function<void ()> createStopCallback();
     
     void startAudio();
 };

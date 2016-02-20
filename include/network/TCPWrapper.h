@@ -1,28 +1,33 @@
-#ifndef UDPWRAPPER_H
-#define	UDPWRAPPER_H
+/* 
+ * File:   TCPWrapper.h
+ * Author: daniel
+ *
+ * Created on December 10, 2015, 1:22 PM
+ */
 
+#ifndef TCPWRAPPER_H
+#define	TCPWRAPPER_H
 #include "configuration.h"
 #include "NetworkWrapper.h"
-#include <string.h> //for strerror
 
 /*!
- * NetworkWrapper implementation using the UDP protocol
+ * NetworkWrapper implementation using the TCP protocol
  */
-class UDPWrapper : public NetworkWrapper
+class TCPWrapper : public NetworkWrapper
 {
 public:
-    UDPWrapper(unsigned short portIncoming, const std::string remoteIPAddress, unsigned short portOutgoing);
+    TCPWrapper(unsigned short localPort, const std::string remoteIPAddress, unsigned short remotePort);
 
-    UDPWrapper(const NetworkConfiguration& networkConfig);
-
-    ~UDPWrapper();
-
+    TCPWrapper(const NetworkConfiguration& networkConfig);
+    
+    ~TCPWrapper();
+    
     int sendData(const void *buffer, const unsigned int bufferSize = 0);
     int receiveData(void *buffer, unsigned int bufferSize = 0);
 
     void closeNetwork();
-    std::wstring getLastError() const;
 private:
+
     bool isIPv6;
     int Socket;
     //we define a union of an IPv4 and an IPv6 address
@@ -47,9 +52,8 @@ private:
     /*!
      * \returns the size of the socket-address depending on the IP-version used
      */
-    const int getSocketAddressLength();
+    int getSocketAddressLength();
 };
 
+#endif	/* TCPWRAPPER_H */
 
-
-#endif

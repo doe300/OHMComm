@@ -20,6 +20,9 @@ class AudioProcessorFactory
 public:
     static const std::string OPUS_CODEC;
     static const std::string WAV_WRITER;
+    static const std::string G711_PCMA;
+    static const std::string G711_PCMU;
+    static const std::string GAIN_CONTROL;
 
     /*!
      * Returns the AudioProcessor for the given name

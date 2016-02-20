@@ -18,6 +18,37 @@ class AudioHandler
 {
 public:
     
+    //Container for storing info about a single audio-device, library-independent
+    struct AudioDevice
+    {
+        //name of this audio-device
+        const std::string name;
+        //the maximum number of available output-channels
+        //a value of 0 signals a non-output device
+        const unsigned int outputChannels;
+        //the maximum number of available input-channels
+        //a value of 0 signals a non-input device
+        const unsigned int inputChannels;
+        //whether this device is the default output device
+        const bool defaultOutputDevice;
+        //whether this device is the default input device
+        const bool defaultInputDevice;
+        //a bit-mask of natively supported audio-formats
+        const unsigned int nativeFormats;
+        //a list of all supported sample-rates
+        const std::vector<unsigned int> sampleRates;
+        
+        inline bool isOutputDevice() const
+        {
+            return outputChannels > 0;
+        }
+        
+        inline bool isInputDevice() const
+        {
+            return inputChannels > 0;
+        }
+    };
+    
     AudioHandler();
     
     virtual ~AudioHandler();
@@ -74,12 +105,12 @@ public:
      *
      * This includes allocating memory, configuring the audio-processors or the audio-library, etc.
      */
-    virtual auto prepare(const std::shared_ptr<ConfigurationMode> configMode) -> bool = 0;
+    virtual bool prepare(const std::shared_ptr<ConfigurationMode> configMode) = 0;
 
 	/*!
 	* Returns the actual buffer size, which can be different than in the audio configuration (
 	*/
-    virtual auto getBufferSize() -> unsigned int = 0;
+    virtual unsigned int getBufferSize() = 0;
 
 	/*!
 	* Prints all included AudioProcessor in the processing order
@@ -131,7 +162,7 @@ public:
 	*
 	* \return The result of the action
 	*/
-    auto hasAudioProcessor(AudioProcessor *audioProcessor) const -> bool;
+    bool hasAudioProcessor(AudioProcessor *audioProcessor) const;
 
 	/*!
 	* Gives a information wheater the an AudioProcessor is already added or not
@@ -140,28 +171,35 @@ public:
 	*
 	* \return The result of the action
 	*/
-    auto hasAudioProcessor(std::string nameOfAudioProcessor) const -> bool;
+    bool hasAudioProcessor(std::string nameOfAudioProcessor) const;
 
 	/*!
 	* Returns the current AudioConfiguration
 	*
 	* \return Current AudioConfiguration
 	*/
-    auto getAudioConfiguration() -> AudioConfiguration;
+    AudioConfiguration getAudioConfiguration();
 
 	/*!
 	* Returns wheater the instance has an AudioConfiguration
 	*
 	* \return Status of the AudioConfiguration
 	*/
-    auto isAudioConfigSet() const -> bool;
+    bool isAudioConfigSet() const;
 
 	/*!
 	* Returns wheater instance is prepared (ready) for execution
 	*
 	* \return Prepared status of the instance
 	*/
-    auto isPrepared() const -> bool;
+    bool isPrepared() const;
+    
+    /*!
+     * Returns a platform- and library-independent list of all available audio-devices
+     * 
+     * \return a reference to all local audio-devices
+     */
+    virtual const std::vector<AudioDevice>& getAudioDevices() = 0;
 
 protected:
     bool flagAudioConfigSet = false;
@@ -175,8 +213,36 @@ protected:
     /*!
      * Calls AudioProcessor#configure() for all registered processors
      */
-    auto configureAudioProcessors(const std::shared_ptr<ConfigurationMode> configMode) -> bool;
-    auto cleanUpAudioProcessors() -> bool;
+    bool configureAudioProcessors(const std::shared_ptr<ConfigurationMode> configMode);
+    bool cleanUpAudioProcessors();
+    
+    /*!
+     * Automatically selects the best audio format out of the supported formats
+     */
+    unsigned int autoSelectAudioFormat(unsigned int supportedFormats);
+
+    /*!
+     * Returns the sample-rate as number of the best supported sample-rate flag
+     */
+    unsigned int autoSelectSampleRate(unsigned int supportedRatesFlag);
+
+    /*!
+     * "Asks" the AudioProcessors for supported audio-configuration and uses the sample-rate, frame-size and
+     * number of samples per package all processors can agree on
+     *
+     * \return whether all processors could agree on a value for every field
+     */
+    bool queryProcessorSupport();
+
+    /*!
+     * Maps the supported sample-rates from the device to the flags specified in AudioConfiguration
+     */
+    unsigned int mapDeviceSampleRates(std::vector<unsigned int> sampleRates);
+
+    /*!
+     * Returns the best match for the number of buffered frames according to all processors
+     */
+    unsigned int findOptimalBufferSize(unsigned int defaultBufferSize);
 };
 
 #endif

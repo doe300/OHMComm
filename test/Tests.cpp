@@ -47,7 +47,7 @@ int main(int argc, char** argv)
     
     TestAudioIO testaudio;
     testaudio.run(output);
-
+    
     TestRTP testRTP;
     testRTP.run(output);
 
@@ -71,4 +71,19 @@ int main(int argc, char** argv)
     
     TestAudioProcessors testProcessors;
     testProcessors.run(output);
+    
+    TestSIPHandler testSIP;
+    testSIP.run(output);
+    
+    TestNetworkGrammars testNetGrammars;
+    testNetGrammars.run(output);
+    
+    TestSIPGrammar testSIPGrammar;
+    testSIPGrammar.run(output);
+    
+    TestSTUNClient testSTUN;
+    testSTUN.run(output);
+    
+    TestUtility testUtility;
+    testUtility.run(output);
 }

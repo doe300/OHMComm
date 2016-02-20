@@ -13,12 +13,13 @@
 #include "Parameters.h"
 #include "Utility.h"
 
-const std::chrono::seconds RTCPHandler::sendSRInterval{20};
+//standard-conform minimum interval of 5 seconds (no need to be adaptive, as long as we only have one remote) (RFC3550 Section 6.2)
+const std::chrono::seconds RTCPHandler::sendSRInterval{5};
 
 RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
-                         const std::function<void ()> startCallback, const std::function<void()> stopCallback):
-    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), stopCallback(stopCallback), rtcpHandler(),
-        lastSRReceived(std::chrono::milliseconds::zero()), lastSRSent(std::chrono::milliseconds::zero())
+                         const std::function<void ()> startCallback):
+    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(),
+        lastSRReceived(std::chrono::milliseconds::zero()), lastSRSent(std::chrono::milliseconds::zero()), sourceDescriptions()
 {
 }
 
@@ -30,15 +31,36 @@ RTCPHandler::~RTCPHandler()
 
 void RTCPHandler::startUp()
 {
-    threadRunning = true;
-    listenerThread = std::thread(&RTCPHandler::runThread, this);
+    if(!threadRunning)
+    {
+        threadRunning = true;
+        listenerThread = std::thread(&RTCPHandler::runThread, this);
+    }
 }
 
 void RTCPHandler::shutdown()
 {
-    // Send a RTCP BYE-packet, to tell the other side that communication has been stopped
-    sendByePackage();
-    shutdownInternal();
+    if(threadRunning)
+    {
+        // Send a RTCP BYE-packet, to tell the other side that communication has been stopped
+        sendByePackage();
+        shutdownInternal();
+    }
+}
+
+void RTCPHandler::onRegister(PlaybackObservee* ohmComm)
+{
+    stopCallback = ohmComm->createStopCallback();
+}
+
+void RTCPHandler::onPlaybackStart()
+{
+    startUp();
+}
+
+void RTCPHandler::onPlaybackStop()
+{
+    shutdown();
 }
 
 void RTCPHandler::shutdownInternal()
@@ -75,6 +97,8 @@ void RTCPHandler::runThread()
         }
         else if (RTCPPackageHandler::isRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), receivedSize))
         {
+            Statistics::incrementCounter(Statistics::RTCP_PACKAGES_RECEIVED);
+            Statistics::incrementCounter(Statistics::RTCP_BYTES_RECEIVED, receivedSize);
             handleRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), (unsigned int)receivedSize);
         }
     }
@@ -148,7 +172,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
             const unsigned int configMessageBufferSize = 512;
             char configMessageBuffer[configMessageBufferSize] = {0};
             ApplicationDefined configResponse("RESC", configMessageBufferSize, configMessageBuffer, ApplicationDefined::OHMCOMM_CONFIGURATION_RESPONSE);
-            unsigned int size = PassiveConfiguration::writeConfigurationMessage(configMessageBuffer, configMessageBufferSize, msg);
+            const int size = PassiveConfiguration::writeConfigurationMessage(configMessageBuffer, configMessageBufferSize, msg);
             if(size < 0)
             {
                 std::cerr << "Buffer not large enough!" << std::endl;
@@ -192,6 +216,9 @@ void RTCPHandler::sendSourceDescription()
     const void* tmp = createSourceDescription(length);
     length += RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)tmp)->getLength());
     wrapper->sendData(buffer, length);
+    
+    Statistics::incrementCounter(Statistics::RTCP_PACKAGES_SENT);
+    Statistics::incrementCounter(Statistics::RTCP_BYTES_SENT, length);
 }
 
 void RTCPHandler::sendByePackage()
@@ -202,11 +229,13 @@ void RTCPHandler::sendByePackage()
     const void* tmp = createSourceDescription(length);
     length += RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)tmp)->getLength());
     //create bye package
-    RTCPHeader byeHeader(participantDatabase[PARTICIPANT_SELF].ssrc);
+    RTCPHeader byeHeader(ParticipantDatabase::self().ssrc);
     rtcpHandler.createByePackage(byeHeader, "Program exit", length);
     length += RTCPPackageHandler::getRTCPPackageLength(byeHeader.getLength());
     wrapper->sendData(buffer, length);
     
+    Statistics::incrementCounter(Statistics::RTCP_PACKAGES_SENT);
+    Statistics::incrementCounter(Statistics::RTCP_BYTES_SENT, length);
     std::cout << "RTCP: BYE-Package sent." << std::endl;
 }
 
@@ -220,21 +249,21 @@ inline uint8_t RTCPHandler::calculateFractionLost()
 
 const void* RTCPHandler::createSenderReport(unsigned int offset)
 {
-    RTCPHeader srHeader(participantDatabase[PARTICIPANT_SELF].ssrc);
+    RTCPHeader srHeader(ParticipantDatabase::self().ssrc);
     
     NTPTimestamp ntpTime = NTPTimestamp::now();
     const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-    const uint32_t rtpTimestamp = participantDatabase[PARTICIPANT_SELF].initialRTPTimestamp + now.count();
+    const uint32_t rtpTimestamp = ParticipantDatabase::self().initialRTPTimestamp + now.count();
     const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(lastSRReceived.time_since_epoch());
     
     SenderInformation senderReport(ntpTime, rtpTimestamp, Statistics::readCounter(Statistics::COUNTER_PACKAGES_SENT), Statistics::readCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT));
     //we currently have only one reception report
     ReceptionReport receptionReport;
-    receptionReport.setSSRC(participantDatabase[PARTICIPANT_REMOTE].ssrc);
+    receptionReport.setSSRC(ParticipantDatabase::remote().ssrc);
     receptionReport.setFractionLost(calculateFractionLost());
     receptionReport.setCummulativePackageLoss((uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST));
-    receptionReport.setExtendedHighestSequenceNumber(participantDatabase[PARTICIPANT_REMOTE].extendedHighestSequenceNumber);
-    receptionReport.setInterarrivalJitter((uint32_t)round(participantDatabase[PARTICIPANT_REMOTE].interarrivalJitter));
+    receptionReport.setExtendedHighestSequenceNumber(ParticipantDatabase::remote().extendedHighestSequenceNumber);
+    receptionReport.setInterarrivalJitter((uint32_t)round(ParticipantDatabase::remote().interarrivalJitter));
     receptionReport.setLastSRTimestamp((uint32_t)lastSRTimestamp.count());
     //XXX delay since last SR /maybe last SR is wrong
     receptionReport.setDelaySinceLastSR((now - lastSRTimestamp).count());
@@ -250,35 +279,36 @@ const void* RTCPHandler::createSenderReport(unsigned int offset)
 
 const void* RTCPHandler::createSourceDescription(unsigned int offset)
 {
-    std::vector<SourceDescription> sdes = {
-        {RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION},
-		{RTCP_SOURCE_CNAME, (Utility::getUserName() + '@') + Utility::getDomainName()}
-    };
     //TODO clashes with interactive configuration (with input to shutdown server)
-    if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr && configMode->isConfigured())
+    if(sourceDescriptions.empty())
     {
-        //add user configured values
-        if(configMode->isCustomConfigurationSet(Parameters::SDES_EMAIL->longName, "SDES EMAIL?"))
+        sourceDescriptions.push_back({RTCP_SOURCE_CNAME, (Utility::getUserName() + '@') + Utility::getDomainName()});
+        if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr && configMode->isConfigured())
         {
-            sdes.emplace_back(RTCP_SOURCE_EMAIL, configMode->getCustomConfiguration(Parameters::SDES_EMAIL->longName, "Enter SDES EMAIL", "anon@noreply.com"));
+            //add user configured values
+            if(configMode->isCustomConfigurationSet(Parameters::SDES_EMAIL->longName, "SDES EMAIL?"))
+            {
+                sourceDescriptions.emplace_back(RTCP_SOURCE_EMAIL, configMode->getCustomConfiguration(Parameters::SDES_EMAIL->longName, "Enter SDES EMAIL", "anon@noreply.com"));
+            }
+            if(configMode->isCustomConfigurationSet(Parameters::SDES_LOC->longName, "SDES LOCATION?"))
+            {
+                sourceDescriptions.emplace_back(RTCP_SOURCE_LOC, configMode->getCustomConfiguration(Parameters::SDES_LOC->longName, "Enter SDES LOCATION", "earth"));
+            }
+            if(configMode->isCustomConfigurationSet(Parameters::SDES_NAME->longName, "SDES NAME?"))
+            {
+                sourceDescriptions.emplace_back(RTCP_SOURCE_NAME, configMode->getCustomConfiguration(Parameters::SDES_NAME->longName, "Enter SDES NAME", "anon"));
+            }
+            if(configMode->isCustomConfigurationSet(Parameters::SDES_NOTE->longName, "SDES NOTE?"))
+            {
+                sourceDescriptions.emplace_back(RTCP_SOURCE_NOTE, configMode->getCustomConfiguration(Parameters::SDES_NOTE->longName, "Enter SDES NOTE", ""));
+            }
+            if(configMode->isCustomConfigurationSet(Parameters::SDES_PHONE->longName, "SDES PHONE?"))
+            {
+                sourceDescriptions.emplace_back(RTCP_SOURCE_PHONE, configMode->getCustomConfiguration(Parameters::SDES_PHONE->longName, "Enter SDES PHONE", ""));
+            }
         }
-        if(configMode->isCustomConfigurationSet(Parameters::SDES_LOC->longName, "SDES LOCATION?"))
-        {
-            sdes.emplace_back(RTCP_SOURCE_LOC, configMode->getCustomConfiguration(Parameters::SDES_LOC->longName, "Enter SDES LOCATION", "earth"));
-        }
-        if(configMode->isCustomConfigurationSet(Parameters::SDES_NAME->longName, "SDES NAME?"))
-        {
-            sdes.emplace_back(RTCP_SOURCE_NAME, configMode->getCustomConfiguration(Parameters::SDES_NAME->longName, "Enter SDES NAME", "anon"));
-        }
-        if(configMode->isCustomConfigurationSet(Parameters::SDES_NOTE->longName, "SDES NOTE?"))
-        {
-            sdes.emplace_back(RTCP_SOURCE_NOTE, configMode->getCustomConfiguration(Parameters::SDES_NOTE->longName, "Enter SDES NOTE", ""));
-        }
-        if(configMode->isCustomConfigurationSet(Parameters::SDES_PHONE->longName, "SDES PHONE?"))
-        {
-            sdes.emplace_back(RTCP_SOURCE_PHONE, configMode->getCustomConfiguration(Parameters::SDES_PHONE->longName, "Enter SDES PHONE", ""));
-        }
+        sourceDescriptions.push_back({RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION});
     }
-    RTCPHeader sdesHeader(participantDatabase[PARTICIPANT_SELF].ssrc);
-    return rtcpHandler.createSourceDescriptionPackage(sdesHeader, sdes, offset);
+    RTCPHeader sdesHeader(ParticipantDatabase::self().ssrc);
+    return rtcpHandler.createSourceDescriptionPackage(sdesHeader, sourceDescriptions, offset);
 }
