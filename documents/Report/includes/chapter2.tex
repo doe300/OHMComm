@@ -1,0 +1,119 @@
+\chapter{Anforderungsanalyse}
+In diesem Kapitel sollen aus der Projektbeschreibung die daraus resultierenden konkreten Anforderungen für das Framework erstellt werden. 
+
+\section{Funktionale Anforderungen}
+	In diesem Abschnitt werden aus der Projektbeschreibung die funktionalen Anforderungen ermittelt und definiert. Die funktionalen Anforderungen werden in zusammenhängenden Gruppen eingeteilt.
+
+	\begin{itemize} 
+		\item Schnittstelle zur Audiohardware
+
+		Es muss eine entsprechende Schnittstelle zur Audiohardware, Mikrofone und Lautsprecher, erstellt werden. Diese wird benötigt, um die Audiodaten aufzunehmen und abzuspielen. Da ein Computer über mehr als ein Lautsprecher und Mikrofon verfügen kann, muss hier eine entsprechende Auswahlmöglichkeit existieren. Desweiteren müssen Konfigurationsmöglichkeiten vorhanden sein um z.B. bestimmte Abtastrate auszuwählen.
+			
+		\item Audiokompression
+
+		Wie bereits erwähnt ist eine Audiokommunikation ohne entsprechende Datenkompression praktisch nicht realisierbar. Es muss eine allgemeine Schnittstelle für Dekodierer erstellt werden, die durch beliebige Audiocodecs erweitern lässt. Außerdem muss mindestens ein Codec integriert werden, um die Praxistauglichkeit des Frameworks zu gewährleisten.
+			\pagebreak
+		\item Netzwerkschicht
+
+		Für den Verbindungsaufbau und -abbau sowie der Datenübertragung muss ebenfalls eine Schicht erstellt werden. Dabei müssen auch Verbindungsdaten verwaltet und verarbeitet werden. Die Übertragung basiert auf UDP.
+				
+		\item RTP-Protokoll
+
+		Das Ent- und Verpacken von Nutzdaten in das RTP-Protokoll muss ebenfalls implementiert werden.
+				
+		\item Jitter-Buffer (RTPBuffer)
+
+		Der Buffer hat die Aufgabe die Paketreihenfolge der empfangenen Pakete wiederherzustellen, da diese mit dem UDP-Protokoll nicht gewährleistet werden kann. Dadurch erhöht sich die Audioqualität. Der Buffer soll einen bestimmten Füllstand erreichen, bevor die Audiowiedergabe beginnt.
+				
+		\item Prototypische Voice-over-IP Konsolenanwendungen
+
+		Diese Anwendung soll alle Funktionen des Frameworks testen. Dadurch kann sichergestellt werden, dass das Framework die gewünschte Funktionalität tatsächlich anbietet. Die Hauptaufgabe der Testanwendung ist es, die Kommunikation zwischen zwei Anwendern zu ermöglichen. Die Anwendung soll sich mit Parameter konfigurieren lassen. 
+				
+		\item Statistik
+
+		Um die Funktionen objektiv bewerten zu können, soll die Möglichkeit bestehen, statistische Werte zu erfassen und zu speichern.
+		
+	\end{itemize}
+	
+\section{Nicht-Funktionale Anforderungen}
+Hier werden aus der Projektbeschreibung die nicht-funktionalen Anforderungen ermittelt und definiert.
+
+\begin{itemize} 
+\item Plattformunabhängigkeit
+
+Ist einer der zentralen Ziele des Frameworks. Es soll unter Windows, Linux und OS X funktionieren. Daraus folgt, dass eine Kommunikation zwischen einen Windows-Client und Linux-Client, oder einer sonstigen beliebigen Konstellation funktioniert, da die Funktionsweise immer identisch ist. Diesbezüglich wurde der Einsatz von CMake -- ein Buildtool für C++ -- festgelegt.
+		\pagebreak
+\item Performanz
+
+Latenzen sollten für eine flüssige und störungsfreie Kommunikation so gering wie möglich gehalten werden. Daraus resultiert auch die Wahl der Programmiersprache C++. In der weiteren Entwicklungsphase gilt es diesen Aspekt mit erhöhter Priorität zu betrachten.
+		
+\item Prinzipien des objektorientierten Designs
+
+Das Framework soll nach den Prinzipien des objektorientierten Designs entwickelt werden. Darunter versteht man Konventionen zur Komplexitätsreduzierung in der Softwareentwicklung, wodurch die Software wartungs- und änderungsfreundlicher wird \cite{Lahres2009}[Kap. 3]. Das Framework soll modular aufgebaut sein, so dass die Komponenten auch einzeln nutzbar sind. Außerdem soll es möglich sein, die Klassen zu erweitern und auszutauschen. Konfigurationsmöglichkeiten sollen möglichst zur Laufzeit stattfinden. 
+		
+\item Dokumentation
+
+Das Erstellen einer Dokumentation ist ebenfalls eine Teilaufgabe des Projektes.
+		
+\end{itemize}
+
+\newpage
+\section{Übersicht aller Anforderungen}
+Es wird eine Übersicht aller Anforderungen mit kurzen Beschreibungen erstellt, um in den folgenden Kapiteln darauf referenzieren zu können.
+
+\begin{compactenum}[a)]
+	\item Schnittstelle zur Audiohardware \label{FA:SchnittstelleAudiohardware}
+		\begin{compactenum}[1.]
+			\item Erstellen der Schnittstelle \label{FA:SchnittstelleAudiohardware:Erstellen}
+			\item Konfigurationsmöglichkeiten der Audiohardware \label{FA:SchnittstelleAudiohardware:Konfigurieren}
+		\end{compactenum}
+	\item Audiokompression \label{FA:Audiokompression}
+		\begin{compactenum}[1.]
+			\item Erstellen der Schnittstelle \label{Fa:Audiokompression:Erstellen}
+			\item Einbinden eines Audiocodecs \label{Fa:Audiokompression:CodecEinbinden}
+		\end{compactenum}
+	\item Netzwerkschicht \label{Fa:Netzwerkschicht}
+		\begin{compactenum}[1.]
+			\item Erstellen einer Netzwerkschicht \label{Fa:Netzwerkschicht:Erstellen}
+			\item Konfigurationsmöglichkeiten für Netzwerkverbindungen \label{FA:Netzwerkschicht:Konfigurieren}
+		\end{compactenum}
+	\item RTP-Protokoll \label{FA:RTP}
+		\begin{compactenum}[1.]
+			\item Implementierung des RTP-Protokolls \label{FA:RTP:Implementieren}
+		\end{compactenum}
+	\item Jitter-Buffer \label{FA:Jitter-Buffer}
+		\begin{compactenum}[1.]
+			\item Implementieren eines Jitter-Buffers \label{FA:Jitter-Buffer:Implementieren}
+			\item Audiowiedergabe erst starten, wenn bestimmter Füllstand erreicht ist \label{FA:Jitter-Buffer:Buffern}
+		\end{compactenum}
+	\item Prototypische Voice-over-IP-Konsolenanwendung \label{FA:Konsolenanwendung}
+		\begin{compactenum}[1.]
+			\item Basiert auf dem Framework und ermöglicht die Audiokommunikation zwischen zwei Anwendern \label{FA:Konsolenanwendung:Audiokommunikation}
+			\item Nimmt Parameter beim Programmstart entgegen und verarbeitet sie \label{FA:Konsolenanwendung:Parameter}
+		\end{compactenum}
+	\item Statistik \label{FA:Statistik}
+		\begin{compactenum}[1.]
+			\item Erfassen von statistischen Werten muss möglich sein \label{FA:Statistik:Erfassen}
+			\item Formatierte Ausgabe der Ergebnisse \label{FA:Statistik:Ausgabe}
+		\end{compactenum}
+
+
+	\item Plattformunabhängigkeit \label{NFA:Plattformunabhängigkeit}
+		\begin{compactenum}[1.]
+			\item Windows, Linux, OS X \label{NFA:Plattformunabhängigkeit:BS}
+			\item Einsatz von CMake \label{NFA:Plattformunabhängigkeit:CMake}
+		\end{compactenum}
+		\item Performanz \label{NFA:Performanz}
+		\begin{compactenum}[1.]
+			\item Performanz hat erhöhte Priorität \label{NFA:Performanz:Priorität}
+		\end{compactenum}
+		\item Prinzpien des objektorientierten Designs \label{NFA:Softwarearchitektur}
+		\begin{compactenum}[1.]
+			\item Erweiterbarkeit, Wiederverwendbarkeit, Austauschbarkeit der Komponenten \label{NFA:Softwarearchitektur:Eigenschaften}
+		\end{compactenum}
+		\item Dokumentation \label{NFA:Dokumentation}
+		\begin{compactenum}[1.]
+			\item Erstellen einer Dokumentation \label{NFA:Dokumentation:Erstellen}
+		\end{compactenum}
+\end{compactenum}
+

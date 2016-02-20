@@ -1,0 +1,114 @@
+﻿Projektmanagement
+Präsentation
+Bericht
+
+Architektur
+RtAudio
+Opus
+RTP
+Buffer
+Netzwerk
+Statistik
+Tests
+Konfiguration
+Plattformunabhängigkeit (CMAKE)
+
+
+Kamal:
+	Projektmanagement
+		- Aktive Suche nach IT-Projekt und Teamerstellung
+		- Klärungen von Organisatorischem
+		- Regelmäßige Teilnahme an Projektmeetings und Aufgabenverteilung
+	Präsentation
+		- Einleitung - OHMComm
+		- Vorstellung der Werkzeuge
+		- Architektur
+	Bericht:
+		- Erstellung des Latex Templates
+		- Grobentwurf durch Erstellung des Inhaltsverzeichnis
+		- Erstellung der Grafiken
+		- Berichtskapitel:
+			- Einleitung
+				- Was ist OHMComm?
+				- Projektbeschreibung
+				- Aufbau des Berichts
+			- Anforderungsanalyse
+				- Funktionale Anforderungen
+				- Nicht-Funktionale Anforderungen
+				- Übersicht aller Anforderungen
+			- Entwurf
+				- Audio-Schnittstelle
+				- Verarbeitungskette
+				- Austauschbarkeit und Instantiierung
+				- RTPListener
+				- Dokumentation
+			- Implementierung
+				- Verarbeitungskette
+				- Factory-Klassen
+				- RTPListener
+			- Schlussbemerkungen
+				- Fazit
+	Architektur
+		- Erstellung der abstrakten Oberklasse "AudioHandler", welche die Audioverarbeitungsarchitektur (Verwaltung von AudioProzessoren) enthält
+	RtAudio
+		- Erstellung des RTAudioWrappers
+	RTP
+		- Erstellung und Mitwirkung an der Klasse RTPPackage
+		- Erstellung des RTPProcessors
+	Buffer
+		- Codereview des RTPBuffers 
+		- Erstellung des RTPBufferAlternative
+	Netzwerk
+		- Erstellung der abstrakten Oberklasse "NetworkWrapper"
+		- Umsetzung der konkreten Windows-Implementierung des UDP-Wrappers
+	Tests
+		- Einbindung von CppTest ins Framework
+		- Erstellen von ersten Unit Tests
+		- Durchführung von manuellen Funktionstests
+	Plattformunabhängigkeit
+		- Erstellung der CMake Dateien für Windows mit speziellen Visual-Studio-Einstellungen
+		- Erstellen der CMake Dateien für CppTest
+
+
+Jonas:
+	Projektmanagement
+	Präsentation
+	Bericht
+	RtAudio
+	Opus
+	Tests
+	Konfiguration
+	Plattformunabhängigkeit (CMAKE)
+	
+Daniel:
+	Projektmanagement:
+		- Meetings, Ticket- und Milestoneverwaltung
+	Präsentation (1/3)
+	Bericht (~1/3)
+
+	Architektur:
+		- Factory-Pattern für AudioHandler und -Prozessoren
+	RTP:
+		- Implementierung und Einbau von RT(C)P
+		- Test auf Standardkonformität
+	Buffer:
+		- Implementierung und Einbau RTPBuffer
+		- Implementierung und Test Thread-Sicherheit, Loss Concealment und Package Reordering
+	Netzwerk:
+		- Implementierung UDPWrapper
+	Statistik:
+		- Implementierung Messung statistischer Werte
+		- Implementierung Ausgabe der Statistik auf Konsole und in Datei
+		- Implementierung und Einbau ProfilingAudioProcessor fürs Messen der Prozessoren
+	Tests:
+		- Implementierung Unit Tests für Vielzahl an Komponenten
+		- Durchführung Kommonukationstests
+	Konfiguration:
+		- Konzept der Konfiguration
+		- Registrierung von Parametern
+		- Implementierung verschiedener Konfigurationsmodi
+		- Einbau Konfiguration in Konsolenprogramm
+		- Erweiterung der Prozessoren um Konfiguration
+	Plattformunabhängigkeit:
+		- Konfiguration für Linux
+		- Travis CI Testsystem aufgesetzt (GCC/Clang)

@@ -1,0 +1,179 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[ngerman]{babel} % deutsch und deutsche Rechtschreibung
+\usepackage[utf8]{inputenc} % Unicode Text 
+\usepackage[T1]{fontenc} % Umlaute und deutsches Trennen
+\usepackage{textcomp} % Sonderzeichen wie Euro, Copyright, etc.
+\usepackage[hyphens]{url} % Hyperlinks, eMail-Adressen, Pfadangaben
+\usepackage{amssymb} % mathmatische Symbole
+\usepackage{microtype} % reguliert Abstände zwischen Buchenstaben
+\usepackage{graphicx} % wir wollen Bilder einfügen
+\usepackage{float} % Umgebung die sich automatisch im Dokument an passenden Positionen bewegen (floaten)
+\usepackage{emptypage} % Wirklich leer bei leeren Seiten
+\usepackage{paralist} % Spezielle Aufzählungstypen wie z.B. begin{compactenum}[a)] https://de.wikibooks.org/wiki/LaTeX-W%C3%B6rterbuch:_Aufz%C3%A4hlung
+\usepackage[german=quotes]{csquotes} % Für deutsche Anführungsstriche
+\usepackage{hyperref} % macht ToC und alle internen Lonks klickbar (für leichtere Navigation)
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\usepackage{listings} % schöne Quellcode-Listings
+% ein paar Einstellungen für akzeptable Listings
+\lstset{basicstyle=\ttfamily, columns=[l]flexible, mathescape=true, showstringspaces=false, numbers=left, numberstyle=\tiny}
+\lstset{language=C++} % Set your language (you can change the language for each code-block optionally)
+% more information about listings: https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings
+
+% Spezialpakete
+\usepackage{epigraph} % Zum Positionieren von Bemerkungen links, rechts, oben und unten vom Text
+\setlength{\epigraphrule}{0pt} % kein Trennstrich
+
+% Seitenlayout
+\usepackage[paper=a4paper,width=14cm,left=35mm,height=22cm]{geometry}
+\usepackage{setspace}
+\linespread{1.15}
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0em} % im Deutschen Einrückung nicht üblich, leider
+
+\newcommand{\phv}{\fontfamily{phv}\fontseries{m}\fontsize{9}{11}\selectfont}
+\usepackage{fancyhdr} % ermöglicht schickere Header und Footer
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\fancyhead[L]{\phv \leftmark}
+\fancyhead[RE,LO]{\phv \nouppercase{\leftmark}}
+\fancyhead[LE,RO]{\phv \thepage}
+% Unten besser auf alles Verzichten
+%\fancyfoot[L]{\textsf{\small \kurztitel}}
+\fancyfoot[C]{\ } % keine Seitenzahl unten
+%\fancyfoot[R]{\textsf{\small Medieninformatik}}
+
+% Quellen aufteilen z.B. in Online-Quellen und Literaturverzeichnis
+\usepackage{bibtopic} 
+
+% Config 1: Times New Roman, gewohnter Font, ok tt und serifenlos
+%\usepackage{mathptmx} 
+%\usepackage[scaled=.95]{helvet}
+%\usepackage{courier}
+
+% Config 2: Palatino mit guten Fonts für tt und serifenlos
+\usepackage{mathpazo} % Palatino, mal was anderes
+\usepackage[scaled=.95]{helvet}
+\usepackage{palatino}
+
+% Config 3: New Century Schoolbook sieht auch nett aus (macht auch tt und serifenlos)
+%\usepackage{newcent}
+
+% Mehr Informationen zu Fonts: https://de.sharelatex.com/learn/Font_typefaces
+
+
+% Zum Zeigen von Fehlern
+\usepackage{soulutf8}
+\newcommand*\falsch{\st}
+
+% damit wir nicht so viel tippen müssen, nur für Demo 
+%\usepackage{blindtext} 
+
+% Float-Objekte sollen die (Sub)Section nicht verlassen in der sie eingefügt worden sind
+\usepackage[section]{placeins}
+
+% Für den Befehl \FloatBarrier - Damit kann man Grenzen für Float-Objekte erstellen, die sie nicht verlassen dürfen.
+\usepackage{placeins}
+
+% Für farbige Schriften 
+\usepackage{color}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+	otherkeywords={...},           % if you want to add more keywords to the set
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=none,	                   % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=C++,                    % the language of the code
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=10pt,                   % how far the line-numbers are from the code
+  numberstyle=\footnotesize, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  tabsize=1,	                   % sets default tabsize to 2 spaces
+}
+
+%\lstdefinestyle{foo}{
+%  moredelim=[is][\color{red}\underbar]{@}{@}
+%}
+
+\begin{document}
+
+
+\begin{titlepage}
+  \begin{center}
+    % Kopf der Seite
+    \parbox[t]{14cm}{
+		\centering
+      {\fontfamily{ppl}\selectfont
+			\Large
+				Technische Hochschule Nürnberg Georg Simon Ohm \\
+				Fakultät Informatik
+			}
+	}
+	\\[3cm]
+    \vfill    
+    {\fontfamily{ppl}\selectfont \huge IT-Projektbericht} \\[0.5cm]
+    %{\large im Rahmen des Moduls IT-Projekt} \\[5mm]
+    %\rule{\textwidth}{1pt}\\[0.5cm]
+    {\fontfamily{ppl}\selectfont \LARGE \bfseries OHMComm \\ Entwicklung eines plattformunabhängiges Framework zur Audioübertragung}
+    %\rule{\textwidth}{1pt}    
+    \vfill
+    {
+			\fontfamily{ppl}\selectfont
+      Verfasser \\ \large Daniel Stadelmann \\ Jonas Ziegler \\ Kamal Bhatti \\ \mbox{ } \\
+      \normalsize Datum \\ \large \today \\ \mbox{ } \\
+      \normalsize Betreuer \\ \large Prof. Dr. M. Teßmann \\
+    } 
+\end{center}
+\end{titlepage}
+
+\cleardoublepage
+
+% Zusammenfassung
+\begin{abstract} 
+OHMComm ist ein plattformunabhängiges Audiokommunikationsframework, dass im Rahmen des IT-Projekts an der Technischen Hochschule Nürnberg entwickelt wurde. Das Ziel des Frameworks ist es sämtliche Funktionalität, die für eine Kommunikation benötigt wird, zur Verfügung zu stellen. Die Kommunikation erfolgt dabei als Direktverbindung über das Real-Time Transport Protokoll (RTP), welches auf UDP basiert. RTP stellt ein standardisiertes Protokoll für die Audio- und Videoübertragung dar, welches von der Audio-Video Transport Working Group of the Internet Engineering Task Force (IETF) entwickelt wurde. Im Rahmen des Projektes wurden alle funktionalen und nicht-funktionalen Anforderungen umgesetzt und diese in einer Beispielanwendung integriert und getestet.
+
+\end{abstract}
+
+\tableofcontents
+
+%Teil Inhalt auf, für bessere Modularität und paralleles Schreiben
+\include{includes/chapter1}
+\include{includes/chapter2}
+\include{includes/chapter3}
+\include{includes/chapter4}
+\include{includes/chapter5}
+\include{includes/chapter6}
+
+
+\bibliographystyle{apalike} % Literaturverzeichnis
+\begin{btSect}{./sources/literatur} % mit bibtopic Quellen trennen
+\section*{Literaturverzeichnis}
+\btPrintCited
+\end{btSect}
+\begin{btSect}{./sources/online}
+\section*{Online-Quellen}
+\btPrintCited
+\end{btSect}
+
+\end{document}
