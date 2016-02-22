@@ -244,6 +244,7 @@ int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsi
         memcpy(&this->inputBuffer[0], inputBuffer, inputBufferSize);
         //FIXME throws segmentation fault in RTPPackageHandler::createNewRTPPackage
         // but only when used with Opus (opus returns OPUS_BAD_ARG)
+        //reason: in the first callback, the buffer is not fully filled -> results in a sample-number/size not supported by opus
         this->processAudioInput(&this->inputBuffer[0], inputBufferSize, streamData);
     }
 
