@@ -28,7 +28,7 @@ class RTCPHandler : public PlaybackListener
 {
 public:
     RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
-                const std::function<void ()> startCallback);
+                const std::function<void ()> startCallback, const bool isActiveSender = true);
     ~RTCPHandler();
     
     /*!
@@ -61,6 +61,7 @@ private:
     const std::unique_ptr<NetworkWrapper> wrapper;
     const std::shared_ptr<ConfigurationMode> configMode;
     const std::function<void ()> startAudioCallback;
+    const bool isActiveSender;
     std::function<void ()> stopCallback;
     RTCPPackageHandler rtcpHandler;
     
@@ -99,6 +100,11 @@ private:
      * Creates a SR package to be used in a compound package
      */
     const void* createSenderReport(unsigned int offset = 0);
+    
+    /*!
+     * Creates a RR package to be used in a compound package
+     */
+    const void* createReceiverReport(unsigned int offset = 0);
     
     /*!
      * Creates a SDES package to be used in a compound package

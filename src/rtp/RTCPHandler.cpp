@@ -17,9 +17,10 @@
 const std::chrono::seconds RTCPHandler::sendSRInterval{5};
 
 RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
-                         const std::function<void ()> startCallback):
+                         const std::function<void ()> startCallback, const bool isActiveSender):
     wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(),
-        lastSRReceived(std::chrono::milliseconds::zero()), lastSRSent(std::chrono::milliseconds::zero()), sourceDescriptions()
+        lastSRReceived(std::chrono::milliseconds::zero()), lastSRSent(std::chrono::milliseconds::zero()), sourceDescriptions(),
+        isActiveSender(isActiveSender)
 {
 }
 
@@ -210,8 +211,8 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
 
 void RTCPHandler::sendSourceDescription()
 {
-    std::cout << "RTCP: Sending SR + SDES ..." << std::endl;
-    const void* buffer = createSenderReport();
+    std::cout << "RTCP: Sending Report + SDES ..." << std::endl;
+    const void* buffer = isActiveSender ? createSenderReport() : createReceiverReport();
     unsigned int length = RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)buffer)->getLength());
     const void* tmp = createSourceDescription(length);
     length += RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)tmp)->getLength());
@@ -223,8 +224,8 @@ void RTCPHandler::sendSourceDescription()
 
 void RTCPHandler::sendByePackage()
 {
-    std::cout << "RTCP: Sending SR + SDES + BYE ..." << std::endl;
-    const void* buffer = createSenderReport();
+    std::cout << "RTCP: Sending Report + SDES + BYE ..." << std::endl;
+    const void* buffer = isActiveSender ? createSenderReport() : createReceiverReport();
     unsigned int length = RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)buffer)->getLength());
     const void* tmp = createSourceDescription(length);
     length += RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)tmp)->getLength());
@@ -276,6 +277,34 @@ const void* RTCPHandler::createSenderReport(unsigned int offset)
     }
     return rtcpHandler.createSenderReportPackage(srHeader, senderReport, receptionReports, offset);
 }
+
+const void* RTCPHandler::createReceiverReport(unsigned int offset)
+{
+    RTCPHeader rrHeader(ParticipantDatabase::self().ssrc);
+    
+    const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+    const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(lastSRReceived.time_since_epoch());
+    
+    //we currently have only one reception report
+    ReceptionReport receptionReport;
+    receptionReport.setSSRC(ParticipantDatabase::remote().ssrc);
+    receptionReport.setFractionLost(calculateFractionLost());
+    receptionReport.setCummulativePackageLoss((uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST));
+    receptionReport.setExtendedHighestSequenceNumber(ParticipantDatabase::remote().extendedHighestSequenceNumber);
+    receptionReport.setInterarrivalJitter((uint32_t)round(ParticipantDatabase::remote().interarrivalJitter));
+    receptionReport.setLastSRTimestamp((uint32_t)lastSRTimestamp.count());
+    //XXX delay since last SR /maybe last SR is wrong
+    receptionReport.setDelaySinceLastSR((now - lastSRTimestamp).count());
+    
+    std::vector<ReceptionReport> receptionReports;
+    if(receptionReport.getSSRC() != 0)
+    {
+        //we can skip initial reception-report if we don't even know for whom
+        receptionReports.push_back(receptionReport);
+    }
+    return rtcpHandler.createReceiverReportPackage(rrHeader, receptionReports, offset);
+}
+
 
 const void* RTCPHandler::createSourceDescription(unsigned int offset)
 {
