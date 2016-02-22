@@ -6,7 +6,6 @@
  */
 
 #include "ProcessorManager.h"
-#include "Statistics.h"
 #include "ProfilingAudioProcessor.h"
 
 ProcessorManager::ProcessorManager() : audioProcessors()

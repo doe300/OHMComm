@@ -211,6 +211,7 @@ int PortAudioWrapper::callbackHelper(const void* input, void* output, unsigned l
 
 int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags)
 {
+    //FIXME crashes for playout/recording only modes (opus??)
     if(statusFlags == paInputOverflow)
     {
         std::cout << "Overflow\n";
@@ -270,7 +271,10 @@ bool PortAudioWrapper::initStreamParameters()
     outputParams.suggestedLatency = Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
     outputParams.hostApiSpecificStreamInfo = nullptr;
     
-    return throwOnError(Pa_IsFormatSupported(&inputParams, &outputParams, audioConfiguration.sampleRate)) == 0;
+    //check for supported parameters depends on the playback-mode
+    const PaStreamParameters* input = Pa_GetDeviceInfo(inputParams.device)->maxInputChannels > 0 ? &inputParams : nullptr;
+    const PaStreamParameters* output = Pa_GetDeviceInfo(outputParams.device)->maxOutputChannels > 0 ? &outputParams : nullptr;
+    return throwOnError(Pa_IsFormatSupported(input, output, audioConfiguration.sampleRate)) == 0;
 }
 
 PaSampleFormat PortAudioWrapper::mapSampleFormat(const unsigned int sampleFormatFlag)

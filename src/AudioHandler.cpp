@@ -58,3 +58,15 @@ bool AudioHandler::isPrepared() const
 {
     return flagPrepared;
 }
+
+AudioHandler::PlaybackMode AudioHandler::getMode()
+{
+    if(!flagAudioConfigSet || !flagPrepared)
+        return UNDEFINED;
+    PlaybackMode mode = UNDEFINED;
+    if(getAudioDevices()[audioConfiguration.inputDeviceID].isInputDevice())
+        mode = (PlaybackMode)(mode | INPUT);
+    if(getAudioDevices()[audioConfiguration.outputDeviceID].isOutputDevice())
+        mode = (PlaybackMode)(mode | OUTPUT);
+    return mode;
+}

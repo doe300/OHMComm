@@ -16,7 +16,20 @@
 class AudioHandler
 {
 public:
-
+    
+    //Container for modes of playback
+    enum PlaybackMode : unsigned char
+    {
+        //mode is not yet determined
+        UNDEFINED = 0x00,
+        //audio-output is played
+        OUTPUT = 0x01,
+        //audio-input is recorded
+        INPUT = 0x02,
+        //input is recorded and output is played
+        DUPLEX = 0x03
+    };
+    
     AudioHandler();
 
     virtual ~AudioHandler();
@@ -149,7 +162,7 @@ public:
     AudioConfiguration getAudioConfiguration();
 
     /*!
-     * Returns wheater the instance has an AudioConfiguration
+     * Returns whether the instance has an AudioConfiguration
      *
      * \return Status of the AudioConfiguration
      */
@@ -168,6 +181,13 @@ public:
      * \return a reference to all local audio-devices
      */
     virtual const std::vector<AudioDevice>& getAudioDevices() = 0;
+    
+    /*!
+     * This method can be used to determine, whether full duplex is currently supported
+     * 
+     * \return the currently configured playback mode
+     */
+    PlaybackMode getMode();
 
 protected:
     bool flagAudioConfigSet = false;

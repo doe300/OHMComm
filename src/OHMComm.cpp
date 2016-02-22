@@ -119,7 +119,26 @@ void OHMComm::startAudio()
     listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize()));
     registerPlaybackListener(listener);
     notifyPlaybackStart();
-    audioHandler->startDuplexMode();
+    if((audioHandler->getMode() & AudioHandler::DUPLEX) == AudioHandler::DUPLEX)
+    {
+        std::cout << "OHMComm: starting duplex mode ..." << std::endl;
+        audioHandler->startDuplexMode();
+    }
+    else if((audioHandler->getMode() & AudioHandler::OUTPUT) == AudioHandler::OUTPUT)
+    {
+        std::cout << "OHMComm: starting playback mode ..." << std::endl;
+        audioHandler->startPlaybackMode();
+    }
+    else if((audioHandler->getMode() & AudioHandler::INPUT) == AudioHandler::INPUT)
+    {
+        std::cout << "OHMComm: starting recording mode ..." << std::endl;
+        audioHandler->startRecordingMode();
+    }
+    else
+    {
+        std::cerr << "OHMComm: No supported playback-mode configured!" << std::endl;
+        return;
+    }
     
     std::cout << "OHMComm started!" << std::endl;
     running = true;

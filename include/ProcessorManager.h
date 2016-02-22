@@ -15,6 +15,7 @@
 #include "configuration.h"
 #include "AudioDevice.h"
 #include "AudioProcessor.h"
+#include "Statistics.h"
 
 /*!
  * Class for storing and managing the active audio-processors
