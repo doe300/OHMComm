@@ -93,7 +93,7 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices(std::unique_pt
     unsigned int defaultInputDeviceIndex = 0;
 
     unsigned int index = 0;
-    for (const AudioHandler::AudioDevice& device : handler->getAudioDevices())
+    for (const AudioDevice& device : handler->getAudioDevices())
     {
         std::cout << "Device ID: " << index << std::endl;
         std::cout << "Device Name = " << device.name << std::endl;
@@ -137,7 +137,7 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices(std::unique_pt
     //Choose output Device
     unsigned int selectedOutputDeviceIndex = UserInput::selectOptionIndex("Choose output Device ID", audioDeviceNames, defaultOutputDeviceIndex);
 
-    AudioHandler::AudioDevice outputDevice = handler->getAudioDevices()[selectedOutputDeviceIndex];
+    AudioDevice outputDevice = handler->getAudioDevices()[selectedOutputDeviceIndex];
 
     //Configure ID of the Output Audio Device
     audioConfig.outputDeviceID = selectedOutputDeviceIndex;
@@ -152,7 +152,7 @@ void InteractiveConfiguration::interactivelyConfigureAudioDevices(std::unique_pt
     //Choose input Device
     unsigned int selectedInputDeviceIndex = UserInput::selectOptionIndex("Choose input Device ID", audioDeviceNames, defaultInputDeviceIndex);
 
-    AudioHandler::AudioDevice inputDevice  = handler->getAudioDevices()[selectedInputDeviceIndex];
+    AudioDevice inputDevice  = handler->getAudioDevices()[selectedInputDeviceIndex];
 
     //Configure ID of the Input Audio Device
     audioConfig.inputDeviceID = selectedInputDeviceIndex;

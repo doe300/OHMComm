@@ -53,12 +53,12 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
     this->streamData->maxBufferSize = inputBufferByteSize;
     this->streamData->isSilentPackage = false;
     if (inputBuffer != nullptr)
-        this->processAudioInput(inputBuffer, inputBufferByteSize, streamData);
+        processors.processAudioInput(inputBuffer, inputBufferByteSize, streamData);
 
     //in case the two buffer sizes max vary
     this->streamData->maxBufferSize = outputBufferByteSize;
     if (outputBuffer != nullptr)
-        this->processAudioOutput(outputBuffer, outputBufferByteSize, streamData);
+        processors.processAudioOutput(outputBuffer, outputBufferByteSize, streamData);
 
     return 0;
 }
@@ -117,7 +117,7 @@ void RtAudioWrapper::stop()
     this->suspend();
     //FIXME ALSA-API throws "duplicate free or corruption" in closeStream()
     this->rtaudio.closeStream();
-    this->cleanUpAudioProcessors();
+    processors.cleanUpAudioProcessors();
 }
 
 void RtAudioWrapper::resume()
@@ -212,14 +212,14 @@ bool RtAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMode
         this->setDefaultAudioConfig();
     
     //checks if there is a configuration all processors support
-    if(!queryProcessorSupport())
+    if(!processors.queryProcessorSupport(audioConfiguration, getAudioDevices()[audioConfiguration.inputDeviceID]))
     {
         std::cerr << "AudioProcessors could not agree on configuration!" << std::endl;
         return false;
     }
     
     bool resultA = this->initRtAudioStreamParameters();
-    bool resultB = this->configureAudioProcessors(configMode);
+    bool resultB = processors.configureAudioProcessors(audioConfiguration, configMode);
 
     if (resultA && resultB) {
         this->flagPrepared = true;
@@ -234,7 +234,7 @@ auto RtAudioWrapper::getBufferSize() -> unsigned int
     return outputBufferByteSize;
 }
 
-const std::vector<AudioHandler::AudioDevice>& RtAudioWrapper::getAudioDevices()
+const std::vector<AudioDevice>& RtAudioWrapper::getAudioDevices()
 {
     static std::vector<AudioDevice> devices{};
     

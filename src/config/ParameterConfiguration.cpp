@@ -75,7 +75,7 @@ void ParameterConfiguration::fillAudioConfiguration(int outputDeviceID, int inpu
 {
     std::unique_ptr<AudioHandler> handler = AudioHandlerFactory::getAudioHandler(audioHandlerName);
     unsigned int index = 0;
-    for(const AudioHandler::AudioDevice& device : handler->getAudioDevices())
+    for(const AudioDevice& device : handler->getAudioDevices())
     {
         if(device.defaultOutputDevice && outputDeviceID < 0)
             outputDeviceID = index;

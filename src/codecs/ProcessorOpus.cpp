@@ -51,7 +51,7 @@ const std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampl
     }
     else
     {
-        std::cerr << "[Opus-getSupportedBufferSizes-Error]No supported buffer size could be found." << std::endl;
+        std::cerr << "Opus: No supported buffer size found!" << std::endl;
         return std::vector<int>({ });
     }
 }
@@ -80,42 +80,42 @@ bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::
     {
         if (ErrorCode == OPUS_ALLOC_FAIL)
         {
-            std::cerr << "[Opus-configure-Error]Memory allocation has failed." << std::endl;
+            std::cerr << "Opus: Memory allocation has failed." << std::endl;
             return false;
         }
         else if (ErrorCode == OPUS_BAD_ARG)
         {
-            std::cerr << "[Opus-configure-Error]One or more invalid/out of range arguments." << std::endl;
+            std::cerr << "Opus: One or more invalid/out of range arguments." << std::endl;
             return false;
         }
         else if (ErrorCode == OPUS_BUFFER_TOO_SMALL)
         {
-            std::cerr << "[Opus-configure-Error]The mode struct passed is invalid." << std::endl;
+            std::cerr << "Opus: The mode struct passed is invalid." << std::endl;
             return false;
         }
         else if (ErrorCode == OPUS_INTERNAL_ERROR)
         {
-            std::cerr << "[Opus-configure-Error]An internal error was detected." << std::endl;
+            std::cerr << "Opus: Internal error." << std::endl;
             return false;
         }
         else if (ErrorCode == OPUS_INVALID_PACKET)
         {
-            std::cerr << "[Opus-configure-Error]The compressed data passed is corrupted." << std::endl;
+            std::cerr << "Opus: The compressed data passed is corrupted." << std::endl;
             return false;
         }
         else if (ErrorCode == OPUS_INVALID_STATE)
         {
-            std::cerr << "[Opus-configure-Error]An encoder or decoder structure is invalid or already freed." << std::endl;
+            std::cerr << "Opus: An encoder or decoder structure is invalid or already freed." << std::endl;
             return false;
         }
         else if (ErrorCode == OPUS_UNIMPLEMENTED)
         {
-            std::cerr << "[Opus-configure-Error]Invalid/unsupported request number. " << std::endl;
+            std::cerr << "Opus: Invalid/unsupported request number. " << std::endl;
             return false;
         }
         else
         {
-            std::cerr << "[Opus-configure-Error]Unknown error." << std::endl;
+            std::cerr << "Opus: Unknown error." << std::endl;
             return false;
         }
     }
@@ -134,7 +134,7 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
     }
     else
     {
-        std::cerr << "[Opus-processInputData-Error]No matching encoder found, AudioFormat possibly not supported" << std::endl;
+        std::cerr << "Opus: No matching encoder found!" << std::endl;
         return 0;
     }
     //if output length is 1, DTX is applied
@@ -164,7 +164,7 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
     }
     else
     {
-        std::cerr << "[Opus-processOutputData-Error]No matching decoder found, AudioFormat possibly not supported" << std::endl;
+        std::cerr << "Opus: No matching decoder found!" << std::endl;
         return 0;
     }
 }

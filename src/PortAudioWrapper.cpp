@@ -97,7 +97,7 @@ void PortAudioWrapper::stop()
     {
         throwOnError(Pa_CloseStream(stream));
     }
-    cleanUpAudioProcessors();
+    processors.cleanUpAudioProcessors();
 }
 
 void PortAudioWrapper::reset()
@@ -139,14 +139,14 @@ bool PortAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMo
         audioConfiguration.forceAudioFormatFlag = AudioConfiguration::AUDIO_FORMAT_ALL ^ AudioConfiguration::AUDIO_FORMAT_FLOAT64;
     }
     //checks if there is a configuration all processors support
-    if(!queryProcessorSupport())
+    if(!processors.queryProcessorSupport(audioConfiguration, getAudioDevices()[audioConfiguration.inputDeviceID]))
     {
         std::cerr << "AudioProcessors could not agree on configuration!" << std::endl;
         return false;
     }
     
     bool resultA = this->initStreamParameters();
-    bool resultB = this->configureAudioProcessors(configMode);
+    bool resultB = processors.configureAudioProcessors(audioConfiguration, configMode);
 
     if (resultA && resultB) {
         this->flagPrepared = true;
@@ -163,9 +163,9 @@ unsigned int PortAudioWrapper::getBufferSize()
     return bufferSize;
 }
 
-const std::vector<AudioHandler::AudioDevice>& PortAudioWrapper::getAudioDevices()
+const std::vector<AudioDevice>& PortAudioWrapper::getAudioDevices()
 {
-    static std::vector<AudioHandler::AudioDevice> devices{};
+    static std::vector<AudioDevice> devices{};
     
     if(devices.empty())
     {
@@ -245,13 +245,13 @@ int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsi
         //FIXME throws segmentation fault in RTPPackageHandler::createNewRTPPackage
         // but only when used with Opus (opus returns OPUS_BAD_ARG)
         //reason: in the first callback, the buffer is not fully filled -> results in a sample-number/size not supported by opus
-        this->processAudioInput(&this->inputBuffer[0], inputBufferSize, streamData);
+        processors.processAudioInput(&this->inputBuffer[0], inputBufferSize, streamData);
     }
 
     //reset maximum size, in case a processor illegally modifies it
     this->streamData->maxBufferSize = bufferSize;
     if (outputBuffer != nullptr)
-        this->processAudioOutput(outputBuffer, bufferSize, streamData);
+        processors.processAudioOutput(outputBuffer, bufferSize, streamData);
 
     return paContinue;
 }
