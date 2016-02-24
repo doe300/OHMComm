@@ -55,11 +55,11 @@ bool PassiveConfiguration::runConfiguration()
     }
 
     //we can reuse buffer, because it is large enough (as of RTCPPackageHandler)
-    int receivedSize = wrapper.receiveData(buffer, 6000);
+    int receivedSize = wrapper.receiveData(buffer, 6000).status;
     while(receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
     {
         //we timed out - repeat
-        receivedSize = wrapper.receiveData(buffer, 6000);
+        receivedSize = wrapper.receiveData(buffer, 6000).status;
     }
     if(receivedSize < 0)
     {

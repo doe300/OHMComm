@@ -21,24 +21,8 @@ SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string&
         ParticipantDatabase::self().userAgent.reset(new SIPUserAgent);
     ParticipantDatabase::self().userAgent->userName = Utility::getUserName();
     ParticipantDatabase::self().userAgent->hostName = Utility::getDomainName();
-    ParticipantDatabase::self().userAgent->tag = std::to_string(rand());
-    ParticipantDatabase::self().userAgent->port = sipConfig.localPort;
-    if(!ParticipantDatabase::remote().userAgent)
-        ParticipantDatabase::remote().userAgent.reset(new SIPUserAgent);
-    ParticipantDatabase::remote().userAgent->userName = remoteUser;
-    ParticipantDatabase::remote().userAgent->ipAddress = sipConfig.remoteIPAddress;
-    ParticipantDatabase::remote().userAgent->port = sipConfig.remotePort;
-    updateNetworkConfig();
-}
-
-
-SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& localUser, const std::string& localHostName, const std::string& remoteUser, const std::string& callID) :
-    network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction([](const MediaDescription dummy, const NetworkConfiguration dummy1, const NetworkConfiguration dummy2){}), callID(callID), sequenceNumber(0), buffer(SIP_BUFFER_SIZE), lastBranch(), state(SessionState::UNKNOWN)
-{
-    if(!ParticipantDatabase::self().userAgent)
-        ParticipantDatabase::self().userAgent.reset(new SIPUserAgent);
-    ParticipantDatabase::self().userAgent->userName = localUser;
-    ParticipantDatabase::self().userAgent->hostName = localHostName;
+    //FIXME this is only necessary (and should be removed due to performance reasons) as long as the host-resolution of the local machine doesn't work
+    ParticipantDatabase::self().userAgent->ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
     ParticipantDatabase::self().userAgent->tag = std::to_string(rand());
     ParticipantDatabase::self().userAgent->port = sipConfig.localPort;
     if(!ParticipantDatabase::remote().userAgent)
@@ -76,6 +60,7 @@ void SIPHandler::shutdown()
     else if(state == SessionState::ESTABLISHED)
     {
         // Send a SIP BYE-packet, to tell the other side that communication has been stopped
+        //FIXME segmentation fault on program exit in SIPUserAgent::getSIPURI (but globals are alive until the end!?!)
         sendByeRequest();
     }
     stopCallback();
@@ -103,23 +88,23 @@ void SIPHandler::runThread()
     while (threadRunning)
     {
         //wait for package and store it in the SIPPackageHandler
-        int receivedSize = network->receiveData(buffer.data(), buffer.size());
-        if (threadRunning == false || receivedSize == INVALID_SOCKET)
+        const NetworkWrapper::Package result = network->receiveData(buffer.data(), buffer.size());
+        if (threadRunning == false || result.isInvalidSocket())
         {
             //socket was already closed
             shutdownInternal();
         }
-        else if (receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
+        else if (result.hasTimedOut())
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
-        else if (SIPPackageHandler::isRequestPackage(buffer.data(), receivedSize))
+        else if (SIPPackageHandler::isRequestPackage(buffer.data(), result.getReceivedSize()))
         {
-            handleSIPRequest(buffer.data(), receivedSize);
+            handleSIPRequest(buffer.data(), result.getReceivedSize());
         }
-        else if (SIPPackageHandler::isResponsePackage(buffer.data(), receivedSize))
+        else if (SIPPackageHandler::isResponsePackage(buffer.data(), result.getReceivedSize()))
         {
-            handleSIPResponse(buffer.data(), receivedSize);
+            handleSIPResponse(buffer.data(), result.getReceivedSize());
         }
     }
     state = SessionState::SHUTDOWN;
@@ -636,6 +621,11 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
         ParticipantDatabase::remote().userAgent->hostName = remoteAddress.uri.host;
         ParticipantDatabase::remote().userAgent->ipAddress = Utility::getAddressForHostName(remoteAddress.uri.host);
         ParticipantDatabase::remote().userAgent->port = remoteAddress.uri.port == -1 ? SIP_DEFAULT_PORT : remoteAddress.uri.port;
+        if(ParticipantDatabase::remote().userAgent->ipAddress.empty())
+        {
+            std::cerr << "No address found for host: " << remoteAddress.uri.host << std::endl;
+            throw std::invalid_argument("Invalid IP address!");
+        }
     }
     //check if configuration has changed
     if(sipConfig.remotePort != ParticipantDatabase::remote().userAgent->port ||
@@ -646,6 +636,7 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
         sipConfig.remoteIPAddress = ParticipantDatabase::remote().userAgent->ipAddress;
         sipConfig.remotePort = ParticipantDatabase::remote().userAgent->port;
         network->closeNetwork();
+        std::cout << "Connecting to: " << sipConfig.remoteIPAddress << ':' << sipConfig.remotePort << std::endl;
         //wait for socket to be closed
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         network.reset(new UDPWrapper(sipConfig));

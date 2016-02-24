@@ -57,7 +57,7 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::testSTUNServer(c
     {
         //we re-send until we receive something (or run out of retries)
         network.sendData(buffer, sendSize);
-        receivedSize = network.receiveData(buffer, BUFFER_SIZE);
+        receivedSize = network.receiveData(buffer, BUFFER_SIZE).status;
         --numRetries;
     }
     while(numRetries > 0 && receivedSize == UDPWrapper::RECEIVE_TIMEOUT);

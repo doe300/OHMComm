@@ -37,7 +37,7 @@ void TestNetworkWrappers::testUDPWrapper(UDPWrapper& wrapper)
         std::wcerr << wrapper.getLastError() << std::endl;
     }
 
-    int receivedBytes = wrapper.receiveData(receiveBuffer, bufferSize);
+    int receivedBytes = wrapper.receiveData(receiveBuffer, bufferSize).status;
     TEST_ASSERT_EQUALS_MSG(sendBytes, receivedBytes, "Package sizes do no match!");
     if(receivedBytes <= 0)
     {
@@ -58,7 +58,7 @@ void TestNetworkWrappers::testUDPWrapper(UDPWrapper& wrapper)
     }
     for(int i = 1; i < 5; i++)
     {
-        int receivedBytes = wrapper.receiveData(receiveBuffer, bufferSize);
+        int receivedBytes = wrapper.receiveData(receiveBuffer, bufferSize).status;
         TEST_ASSERT_EQUALS_MSG(i*30, receivedBytes, "Package sizes do no match!");
         if(receivedBytes <= 0)
         {

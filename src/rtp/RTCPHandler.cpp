@@ -94,21 +94,21 @@ void RTCPHandler::runThread()
             sendSourceDescription();
         }
         //wait for package and store into RTCPPackageHandler
-        int receivedSize = this->wrapper->receiveData(rtcpHandler.rtcpPackageBuffer.data(), rtcpHandler.rtcpPackageBuffer.capacity());
-        if(threadRunning == false || receivedSize == INVALID_SOCKET)
+        const NetworkWrapper::Package result = this->wrapper->receiveData(rtcpHandler.rtcpPackageBuffer.data(), rtcpHandler.rtcpPackageBuffer.capacity());
+        if(threadRunning == false || result.isInvalidSocket())
         {
             //socket was already closed
             shutdownInternal();
         }
-        else if(receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
+        else if(result.hasTimedOut())
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
-        else if (RTCPPackageHandler::isRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), receivedSize))
+        else if (RTCPPackageHandler::isRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), result.getReceivedSize()))
         {
             Statistics::incrementCounter(Statistics::RTCP_PACKAGES_RECEIVED);
-            Statistics::incrementCounter(Statistics::RTCP_BYTES_RECEIVED, receivedSize);
-            handleRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), (unsigned int)receivedSize);
+            Statistics::incrementCounter(Statistics::RTCP_BYTES_RECEIVED, result.getReceivedSize());
+            handleRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), result.getReceivedSize());
             ParticipantDatabase::remote().lastPackageReceived = std::chrono::steady_clock::now();
         }
     }

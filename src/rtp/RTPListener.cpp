@@ -43,20 +43,20 @@ void RTPListener::runThread()
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
-        int receivedSize = this->wrapper->receiveData(rtpHandler.getWorkBuffer(), rtpHandler.getMaximumPackageSize());
-        if(receivedSize == INVALID_SOCKET)
+        const NetworkWrapper::Package receivedPackage = this->wrapper->receiveData(rtpHandler.getWorkBuffer(), rtpHandler.getMaximumPackageSize());
+        if(receivedPackage.isInvalidSocket())
         {
             //socket was already closed
             shutdown();
         }
-        else if(receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
+        else if(receivedPackage.hasTimedOut())
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
-        else if(threadRunning && RTPPackageHandler::isRTPPackage(rtpHandler.getWorkBuffer(), (unsigned int)receivedSize))
+        else if(threadRunning && RTPPackageHandler::isRTPPackage(rtpHandler.getWorkBuffer(), receivedPackage.getReceivedSize()))
         {
             //2. write package to buffer
-            auto result = buffer->addPackage(rtpHandler, receivedSize - RTPHeader::MIN_HEADER_SIZE);
+            auto result = buffer->addPackage(rtpHandler, receivedPackage.getReceivedSize() - RTPHeader::MIN_HEADER_SIZE);
             if (result == RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW)
             {
                 //TODO some handling or simply discard?
@@ -84,7 +84,7 @@ void RTPListener::runThread()
                 ParticipantDatabase::remote().lastPackageReceived = std::chrono::steady_clock::now();
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
                 Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTPHeader::MIN_HEADER_SIZE);
-                Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedSize - RTPHeader::MIN_HEADER_SIZE);
+                Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedPackage.getReceivedSize() - RTPHeader::MIN_HEADER_SIZE);
             }
         }
     }

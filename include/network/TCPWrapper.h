@@ -23,7 +23,7 @@ public:
     ~TCPWrapper();
     
     int sendData(const void *buffer, const unsigned int bufferSize = 0);
-    int receiveData(void *buffer, unsigned int bufferSize = 0);
+    Package receiveData(void *buffer, unsigned int bufferSize = 0);
 
     void closeNetwork();
 private:

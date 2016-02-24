@@ -29,7 +29,41 @@ class NetworkWrapper
 public:
     
     const static int RECEIVE_TIMEOUT{-2};
-
+    
+    //Data-object containing information about a single package received
+    struct Package
+    {
+        //we define a union of an IPv4 and an IPv6 address to  guarantee to hold enough space
+        //for either of the IP protocol versions
+        union
+        {
+            sockaddr_in ipv4Address;
+            sockaddr_in6 ipv6Address;
+        };
+        //error-code or package-size
+        int status;
+        //whether the returned address is an IPv6 address
+        bool isIPv6;
+        
+        /*!
+         * \return whether the call to receiveData() has timed out
+         */
+        inline bool hasTimedOut() const
+        {
+            return status == RECEIVE_TIMEOUT;
+        }
+        
+        inline bool isInvalidSocket() const
+        {
+            return status == INVALID_SOCKET;
+        }
+        
+        inline unsigned int getReceivedSize() const
+        {
+            return status > 0 ? status : 0;
+        }
+    };
+    
     virtual ~NetworkWrapper()
     {
         //needs a virtual destructor to be overridden correctly
@@ -40,7 +74,7 @@ public:
      *
      * \param bufferSize The number of bytes to send
      *
-     * Returns the number of bytes sent
+     * \return the number of bytes sent
      */
     virtual int sendData(const void *buffer, const unsigned int bufferSize = 0) = 0;
 
@@ -51,9 +85,9 @@ public:
      *
      * \param bufferSize The maximum number of bytes to receive
      *
-     * Returns the number of bytes received
+     * \return information about the received package
      */
-    virtual int receiveData(void *buffer, unsigned int bufferSize = 0) = 0;
+    virtual Package receiveData(void *buffer, unsigned int bufferSize = 0) = 0;
 
     /*!
      * Returns the last error code and a human-readable description

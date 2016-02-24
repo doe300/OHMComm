@@ -133,24 +133,24 @@ int TCPWrapper::sendData(const void *buffer, const unsigned int bufferSize)
     return sendto(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->remoteAddress), getSocketAddressLength());
 }
 
-int TCPWrapper::receiveData(void *buffer, unsigned int bufferSize)
+NetworkWrapper::Package TCPWrapper::receiveData(void *buffer, unsigned int bufferSize)
 {
-    #ifdef _WIN32
-    int localAddrLen = sizeof(localAddress);
-    #else
-    unsigned int localAddrLen = getSocketAddressLength();
-    #endif
-    int result = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(this->localAddress), &localAddrLen);
-    if (result == -1)
+    unsigned int addressLength = getSocketAddressLength();
+    NetworkWrapper::Package package{};
+    package.status = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(package.ipv6Address), &addressLength);
+    if (package.status == -1)
     {
         if(hasTimedOut() || errno == INTERRUPTED_BY_SYSTEM_CALL)
         {
             //we have timed-out (or were interrupted by some other system call), so notify caller and return
-            return RECEIVE_TIMEOUT;
+            package.status = RECEIVE_TIMEOUT;
+            return package;
         }
         std::wcerr << this->getLastError();
     }
-    return result;
+    if(addressLength == sizeof(sockaddr_in6))
+        package.isIPv6 = true;
+    return package;
 }
 
 void TCPWrapper::closeNetwork()

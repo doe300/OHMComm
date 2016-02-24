@@ -32,8 +32,6 @@ public:
     static constexpr unsigned short SIP_DEFAULT_PORT{5060};
     
     SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction);
-    
-    SIPHandler(const NetworkConfiguration& sipConfig, const std::string& localUser, const std::string& localHostName, const std::string& remoteUser, const std::string& callID);
 
     ~SIPHandler();
     
