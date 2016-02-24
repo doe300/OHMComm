@@ -39,7 +39,6 @@ void RTPListener::startUp()
 void RTPListener::runThread()
 {
     std::cout << "RTP-Listener started ..." << std::endl;
-    ParticipantDatabase::remote() = {0};
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage

@@ -2,8 +2,6 @@
 #include "Statistics.h"
 #include "Parameters.h"
 
-Participant ParticipantDatabase::participants[ParticipantDatabase::MAX_PARTICIPANTS] = {{},{}};
-
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
                            std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType), lastPackageWasSilent(false)
 {
@@ -128,7 +126,6 @@ void ProcessorRTP::initPackageHandler(unsigned int maxBufferSize)
     {
         rtpPackage.reset(new RTPPackageHandler(maxBufferSize, payloadType));
     }
-    ParticipantDatabase::self().ssrc = rtpPackage->ssrc;
     ParticipantDatabase::self().initialRTPTimestamp = rtpPackage->initialTimestamp;
     ParticipantDatabase::self().extendedHighestSequenceNumber = rtpPackage->sequenceNr;
 }

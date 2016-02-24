@@ -107,6 +107,11 @@ private:
     const void* createReceiverReport(unsigned int offset = 0);
     
     /*!
+     * Creates reception reports for all remote participants
+     */
+    const std::vector<ReceptionReport> createReceptionReports() const;
+    
+    /*!
      * Creates a SDES package to be used in a compound package
      */
     const void* createSourceDescription(unsigned int offset = 0);
@@ -114,7 +119,7 @@ private:
     /*!
      * \return the fraction of lost-packages as 1/256
      */
-    uint8_t calculateFractionLost();
+    uint8_t calculateFractionLost() const;
 };
 
 #endif	/* RTCPHANDLER_H */

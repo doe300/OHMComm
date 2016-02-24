@@ -79,6 +79,23 @@ void RTCPHandler::runThread()
     {
         if((std::chrono::steady_clock::now() - sendSRInterval) >= ParticipantDatabase::self().lastSRTimestamp)
         {
+            const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+//            const auto allParticipants = ParticipantDatabase::getAllParticipants();
+//            for(auto it = allParticipants.begin(); it != allParticipants.end(); ++it)
+//            {
+//                if((*it).second.isLocalParticipant)
+//                    continue;
+//                if(now - (*it).second.lastPackageReceived > remoteDropoutTimeout)
+//                {
+//                    //remote has not send any package for quite some time, end conversation
+//                    //TODO different action + remove participant from DB (shut down all its processors/classes)
+//                    std::cout << "RTCP: Dialog partner has timed out, shutting down!" << std::endl;
+//                    shutdownInternal();
+//                    //notify OHMComm to shut down
+//                    stopCallback();
+//                    break;
+//                }
+//            }
             if(ParticipantDatabase::remote().lastPackageReceived.time_since_epoch().count() > 0 
                && (std::chrono::steady_clock::now() - ParticipantDatabase::remote().lastPackageReceived) > remoteDropoutTimeout)
             {
@@ -144,8 +161,8 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
             std::cout << "RTCP: Received Reception Reports:" << std::endl;
             for(const ReceptionReport& report : receptionReports)
             {
-                std::cout << "\tExtended highest sequence number: " << report.getExtendedHighestSequenceNumber() << std::endl;
                 std::cout << "\tReception Report for: " << report.getSSRC() << std::endl;
+                std::cout << "\t\tExtended highest sequence number: " << report.getExtendedHighestSequenceNumber() << std::endl;
                 std::cout << "\t\tFraction Lost (1/256): " << (unsigned int)report.getFractionLost() << std::endl;
                 std::cout << "\t\tTotal package loss: " << report.getCummulativePackageLoss() << std::endl;
                 std::cout << "\t\tInterarrival Jitter (in ms): " << report.getInterarrivalJitter() << std::endl;
@@ -250,7 +267,7 @@ void RTCPHandler::sendByePackage()
 }
 
 
-inline uint8_t RTCPHandler::calculateFractionLost()
+inline uint8_t RTCPHandler::calculateFractionLost() const
 {
     double c = Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST);
     double d = Statistics::readCounter(Statistics::COUNTER_PACKAGES_RECEIVED);
@@ -264,54 +281,47 @@ const void* RTCPHandler::createSenderReport(unsigned int offset)
     NTPTimestamp ntpTime = NTPTimestamp::now();
     const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
     const uint32_t rtpTimestamp = ParticipantDatabase::self().initialRTPTimestamp + now.count();
-    const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(ParticipantDatabase::remote().lastSRTimestamp.time_since_epoch());
     
     SenderInformation senderReport(ntpTime, rtpTimestamp, Statistics::readCounter(Statistics::COUNTER_PACKAGES_SENT), Statistics::readCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT));
-    //we currently have only one reception report
-    ReceptionReport receptionReport;
-    receptionReport.setSSRC(ParticipantDatabase::remote().ssrc);
-    receptionReport.setFractionLost(calculateFractionLost());
-    receptionReport.setCummulativePackageLoss((uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST));
-    receptionReport.setExtendedHighestSequenceNumber(ParticipantDatabase::remote().extendedHighestSequenceNumber);
-    receptionReport.setInterarrivalJitter((uint32_t)round(ParticipantDatabase::remote().interarrivalJitter));
-    receptionReport.setLastSRTimestamp((uint32_t)lastSRTimestamp.count());
-    //XXX delay since last SR /maybe last SR is wrong
-    receptionReport.setDelaySinceLastSR((now - lastSRTimestamp).count());
-    
-    std::vector<ReceptionReport> receptionReports;
-    if(receptionReport.getSSRC() != 0)
-    {
-        //we can skip initial reception-report if we don't even know for whom
-        receptionReports.push_back(receptionReport);
-    }
-    return rtcpHandler.createSenderReportPackage(srHeader, senderReport, receptionReports, offset);
+    return rtcpHandler.createSenderReportPackage(srHeader, senderReport, createReceptionReports(), offset);
 }
 
 const void* RTCPHandler::createReceiverReport(unsigned int offset)
 {
     RTCPHeader rrHeader(ParticipantDatabase::self().ssrc);
-    
+    return rtcpHandler.createReceiverReportPackage(rrHeader, createReceptionReports(), offset);
+}
+
+const std::vector<ReceptionReport> RTCPHandler::createReceptionReports() const
+{
     const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-    const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(ParticipantDatabase::remote().lastSRTimestamp.time_since_epoch());
-    
-    //we currently have only one reception report
-    ReceptionReport receptionReport;
-    receptionReport.setSSRC(ParticipantDatabase::remote().ssrc);
-    receptionReport.setFractionLost(calculateFractionLost());
-    receptionReport.setCummulativePackageLoss((uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST));
-    receptionReport.setExtendedHighestSequenceNumber(ParticipantDatabase::remote().extendedHighestSequenceNumber);
-    receptionReport.setInterarrivalJitter((uint32_t)round(ParticipantDatabase::remote().interarrivalJitter));
-    receptionReport.setLastSRTimestamp((uint32_t)lastSRTimestamp.count());
-    //XXX delay since last SR /maybe last SR is wrong
-    receptionReport.setDelaySinceLastSR((now - lastSRTimestamp).count());
-    
+    //create Reception reports for all remote participants
+    const auto allParticipants = ParticipantDatabase::getAllParticipants();
     std::vector<ReceptionReport> receptionReports;
-    if(receptionReport.getSSRC() != 0)
+    for(auto it = allParticipants.begin(); it != allParticipants.end(); ++it)
     {
-        //we can skip initial reception-report if we don't even know for whom
-        receptionReports.push_back(receptionReport);
+        if((*it).second.isLocalParticipant)
+            //do not report for ourselves
+            continue;
+        const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>((*it).second.lastSRTimestamp.time_since_epoch());
+        ReceptionReport receptionReport;
+        receptionReport.setSSRC((*it).second.ssrc);
+        //XXX package-loss and fraction-lost is global!
+        receptionReport.setFractionLost(calculateFractionLost());
+        receptionReport.setCummulativePackageLoss((uint32_t)Statistics::readCounter(Statistics::COUNTER_PACKAGES_LOST));
+        receptionReport.setExtendedHighestSequenceNumber((*it).second.extendedHighestSequenceNumber);
+        receptionReport.setInterarrivalJitter((uint32_t)round((*it).second.interarrivalJitter));
+        receptionReport.setLastSRTimestamp((uint32_t)lastSRTimestamp.count());
+        //XXX delay since last SR /maybe last SR is wrong
+        receptionReport.setDelaySinceLastSR((now - lastSRTimestamp).count());
+
+        if(receptionReport.getSSRC() != 0)
+        {
+            //we can skip initial reception-report if we don't even know for whom
+            receptionReports.push_back(receptionReport);
+        }
     }
-    return rtcpHandler.createReceiverReportPackage(rrHeader, receptionReports, offset);
+    return receptionReports;
 }
 
 

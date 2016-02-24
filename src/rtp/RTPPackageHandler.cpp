@@ -6,6 +6,7 @@
  */
 
 #include "rtp/RTPPackageHandler.h"
+#include "rtp/ParticipantDatabase.h"
 
 RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType)
 {
@@ -21,7 +22,6 @@ RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadTyp
 
     sequenceNr = getRandomNumber();
     initialTimestamp = createStartingTimestamp();
-    ssrc = getAudioSourceId();
 }
 
 RTPPackageHandler::~RTPPackageHandler()
@@ -36,7 +36,7 @@ const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsign
     newRTPHeader.setPayloadType(payloadType);
     newRTPHeader.setSequenceNumber((this->sequenceNr++) % UINT16_MAX);
     newRTPHeader.setTimestamp(getCurrentRTPTimestamp());
-    newRTPHeader.setSSRC(this->ssrc);
+    newRTPHeader.setSSRC(ParticipantDatabase::self().ssrc);
 
     // Copy RTPHeader and Audiodata in the buffer
     memcpy((char*)workBuffer, &newRTPHeader, RTPHeader::MIN_HEADER_SIZE);
@@ -81,12 +81,6 @@ unsigned int RTPPackageHandler::createStartingTimestamp()
 {
     //start timestamp should be a random number
     return this->randomGenerator(); 
-}
-
-unsigned int RTPPackageHandler::getAudioSourceId()
-{
-    //SSRC should be a random number
-    return this->randomGenerator();
 }
 
 unsigned int RTPPackageHandler::getRTPHeaderSize() const
@@ -139,11 +133,6 @@ void RTPPackageHandler::createSilencePackage()
     memcpy(workBuffer, &silenceHeader, RTPHeader::MIN_HEADER_SIZE);
     memset((char *)(workBuffer) + RTPHeader::MIN_HEADER_SIZE, 0, maximumPayloadSize);
     actualPayloadSize = maximumPayloadSize;
-}
-
-unsigned int RTPPackageHandler::getSSRC() const
-{
-    return ssrc;
 }
 
 uint32_t RTPPackageHandler::getCurrentRTPTimestamp() const

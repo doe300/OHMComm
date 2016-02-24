@@ -104,11 +104,6 @@ public:
     void createSilencePackage();
 
     /*!
-     * Returns this device SSRC
-     */
-    uint32_t getSSRC() const;
-    
-    /*!
      * Returns the current RTP timestamp for the internal clock
      */
     uint32_t getCurrentRTPTimestamp() const;
@@ -132,14 +127,11 @@ protected:
 
     unsigned int getRandomNumber();
     unsigned int createStartingTimestamp();
-    unsigned int getAudioSourceId();
 
     std::mt19937 randomGenerator;
 
-
     unsigned int sequenceNr;
     unsigned int initialTimestamp;
-    unsigned int ssrc;
     PayloadType payloadType;
 
     unsigned int currentBufferSize;
