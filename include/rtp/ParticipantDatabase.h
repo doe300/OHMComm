@@ -9,6 +9,7 @@
 #define	PARTICIPANT_DATABASE_H
 
 #include <string>
+#include <chrono>
 
 /*!
  * Information about a participant of a session relevant for the SIP protocol
@@ -33,10 +34,20 @@ struct SIPUserAgent
 
 struct Participant
 {
+    //the SSRC of the participant
     uint32_t ssrc;
+    //the RTP timestamp of the first package sent by this participant
     uint32_t initialRTPTimestamp;
+    //the currently highest sequence number sent by this participant
     uint32_t extendedHighestSequenceNumber;
+    //the current estimated jitter between packages sent by this participant, undefined for local participant
     double interarrivalJitter;
+    //the timestamp of the reception of the last package (RTP/RTCP) sent by this participant, undefined for local user
+    std::chrono::steady_clock::time_point lastPackageReceived;
+    //the timestamp of the reception of the last RTCP SR package sent by this participant.
+    //for the local participant, this is the timestamp of the last SR sent
+    std::chrono::steady_clock::time_point lastSRTimestamp;
+    //the SIP user-agent data
     SIPUserAgent userAgent;
 };
 

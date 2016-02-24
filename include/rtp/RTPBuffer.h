@@ -83,9 +83,9 @@ private:
          */
         RTPHeader header;
         /*!
-         * The timestamp (in milliseconds) this package was received
+         * The timestamp this package was received
          */
-        unsigned int receptionTimestamp;
+        std::chrono::steady_clock::time_point receptionTimestamp;
         /*!
          * The package size in bytes (size of the content)
          */
@@ -99,7 +99,7 @@ private:
          */
         void *packageContent;
 
-        RTPBufferPackage() : isValid(false), header(), receptionTimestamp(0), contentSize(0), bufferSize(0), packageContent(nullptr)
+        RTPBufferPackage() : isValid(false), header(), receptionTimestamp(std::chrono::steady_clock::time_point::min()), contentSize(0), bufferSize(0), packageContent(nullptr)
         {
 
         }
@@ -121,7 +121,7 @@ private:
     /*!
      * The maximum delay (in milliseconds) before dropping a package
      */
-    const uint16_t maxDelay;
+    const std::chrono::steady_clock::duration maxDelay;
     /*!
      * The index to read the next package from, the last position in the buffer
      */

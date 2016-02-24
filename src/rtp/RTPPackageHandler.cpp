@@ -20,7 +20,7 @@ RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadTyp
     this->randomGenerator = tmp;
 
     sequenceNr = getRandomNumber();
-    timestamp = createStartingTimestamp();
+    initialTimestamp = createStartingTimestamp();
     ssrc = getAudioSourceId();
 }
 
@@ -151,7 +151,7 @@ uint32_t RTPPackageHandler::getCurrentRTPTimestamp() const
     //we need steady clock so it will always change monotonically (etc. no change to/from daylight savings time)
     //additionally, we need to count with milliseconds precision
     //we add the random starting timestamp to meet the condition specified in the RTP standard
-    return timestamp + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    return initialTimestamp + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
 bool RTPPackageHandler::isRTPPackage(const void* packageBuffer, unsigned int packageLength)

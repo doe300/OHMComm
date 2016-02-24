@@ -5,8 +5,6 @@
  * Created on November 5, 2015, 11:04 AM
  */
 
-#include <chrono>
-
 #include "rtp/RTCPHandler.h"
 #include "config/InteractiveConfiguration.h"
 #include "config/PassiveConfiguration.h"
@@ -15,12 +13,12 @@
 
 //standard-conform minimum interval of 5 seconds (no need to be adaptive, as long as we only have one remote) (RFC3550 Section 6.2)
 const std::chrono::seconds RTCPHandler::sendSRInterval{5};
+const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 
 RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const bool isActiveSender):
     wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(),
-        lastSRReceived(std::chrono::milliseconds::zero()), lastSRSent(std::chrono::milliseconds::zero()), sourceDescriptions(),
-        isActiveSender(isActiveSender)
+        sourceDescriptions(), isActiveSender(isActiveSender)
 {
 }
 
@@ -79,10 +77,20 @@ void RTCPHandler::runThread()
     
     while(threadRunning)
     {
-        if(std::chrono::system_clock::now() - sendSRInterval >= lastSRSent)
+        if((std::chrono::steady_clock::now() - sendSRInterval) >= ParticipantDatabase::self().lastSRTimestamp)
         {
-            //send sender report (SR) every X seconds
-            lastSRSent = std::chrono::system_clock::now();
+            if(ParticipantDatabase::remote().lastPackageReceived.time_since_epoch().count() > 0 
+               && (std::chrono::steady_clock::now() - ParticipantDatabase::remote().lastPackageReceived) > remoteDropoutTimeout)
+            {
+                //remote has not send any package for quite some time, end conversation
+                std::cout << "RTCP: Dialog partner has timed out, shutting down!" << std::endl;
+                shutdownInternal();
+                //notify OHMComm to shut down
+                stopCallback();
+                break;
+            }
+            //send report (SR/RR) every X seconds
+            ParticipantDatabase::self().lastSRTimestamp = std::chrono::steady_clock::now();
             sendSourceDescription();
         }
         //wait for package and store into RTCPPackageHandler
@@ -101,6 +109,7 @@ void RTCPHandler::runThread()
             Statistics::incrementCounter(Statistics::RTCP_PACKAGES_RECEIVED);
             Statistics::incrementCounter(Statistics::RTCP_BYTES_RECEIVED, receivedSize);
             handleRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), (unsigned int)receivedSize);
+            ParticipantDatabase::remote().lastPackageReceived = std::chrono::steady_clock::now();
         }
     }
     std::cout << "RTCP-Handler shut down!" << std::endl;
@@ -123,7 +132,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
     else if(header.getType() == RTCP_PACKAGE_SENDER_REPORT)
     {
         //other side sent SR, so print output
-        lastSRReceived = std::chrono::system_clock::now();
+        ParticipantDatabase::remote().lastSRTimestamp = std::chrono::steady_clock::now();
         NTPTimestamp ntpTime;
         SenderInformation senderReport(ntpTime, 0, 0,0);
         std::vector<ReceptionReport> receptionReports = rtcpHandler.readSenderReport(receiveBuffer, receivedSize, header, senderReport);
@@ -255,7 +264,7 @@ const void* RTCPHandler::createSenderReport(unsigned int offset)
     NTPTimestamp ntpTime = NTPTimestamp::now();
     const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
     const uint32_t rtpTimestamp = ParticipantDatabase::self().initialRTPTimestamp + now.count();
-    const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(lastSRReceived.time_since_epoch());
+    const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(ParticipantDatabase::remote().lastSRTimestamp.time_since_epoch());
     
     SenderInformation senderReport(ntpTime, rtpTimestamp, Statistics::readCounter(Statistics::COUNTER_PACKAGES_SENT), Statistics::readCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT));
     //we currently have only one reception report
@@ -283,7 +292,7 @@ const void* RTCPHandler::createReceiverReport(unsigned int offset)
     RTCPHeader rrHeader(ParticipantDatabase::self().ssrc);
     
     const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-    const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(lastSRReceived.time_since_epoch());
+    const std::chrono::milliseconds lastSRTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(ParticipantDatabase::remote().lastSRTimestamp.time_since_epoch());
     
     //we currently have only one reception report
     ReceptionReport receptionReport;

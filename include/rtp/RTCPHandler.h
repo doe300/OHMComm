@@ -68,10 +68,10 @@ private:
     std::thread listenerThread;
     bool threadRunning = false;
     
-    //send SR every X seconds
+    //send SR/RR every X seconds
     static const std::chrono::seconds sendSRInterval;
-    std::chrono::system_clock::time_point lastSRReceived;
-    std::chrono::system_clock::time_point lastSRSent;
+    //timeout before the remote is considered offline
+    static const std::chrono::seconds remoteDropoutTimeout;
     std::vector<SourceDescription> sourceDescriptions;
     
     /*!

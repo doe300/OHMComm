@@ -129,6 +129,6 @@ void ProcessorRTP::initPackageHandler(unsigned int maxBufferSize)
         rtpPackage.reset(new RTPPackageHandler(maxBufferSize, payloadType));
     }
     ParticipantDatabase::self().ssrc = rtpPackage->ssrc;
-    ParticipantDatabase::self().initialRTPTimestamp = rtpPackage->timestamp;
+    ParticipantDatabase::self().initialRTPTimestamp = rtpPackage->initialTimestamp;
     ParticipantDatabase::self().extendedHighestSequenceNumber = rtpPackage->sequenceNr;
 }

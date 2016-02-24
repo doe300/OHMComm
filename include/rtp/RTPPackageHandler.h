@@ -138,7 +138,7 @@ protected:
 
 
     unsigned int sequenceNr;
-    unsigned int timestamp;
+    unsigned int initialTimestamp;
     unsigned int ssrc;
     PayloadType payloadType;
 

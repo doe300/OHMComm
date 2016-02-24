@@ -81,7 +81,7 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
         ringBuffer[newWriteIndex].packageContent = realloc(ringBuffer[newWriteIndex].packageContent, contentSize);
     }
     //save timestamp of reception
-    ringBuffer[newWriteIndex].receptionTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    ringBuffer[newWriteIndex].receptionTimestamp = std::chrono::steady_clock::now();
     ringBuffer[newWriteIndex].contentSize = contentSize;
     memcpy(ringBuffer[newWriteIndex].packageContent, package.getRTPPackageData(), contentSize);
     //update size
@@ -107,7 +107,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     }
     //need to search for oldest valid package, newer than minSequenceNumber and newer than currentTimestamp - maxDelay
     uint16_t index = nextReadIndex;
-    unsigned long currentTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    std::chrono::steady_clock::time_point currentTimestamp = std::chrono::steady_clock::now();
     while(incrementIndex(index) != nextReadIndex)
     {
         //check whether package is too delayed
