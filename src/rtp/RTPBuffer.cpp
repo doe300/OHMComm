@@ -10,7 +10,7 @@
 
 
 RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : PlayoutPointAdaption(200, minBufferPackages),
-    capacity(maxCapacity), maxDelay(maxDelay)
+    capacity(maxCapacity), maxDelay(std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(maxDelay)))
 {
     nextReadIndex = 0;
     ringBuffer = new RTPBufferPackage[maxCapacity];
@@ -107,7 +107,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     }
     //need to search for oldest valid package, newer than minSequenceNumber and newer than currentTimestamp - maxDelay
     uint16_t index = nextReadIndex;
-    std::chrono::steady_clock::time_point currentTimestamp = std::chrono::steady_clock::now();
+    const std::chrono::steady_clock::time_point currentTimestamp = std::chrono::steady_clock::now();
     while(incrementIndex(index) != nextReadIndex)
     {
         //check whether package is too delayed

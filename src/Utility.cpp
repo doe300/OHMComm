@@ -111,14 +111,14 @@ std::string Utility::getAddressForHostName(const std::string& hostName)
     addrinfo* cur = info;
     while(cur != nullptr)
     {
-        if(info->ai_family == AF_INET && info->ai_addr != nullptr)
+        if(cur->ai_family == AF_INET && cur->ai_addr != nullptr)
         {
-            inet_ntop(info->ai_family, &(((sockaddr_in*)info->ai_addr)->sin_addr), buffer, 64);
+            inet_ntop(cur->ai_family, &(((sockaddr_in*)cur->ai_addr)->sin_addr), buffer, 64);
             break;
         }
-        else if(info->ai_family == AF_INET6 && info->ai_addr != nullptr)
+        else if(cur->ai_family == AF_INET6 && cur->ai_addr != nullptr)
         {
-            inet_ntop(info->ai_family, &(((sockaddr_in6*)info->ai_addr)->sin6_addr), buffer, 64);
+            inet_ntop(cur->ai_family, &(((sockaddr_in6*)cur->ai_addr)->sin6_addr), buffer, 64);
             break;
         }
         cur = cur->ai_next;
@@ -128,6 +128,30 @@ std::string Utility::getAddressForHostName(const std::string& hostName)
     return ipAddress;
 }
 
+std::pair<std::string, unsigned short> Utility::getSocketAddress(const void* socketAddress, const unsigned int addressLength, const bool isIPv6)
+{
+    if(socketAddress == nullptr)
+        throw std::invalid_argument("Socket address can't be nullptr!");
+    char buffer[64] = {0};
+    unsigned short port;
+    if(isIPv6)
+    {
+        if(addressLength < sizeof(sockaddr_in6))
+            throw std::invalid_argument("Socket address buffer too small!");
+        const sockaddr_in6* ipv6Address = (sockaddr_in6*) socketAddress;
+        inet_ntop(AF_INET6, &(ipv6Address->sin6_addr), buffer, 64);
+        port = ntohs(ipv6Address->sin6_port);
+    }
+    else
+    {
+        if(addressLength < sizeof(sockaddr_in))
+            throw std::invalid_argument("Socket address buffer too small!");
+        const sockaddr_in* ipv4Address = (sockaddr_in*) socketAddress;
+        inet_ntop(AF_INET, &(ipv4Address->sin_addr), buffer, 64);
+        port = ntohs(ipv4Address->sin_port);
+    }
+    return std::make_pair(std::string(buffer), port);
+}
 
 std::string Utility::trim(const std::string& in)
 {

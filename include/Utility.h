@@ -8,6 +8,7 @@
 #ifndef UTILITY_H
 #define	UTILITY_H
 
+#include <utility>
 #include <string>
 #include <algorithm>
 #include <stdexcept>
@@ -70,6 +71,19 @@ public:
      * \return the IPv4 or IPv6 address in the standard textual representation, or an empty string on error
      */
     static std::string getAddressForHostName(const std::string& hostName);
+    
+    /*!
+     * Extracts the IP-address and the port from the given buffer containing a sockaddr_in or sockaddr_in6 object
+     * 
+     * \param socketAddress the buffer containing the sockaddr_in or sockaddr_in6 object
+     * 
+     * \param addressLength the length of the buffer
+     * 
+     * \param isIPv6 whether the given address is an IPv6 address
+     * 
+     * \return a pair of IP-address and port
+     */
+    static std::pair<std::string, unsigned short> getSocketAddress(const void* socketAddress, const unsigned int addressLength, const bool isIPv6);
 
     /*!
      * \param in The string to trim

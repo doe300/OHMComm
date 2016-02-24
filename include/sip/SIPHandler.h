@@ -99,9 +99,9 @@ private:
      */
     void initializeHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader);
     
-    void handleSIPRequest(const void* buffer, unsigned int packageLength);
+    void handleSIPRequest(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo);
     
-    void handleSIPResponse(const void* buffer, unsigned int packageLength);
+    void handleSIPResponse(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo);
     
     void sendInviteRequest();
     
@@ -115,7 +115,7 @@ private:
     
     int selectBestMedia(const std::vector<MediaDescription>& availableMedias) const;
     
-    void updateNetworkConfig(const SIPHeader* header = nullptr);
+    void updateNetworkConfig(const SIPHeader* header = nullptr, const NetworkWrapper::Package* packageInfo = nullptr);
     
     void startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig);
     

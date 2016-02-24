@@ -21,7 +21,7 @@ SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string&
         ParticipantDatabase::self().userAgent.reset(new SIPUserAgent);
     ParticipantDatabase::self().userAgent->userName = Utility::getUserName();
     ParticipantDatabase::self().userAgent->hostName = Utility::getDomainName();
-    //FIXME this is only necessary (and should be removed due to performance reasons) as long as the host-resolution of the local machine doesn't work
+    //we need an initial value for the local IP-address for the ";received="-tag
     ParticipantDatabase::self().userAgent->ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
     ParticipantDatabase::self().userAgent->tag = std::to_string(rand());
     ParticipantDatabase::self().userAgent->port = sipConfig.localPort;
@@ -100,11 +100,11 @@ void SIPHandler::runThread()
         }
         else if (SIPPackageHandler::isRequestPackage(buffer.data(), result.getReceivedSize()))
         {
-            handleSIPRequest(buffer.data(), result.getReceivedSize());
+            handleSIPRequest(buffer.data(), result.getReceivedSize(), result);
         }
         else if (SIPPackageHandler::isResponsePackage(buffer.data(), result.getReceivedSize()))
         {
-            handleSIPResponse(buffer.data(), result.getReceivedSize());
+            handleSIPResponse(buffer.data(), result.getReceivedSize(), result);
         }
     }
     state = SessionState::SHUTDOWN;
@@ -191,7 +191,7 @@ void SIPHandler::sendAckRequest()
     network->sendData(message.data(), message.size());
 }
 
-void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength)
+void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo)
 {
     SIPRequestHeader requestHeader;
     std::string requestBody;
@@ -222,7 +222,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         {
             if(state != SessionState::ESTABLISHED)
             {
-                updateNetworkConfig(&requestHeader);
+                updateNetworkConfig(&requestHeader, &packageInfo);
             }
             //if we get invited, the Call-ID is set by the remote UAS
             callID = requestHeader[SIP_HEADER_CALL_ID];
@@ -332,7 +332,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     }
 }
 
-void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLength)
+void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo)
 {
     SIPResponseHeader responseHeader;
     std::string responseBody;
@@ -415,13 +415,13 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         else if(responseHeader.statusCode == SIP_RESPONSE_MULTIPLE_CHOICES_CODE || responseHeader.statusCode == SIP_RESPONSE_AMBIGUOUS_CODE)
         {
             //select first choice (Contact) and try again
-            updateNetworkConfig(&responseHeader);
+            updateNetworkConfig(&responseHeader, &packageInfo);
             sendInviteRequest();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_MOVED_PERMANENTLY_CODE || responseHeader.statusCode == SIP_RESPONSE_MOVED_TEMPORARILY_CODE)
         {
             //change remote-address and retry
-            updateNetworkConfig(&responseHeader);
+            updateNetworkConfig(&responseHeader, &packageInfo);
             sendInviteRequest();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_BAD_REQUEST_CODE)
@@ -610,7 +610,7 @@ int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& availableMe
     return -1;
 }
 
-void SIPHandler::updateNetworkConfig(const SIPHeader* header)
+void SIPHandler::updateNetworkConfig(const SIPHeader* header, const NetworkWrapper::Package* packageInfo)
 {
     if(header != nullptr)
     {
@@ -619,8 +619,20 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header)
         const SIPGrammar::SIPAddress remoteAddress = header->getAddress();
         ParticipantDatabase::remote().userAgent->userName = remoteAddress.displayName;
         ParticipantDatabase::remote().userAgent->hostName = remoteAddress.uri.host;
-        ParticipantDatabase::remote().userAgent->ipAddress = Utility::getAddressForHostName(remoteAddress.uri.host);
-        ParticipantDatabase::remote().userAgent->port = remoteAddress.uri.port == -1 ? SIP_DEFAULT_PORT : remoteAddress.uri.port;
+        if(packageInfo != nullptr)
+        {
+            //use the actual address/port from the package received
+            //NOTE: this is the easiest and fastest way to determine host/port, but may be inaccurate for some special cases
+            //e.g. when remote uses different input/output ports or the package was meant to forward to another host
+            const auto socketAddress = Utility::getSocketAddress(&(packageInfo->ipv6Address), sizeof(packageInfo->ipv6Address), packageInfo->isIPv6);
+            ParticipantDatabase::remote().userAgent->ipAddress = socketAddress.first;
+            ParticipantDatabase::remote().userAgent->port = socketAddress.second;
+        }
+        else
+        {
+            ParticipantDatabase::remote().userAgent->ipAddress = Utility::getAddressForHostName(remoteAddress.uri.host);
+            ParticipantDatabase::remote().userAgent->port = remoteAddress.uri.port == -1 ? SIP_DEFAULT_PORT : remoteAddress.uri.port;
+        }
         if(ParticipantDatabase::remote().userAgent->ipAddress.empty())
         {
             std::cerr << "No address found for host: " << remoteAddress.uri.host << std::endl;
