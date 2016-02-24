@@ -14,6 +14,7 @@
 #include "configuration.h"
 #include "KeyValuePairs.h"
 #include "rtp/RTPHeader.h"
+#include "sip/SIPUserAgent.h"
 #include "sip/SupportedFormats.h"
 
 struct SessionKey : public KeyValuePair<char>

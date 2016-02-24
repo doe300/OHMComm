@@ -8,30 +8,15 @@
 #ifndef PARTICIPANT_DATABASE_H
 #define	PARTICIPANT_DATABASE_H
 
-#include <string>
 #include <chrono>
+#include <memory>
+
+//Forward declaration for pointer to SIP user-agent data
+class SIPUserAgent;
 
 /*!
- * Information about a participant of a session relevant for the SIP protocol
+ * Global data store for a single participant in an RTP session
  */
-struct SIPUserAgent
-{
-    std::string userName;
-    std::string hostName;
-    std::string tag;
-    std::string ipAddress;
-    unsigned short port;
-
-    /*!
-     * \return the SIP-URI in the format sip:<userName>@<hostName|ipAddress>[:<port>]
-     */
-    const inline std::string getSIPURI() const
-    {
-        //sip:user@host[:port]
-        return (std::string("sip:") + userName + "@") + (hostName.empty() ? ipAddress : hostName) + (port > 0 ? std::string(":") + std::to_string(port): std::string());
-    }
-};
-
 struct Participant
 {
     //the SSRC of the participant
@@ -48,7 +33,8 @@ struct Participant
     //for the local participant, this is the timestamp of the last SR sent
     std::chrono::steady_clock::time_point lastSRTimestamp;
     //the SIP user-agent data
-    SIPUserAgent userAgent;
+    //we can't use unique_ptr here, because SIPUserAgent is incomplete
+    std::shared_ptr<SIPUserAgent> userAgent;
 };
 
 class ParticipantDatabase
