@@ -9,13 +9,13 @@
 #include "Statistics.h"
 
 RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize) :
-    rtpHandler(receiveBufferSize), lastDelay(0)
+    rtpHandler(receiveBufferSize)
 {
     this->wrapper = wrapper;
     this->buffer = buffer;
 }
 
-RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler), lastDelay(orig.lastDelay)
+RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler)
 {
     this->wrapper = orig.wrapper;
     this->buffer = orig.buffer;
@@ -67,23 +67,28 @@ void RTPListener::runThread()
             }
             else
             {
-                //set extended highest sequence number
-                if(firstPackage)
+                //on first package from remote, set values
+                if(!ParticipantDatabase::isInDatabase(rtpHandler.getRTPPackageHeader()->getSSRC()) || 
+                   ParticipantDatabase::remote(/*TODO rtpHandler.getRTPPackageHeader()->getSSRC()*/).payloadType == PayloadType::ALL)
                 {
-                    firstPackage = false;
+                    ParticipantDatabase::remote().payloadType = rtpHandler.getRTPPackageHeader()->getPayloadType();
+                    //set initial extended highest sequence number
                     ParticipantDatabase::remote().extendedHighestSequenceNumber = rtpHandler.getRTPPackageHeader()->getSequenceNumber();
                     ParticipantDatabase::remote().initialRTPTimestamp = rtpHandler.getRTPPackageHeader()->getTimestamp();
                 }
-                else
+                else if(ParticipantDatabase::remote().payloadType != rtpHandler.getRTPPackageHeader()->getPayloadType())
+                {
+                    std::cerr << "RTP: Invalid payload-type for remote! " << std::endl;
+                }
+                else    //set extended highest sequence number
                 {
                     ParticipantDatabase::remote().extendedHighestSequenceNumber  = calculateExtendedHighestSequenceNumber(rtpHandler.getRTPPackageHeader()->getSequenceNumber());
                 }
-                calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
-                ParticipantDatabase::remote().ssrc = rtpHandler.getRTPPackageHeader()->getSSRC();
-                ParticipantDatabase::remote().payloadType = rtpHandler.getRTPPackageHeader()->getPayloadType();
                 ParticipantDatabase::remote().lastPackageReceived = std::chrono::steady_clock::now();
                 ParticipantDatabase::remote().totalPackages += 1;
                 ParticipantDatabase::remote().totalBytes += receivedPackage.getReceivedSize();
+                ParticipantDatabase::remote().calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
+                
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
                 Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTPHeader::MIN_HEADER_SIZE);
                 Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedPackage.getReceivedSize() - RTPHeader::MIN_HEADER_SIZE);
@@ -91,22 +96,6 @@ void RTPListener::runThread()
         }
     }
     std::cout << "RTP-Listener shut down" << std::endl;
-}
-
-float RTPListener::calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp)
-{
-    //as of RFC 3550 (A.8):
-    //D(i, j)=(Rj - Sj) - (Ri - Si)
-    //with (Ri - Si) = lastDelay
-    int32_t currentDelay = receptionTimestamp - sentTimestamp;
-    int32_t currentDifference = currentDelay - lastDelay;
-    lastDelay = currentDelay;
-    
-    //Ji = Ji-1 + (|D(i-1, 1)| - Ji-1)/16
-    double lastJitter = ParticipantDatabase::remote().interarrivalJitter;
-    lastJitter = lastJitter + ((float)abs(currentDifference) - lastJitter)/16.0;
-    ParticipantDatabase::remote().interarrivalJitter = lastJitter;
-    return lastJitter;
 }
 
 void RTPListener::shutdown()

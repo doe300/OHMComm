@@ -25,10 +25,13 @@ struct RTCPData;
  */
 struct Participant
 {
+private:
+    //the last delay-value
+    uint32_t lastDelay;
+public:
     const bool isLocalParticipant;
     //the SSRC of the participant
-    //XXX make const
-    uint32_t ssrc;
+    const uint32_t ssrc;
     //the payload-type sent and received by this participant
     char payloadType;
     //the RTP timestamp of the first package sent by this participant
@@ -52,8 +55,8 @@ struct Participant
     //the RTCP participant-data
     std::shared_ptr<RTCPData> rtcpData;
     
-    Participant(const uint32_t ssrc, const bool localParticipant) : isLocalParticipant(localParticipant), ssrc(ssrc), 
-        initialRTPTimestamp(-1), extendedHighestSequenceNumber(0), lastPackageReceived(std::chrono::steady_clock::time_point::min()), 
+    Participant(const uint32_t ssrc, const bool localParticipant) : lastDelay(0), isLocalParticipant(localParticipant), ssrc(ssrc), payloadType(-1),
+        initialRTPTimestamp(0), extendedHighestSequenceNumber(0), lastPackageReceived(std::chrono::steady_clock::time_point::min()), 
         packagesLost(0), totalPackages(0), totalBytes(0), userAgent(nullptr), rtcpData(nullptr)
     {
         
@@ -65,6 +68,31 @@ struct Participant
     inline uint8_t getFractionLost() const
     {
         return (long)(((double)packagesLost/(double)totalPackages) * 256);
+    }
+    
+    /*!
+     * Calculates and sets the new interarrival-jitter value
+     * 
+     * \param sentTimestamp The RTP timestamp (in remote clock) of the last package sent by this participant
+     * 
+     * \param receptionTimstamp The RTP timestamp (in local clock) of the reception of the last package sent by this participant
+     * 
+     * \return the newly calculated interarrival-jitter
+     */
+    float calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp)
+    {
+        //as of RFC 3550 (A.8):
+        //D(i, j)=(Rj - Sj) - (Ri - Si)
+        //with (Ri - Si) = lastDelay
+        int32_t currentDelay = receptionTimestamp - sentTimestamp;
+        int32_t currentDifference = currentDelay - lastDelay;
+        lastDelay = currentDelay;
+
+        //Ji = Ji-1 + (|D(i-1, 1)| - Ji-1)/16
+        double lastJitter = interarrivalJitter;
+        lastJitter = lastJitter + ((float)abs(currentDifference) - lastJitter)/16.0;
+        interarrivalJitter = lastJitter;
+        return lastJitter;
     }
 };
 
@@ -112,11 +140,19 @@ public:
         return participants;
     }
     
+    /*!
+     * Removes the remote participant with the given SSRC from the list of active participants
+     * 
+     * \param ssrc The SSRC to remove
+     * 
+     * \return whether a participant for this SSRC was found and removed
+     */
     static bool removeParticipant(const uint32_t ssrc)
     {
         if(ssrc == localSSRC)
             //prevent local from being removed
             return false;
+        participants.erase(ssrc) > 0;
     }
     
 private:

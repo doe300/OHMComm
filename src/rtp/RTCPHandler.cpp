@@ -17,8 +17,7 @@ const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 
 RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const bool isActiveSender):
-    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(),
-        sourceDescriptions(), isActiveSender(isActiveSender)
+    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(), isActiveSender(isActiveSender)
 {
     //make sure, RTCP for self is set
     if(!ParticipantDatabase::self().rtcpData)
@@ -173,8 +172,13 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
     }
     else if(header.getType() == RTCP_PACKAGE_SOURCE_DESCRIPTION)
     {
+        //make sure, RTCP-data pinter is set
+        if(!ParticipantDatabase::remote().rtcpData)
+            ParticipantDatabase::remote().rtcpData.reset(new RTCPData);
         //other side sent SDES, so print to output
         std::vector<SourceDescription> sourceDescriptions = rtcpHandler.readSourceDescription(receiveBuffer, receivedSize, header);
+        //set remote source descriptions
+        ParticipantDatabase::remote().rtcpData->sourceDescriptions = sourceDescriptions;
         std::cout << "RTCP: Received Source Description:" << std::endl;
         for(const SourceDescription& descr : sourceDescriptions)
         {
@@ -326,6 +330,7 @@ const std::vector<ReceptionReport> RTCPHandler::createReceptionReports()
 
 const void* RTCPHandler::createSourceDescription(unsigned int offset)
 {
+    std::vector<SourceDescription>& sourceDescriptions = ParticipantDatabase::self().rtcpData->sourceDescriptions;
     //TODO clashes with interactive configuration (with input to shutdown server)
     if(sourceDescriptions.empty())
     {

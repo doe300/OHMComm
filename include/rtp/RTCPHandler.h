@@ -73,7 +73,6 @@ private:
     static const std::chrono::seconds sendSRInterval;
     //timeout before the remote is considered offline
     static const std::chrono::seconds remoteDropoutTimeout;
-    std::vector<SourceDescription> sourceDescriptions;
     
     /*!
      * Method called in the parallel thread, receiving RTCP-packages and handling them

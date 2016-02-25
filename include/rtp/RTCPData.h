@@ -9,6 +9,7 @@
 #define	RTCPDATA_H
 
 #include <chrono>
+#include <vector>
 
 #include "RTCPHeader.h"
 
@@ -18,6 +19,9 @@ struct RTCPData
     //the timestamp of the reception of the last RTCP SR package sent by this participant.
     //for the local participant, this is the timestamp of the last SR sent
     std::chrono::steady_clock::time_point lastSRTimestamp;
+    //the list of source descriptions for this participant
+    //can be used to display user-friendly names and descriptions for the participant
+    std::vector<SourceDescription> sourceDescriptions;
     
     RTCPData() : lastSRTimestamp(std::chrono::steady_clock::duration::zero())
     {
