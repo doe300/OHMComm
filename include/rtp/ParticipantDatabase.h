@@ -118,8 +118,8 @@ public:
     static Participant& remote(const uint32_t ssrc = 0)
     {
         if(!isInDatabase(ssrc))
-            participants.emplace(std::make_pair(ssrc, Participant{ssrc, false}));
-        return participants.at(ssrc);
+            participants.emplace(std::make_pair(0 /*XXX ssrc*/, Participant{ssrc, false}));
+        return participants.at(0 /*XXX ssrc*/);
     }
     
     /*!
@@ -129,7 +129,7 @@ public:
      */
     static bool isInDatabase(const uint32_t ssrc)
     {
-        return participants.find(ssrc) != participants.end();
+        return participants.find(0 /* XXX ssrc*/) != participants.end();
     }
     
     /*!

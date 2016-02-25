@@ -17,11 +17,12 @@ const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 
 RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const bool isActiveSender):
-    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(), isActiveSender(isActiveSender)
+    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(), 
+        ourselves(ParticipantDatabase::self()), isActiveSender(isActiveSender)
 {
     //make sure, RTCP for self is set
-    if(!ParticipantDatabase::self().rtcpData)
-        ParticipantDatabase::self().rtcpData.reset(new RTCPData);
+    if(!ourselves.rtcpData)
+        ourselves.rtcpData.reset(new RTCPData);
 }
 
 RTCPHandler::~RTCPHandler()
@@ -79,37 +80,27 @@ void RTCPHandler::runThread()
     
     while(threadRunning)
     {
-        if((std::chrono::steady_clock::now() - sendSRInterval) >= ParticipantDatabase::self().rtcpData->lastSRTimestamp)
+        if((std::chrono::steady_clock::now() - sendSRInterval) >= ourselves.rtcpData->lastSRTimestamp)
         {
             const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-//            const auto allParticipants = ParticipantDatabase::getAllParticipants();
-//            for(auto it = allParticipants.begin(); it != allParticipants.end(); ++it)
-//            {
-//                if((*it).second.isLocalParticipant)
-//                    continue;
-//                if(now - (*it).second.lastPackageReceived > remoteDropoutTimeout)
-//                {
-//                    //remote has not send any package for quite some time, end conversation
-//                    //TODO different action + remove participant from DB (shut down all its processors/classes)
-//                    std::cout << "RTCP: Dialog partner has timed out, shutting down!" << std::endl;
-//                    shutdownInternal();
-//                    //notify OHMComm to shut down
-//                    stopCallback();
-//                    break;
-//                }
-//            }
-            if(ParticipantDatabase::remote().lastPackageReceived.time_since_epoch().count() > 0 
-               && (std::chrono::steady_clock::now() - ParticipantDatabase::remote().lastPackageReceived) > remoteDropoutTimeout)
+            const auto allParticipants = ParticipantDatabase::getAllParticipants();
+            for(auto it = allParticipants.begin(); it != allParticipants.end(); ++it)
             {
-                //remote has not send any package for quite some time, end conversation
-                std::cout << "RTCP: Dialog partner has timed out, shutting down!" << std::endl;
-                shutdownInternal();
-                //notify OHMComm to shut down
-                stopCallback();
-                break;
+                if((*it).second.isLocalParticipant)
+                    continue;
+                if(now - (*it).second.lastPackageReceived > remoteDropoutTimeout)
+                {
+                    //remote has not send any package for quite some time, end conversation
+                    //TODO different action + remove participant from DB (shut down all its processors/classes)
+                    std::cout << "RTCP: Dialog partner has timed out, shutting down!" << std::endl;
+                    shutdownInternal();
+                    //notify OHMComm to shut down
+                    stopCallback();
+                    break;
+                }
             }
             //send report (SR/RR) every X seconds
-            ParticipantDatabase::self().rtcpData->lastSRTimestamp = std::chrono::steady_clock::now();
+            ourselves.rtcpData->lastSRTimestamp = std::chrono::steady_clock::now();
             sendSourceDescription();
         }
         //wait for package and store into RTCPPackageHandler
@@ -127,17 +118,21 @@ void RTCPHandler::runThread()
         {
             Statistics::incrementCounter(Statistics::RTCP_PACKAGES_RECEIVED);
             Statistics::incrementCounter(Statistics::RTCP_BYTES_RECEIVED, result.getReceivedSize());
-            handleRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), result.getReceivedSize());
-            ParticipantDatabase::remote().lastPackageReceived = std::chrono::steady_clock::now();
+            const uint32_t ssrc = handleRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), result.getReceivedSize());
+            //since every participant (at least using OHMComm) sends SR first on joining conversation,
+            //this call to remote(ssrc) is very likely to create the new participant
+            //XXX skip creating participant here, only set if exists??
+            ParticipantDatabase::remote(ssrc).lastPackageReceived = std::chrono::steady_clock::now();
         }
     }
     std::cout << "RTCP-Handler shut down!" << std::endl;
 }
 
-void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSize)
+uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int receivedSize)
 {
     //handle RTCP-packages
     RTCPHeader header = rtcpHandler.readRTCPHeader(receiveBuffer, receivedSize);
+    Participant& participant = ParticipantDatabase::remote(header.getSSRC());
     if(header.getType() == RTCP_PACKAGE_GOODBYE)
     {
         //other side sent an BYE-package, shutting down
@@ -146,15 +141,15 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
         shutdownInternal();
         //notify OHMComm to shut down
         stopCallback();
-        return;
+        return header.getSSRC();
     }
     else if(header.getType() == RTCP_PACKAGE_SENDER_REPORT)
     {
-        //make sure, RTCP-data pinter is set
-        if(!ParticipantDatabase::remote().rtcpData)
-            ParticipantDatabase::remote().rtcpData.reset(new RTCPData);
+        //make sure, RTCP-data pointer is set
+        if(!participant.rtcpData)
+            participant.rtcpData.reset(new RTCPData);
         //other side sent SR, so print output
-        ParticipantDatabase::remote().rtcpData->lastSRTimestamp = std::chrono::steady_clock::now();
+        participant.rtcpData->lastSRTimestamp = std::chrono::steady_clock::now();
         NTPTimestamp ntpTime;
         SenderInformation senderReport(ntpTime, 0, 0,0);
         std::vector<ReceptionReport> receptionReports = rtcpHandler.readSenderReport(receiveBuffer, receivedSize, header, senderReport);
@@ -173,12 +168,12 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
     else if(header.getType() == RTCP_PACKAGE_SOURCE_DESCRIPTION)
     {
         //make sure, RTCP-data pinter is set
-        if(!ParticipantDatabase::remote().rtcpData)
-            ParticipantDatabase::remote().rtcpData.reset(new RTCPData);
+        if(!participant.rtcpData)
+            participant.rtcpData.reset(new RTCPData);
         //other side sent SDES, so print to output
         std::vector<SourceDescription> sourceDescriptions = rtcpHandler.readSourceDescription(receiveBuffer, receivedSize, header);
         //set remote source descriptions
-        ParticipantDatabase::remote().rtcpData->sourceDescriptions = sourceDescriptions;
+        participant.rtcpData->sourceDescriptions = sourceDescriptions;
         std::cout << "RTCP: Received Source Description:" << std::endl;
         for(const SourceDescription& descr : sourceDescriptions)
         {
@@ -209,7 +204,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
             if(size < 0)
             {
                 std::cerr << "Buffer not large enough!" << std::endl;
-                return;
+                return header.getSSRC();
             }
             std::cout << "RTCP: Sending configuration-response: audio-format = " << AudioConfiguration::getAudioFormatDescription(msg.audioFormat, false) << ", sample-rate = " 
                     << msg.sampleRate << ", channels = " << msg.nChannels << ", number of audio-processors = " << msg.numProcessorNames << std::endl;
@@ -228,7 +223,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
     else
     {
         std::cerr << "RTCP: Unrecognized package-type: " << (unsigned int)header.getType() << std::endl;
-        return;
+        return header.getSSRC();
     }
     
     //handle RTCP compound packages
@@ -239,6 +234,7 @@ void RTCPHandler::handleRTCPPackage(void* receiveBuffer, unsigned int receivedSi
     {
         handleRTCPPackage(remainingBuffer, remainingLength);
     }
+    return header.getSSRC();
 }
 
 void RTCPHandler::sendSourceDescription()
@@ -262,7 +258,7 @@ void RTCPHandler::sendByePackage()
     const void* tmp = createSourceDescription(length);
     length += RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)tmp)->getLength());
     //create bye package
-    RTCPHeader byeHeader(ParticipantDatabase::self().ssrc);
+    RTCPHeader byeHeader(ourselves.ssrc);
     rtcpHandler.createByePackage(byeHeader, "Program exit", length);
     length += RTCPPackageHandler::getRTCPPackageLength(byeHeader.getLength());
     wrapper->sendData(buffer, length);
@@ -274,19 +270,19 @@ void RTCPHandler::sendByePackage()
 
 const void* RTCPHandler::createSenderReport(unsigned int offset)
 {
-    RTCPHeader srHeader(ParticipantDatabase::self().ssrc);
+    RTCPHeader srHeader(ourselves.ssrc);
     
     NTPTimestamp ntpTime = NTPTimestamp::now();
     const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-    const uint32_t rtpTimestamp = ParticipantDatabase::self().initialRTPTimestamp + now.count();
+    const uint32_t rtpTimestamp = ourselves.initialRTPTimestamp + now.count();
     
-    SenderInformation senderReport(ntpTime, rtpTimestamp, ParticipantDatabase::self().totalPackages, ParticipantDatabase::self().totalBytes);
+    SenderInformation senderReport(ntpTime, rtpTimestamp, ourselves.totalPackages, ourselves.totalBytes);
     return rtcpHandler.createSenderReportPackage(srHeader, senderReport, createReceptionReports(), offset);
 }
 
 const void* RTCPHandler::createReceiverReport(unsigned int offset)
 {
-    RTCPHeader rrHeader(ParticipantDatabase::self().ssrc);
+    RTCPHeader rrHeader(ourselves.ssrc);
     return rtcpHandler.createReceiverReportPackage(rrHeader, createReceptionReports(), offset);
 }
 
@@ -330,7 +326,7 @@ const std::vector<ReceptionReport> RTCPHandler::createReceptionReports()
 
 const void* RTCPHandler::createSourceDescription(unsigned int offset)
 {
-    std::vector<SourceDescription>& sourceDescriptions = ParticipantDatabase::self().rtcpData->sourceDescriptions;
+    std::vector<SourceDescription>& sourceDescriptions = ourselves.rtcpData->sourceDescriptions;
     //TODO clashes with interactive configuration (with input to shutdown server)
     if(sourceDescriptions.empty())
     {
@@ -361,7 +357,7 @@ const void* RTCPHandler::createSourceDescription(unsigned int offset)
         }
         sourceDescriptions.push_back({RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION});
     }
-    RTCPHeader sdesHeader(ParticipantDatabase::self().ssrc);
+    RTCPHeader sdesHeader(ourselves.ssrc);
     return rtcpHandler.createSourceDescriptionPackage(sdesHeader, sourceDescriptions, offset);
 }
 

@@ -44,9 +44,10 @@ private:
     //! Delay until treating input as silence
     //!Treat as silence after 500ms of no input
     static constexpr unsigned short SILENCE_DELAY{500};
-    std::shared_ptr<NetworkWrapper> networkObject;
+    const std::shared_ptr<NetworkWrapper> network;
+    const std::shared_ptr<RTPBufferHandler> rtpBuffer;
+    Participant& ourselves;
     std::unique_ptr<RTPPackageHandler> rtpPackage;
-    std::shared_ptr<RTPBufferHandler> rtpBuffer;
     bool isDTXEnabled;
     bool lastPackageWasSilent;
     unsigned short totalSilenceDelayPackages;

@@ -5,7 +5,7 @@
  * Created on January 16, 2016, 1:33 PM
  */
 
-#include "filters/GainControl.h"
+#include "processors/GainControl.h"
 #include <exception>
 #include <cmath>
 #include <limits>

@@ -150,7 +150,8 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     nextReadIndex = incrementIndex(nextReadIndex);
     size--;
     //we lost all packages between the last read and this one, so we subtract the sequence numbers
-    ParticipantDatabase::remote().packagesLost += (bufferPack->header.getSequenceNumber() - minSequenceNumber)%UINT16_MAX;
+    //XXX this will not work, if same RTPackageHandler is used for reading several buffers
+    ParticipantDatabase::remote(bufferPack->header.getSSRC()).packagesLost += (bufferPack->header.getSequenceNumber() - minSequenceNumber)%UINT16_MAX;
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_LOST, (bufferPack->header.getSequenceNumber() - minSequenceNumber)%UINT16_MAX);
     //only accept newer packages (at least one sequence number more than last read package)
     minSequenceNumber = (bufferPack->header.getSequenceNumber() + 1) % UINT16_MAX;

@@ -65,6 +65,7 @@ private:
     const bool isActiveSender;
     std::function<void ()> stopCallback;
     RTCPPackageHandler rtcpHandler;
+    Participant& ourselves;
     
     std::thread listenerThread;
     bool threadRunning = false;
@@ -81,8 +82,10 @@ private:
     
     /*!
      * This method handles received RTCP packages and is called only from #runThread()
+     * 
+     * \return the SSRC of the originating participant
      */
-    void handleRTCPPackage(void* receiveBuffer, unsigned int receivedSize);
+    uint32_t handleRTCPPackage(const void* receiveBuffer, unsigned int receivedSize);
     
     void shutdownInternal();
     

@@ -13,6 +13,7 @@
 #include <string.h> //memcpy
 
 #include "rtp/RTPHeader.h"
+#include "rtp/ParticipantDatabase.h"
 
 class RTPPackageHandler
 {
@@ -23,7 +24,7 @@ public:
      * \param maximumPayloadSize The maximum size in bytes of the payload (body)
      *
      */
-    RTPPackageHandler(unsigned int maximumPayloadSize);
+    RTPPackageHandler(unsigned int maximumPayloadSize, Participant& ourselves = ParticipantDatabase::self());
 
     virtual ~RTPPackageHandler();
     
@@ -120,6 +121,7 @@ public:
     static bool isRTPPackage(const void* packageBuffer, unsigned int packageLength );
 
 protected:
+    Participant& ourselves;
     // A buffer that can store a whole RTP-Package
     void *workBuffer;
 

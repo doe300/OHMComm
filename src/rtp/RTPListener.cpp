@@ -67,27 +67,28 @@ void RTPListener::runThread()
             }
             else
             {
+                Participant& participant = ParticipantDatabase::remote(rtpHandler.getRTPPackageHeader()->getSSRC());
                 //on first package from remote, set values
-                if(!ParticipantDatabase::isInDatabase(rtpHandler.getRTPPackageHeader()->getSSRC()) || 
-                   ParticipantDatabase::remote(/*TODO rtpHandler.getRTPPackageHeader()->getSSRC()*/).payloadType == PayloadType::ALL)
+                if(participant.payloadType == PayloadType::ALL)
                 {
-                    ParticipantDatabase::remote().payloadType = rtpHandler.getRTPPackageHeader()->getPayloadType();
+                    participant.payloadType = rtpHandler.getRTPPackageHeader()->getPayloadType();
                     //set initial extended highest sequence number
-                    ParticipantDatabase::remote().extendedHighestSequenceNumber = rtpHandler.getRTPPackageHeader()->getSequenceNumber();
-                    ParticipantDatabase::remote().initialRTPTimestamp = rtpHandler.getRTPPackageHeader()->getTimestamp();
+                    participant.extendedHighestSequenceNumber = rtpHandler.getRTPPackageHeader()->getSequenceNumber();
+                    participant.initialRTPTimestamp = rtpHandler.getRTPPackageHeader()->getTimestamp();
+                    std::cout << "RTP: New remote joined conversation: " << rtpHandler.getRTPPackageHeader()->getSSRC() << std::endl;
                 }
-                else if(ParticipantDatabase::remote().payloadType != rtpHandler.getRTPPackageHeader()->getPayloadType())
+                else if(participant.payloadType != rtpHandler.getRTPPackageHeader()->getPayloadType())
                 {
                     std::cerr << "RTP: Invalid payload-type for remote! " << std::endl;
                 }
                 else    //set extended highest sequence number
                 {
-                    ParticipantDatabase::remote().extendedHighestSequenceNumber  = calculateExtendedHighestSequenceNumber(rtpHandler.getRTPPackageHeader()->getSequenceNumber());
+                    participant.extendedHighestSequenceNumber  = calculateExtendedHighestSequenceNumber(participant, rtpHandler.getRTPPackageHeader()->getSequenceNumber());
                 }
-                ParticipantDatabase::remote().lastPackageReceived = std::chrono::steady_clock::now();
-                ParticipantDatabase::remote().totalPackages += 1;
-                ParticipantDatabase::remote().totalBytes += receivedPackage.getReceivedSize();
-                ParticipantDatabase::remote().calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
+                participant.lastPackageReceived = std::chrono::steady_clock::now();
+                participant.totalPackages += 1;
+                participant.totalBytes += receivedPackage.getReceivedSize();
+                participant.calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
                 
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
                 Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTPHeader::MIN_HEADER_SIZE);
@@ -114,10 +115,10 @@ void RTPListener::onPlaybackStop()
     shutdown();
 }
 
-uint32_t RTPListener::calculateExtendedHighestSequenceNumber(const uint16_t receivedSequenceNumber) const
+uint32_t RTPListener::calculateExtendedHighestSequenceNumber(const Participant& participant, const uint16_t receivedSequenceNumber)
 {
     //See https://tools.ietf.org/html/rfc3711#section-3.3.1
-    const uint32_t previousValue = ParticipantDatabase::remote().extendedHighestSequenceNumber;
+    const uint32_t previousValue = participant.extendedHighestSequenceNumber;
     //rollover-count is the higher 16 bits
     const uint32_t rollOverCount = previousValue >> 16;
     //determine possible values for the next extended highest sequence number

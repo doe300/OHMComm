@@ -11,7 +11,7 @@
 #include "ProcessorWAV.h"
 #include "codecs/ProcessorALaw.h"
 #include "codecs/ProcessorMuLaw.h"
-#include "filters/GainControl.h"
+#include "processors/GainControl.h"
 #include "ProfilingAudioProcessor.h"
 
 const std::string AudioProcessorFactory::OPUS_CODEC = "Opus-Codec";

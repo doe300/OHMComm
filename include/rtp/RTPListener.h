@@ -72,7 +72,7 @@ private:
     /*!
      * Calculates the new extended highest sequence number for the received package
      */
-    uint32_t calculateExtendedHighestSequenceNumber(const uint16_t receivedSequenceNumber) const;
+    static uint32_t calculateExtendedHighestSequenceNumber(const Participant& participant, const uint16_t receivedSequenceNumber);
 };
 
 #endif	/* RTPLISTENER_H */
