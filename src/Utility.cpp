@@ -139,7 +139,7 @@ std::pair<std::string, unsigned short> Utility::getSocketAddress(const void* soc
         if(addressLength < sizeof(sockaddr_in6))
             throw std::invalid_argument("Socket address buffer too small!");
         const sockaddr_in6* ipv6Address = (sockaddr_in6*) socketAddress;
-        inet_ntop(AF_INET6, &(ipv6Address->sin6_addr), buffer, 64);
+        inet_ntop(AF_INET6, (void*)&(ipv6Address->sin6_addr), buffer, 64);
         port = ntohs(ipv6Address->sin6_port);
     }
     else
@@ -147,7 +147,7 @@ std::pair<std::string, unsigned short> Utility::getSocketAddress(const void* soc
         if(addressLength < sizeof(sockaddr_in))
             throw std::invalid_argument("Socket address buffer too small!");
         const sockaddr_in* ipv4Address = (sockaddr_in*) socketAddress;
-        inet_ntop(AF_INET, &(ipv4Address->sin_addr), buffer, 64);
+        inet_ntop(AF_INET, (void*)&(ipv4Address->sin_addr), buffer, 64);
         port = ntohs(ipv4Address->sin_port);
     }
     return std::make_pair(std::string(buffer), port);

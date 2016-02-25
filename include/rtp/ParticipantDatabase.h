@@ -12,8 +12,13 @@
 #include <chrono>
 #include <memory>
 
+#include "RTCPData.h"
+
 //Forward declaration for pointer to SIP user-agent data
-class SIPUserAgent;
+struct SIPUserAgent;
+
+//Forward declaration for pointer to statistical and informational RTCP data
+struct RTCPData;
 
 /*!
  * Global data store for a single participant in an RTP session
@@ -24,26 +29,42 @@ struct Participant
     //the SSRC of the participant
     //XXX make const
     uint32_t ssrc;
+    //the payload-type sent and received by this participant
+    char payloadType;
     //the RTP timestamp of the first package sent by this participant
     uint32_t initialRTPTimestamp;
     //the currently highest sequence number sent by this participant
     uint32_t extendedHighestSequenceNumber;
-    //the current estimated jitter between packages sent by this participant, undefined for local participant
+    //the current estimated jitter between RTP packages sent by this participant, undefined for local participant
     double interarrivalJitter;
     //the timestamp of the reception of the last package (RTP/RTCP) sent by this participant, undefined for local user
     std::chrono::steady_clock::time_point lastPackageReceived;
-    //the timestamp of the reception of the last RTCP SR package sent by this participant.
-    //for the local participant, this is the timestamp of the last SR sent
-    std::chrono::steady_clock::time_point lastSRTimestamp;
+    //the amount of packages lost originating from this participant
+    uint32_t packagesLost;
+    //the amount of packages received originating from this participant
+    //equals the amount of packages sent for the local participant
+    uint32_t totalPackages;
+    //the total amount of octets/bytes sent/received for this participant
+    uint32_t totalBytes;
     //the SIP user-agent data
     //we can't use unique_ptr here, because SIPUserAgent is incomplete
     std::shared_ptr<SIPUserAgent> userAgent;
+    //the RTCP participant-data
+    std::shared_ptr<RTCPData> rtcpData;
     
-    Participant(const uint32_t ssrc, const bool localParticipant) : isLocalParticipant(localParticipant), ssrc(ssrc), initialRTPTimestamp(-1), extendedHighestSequenceNumber(0),
-        lastPackageReceived(std::chrono::steady_clock::time_point::min()),
-        lastSRTimestamp(std::chrono::steady_clock::time_point::min()), userAgent(nullptr)
+    Participant(const uint32_t ssrc, const bool localParticipant) : isLocalParticipant(localParticipant), ssrc(ssrc), 
+        initialRTPTimestamp(-1), extendedHighestSequenceNumber(0), lastPackageReceived(std::chrono::steady_clock::time_point::min()), 
+        packagesLost(0), totalPackages(0), totalBytes(0), userAgent(nullptr), rtcpData(nullptr)
     {
         
+    }
+    
+    /*!
+     * \return the fraction of packages lost in 1/256
+     */
+    inline uint8_t getFractionLost() const
+    {
+        return (long)(((double)packagesLost/(double)totalPackages) * 256);
     }
 };
 

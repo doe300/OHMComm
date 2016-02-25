@@ -47,7 +47,6 @@ private:
     std::shared_ptr<NetworkWrapper> networkObject;
     std::unique_ptr<RTPPackageHandler> rtpPackage;
     std::shared_ptr<RTPBufferHandler> rtpBuffer;
-    const PayloadType payloadType;
     bool isDTXEnabled;
     bool lastPackageWasSilent;
     unsigned short totalSilenceDelayPackages;

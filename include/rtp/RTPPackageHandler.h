@@ -22,10 +22,8 @@ public:
      *
      * \param maximumPayloadSize The maximum size in bytes of the payload (body)
      *
-     * \param payloadType The PayloadType, defaults to L16_2
-     *
      */
-    RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType = L16_2);
+    RTPPackageHandler(unsigned int maximumPayloadSize);
 
     virtual ~RTPPackageHandler();
     
@@ -132,7 +130,6 @@ protected:
 
     unsigned int sequenceNr;
     unsigned int initialTimestamp;
-    PayloadType payloadType;
 
     unsigned int currentBufferSize;
     unsigned int maximumPayloadSize;

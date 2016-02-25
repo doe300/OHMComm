@@ -68,15 +68,6 @@ public:
     static void maxCounter(int counterIndex, long newValue);
     
     /*!
-     * Reads the counter-value for the given index
-     * 
-     * \param counterIndex The key to the counter
-     * 
-     * \return The current value for the given counter
-     */
-    static long readCounter(int counterIndex);
-
-    /*!
      * Prints some general statistical information to stdout
      */
     static void printStatistics();

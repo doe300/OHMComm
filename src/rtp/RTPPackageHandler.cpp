@@ -8,11 +8,10 @@
 #include "rtp/RTPPackageHandler.h"
 #include "rtp/ParticipantDatabase.h"
 
-RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, PayloadType payloadType)
+RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize)
 {
     this->maximumPayloadSize = maximumPayloadSize;
     this->maximumBufferSize = maximumPayloadSize + RTPHeader::MAX_HEADER_SIZE;
-    this->payloadType = payloadType;
 
     workBuffer = new char[maximumBufferSize];
 
@@ -33,7 +32,7 @@ const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsign
 {
     RTPHeader newRTPHeader;
 
-    newRTPHeader.setPayloadType(payloadType);
+    newRTPHeader.setPayloadType((PayloadType)ParticipantDatabase::self().payloadType);
     newRTPHeader.setSequenceNumber((this->sequenceNr++) % UINT16_MAX);
     newRTPHeader.setTimestamp(getCurrentRTPTimestamp());
     newRTPHeader.setSSRC(ParticipantDatabase::self().ssrc);

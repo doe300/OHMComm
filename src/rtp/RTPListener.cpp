@@ -80,7 +80,10 @@ void RTPListener::runThread()
                 }
                 calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
                 ParticipantDatabase::remote().ssrc = rtpHandler.getRTPPackageHeader()->getSSRC();
+                ParticipantDatabase::remote().payloadType = rtpHandler.getRTPPackageHeader()->getPayloadType();
                 ParticipantDatabase::remote().lastPackageReceived = std::chrono::steady_clock::now();
+                ParticipantDatabase::remote().totalPackages += 1;
+                ParticipantDatabase::remote().totalBytes += receivedPackage.getReceivedSize();
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
                 Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTPHeader::MIN_HEADER_SIZE);
                 Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedPackage.getReceivedSize() - RTPHeader::MIN_HEADER_SIZE);

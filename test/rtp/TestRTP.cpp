@@ -15,7 +15,7 @@ TestRTP::TestRTP() : Test::Suite()
 void TestRTP::testRTPPackage()
 {
     std::string payload("This is a dummy payload");
-    RTPPackageHandler pack(100, PayloadType::GSM);
+    RTPPackageHandler pack(100);
 
     pack.createNewRTPPackage((char *)payload.c_str(), payload.size());
     const void* headerBuffer = pack.getRTPPackageHeader();

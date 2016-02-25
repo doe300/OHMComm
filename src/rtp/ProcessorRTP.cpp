@@ -3,10 +3,11 @@
 #include "Parameters.h"
 
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
-                           std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), payloadType(payloadType), lastPackageWasSilent(false)
+                           std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), lastPackageWasSilent(false)
 {
     this->networkObject = networkwrapper;
     this->rtpBuffer = buffer;
+    ParticipantDatabase::self().payloadType = payloadType;
 }
 
 unsigned int ProcessorRTP::getSupportedAudioFormats() const
@@ -68,6 +69,8 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     this->networkObject->sendData(newRTPPackage, rtpPackage->getRTPHeaderSize() + inputBufferByteSize);
 
     ParticipantDatabase::self().extendedHighestSequenceNumber += 1;
+    ParticipantDatabase::self().totalPackages += 1;
+    ParticipantDatabase::self().totalBytes += rtpPackage->getRTPHeaderSize() + inputBufferByteSize;
     Statistics::incrementCounter(Statistics::COUNTER_FRAMES_SENT, userData->nBufferFrames);
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_SENT, 1);
     Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTPHeader::MIN_HEADER_SIZE);
@@ -124,7 +127,7 @@ void ProcessorRTP::initPackageHandler(unsigned int maxBufferSize)
 {
     if(rtpPackage.get() == nullptr)
     {
-        rtpPackage.reset(new RTPPackageHandler(maxBufferSize, payloadType));
+        rtpPackage.reset(new RTPPackageHandler(maxBufferSize));
     }
     ParticipantDatabase::self().initialRTPTimestamp = rtpPackage->initialTimestamp;
     ParticipantDatabase::self().extendedHighestSequenceNumber = rtpPackage->sequenceNr;

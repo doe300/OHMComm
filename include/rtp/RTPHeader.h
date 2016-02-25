@@ -106,7 +106,7 @@ public:
  *
  * Currently only containing audio mappings.
  */
-enum PayloadType : short
+enum PayloadType : signed char
 {
     //ITU-T G.711 PCMU - https://en.wikipedia.org/wiki/PCMU
     PCMU = 0,

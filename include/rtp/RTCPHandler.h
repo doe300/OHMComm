@@ -14,6 +14,7 @@
 #include <chrono> // clock, tick
 #include "network/NetworkWrapper.h"
 #include "ParticipantDatabase.h"
+#include "RTCPData.h"
 #include "RTCPPackageHandler.h"
 #include "ConfigurationMode.h"
 #include "Statistics.h"
@@ -109,17 +110,15 @@ private:
     /*!
      * Creates reception reports for all remote participants
      */
-    const std::vector<ReceptionReport> createReceptionReports() const;
+    static const std::vector<ReceptionReport> createReceptionReports();
     
     /*!
      * Creates a SDES package to be used in a compound package
      */
     const void* createSourceDescription(unsigned int offset = 0);
     
-    /*!
-     * \return the fraction of lost-packages as 1/256
-     */
-    uint8_t calculateFractionLost() const;
+    static void printReceptionReports(const std::vector<ReceptionReport>& reports);
+    
 };
 
 #endif	/* RTCPHANDLER_H */
