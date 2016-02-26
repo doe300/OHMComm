@@ -105,16 +105,6 @@ void RTPListener::shutdown()
     threadRunning = false;
 }
 
-void RTPListener::onPlaybackStart()
-{
-    startUp();
-}
-
-void RTPListener::onPlaybackStop()
-{
-    shutdown();
-}
-
 uint32_t RTPListener::calculateExtendedHighestSequenceNumber(const Participant& participant, const uint16_t receivedSequenceNumber)
 {
     //See https://tools.ietf.org/html/rfc3711#section-3.3.1

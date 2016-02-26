@@ -34,7 +34,7 @@ public:
     
     PayloadType getSupportedPlayloadType() const;
     
-    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode);
+    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
     
     bool cleanUp();
     

@@ -12,9 +12,6 @@
 
 #include "ConfigurationMode.h"
 #include "AudioHandler.h"
-#include "rtp/RTPBuffer.h"
-#include "network/NetworkWrapper.h"
-#include "rtp/RTPListener.h"
 #include "rtp/RTCPHandler.h"
 
 #include <functional>
@@ -86,7 +83,6 @@ public:
     
 private:
 
-    const std::shared_ptr<RTPBufferHandler> rtpBuffer;
     /*! Overall mode of configuration */
     const std::shared_ptr<ConfigurationMode> configurationMode;
     /*! Flag, whether this object can be configured */
@@ -96,8 +92,6 @@ private:
 
     //Configuration fields
     std::unique_ptr<AudioHandler> audioHandler;
-    std::shared_ptr<NetworkWrapper> networkWrapper;
-    std::shared_ptr<RTPListener> listener;
     std::shared_ptr<RTCPHandler> rtcpHandler;
 
     void configureRTPProcessor(bool profileProcessors, const PayloadType payloadType);

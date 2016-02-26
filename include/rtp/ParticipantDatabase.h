@@ -8,7 +8,7 @@
 #ifndef PARTICIPANT_DATABASE_H
 #define	PARTICIPANT_DATABASE_H
 
-#include <cmath>
+#include <stdlib.h> //abs for clang
 #include <map>
 #include <chrono>
 #include <memory>

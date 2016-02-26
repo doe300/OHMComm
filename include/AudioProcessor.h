@@ -118,15 +118,21 @@ public:
      *
      * \param audioConfig The valid AudioConfiguration
      * \param configMode The ConfigurationMode to retrieve custom configuration-values from
+     * \param bufferSize The actual buffer-size used for a single call to processInputData/-OutputData
      *
+     * \return whether the configuration succeeded without errors
      */
-    virtual bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode);
+    virtual bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
 
     /*!
      * Counterpart of configure(). This method is called, when the object is not needed any longer.
      */
     virtual bool cleanUp();
-
+    
+    /*!
+     * Method invoked just before streaming is started, can be used to start additional modules
+     */
+    virtual void startup();
 
     /*!
      * The actual processing methods. processInputData is the counterpart of processInputData

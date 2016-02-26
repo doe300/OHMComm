@@ -63,40 +63,18 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
     return 0;
 }
 
-// Region: AudioWrapper methods
-void RtAudioWrapper::startRecordingMode()
+void RtAudioWrapper::startHandler(const PlaybackMode mode)
 {
     if (this->flagPrepared)
     {
-        this->rtaudio.openStream(nullptr, &input, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
+        RtAudio::StreamParameters* inputParams = mode & PlaybackMode::INPUT == PlaybackMode::INPUT ? &input : nullptr;
+        RtAudio::StreamParameters* outputParams = mode & PlaybackMode::OUTPUT == PlaybackMode::OUTPUT ? &output : nullptr;
+        this->rtaudio.openStream(outputParams, inputParams, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
         this->rtaudio.startStream();
     }
     else
         std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
 }
-
-void RtAudioWrapper::startPlaybackMode()
-{
-    if (this->flagPrepared)
-    {
-            this->rtaudio.openStream(&output, nullptr, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
-            this->rtaudio.startStream();
-    }
-    else
-            std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
-}
-
-void RtAudioWrapper::startDuplexMode()
-{
-    if (this->flagPrepared)
-    {
-        this->rtaudio.openStream(&output, &input, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
-        this->rtaudio.startStream();
-    }
-    else
-        std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
-}
-
 
 void RtAudioWrapper::setConfiguration(const AudioConfiguration &audioConfig)
 {
@@ -138,8 +116,8 @@ void RtAudioWrapper::reset()
 // Region: private functions
 auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
 {
-    // calculate the input- and outputbuffer sizes
-    //TODO buffer-size can be changed by audio-library on open stream
+    // calculate the input- and output buffer sizes
+    //TODO buffer-size can be changed by audio-library on open stream, but this clashes with Opus which requires correct buffer-size
     this->outputBufferByteSize = audioConfiguration.framesPerPackage * audioConfiguration.outputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
     this->inputBufferByteSize = audioConfiguration.framesPerPackage * audioConfiguration.inputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
 
@@ -219,7 +197,7 @@ bool RtAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMode
     }
     
     bool resultA = this->initRtAudioStreamParameters();
-    bool resultB = processors.configureAudioProcessors(audioConfiguration, configMode);
+    bool resultB = processors.configureAudioProcessors(audioConfiguration, configMode, outputBufferByteSize);
 
     if (resultA && resultB) {
         this->flagPrepared = true;
@@ -227,11 +205,6 @@ bool RtAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMode
     }
 
     return false;
-}
-
-auto RtAudioWrapper::getBufferSize() -> unsigned int
-{
-    return outputBufferByteSize;
 }
 
 const std::vector<AudioDevice>& RtAudioWrapper::getAudioDevices()

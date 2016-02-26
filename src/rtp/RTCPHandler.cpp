@@ -15,9 +15,9 @@
 const std::chrono::seconds RTCPHandler::sendSRInterval{5};
 const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 
-RTCPHandler::RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
+RTCPHandler::RTCPHandler(const NetworkConfiguration& rtcpConfig, const std::shared_ptr<ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const bool isActiveSender):
-    wrapper(std::move(networkWrapper)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(), 
+    wrapper(new UDPWrapper(rtcpConfig)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(), 
         ourselves(ParticipantDatabase::self()), isActiveSender(isActiveSender)
 {
     //make sure, RTCP for self is set
@@ -207,13 +207,14 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
             std::cout << "RTCP: Sending configuration-response: audio-format = " << AudioConfiguration::getAudioFormatDescription(msg.audioFormat, false) << ", sample-rate = " 
                     << msg.sampleRate << ", channels = " << msg.nChannels << ", number of audio-processors = " << msg.numProcessorNames << std::endl;
             RTCPPackageHandler handler;
-            RTCPHeader responseHeader(0);  //SSID doesn't really matter
+            RTCPHeader responseHeader(ourselves.ssrc);
             const void* responseBuffer = handler.createApplicationDefinedPackage(responseHeader, configResponse);
             wrapper->sendData(responseBuffer, RTCPPackageHandler::getRTCPPackageLength(responseHeader.getLength()));
             
             //remote device has connected, so send SDES
             sendSourceDescription();
             
+            //XXX could be extended to allow for multiple remotes to request configuration (group call)
             //start audio-playback
             startAudioCallback();
         }
@@ -297,7 +298,6 @@ const std::vector<ReceptionReport> RTCPHandler::createReceptionReports()
             std::chrono::duration_cast<std::chrono::milliseconds>((*it).second.rtcpData->lastSRTimestamp.time_since_epoch()) : std::chrono::milliseconds(0);
         ReceptionReport receptionReport;
         receptionReport.setSSRC((*it).second.ssrc);
-        //XXX package-loss and fraction-lost is global!
         receptionReport.setFractionLost((*it).second.getFractionLost());
         receptionReport.setCummulativePackageLoss((*it).second.packagesLost);
         receptionReport.setExtendedHighestSequenceNumber((*it).second.extendedHighestSequenceNumber);

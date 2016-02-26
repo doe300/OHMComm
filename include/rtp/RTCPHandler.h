@@ -26,7 +26,7 @@
 class RTCPHandler : public PlaybackListener
 {
 public:
-    RTCPHandler(std::unique_ptr<NetworkWrapper>&& networkWrapper, const std::shared_ptr<ConfigurationMode> configMode, 
+    RTCPHandler(const NetworkConfiguration& rtcpConfig, const std::shared_ptr<ConfigurationMode> configMode, 
                 const std::function<void ()> startCallback, const bool isActiveSender = true);
     ~RTCPHandler();
     

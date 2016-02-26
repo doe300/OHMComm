@@ -10,7 +10,6 @@
 
 #include <thread>
 
-#include "PlaybackListener.h"
 #include "ParticipantDatabase.h"
 #include "RTPBufferHandler.h"
 #include "network/NetworkWrapper.h"
@@ -20,7 +19,7 @@
  *
  * This class starts a new thread which writes all received RTP-packages to the RTPBuffer
  */
-class RTPListener : public PlaybackListener
+class RTPListener
 {
 public:
     /*!
@@ -47,16 +46,6 @@ public:
      */
     void startUp();
     
-    /*!
-     * Starts the receive-thread
-     */
-    void onPlaybackStart();
-    
-    /*!
-     * Shuts down the receive-thread
-     */
-    void onPlaybackStop();
-
 private:
     std::shared_ptr<NetworkWrapper> wrapper;
     std::shared_ptr<RTPBufferHandler> buffer;

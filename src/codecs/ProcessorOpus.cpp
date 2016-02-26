@@ -61,7 +61,7 @@ PayloadType ProcessorOpus::getSupportedPlayloadType() const
     return PayloadType::OPUS;
 }
 
-bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
+bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     outputDeviceChannels = audioConfig.outputDeviceChannels;
     rtaudioFormat = audioConfig.audioFormatFlag;

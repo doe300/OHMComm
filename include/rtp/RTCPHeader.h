@@ -94,10 +94,11 @@ public:
      */
     static NTPTimestamp now()
     {
-        std::chrono::high_resolution_clock::duration sinceEpoch = std::chrono::high_resolution_clock::now().time_since_epoch();
-        std::chrono::seconds secondsSinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(sinceEpoch);
-        //XXX we currently don't care about fractions of seconds
-        return NTPTimestamp(secondsSinceEpoch.count() + difToEpoch, 0);
+        const std::chrono::high_resolution_clock::duration sinceEpoch = std::chrono::high_resolution_clock::now().time_since_epoch();
+        const std::chrono::seconds secondsSinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(sinceEpoch);
+        const std::chrono::nanoseconds fractionalSeconds = std::chrono::duration_cast<std::chrono::nanoseconds>(sinceEpoch - secondsSinceEpoch);
+        //precision of NTP is 200 picoseconds, 1 ns = 1000ps
+        return NTPTimestamp(secondsSinceEpoch.count() + difToEpoch, fractionalSeconds.count() * 5);
     }
 };
 /*!

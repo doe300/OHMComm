@@ -23,9 +23,6 @@ public:
     /* deny copies with the copy constructor */
     PortAudioWrapper(const PortAudioWrapper & copy) = delete;
 
-    void startRecordingMode();
-    void startPlaybackMode();
-    void startDuplexMode();
     void setConfiguration(const AudioConfiguration &audioConfiguration);
     void suspend();
     void resume();
@@ -33,7 +30,6 @@ public:
     void reset();
     void setDefaultAudioConfig();
     auto prepare(const std::shared_ptr<ConfigurationMode> configMode) -> bool;
-    auto getBufferSize() -> unsigned int;
     
     const std::vector<AudioDevice>& getAudioDevices();
 private:
@@ -62,6 +58,8 @@ private:
     bool initStreamParameters();
     
     static PaSampleFormat mapSampleFormat(const unsigned int sampleFormatFlag);
+    
+    void startHandler(const PlaybackMode mode);
 };
 
 #endif	/* PORTAUDIOWRAPPER_H */

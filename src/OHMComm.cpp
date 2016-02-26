@@ -6,16 +6,12 @@
  */
 
 #include "OHMComm.h"
-#include "network/UDPWrapper.h"
 #include "rtp/ProcessorRTP.h"
 #include "AudioProcessorFactory.h"
 #include "AudioHandlerFactory.h"
-#include "UserInput.h"
 #include "ConfigurationMode.h"
-#include "rtp/RTCPHandler.h"
 
-OHMComm::OHMComm(ConfigurationMode* mode)
-    : rtpBuffer(new RTPBuffer(256, 100, 0)), configurationMode(mode), audioHandler(nullptr), networkWrapper(nullptr), listener(nullptr)
+OHMComm::OHMComm(ConfigurationMode* mode) : configurationMode(mode), audioHandler(nullptr)
 {
     registerPlaybackListener(configurationMode);
 }
@@ -73,14 +69,13 @@ void OHMComm::startAudioThreads()
     {
         audioHandler = AudioHandlerFactory::getAudioHandler(configurationMode->getAudioHandlerConfiguration().first);
     }
-    networkWrapper.reset(new UDPWrapper(configurationMode->getNetworkConfiguration()));
     std::vector<std::string> procNames(0);
     bool profileProcessors = configurationMode->getAudioProcessorsConfiguration(procNames);
     PayloadType payloadType = PayloadType::L16_2;
     for(const std::string& procName : procNames)
     {
         AudioProcessor* proc = AudioProcessorFactory::getAudioProcessor(procName, profileProcessors);
-        audioHandler->addProcessor(proc);
+        audioHandler->getProcessors().addProcessor(proc);
         //only the last non-default payload-type is required
         payloadType = proc->getSupportedPlayloadType() == PayloadType::ALL ? payloadType : proc->getSupportedPlayloadType();
     }
@@ -101,8 +96,7 @@ void OHMComm::startAudioThreads()
     configurationMode->updateAudioConfiguration(audioHandler->getAudioConfiguration());
 
     //start RTCP-handler
-    rtcpHandler.reset(new RTCPHandler(std::unique_ptr<NetworkWrapper>(
-            new UDPWrapper(configurationMode->getRTCPNetworkConfiguration())), configurationMode, 
+    rtcpHandler.reset(new RTCPHandler(configurationMode->getRTCPNetworkConfiguration(), configurationMode, 
             std::bind(&OHMComm::startAudio,this), (audioHandler->getMode() & AudioHandler::INPUT) == AudioHandler::INPUT));
     registerPlaybackListener(rtcpHandler);
     rtcpHandler->startUp();
@@ -116,23 +110,21 @@ void OHMComm::startAudioThreads()
 
 void OHMComm::startAudio()
 {
-    listener.reset(new RTPListener(networkWrapper, rtpBuffer, audioHandler->getBufferSize()));
-    registerPlaybackListener(listener);
     notifyPlaybackStart();
     if((audioHandler->getMode() & AudioHandler::DUPLEX) == AudioHandler::DUPLEX)
     {
         std::cout << "OHMComm: starting duplex mode ..." << std::endl;
-        audioHandler->startDuplexMode();
+        audioHandler->start(AudioHandler::DUPLEX);
     }
     else if((audioHandler->getMode() & AudioHandler::OUTPUT) == AudioHandler::OUTPUT)
     {
         std::cout << "OHMComm: starting playback mode ..." << std::endl;
-        audioHandler->startPlaybackMode();
+        audioHandler->start(AudioHandler::OUTPUT);
     }
     else if((audioHandler->getMode() & AudioHandler::INPUT) == AudioHandler::INPUT)
     {
         std::cout << "OHMComm: starting recording mode ..." << std::endl;
-        audioHandler->startRecordingMode();
+        audioHandler->start(AudioHandler::INPUT);
     }
     else
     {
@@ -156,8 +148,6 @@ void OHMComm::stopAudioThreads()
 
     audioHandler->stop();
     notifyPlaybackStop();
-    //we must close this after shutting down threads
-    networkWrapper->closeNetwork();
     
     //give threads some time to shut down
     //this is mostly to prevent from parallel logging to console
@@ -184,15 +174,15 @@ bool OHMComm::isRunning() const
 
 void OHMComm::configureRTPProcessor(bool profileProcessors, const PayloadType payloadType)
 {
-    ProcessorRTP* rtpProcessor = new ProcessorRTP("RTP-Processor", networkWrapper, rtpBuffer, payloadType);
+    ProcessorRTP* rtpProcessor = new ProcessorRTP("RTP-Processor", configurationMode->getNetworkConfiguration(), payloadType);
     if(profileProcessors)
     {
         //enabled profiling of the RTP processor
-        audioHandler->addProcessor(new ProfilingAudioProcessor(rtpProcessor));
+        audioHandler->getProcessors().addProcessor(new ProfilingAudioProcessor(rtpProcessor));
     }
     else
     {
-        audioHandler->addProcessor(rtpProcessor);
+        audioHandler->getProcessors().addProcessor(rtpProcessor);
     }
 }
 

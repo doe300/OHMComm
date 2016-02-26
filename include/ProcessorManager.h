@@ -92,7 +92,13 @@ public:
     /*!
      * Calls AudioProcessor#configure() for all registered processors
      */
-    bool configureAudioProcessors(const AudioConfiguration& audioConfiguration, const std::shared_ptr<ConfigurationMode> configMode);
+    bool configureAudioProcessors(const AudioConfiguration& audioConfiguration, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+    
+    /*!
+     * Calls AudioProcessor#startup() for all registered processors
+     */
+    void startupAudioProcessors();
+    
     bool cleanUpAudioProcessors();
     
     /*!

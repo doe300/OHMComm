@@ -1,6 +1,8 @@
 #include "AudioProcessor.h"
 
-AudioProcessor::AudioProcessor(const std::string name) : name(name) {}
+AudioProcessor::AudioProcessor(const std::string name) : name(name)
+{
+}
 
 const std::string AudioProcessor::getName() const
 {
@@ -12,7 +14,7 @@ PayloadType AudioProcessor::getSupportedPlayloadType() const
     return PayloadType::ALL;
 }
 
-bool AudioProcessor::configure(const AudioConfiguration& config, std::shared_ptr<ConfigurationMode> configMode)
+bool AudioProcessor::configure(const AudioConfiguration& config, std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     //dummy implementation, does nothing
     return true;
@@ -20,6 +22,11 @@ bool AudioProcessor::configure(const AudioConfiguration& config, std::shared_ptr
 
 bool AudioProcessor::cleanUp()
 {
-	//dummy implementation, does nothing
-	return true;
+    //dummy implementation, does nothing
+    return true;
+}
+
+void AudioProcessor::startup()
+{
+    //dummy implementation, does nothing
 }

@@ -26,40 +26,14 @@ PortAudioWrapper::~PortAudioWrapper()
     Pa_Terminate();
 }
 
-void PortAudioWrapper::startRecordingMode()
+void PortAudioWrapper::startHandler(const PlaybackMode mode)
 {
     if(flagPrepared)
     {
+        PaStreamParameters* input = mode & PlaybackMode::INPUT == PlaybackMode::INPUT ? &inputParams : nullptr;
+        PaStreamParameters* output = mode & PlaybackMode::OUTPUT == PlaybackMode::OUTPUT ? &outputParams : nullptr;
         streamStartTime = 0;
-        Pa_OpenStream(&stream, &inputParams, nullptr, audioConfiguration.sampleRate, streamData->nBufferFrames, 0, &PortAudioWrapper::callbackHelper, this);
-        resume();
-    }
-    else
-    {
-        std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
-    }
-}
-
-void PortAudioWrapper::startPlaybackMode()
-{
-    if(flagPrepared)
-    {
-        streamStartTime = 0;
-        Pa_OpenStream(&stream, nullptr, &outputParams, audioConfiguration.sampleRate, streamData->nBufferFrames, 0, &PortAudioWrapper::callbackHelper, this);
-        resume();
-    }
-    else
-    {
-        std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
-    }
-}
-
-void PortAudioWrapper::startDuplexMode()
-{
-    if(flagPrepared)
-    {
-        streamStartTime = 0;
-        Pa_OpenStream(&stream, &inputParams, &outputParams, audioConfiguration.sampleRate, streamData->nBufferFrames, 0, &PortAudioWrapper::callbackHelper, this);
+        Pa_OpenStream(&stream, input, output, audioConfiguration.sampleRate, streamData->nBufferFrames, 0, &PortAudioWrapper::callbackHelper, this);
         resume();
     }
     else
@@ -146,7 +120,7 @@ bool PortAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMo
     }
     
     bool resultA = this->initStreamParameters();
-    bool resultB = processors.configureAudioProcessors(audioConfiguration, configMode);
+    bool resultB = processors.configureAudioProcessors(audioConfiguration, configMode, bufferSize);
 
     if (resultA && resultB) {
         this->flagPrepared = true;
@@ -156,11 +130,6 @@ bool PortAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMo
     }
 
     return false;
-}
-
-unsigned int PortAudioWrapper::getBufferSize()
-{
-    return bufferSize;
 }
 
 const std::vector<AudioDevice>& PortAudioWrapper::getAudioDevices()
@@ -259,6 +228,7 @@ int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsi
 
 bool PortAudioWrapper::initStreamParameters()
 {
+    //XXX to solve bug with Opus (too small buffer size), could we set latency to the timespan of a package??
     inputParams.channelCount = audioConfiguration.inputDeviceChannels;
     inputParams.device = audioConfiguration.inputDeviceID;
     inputParams.sampleFormat = mapSampleFormat(audioConfiguration.audioFormatFlag);

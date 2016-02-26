@@ -109,7 +109,7 @@ private:
             free(packageContent);
         }
     };
-
+    
     /*!
      * The ring-buffer containing the packages
      */

@@ -9,39 +9,15 @@ AudioHandler::~AudioHandler()
 {
 }
 
-void AudioHandler::printAudioProcessorOrder(std::ostream& OutputStream) const
+void AudioHandler::start(const PlaybackMode mode)
 {
-    processors.printAudioProcessorOrder(OutputStream);
+    processors.startupAudioProcessors();
+    startHandler(mode);
 }
 
-bool AudioHandler::addProcessor(AudioProcessor *audioProcessor)
+ProcessorManager& AudioHandler::getProcessors()
 {
-    return processors.addProcessor(audioProcessor);
-}
-
-bool AudioHandler::removeAudioProcessor(AudioProcessor *audioProcessor)
-{
-    return processors.removeAudioProcessor(audioProcessor);
-}
-
-bool AudioHandler::removeAudioProcessor(std::string nameOfAudioProcessor)
-{
-    return processors.removeAudioProcessor(nameOfAudioProcessor);
-}
-
-bool AudioHandler::clearAudioProcessors()
-{
-    return processors.clearAudioProcessors();
-}
-
-bool AudioHandler::hasAudioProcessor(AudioProcessor *audioProcessor) const
-{
-    return processors.hasAudioProcessor(audioProcessor);
-}
-
-bool AudioHandler::hasAudioProcessor(std::string nameOfAudioProcessor) const
-{
-    return processors.hasAudioProcessor(nameOfAudioProcessor);
+    return processors;
 }
 
 AudioConfiguration AudioHandler::getAudioConfiguration()

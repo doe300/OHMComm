@@ -1,10 +1,11 @@
 #include "rtp/ProcessorRTP.h"
 #include "Statistics.h"
 #include "Parameters.h"
+#include "network/UDPWrapper.h"
+#include "rtp/RTPBuffer.h"
 
-ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
-                           std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), 
-        network(networkwrapper), rtpBuffer(buffer), ourselves(ParticipantDatabase::self()), lastPackageWasSilent(false)
+ProcessorRTP::ProcessorRTP(const std::string name, const NetworkConfiguration& networkConfig, const PayloadType payloadType) : AudioProcessor(name), 
+        network(new UDPWrapper(networkConfig)), rtpBuffer(new RTPBuffer(256, 100, 0)), ourselves(ParticipantDatabase::self()), lastPackageWasSilent(false)
 {
     ourselves.payloadType = payloadType;
 }
@@ -24,7 +25,7 @@ const std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sample
     return std::vector<int>({BUFFER_SIZE_ANY});
 }
 
-bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
+bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     //check whether to enable DTX at all
     isDTXEnabled = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
@@ -35,7 +36,13 @@ bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::s
         const double timeOfPackage = audioConfig.framesPerPackage / (double)audioConfig.sampleRate;
         totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
     }
+    rtpListener.reset(new RTPListener(network, rtpBuffer, bufferSize));
     return true;
+}
+
+void ProcessorRTP::startup()
+{
+    rtpListener->startUp();
 }
 
 unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
@@ -113,12 +120,15 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
 
 bool ProcessorRTP::cleanUp()
 {
-    if(rtpPackage.get() == nullptr)
+    //if we never sent a RTP-package, there is no need to end the communication
+    if(rtpPackage)
     {
-        //if we never sent a RTP-package, there is no need to end the communication
-        return true;
+        std::cout << "Communication terminated." << std::endl;
     }
-    std::cout << "Communication terminated." << std::endl;
+    if(rtpListener)
+        rtpListener->shutdown();
+    //close network anyway
+    network->closeNetwork();
     return true;
 }
 

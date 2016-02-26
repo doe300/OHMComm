@@ -28,9 +28,6 @@ public:
     RtAudioWrapper(const RtAudioWrapper & copy) = delete;
 
     /* AudioIO methods */
-    void startRecordingMode();
-    void startPlaybackMode();
-    void startDuplexMode();
     void setConfiguration(const AudioConfiguration &audioConfiguration);
     /* suspends the stream */
     void suspend();
@@ -43,7 +40,6 @@ public:
     /* sets default audio config */
     void setDefaultAudioConfig();
     auto prepare(const std::shared_ptr<ConfigurationMode> configMode) -> bool;
-    auto getBufferSize() -> unsigned int;
     
     const std::vector<AudioDevice>& getAudioDevices();
 
@@ -74,6 +70,8 @@ private:
 
     /* returns the actual input framesize in bytes */
     auto getInputFrameSize() -> int;
+    
+    void startHandler(const PlaybackMode mode);
 };
 
 #endif

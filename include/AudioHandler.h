@@ -6,7 +6,7 @@
 #include "configuration.h"
 #include "ConfigurationMode.h"
 #include <vector>
-#include <memory> //for std::unique_ptr
+#include <memory> //for std::shared_ptr
 
 /*!
  * Base class for Audio framework.
@@ -33,28 +33,18 @@ public:
     AudioHandler();
 
     virtual ~AudioHandler();
-
-    /*!
-     * Starts processing audio input from the microphone
-     */
-    virtual void startRecordingMode() = 0;
-
-    /*!
-     * Starts processing audio output to the speakers
-     */
-    virtual void startPlaybackMode() = 0;
-
-    /*!
-     * Starts processing audio input and output (default  for audio communication)
-     */
-    virtual void startDuplexMode() = 0;
-
+    
     /*!
      * Configures the AudioHandler
      *
      * \param audioConfiguration The Object which contains the configuration
      */
     virtual void setConfiguration(const AudioConfiguration &audioConfiguration) = 0;
+    
+    /*!
+     * Starts processing audio according to the given mode.
+     */
+    void start(const PlaybackMode mode = DUPLEX);
 
     /*!
      * Suspends any processing
@@ -89,70 +79,9 @@ public:
     virtual bool prepare(const std::shared_ptr<ConfigurationMode> configMode) = 0;
 
     /*!
-     * Returns the actual buffer size, which can be different than in the audio configuration (
+     * \return the audio-processor manager
      */
-    virtual unsigned int getBufferSize() = 0;
-
-    /*!
-     * Prints all included AudioProcessor in the processing order
-     *
-     * \param outputStream The outputStream for printing (default is std::cout)
-     */
-    void printAudioProcessorOrder(std::ostream& outputStream = std::cout) const;
-
-    /*!
-     * Adds a AudioProcessor to process chain
-     *
-     * \param audioProcessor The AudioProcessor to add
-     *
-     * \return The result of the action
-     */
-    auto addProcessor(AudioProcessor *audioProcessor) -> bool;
-
-    /*!
-     * Removes a AudioProcessor to process chain
-     *
-     * \param audioProcessor The AudioProcessor to remove
-     *
-     * \return The result of the action
-     */
-    auto removeAudioProcessor(AudioProcessor *audioProcessor) -> bool;
-
-    /*!
-     * Removes a AudioProcessor to process chain
-     *
-     * \param nameOfAudioProcessor The name of the AudioProcessor to remove
-     *
-     * \return The result of the action
-     */
-    auto removeAudioProcessor(std::string nameOfAudioProcessor) -> bool;
-
-    /*!
-     * Clears the process chain (removes all AudioProcessor's)
-     *
-     * \param nameOfAudioProcessor The name of the AudioProcessor to remove
-     *
-     * \return The result of the action
-     */
-    auto clearAudioProcessors() -> bool;
-
-    /*!
-     * Gives a information wheater an AudioProcessor is already added or not
-     *
-     * \param audioProcessor AudioProcessor object to check
-     *
-     * \return The result of the action
-     */
-    bool hasAudioProcessor(AudioProcessor *audioProcessor) const;
-
-    /*!
-     * Gives a information wheater the an AudioProcessor is already added or not
-     *
-     * \param nameOfAudioProcessor The name of the AudioProcessor to check
-     *
-     * \return The result of the action
-     */
-    bool hasAudioProcessor(std::string nameOfAudioProcessor) const;
+    ProcessorManager& getProcessors();
 
     /*!
      * Returns the current AudioConfiguration
@@ -195,6 +124,8 @@ protected:
 
     ProcessorManager processors;
     AudioConfiguration audioConfiguration;
+    
+    virtual void startHandler(const PlaybackMode mode) = 0;
 };
 
 #endif
