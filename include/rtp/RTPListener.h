@@ -13,6 +13,7 @@
 #include "ParticipantDatabase.h"
 #include "RTPBufferHandler.h"
 #include "network/NetworkWrapper.h"
+#include "JitterBuffers.h"
 
 /*!
  * Listening-thread for incoming RTP-packages
@@ -27,12 +28,12 @@ public:
      *
      * \param wrapper The NetworkWrapper to use for receiving packages
      *
-     * \param buffer The RTPBuffer to write into
+     * \param buffers The buffers to write into
      *
      * \param receiveBufferSize The maximum size (in bytes) a RTP-package can fill, according to the configuration
      *
      */
-    RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize);
+    RTPListener(std::shared_ptr<NetworkWrapper> wrapper, JitterBuffers& buffers, unsigned int receiveBufferSize);
     RTPListener(const RTPListener& orig);
     ~RTPListener();
 
@@ -48,7 +49,7 @@ public:
     
 private:
     std::shared_ptr<NetworkWrapper> wrapper;
-    std::shared_ptr<RTPBufferHandler> buffer;
+    JitterBuffers& buffers;
     RTPPackageHandler rtpHandler;
     std::thread receiveThread;
     bool threadRunning = false;

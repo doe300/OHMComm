@@ -9,6 +9,21 @@ const std::string AudioProcessor::getName() const
     return name;
 }
 
+unsigned int AudioProcessor::getSupportedAudioFormats() const
+{
+    return AudioConfiguration::AUDIO_FORMAT_ALL;
+}
+
+unsigned int AudioProcessor::getSupportedSampleRates() const
+{
+    return AudioConfiguration::SAMPLE_RATE_ALL;
+}
+
+const std::vector<int> AudioProcessor::getSupportedBufferSizes(unsigned int sampleRate) const
+{
+    return {BUFFER_SIZE_ANY};
+}
+
 PayloadType AudioProcessor::getSupportedPlayloadType() const
 {
     return PayloadType::ALL;

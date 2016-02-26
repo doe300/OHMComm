@@ -27,11 +27,12 @@ class RTPBuffer : public RTPBufferHandler, private PlayoutPointAdaption, private
 {
 public:
     /*!
+     * \param ssrc The SSRC of the remote which packages are buffered here
      * \param maxCapacity The maximum number of packages to buffer
      * \param maxDelay The maximum delay in milliseconds before dropping packages
      * \param minBufferPackages The minimum of packages to buffer before returning valid audio-data
      */
-    RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages = 1);
+    RTPBuffer(uint32_t ssrc, uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages = 1);
     ~RTPBuffer();
 
     /*!
@@ -114,6 +115,10 @@ private:
      * The ring-buffer containing the packages
      */
     RTPBuffer::RTPBufferPackage *ringBuffer;
+    /*!
+     * The remote SSRC this buffer is associated with
+     */
+    const uint32_t ssrc;
     /*!
      * The maximum entries in the buffer, size of the array
      */

@@ -5,6 +5,8 @@
  * Created on November 5, 2015, 11:04 AM
  */
 
+#include <cmath>    //round
+
 #include "rtp/RTCPHandler.h"
 #include "config/InteractiveConfiguration.h"
 #include "config/PassiveConfiguration.h"

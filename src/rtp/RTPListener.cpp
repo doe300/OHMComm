@@ -8,17 +8,13 @@
 #include "rtp/RTPListener.h"
 #include "Statistics.h"
 
-RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, std::shared_ptr<RTPBufferHandler> buffer, unsigned int receiveBufferSize) :
-    rtpHandler(receiveBufferSize)
+RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, JitterBuffers& buffers, unsigned int receiveBufferSize) :
+    wrapper(wrapper), buffers(buffers), rtpHandler(receiveBufferSize)
 {
-    this->wrapper = wrapper;
-    this->buffer = buffer;
 }
 
-RTPListener::RTPListener(const RTPListener& orig) : rtpHandler(orig.rtpHandler)
+RTPListener::RTPListener(const RTPListener& orig) : wrapper(orig.wrapper), buffers(orig.buffers), rtpHandler(orig.rtpHandler)
 {
-    this->wrapper = orig.wrapper;
-    this->buffer = orig.buffer;
 }
 
 RTPListener::~RTPListener()
@@ -55,7 +51,7 @@ void RTPListener::runThread()
         else if(threadRunning && RTPPackageHandler::isRTPPackage(rtpHandler.getWorkBuffer(), receivedPackage.getReceivedSize()))
         {
             //2. write package to buffer
-            auto result = buffer->addPackage(rtpHandler, receivedPackage.getReceivedSize() - RTPHeader::MIN_HEADER_SIZE);
+            auto result = buffers.getBuffer(rtpHandler.getRTPPackageHeader()->getSSRC())->addPackage(rtpHandler, receivedPackage.getReceivedSize() - RTPHeader::MIN_HEADER_SIZE);
             if (result == RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW)
             {
                 //TODO some handling or simply discard?

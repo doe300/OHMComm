@@ -10,8 +10,8 @@
 #include "rtp/ParticipantDatabase.h"
 
 
-RTPBuffer::RTPBuffer(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : PlayoutPointAdaption(200, minBufferPackages),
-    capacity(maxCapacity), maxDelay(std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(maxDelay)))
+RTPBuffer::RTPBuffer(uint32_t ssrc, uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : PlayoutPointAdaption(200, minBufferPackages),
+    ssrc(ssrc), capacity(maxCapacity), maxDelay(std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(maxDelay)))
 {
     nextReadIndex = 0;
     ringBuffer = new RTPBufferPackage[maxCapacity];
@@ -62,6 +62,7 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
     if(receivedHeader->getSequenceNumber() - minSequenceNumber >= capacity)
     {
         //should never occur: package is far too new -> we have now choice but to discard it without getting into an undetermined state
+        //TODO can occur if playout gets somehow stuck -> overwrite old packages (see alternative buffer)
         unlockMutex();
         return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
     }
@@ -150,8 +151,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     nextReadIndex = incrementIndex(nextReadIndex);
     size--;
     //we lost all packages between the last read and this one, so we subtract the sequence numbers
-    //XXX this will not work, if same RTPackageHandler is used for reading several buffers
-    ParticipantDatabase::remote(bufferPack->header.getSSRC()).packagesLost += (bufferPack->header.getSequenceNumber() - minSequenceNumber)%UINT16_MAX;
+    ParticipantDatabase::remote(ssrc).packagesLost += (bufferPack->header.getSequenceNumber() - minSequenceNumber)%UINT16_MAX;
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_LOST, (bufferPack->header.getSequenceNumber() - minSequenceNumber)%UINT16_MAX);
     //only accept newer packages (at least one sequence number more than last read package)
     minSequenceNumber = (bufferPack->header.getSequenceNumber() + 1) % UINT16_MAX;

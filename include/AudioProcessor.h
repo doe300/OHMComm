@@ -73,7 +73,7 @@ public:
      *
      * \return The supported audio-formats
      */
-    virtual unsigned int getSupportedAudioFormats() const = 0;
+    virtual unsigned int getSupportedAudioFormats() const;
 
     /*!
      * This method returns the OR'ed flags of the supported sample-rates
@@ -82,7 +82,7 @@ public:
      *
      * \return The supported sample-rates
      */
-    virtual unsigned int getSupportedSampleRates() const = 0;
+    virtual unsigned int getSupportedSampleRates() const;
 
     /*!
      * This method returns all supported buffer-sizes for the given sample-rate.
@@ -98,7 +98,7 @@ public:
      *
      * \return A list of buffer-sizes sorted in descending priority
      */
-    virtual const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const = 0;
+    virtual const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
     
     /*!
      * The payload-type returned by this method has no decision value. 

@@ -7,6 +7,7 @@
 #include "network/NetworkWrapper.h"
 #include "RTPBufferHandler.h"
 #include "RTPListener.h"
+#include "JitterBuffers.h"
 
 /*!
  * AudioProcessor wrapping/unwrapping audio-frames in/out of a RTP-package
@@ -29,9 +30,6 @@ public:
      */
     ProcessorRTP(const std::string name, const NetworkConfiguration& networkConfig, const PayloadType payloadType);
     
-    unsigned int getSupportedAudioFormats() const;
-    unsigned int getSupportedSampleRates() const;
-    const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
     bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
     
     void startup();
@@ -45,7 +43,7 @@ private:
     //!Treat as silence after 500ms of no input
     static constexpr unsigned short SILENCE_DELAY{500};
     const std::shared_ptr<NetworkWrapper> network;
-    const std::shared_ptr<RTPBufferHandler> rtpBuffer;
+    JitterBuffers buffers;
     Participant& ourselves;
     std::unique_ptr<RTPPackageHandler> rtpPackage;
     std::unique_ptr<RTPListener> rtpListener;

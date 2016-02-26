@@ -5,24 +5,10 @@
 #include "rtp/RTPBuffer.h"
 
 ProcessorRTP::ProcessorRTP(const std::string name, const NetworkConfiguration& networkConfig, const PayloadType payloadType) : AudioProcessor(name), 
-        network(new UDPWrapper(networkConfig)), rtpBuffer(new RTPBuffer(256, 100, 0)), ourselves(ParticipantDatabase::self()), lastPackageWasSilent(false)
+        network(new UDPWrapper(networkConfig)), buffers(128, 200, 1), ourselves(ParticipantDatabase::self()), lastPackageWasSilent(false)
+        //XXX make jitter-settings configurable (or at least use better values)
 {
     ourselves.payloadType = payloadType;
-}
-
-unsigned int ProcessorRTP::getSupportedAudioFormats() const
-{
-    return AudioConfiguration::AUDIO_FORMAT_ALL;
-}
-
-unsigned int ProcessorRTP::getSupportedSampleRates() const
-{
-    return AudioConfiguration::SAMPLE_RATE_ALL;
-}
-
-const std::vector<int> ProcessorRTP::getSupportedBufferSizes(unsigned int sampleRate) const
-{
-    return std::vector<int>({BUFFER_SIZE_ANY});
 }
 
 bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
@@ -36,7 +22,7 @@ bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::s
         const double timeOfPackage = audioConfig.framesPerPackage / (double)audioConfig.sampleRate;
         totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
     }
-    rtpListener.reset(new RTPListener(network, rtpBuffer, bufferSize));
+    rtpListener.reset(new RTPListener(network, buffers, bufferSize));
     return true;
 }
 
@@ -88,13 +74,14 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
 
 unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
-    // unpack data from a rtp-package
+    // unpack data from a RTP-package
     if (rtpPackage.get() == nullptr)
     {
         initPackageHandler(userData->maxBufferSize);
     }
     //read package from buffer
-    auto result = rtpBuffer->readPackage(*rtpPackage);
+    //XXX workaround to support one2one conversation with new code
+    auto result = buffers.getBuffer((*ParticipantDatabase::getAllRemoteParticipants().begin()).first)->readPackage(*rtpPackage);
 
     if (result == RTPBufferStatus::RTP_BUFFER_IS_PUFFERING)
     {
@@ -129,6 +116,7 @@ bool ProcessorRTP::cleanUp()
         rtpListener->shutdown();
     //close network anyway
     network->closeNetwork();
+    buffers.cleanup();
     return true;
 }
 
