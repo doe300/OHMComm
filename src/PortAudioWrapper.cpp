@@ -30,8 +30,8 @@ void PortAudioWrapper::startHandler(const PlaybackMode mode)
 {
     if(flagPrepared)
     {
-        PaStreamParameters* input = mode & PlaybackMode::INPUT == PlaybackMode::INPUT ? &inputParams : nullptr;
-        PaStreamParameters* output = mode & PlaybackMode::OUTPUT == PlaybackMode::OUTPUT ? &outputParams : nullptr;
+        PaStreamParameters* input = (mode & PlaybackMode::INPUT) == PlaybackMode::INPUT ? &inputParams : nullptr;
+        PaStreamParameters* output = (mode & PlaybackMode::OUTPUT) == PlaybackMode::OUTPUT ? &outputParams : nullptr;
         streamStartTime = 0;
         Pa_OpenStream(&stream, input, output, audioConfiguration.sampleRate, streamData->nBufferFrames, 0, &PortAudioWrapper::callbackHelper, this);
         resume();
@@ -120,11 +120,11 @@ bool PortAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMo
     }
     
     bool resultA = this->initStreamParameters();
+    bufferSize = audioConfiguration.framesPerPackage * Pa_GetSampleSize(inputParams.sampleFormat) * inputParams.channelCount;
     bool resultB = processors.configureAudioProcessors(audioConfiguration, configMode, bufferSize);
 
     if (resultA && resultB) {
         this->flagPrepared = true;
-        bufferSize = audioConfiguration.framesPerPackage * Pa_GetSampleSize(inputParams.sampleFormat) * inputParams.channelCount;
         inputBuffer.reserve(bufferSize);
         return true;
     }

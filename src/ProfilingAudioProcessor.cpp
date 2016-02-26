@@ -83,3 +83,20 @@ unsigned int ProfilingAudioProcessor::processOutputData(void* outputBuffer, cons
     addTimeOutputProcessing(duration);
     return retVal;
 }
+
+bool ProfilingAudioProcessor::cleanUp()
+{
+    return profiledProcessor->cleanUp();
+}
+
+PayloadType ProfilingAudioProcessor::getSupportedPlayloadType() const
+{
+    return profiledProcessor->getSupportedPlayloadType();
+}
+
+void ProfilingAudioProcessor::startup()
+{
+    profiledProcessor->startup();
+}
+
+

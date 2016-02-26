@@ -67,8 +67,8 @@ void RtAudioWrapper::startHandler(const PlaybackMode mode)
 {
     if (this->flagPrepared)
     {
-        RtAudio::StreamParameters* inputParams = mode & PlaybackMode::INPUT == PlaybackMode::INPUT ? &input : nullptr;
-        RtAudio::StreamParameters* outputParams = mode & PlaybackMode::OUTPUT == PlaybackMode::OUTPUT ? &output : nullptr;
+        RtAudio::StreamParameters* inputParams = (mode & PlaybackMode::INPUT) == PlaybackMode::INPUT ? &input : nullptr;
+        RtAudio::StreamParameters* outputParams = (mode & PlaybackMode::OUTPUT) == PlaybackMode::OUTPUT ? &output : nullptr;
         this->rtaudio.openStream(outputParams, inputParams, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
         this->rtaudio.startStream();
     }

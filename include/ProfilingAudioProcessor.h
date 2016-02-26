@@ -33,7 +33,11 @@ public:
     /*!
      * Wraps the configure-method of the profiled processor
      */
-    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode);
+    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+
+    bool cleanUp();
+    PayloadType getSupportedPlayloadType() const;
+    void startup();
     unsigned int getSupportedAudioFormats() const;
     const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
     unsigned int getSupportedSampleRates() const;
