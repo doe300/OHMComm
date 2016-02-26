@@ -8,10 +8,8 @@
 #ifndef RTCPHANDLER_H
 #define	RTCPHANDLER_H
 
-#include <cmath>
 #include <memory>
 #include <thread>
-#include <chrono> // clock, tick
 #include "network/NetworkWrapper.h"
 #include "ParticipantDatabase.h"
 #include "RTCPData.h"

@@ -79,6 +79,8 @@ struct AudioConfiguration
 
         return true;
     }
+    
+    static const unsigned int INVALID_DEVICE = (unsigned int)-1;
 
     //The AUDIO_FORMAT_XXX flags are the same as the RtAudioFormats
     static const unsigned int AUDIO_FORMAT_SINT8 = 0x1;    // 8-bit signed integer.

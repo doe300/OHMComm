@@ -8,6 +8,7 @@
 #ifndef PARTICIPANT_DATABASE_H
 #define	PARTICIPANT_DATABASE_H
 
+#include <cmath>
 #include <map>
 #include <chrono>
 #include <memory>
@@ -56,7 +57,7 @@ public:
     std::shared_ptr<RTCPData> rtcpData;
     
     Participant(const uint32_t ssrc, const bool localParticipant) : lastDelay(0), isLocalParticipant(localParticipant), ssrc(ssrc), payloadType(-1),
-        initialRTPTimestamp(0), extendedHighestSequenceNumber(0), lastPackageReceived(std::chrono::steady_clock::time_point::min()), 
+        initialRTPTimestamp(0), extendedHighestSequenceNumber(0), interarrivalJitter(0), lastPackageReceived(std::chrono::steady_clock::time_point::min()), 
         packagesLost(0), totalPackages(0), totalBytes(0), userAgent(nullptr), rtcpData(nullptr)
     {
         

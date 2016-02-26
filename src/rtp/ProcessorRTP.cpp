@@ -4,7 +4,7 @@
 
 ProcessorRTP::ProcessorRTP(const std::string name, std::shared_ptr<NetworkWrapper> networkwrapper, 
                            std::shared_ptr<RTPBufferHandler> buffer, const PayloadType payloadType) : AudioProcessor(name), 
-        network(networkwrapper), rtpBuffer(rtpBuffer), ourselves(ParticipantDatabase::self()), lastPackageWasSilent(false)
+        network(networkwrapper), rtpBuffer(buffer), ourselves(ParticipantDatabase::self()), lastPackageWasSilent(false)
 {
     ourselves.payloadType = payloadType;
 }

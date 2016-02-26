@@ -64,9 +64,9 @@ AudioHandler::PlaybackMode AudioHandler::getMode()
     if(!flagAudioConfigSet || !flagPrepared)
         return UNDEFINED;
     PlaybackMode mode = UNDEFINED;
-    if(getAudioDevices()[audioConfiguration.inputDeviceID].isInputDevice())
+    if(audioConfiguration.inputDeviceID != AudioConfiguration::INVALID_DEVICE && getAudioDevices()[audioConfiguration.inputDeviceID].isInputDevice())
         mode = (PlaybackMode)(mode | INPUT);
-    if(getAudioDevices()[audioConfiguration.outputDeviceID].isOutputDevice())
+    if(audioConfiguration.outputDeviceID != AudioConfiguration::INVALID_DEVICE && getAudioDevices()[audioConfiguration.outputDeviceID].isOutputDevice())
         mode = (PlaybackMode)(mode | OUTPUT);
     return mode;
 }
