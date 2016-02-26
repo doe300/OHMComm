@@ -83,11 +83,9 @@ void RTCPHandler::runThread()
         if((std::chrono::steady_clock::now() - sendSRInterval) >= ourselves.rtcpData->lastSRTimestamp)
         {
             const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-            const auto allParticipants = ParticipantDatabase::getAllParticipants();
+            const auto allParticipants = ParticipantDatabase::getAllRemoteParticipants();
             for(auto it = allParticipants.begin(); it != allParticipants.end(); ++it)
             {
-                if((*it).second.isLocalParticipant)
-                    continue;
                 if(now - (*it).second.lastPackageReceived > remoteDropoutTimeout)
                 {
                     //remote has not send any package for quite some time, end conversation
@@ -290,14 +288,11 @@ const std::vector<ReceptionReport> RTCPHandler::createReceptionReports()
 {
     const std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
     //create Reception reports for all remote participants
-    const auto allParticipants = ParticipantDatabase::getAllParticipants();
+    const auto allParticipants = ParticipantDatabase::getAllRemoteParticipants();
     std::vector<ReceptionReport> receptionReports;
     receptionReports.reserve(allParticipants.size());
     for(auto it = allParticipants.begin(); it != allParticipants.end(); ++it)
     {
-        if((*it).second.isLocalParticipant)
-            //do not report for ourselves
-            continue;
         const std::chrono::milliseconds lastSRTimestamp = (*it).second.rtcpData ? 
             std::chrono::duration_cast<std::chrono::milliseconds>((*it).second.rtcpData->lastSRTimestamp.time_since_epoch()) : std::chrono::milliseconds(0);
         ReceptionReport receptionReport;

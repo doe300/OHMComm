@@ -14,7 +14,6 @@
 #include "configuration.h"
 #include "KeyValuePairs.h"
 #include "rtp/RTPHeader.h"
-#include "sip/SIPUserAgent.h"
 #include "sip/SupportedFormats.h"
 
 struct SessionKey : public KeyValuePair<char>
@@ -145,10 +144,15 @@ public:
     /*!
      * Creates and returns the session description for the given configuration
      * 
-     * NOTE: As of the current description, following limitations apply
-     * - Only L16_2 with 44.1kHz and Opus with a sample-rate of 48000 are supported
+     * \param localUserName The user-name of the local user
+     * 
+     * \param config The network-configuration for the RTP stream
+     * 
+     * \param media An optional list of media-descriptions to use, defaults to the list of supported formats
+     * 
+     * \return the generated SDP session-description
      */
-    static std::string createSessionDescription(const NetworkConfiguration& config, const std::vector<MediaDescription>& media = {});
+    static std::string createSessionDescription(const std::string& localUserName, const NetworkConfiguration& config, const std::vector<MediaDescription>& media = {});
     
     /*!
      * Ready the session description from the given message and returns it

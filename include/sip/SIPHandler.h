@@ -17,6 +17,7 @@
 #include "network/NetworkWrapper.h"
 #include "SDPMessageHandler.h"
 #include "SIPPackageHandler.h"
+#include "SIPUserAgent.h"
 
 class SIPHandler
 {
@@ -74,6 +75,7 @@ private:
          */
         SHUTDOWN,
     };
+    UserAgentDatabase userAgents;
     std::unique_ptr<NetworkWrapper> network;
     NetworkConfiguration sipConfig;
     const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction;
