@@ -135,7 +135,11 @@ int TCPWrapper::sendData(const void *buffer, const unsigned int bufferSize)
 
 NetworkWrapper::Package TCPWrapper::receiveData(void *buffer, unsigned int bufferSize)
 {
+#ifdef _WIN32
+    int addressLength = getSocketAddressLength();
+#else
     unsigned int addressLength = getSocketAddressLength();
+#endif
     NetworkWrapper::Package package{};
     package.status = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(package.ipv6Address), &addressLength);
     if (package.status == -1)

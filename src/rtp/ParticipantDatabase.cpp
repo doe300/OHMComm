@@ -12,5 +12,5 @@ void ParticipantDatabase::initLocalParticipant()
     unsigned int seed1 = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 tmp(seed1);
     localSSRC = tmp();
-    participants.insert(std::make_pair(localSSRC, Participant{localSSRC, true}));
+    participants.insert(std::make_pair(localSSRC, Participant{(uint32_t)localSSRC, true}));
 }
