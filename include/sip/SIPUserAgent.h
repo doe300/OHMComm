@@ -16,15 +16,20 @@
  */
 struct SIPUserAgent
 {
-    //XXX make const
     std::string tag;
     std::string userName;
     std::string hostName;
     std::string ipAddress;
     int64_t associatedSSRC;
     unsigned short port;
+    //the Call-ID associated with the conversation with this particular UA
+    std::string callID;
+    uint32_t sequenceNumber;
+    //the value of the last branch-identifier, required for responses
+    std::string lastBranch;
     
-    SIPUserAgent(const std::string& tag) : tag(tag), userName(), hostName(), ipAddress(), associatedSSRC(-1), port(0)
+    SIPUserAgent(const std::string& tag) : tag(tag), userName(), hostName(), ipAddress(), associatedSSRC(-1), port(0), 
+        callID(), sequenceNumber(0), lastBranch()
     {
         
     }
@@ -54,7 +59,7 @@ public:
     
     SIPUserAgent& getRemoteUA(const std::string& tag = "")
     {
-        if(remoteAgents.find(tag) == remoteAgents.end())
+        if(!isInUserAgentDB(tag))
             remoteAgents.insert(std::pair<std::string, SIPUserAgent>(tag, SIPUserAgent(tag)));
         return remoteAgents.at(tag);
     }

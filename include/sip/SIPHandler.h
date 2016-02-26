@@ -80,10 +80,7 @@ private:
     NetworkConfiguration sipConfig;
     const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction;
     std::function<void()> stopCallback = []()-> void{};
-    std::string callID;
-    uint32_t sequenceNumber;
     std::vector<char> buffer;
-    std::string lastBranch;
     
     std::thread sipThread;
     bool threadRunning = false;
@@ -99,25 +96,25 @@ private:
     /*!
      * Sets must-have header-fields
      */
-    void initializeHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader);
+    void initializeHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA);
     
     void handleSIPRequest(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo);
     
     void handleSIPResponse(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo);
     
-    void sendInviteRequest();
+    void sendInviteRequest(SIPUserAgent& remoteUA);
     
-    void sendCancelRequest();
+    void sendCancelRequest(SIPUserAgent& remoteUA);
     
-    void sendByeRequest();
+    void sendByeRequest(SIPUserAgent& remoteUA);
     
-    void sendAckRequest();
+    void sendAckRequest(SIPUserAgent& remoteUA);
     
-    void sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader);
+    void sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA);
     
     int selectBestMedia(const std::vector<MediaDescription>& availableMedias) const;
     
-    void updateNetworkConfig(const SIPHeader* header = nullptr, const NetworkWrapper::Package* packageInfo = nullptr);
+    void updateNetworkConfig(const SIPHeader* header, const NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA);
     
     void startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig);
     

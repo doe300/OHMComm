@@ -14,7 +14,7 @@ const std::string SIPHandler::SIP_ALLOW_METHODS = Utility::joinStrings({SIP_REQU
 const std::string SIPHandler::SIP_ACCEPT_TYPES = Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 
 SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction) : 
-        userAgents(std::to_string(rand())), network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), callID(SIPHandler::generateCallID(Utility::getDomainName())), sequenceNumber(0), buffer(SIP_BUFFER_SIZE), lastBranch(), state(SessionState::UNKNOWN)
+        userAgents(std::to_string(rand())), network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
 {
     userAgents.thisUA.userName = Utility::getUserName();
     userAgents.thisUA.hostName = Utility::getDomainName();
@@ -22,10 +22,12 @@ SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string&
     userAgents.thisUA.ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
     userAgents.thisUA.tag = std::to_string(rand());
     userAgents.thisUA.port = sipConfig.localPort;
-    userAgents.getRemoteUA().userName = remoteUser;
-    userAgents.getRemoteUA().ipAddress = sipConfig.remoteIPAddress;
-    userAgents.getRemoteUA().port = sipConfig.remotePort;
-    updateNetworkConfig();
+    userAgents.thisUA.callID = SIPHandler::generateCallID(Utility::getDomainName());
+    SIPUserAgent& initialRemoteUA = userAgents.getRemoteUA();
+    initialRemoteUA.userName = remoteUser;
+    initialRemoteUA.ipAddress = sipConfig.remoteIPAddress;
+    initialRemoteUA.port = sipConfig.remotePort;
+    updateNetworkConfig(nullptr, nullptr, initialRemoteUA);
 }
 
 SIPHandler::~SIPHandler()
@@ -50,13 +52,13 @@ void SIPHandler::shutdown()
     if(state == SessionState::INVITING)
     {
         //if we send an unanswered INVITE, CANCEL it
-        sendCancelRequest();
+        sendCancelRequest(userAgents.getRemoteUA());
     }
     else if(state == SessionState::ESTABLISHED)
     {
         // Send a SIP BYE-packet, to tell the other side that communication has been stopped
         //FIXME segmentation fault on program exit in SIPUserAgent::getSIPURI (but globals are alive until the end!?!)
-        sendByeRequest();
+        sendByeRequest(userAgents.getRemoteUA());
     }
     stopCallback();
     shutdownInternal();
@@ -78,7 +80,7 @@ void SIPHandler::runThread()
 
     //how to determine if initiating or receiving side??
     //doesn't really matter, if we are the first to start, the other side won't receive our INVITE, otherwise we INVITE
-    sendInviteRequest();
+    sendInviteRequest(userAgents.getRemoteUA());
 
     while (threadRunning)
     {
@@ -114,12 +116,12 @@ std::string SIPHandler::generateCallID(const std::string& host)
     return (std::to_string(std::rand()) + "@") +host;
 }
 
-void SIPHandler::sendInviteRequest()
+void SIPHandler::sendInviteRequest(SIPUserAgent& remoteUA)
 {
     SIPRequestHeader header;
     header.requestCommand = SIP_REQUEST_INVITE;
-    header.requestURI = userAgents.getRemoteUA().getSIPURI();
-    initializeHeaderFields(SIP_REQUEST_INVITE, header, nullptr);
+    header.requestURI = remoteUA.getSIPURI();
+    initializeHeaderFields(SIP_REQUEST_INVITE, header, nullptr, remoteUA);
     //header-fields
     header[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
     header[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
@@ -131,56 +133,56 @@ void SIPHandler::sendInviteRequest()
     const std::string messageBody = SDPMessageHandler::createSessionDescription(userAgents.thisUA.userName, rtpConfig);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, messageBody);
-    std::cout << "SIP: Sending INVITE to " << userAgents.getRemoteUA().getSIPURI() << std::endl;
+    std::cout << "SIP: Sending INVITE to " << remoteUA.getSIPURI() << std::endl;
     network->sendData(message.data(), message.size());
     
     state = SessionState::INVITING;
 }
 
-void SIPHandler::sendCancelRequest()
+void SIPHandler::sendCancelRequest(SIPUserAgent& remoteUA)
 {
-    SIPRequestHeader header(SIP_REQUEST_CANCEL, userAgents.getRemoteUA().getSIPURI());
+    SIPRequestHeader header(SIP_REQUEST_CANCEL, remoteUA.getSIPURI());
     //branch must be the same as on INVITE
-    const std::string retainLastBranch(lastBranch);
-    initializeHeaderFields(SIP_REQUEST_CANCEL, header, nullptr);
+    const std::string retainLastBranch(remoteUA.lastBranch);
+    initializeHeaderFields(SIP_REQUEST_CANCEL, header, nullptr, remoteUA);
     //need to manually overwrite CSeq to use the value from INVITE (previous request)
-    --sequenceNumber;
-    header[SIP_HEADER_CSEQ] = (std::to_string(sequenceNumber)+" ") + SIP_REQUEST_CANCEL;
+    --remoteUA.sequenceNumber;
+    header[SIP_HEADER_CSEQ] = (std::to_string(remoteUA.sequenceNumber)+" ") + SIP_REQUEST_CANCEL;
     //need to manually set the branch-tag to the value from the INVITE
     header[SIP_HEADER_VIA].replace(header[SIP_HEADER_VIA].find_last_of('=') + 1, header.getBranchTag().size(), retainLastBranch);
     
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
-    std::cout << "SIP: Sending CANCEL to " << userAgents.getRemoteUA().getSIPURI() << std::endl;
+    std::cout << "SIP: Sending CANCEL to " << remoteUA.getSIPURI() << std::endl;
     network->sendData(message.data(), message.size());
     
     state = SessionState::SHUTDOWN;
 }
 
 
-void SIPHandler::sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader)
+void SIPHandler::sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA)
 {
     SIPResponseHeader header(responseCode, reasonPhrase);
-    initializeHeaderFields("", header, requestHeader);
+    initializeHeaderFields("", header, requestHeader, remoteUA);
     const std::string message = SIPPackageHandler::createResponsePackage(header, "");
     network->sendData(message.data(), message.size());
 }
 
-void SIPHandler::sendByeRequest()
+void SIPHandler::sendByeRequest(SIPUserAgent& remoteUA)
 {
-    SIPRequestHeader header(SIP_REQUEST_BYE, userAgents.getRemoteUA().getSIPURI());
-    initializeHeaderFields(SIP_REQUEST_BYE, header, nullptr);
+    SIPRequestHeader header(SIP_REQUEST_BYE, remoteUA.getSIPURI());
+    initializeHeaderFields(SIP_REQUEST_BYE, header, nullptr, remoteUA);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
-    std::cout << "SIP: Sending BYE to " << userAgents.getRemoteUA().getSIPURI() << std::endl;
+    std::cout << "SIP: Sending BYE to " << remoteUA.getSIPURI() << std::endl;
     network->sendData(message.data(), message.size());
     
     state = SessionState::SHUTDOWN;
 }
 
-void SIPHandler::sendAckRequest()
+void SIPHandler::sendAckRequest(SIPUserAgent& remoteUA)
 {
-    SIPRequestHeader header(SIP_REQUEST_ACK, userAgents.getRemoteUA().getSIPURI());
-    initializeHeaderFields(SIP_REQUEST_ACK, header, nullptr);
+    SIPRequestHeader header(SIP_REQUEST_ACK, remoteUA.getSIPURI());
+    initializeHeaderFields(SIP_REQUEST_ACK, header, nullptr, remoteUA);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
     network->sendData(message.data(), message.size());
@@ -190,6 +192,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
 {
     SIPRequestHeader requestHeader;
     std::string requestBody;
+    SIPUserAgent& remoteUA = userAgents.getRemoteUA(/*XXXrequestHeader.getRemoteTag()*/);
     try
     {
         requestBody = SIPPackageHandler::readRequestPackage(buffer, packageLength, requestHeader);
@@ -199,7 +202,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         if(!requestHeader.hasKey(SIP_HEADER_MAX_FORWARDS) || atoi(requestHeader[SIP_HEADER_MAX_FORWARDS].data()) <= 0)
         {
             //too many hops
-            sendResponse(SIP_RESPONSE_TOO_MANY_HOPS_CODE, SIP_RESPONSE_TOO_MANY_HOPS, &requestHeader);
+            sendResponse(SIP_RESPONSE_TOO_MANY_HOPS_CODE, SIP_RESPONSE_TOO_MANY_HOPS, &requestHeader, remoteUA);
             return;
         }
     }
@@ -208,7 +211,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         //fired on invalid IP-address or any error while parsing request
         //TODO error-response is sent to wrong (old) destination if the request came from another address
         std::cout << "SIP: Received bad request: " << error.what() << std::endl;
-        sendResponse(SIP_RESPONSE_BAD_REQUEST_CODE, SIP_RESPONSE_BAD_REQUEST, &requestHeader);
+        sendResponse(SIP_RESPONSE_BAD_REQUEST_CODE, SIP_RESPONSE_BAD_REQUEST, &requestHeader, remoteUA);
         return;
     }
     try
@@ -217,18 +220,18 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         {
             if(state != SessionState::ESTABLISHED)
             {
-                updateNetworkConfig(&requestHeader, &packageInfo);
+                updateNetworkConfig(&requestHeader, &packageInfo, remoteUA);
             }
             //if we get invited, the Call-ID is set by the remote UAS
-            callID = requestHeader[SIP_HEADER_CALL_ID];
+            remoteUA.callID = requestHeader[SIP_HEADER_CALL_ID];
             //0. send ringing
-            sendResponse(SIP_RESPONSE_RINGING_CODE, SIP_RESPONSE_RINGING, &requestHeader);
+            sendResponse(SIP_RESPONSE_RINGING_CODE, SIP_RESPONSE_RINGING, &requestHeader, remoteUA);
             //1. send dialog established
-            sendResponse(SIP_RESPONSE_DIALOG_ESTABLISHED_CODE, SIP_RESPONSE_DIALOG_ESTABLISHED, &requestHeader);
+            sendResponse(SIP_RESPONSE_DIALOG_ESTABLISHED_CODE, SIP_RESPONSE_DIALOG_ESTABLISHED, &requestHeader, remoteUA);
             if (state == SessionState::ESTABLISHED)
             {
                 //2.1 send busy here if communication is already running
-                sendResponse(SIP_RESPONSE_BUSY_CODE, SIP_RESPONSE_BUSY, &requestHeader);
+                sendResponse(SIP_RESPONSE_BUSY_CODE, SIP_RESPONSE_BUSY, &requestHeader, remoteUA);
                 std::cout << "SIP: Received INVITE, but communication already active, answering: " << SIP_RESPONSE_BUSY << std::endl;
             }
             else if (requestHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(requestHeader))
@@ -252,14 +255,14 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
                 if(bestMediaIndex < 0)
                 {
                     //no useful media found - send message (something about not-supported or similar)
-                    sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader);
+                    sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader, remoteUA);
                     state = SessionState::UNKNOWN;
                     shutdown();
                     return;
                 }
                 //2.2 send ok to start communication (with selected media-format)
                 SIPResponseHeader responseHeader(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK);
-                initializeHeaderFields(SIP_REQUEST_INVITE, responseHeader, &requestHeader);
+                initializeHeaderFields(SIP_REQUEST_INVITE, responseHeader, &requestHeader, remoteUA);
                 responseHeader[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
                 NetworkConfiguration rtpConfig;
                 rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
@@ -281,14 +284,14 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
                 {
                     std::cout << requestHeader.getContentLength() << " " << requestHeader[SIP_HEADER_CONTENT_TYPE] << std::endl;
                 }
-                sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader);
+                sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader, remoteUA);
             }
         }
         else if (SIP_REQUEST_BYE.compare(requestHeader.requestCommand) == 0)
         {
             std::cout << "SIP: BYE received, shutting down ..." << std::endl;
             //send ok to verify reception
-            sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader);
+            sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
             //end communication, if established
             shutdownInternal();
             stopCallback();
@@ -306,7 +309,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             {
                 std::cout << "SIP: CANCEL received, canceling session setup ..." << std::endl;
                 //send ok to verify reception
-                sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader);
+                sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
                 shutdownInternal();
                 stopCallback();
             }
@@ -315,13 +318,13 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         {
             std::cout << "SIP: Received not implemented request-method: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
             //by default, send method not allowed
-            sendResponse(SIP_RESPONSE_NOT_IMPLEMENTED_CODE, SIP_RESPONSE_NOT_IMPLEMENTED, &requestHeader);
+            sendResponse(SIP_RESPONSE_NOT_IMPLEMENTED_CODE, SIP_RESPONSE_NOT_IMPLEMENTED, &requestHeader, remoteUA);
             state = SessionState::UNKNOWN;
         }
     }
     catch(const std::exception& error)
     {
-        sendResponse(SIP_RESPONSE_SERVER_ERROR_CODE, SIP_RESPONSE_SERVER_ERROR, &requestHeader);
+        sendResponse(SIP_RESPONSE_SERVER_ERROR_CODE, SIP_RESPONSE_SERVER_ERROR, &requestHeader, remoteUA);
         std::cerr << "SIP: Server-error: " << error.what() << std::endl;
         shutdown();
     }
@@ -348,6 +351,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         std::cout << "SIP: Received bad response: " << error.what() << std::endl;
         return;
     }
+    SIPUserAgent& remoteUA = userAgents.getRemoteUA(/*XXXrequestHeader.getRemoteTag()*/);
     try
     {
         if(responseHeader.statusCode >= 100 && responseHeader.statusCode < 200)
@@ -357,7 +361,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         else if(responseHeader.statusCode == SIP_RESPONSE_OK_CODE)
         {
             //we have success - acknowledge reception
-            sendAckRequest();
+            sendAckRequest(remoteUA);
             //action depending on request
             const std::string requestCommand = responseHeader.getRequestCommand();
             if (SIP_REQUEST_INVITE.compare(requestCommand) == 0 && (responseHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(responseHeader)))
@@ -395,7 +399,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
                 rtpConfig.remotePort = selectedMedias[mediaIndex].port;
 
                 //update remote SIP-URI
-                updateNetworkConfig();
+                updateNetworkConfig(nullptr, nullptr, remoteUA);
                 std::cout << "SIP: Our INVITE was accepted, initializing communication" << std::endl;
 
                 //start communication
@@ -410,14 +414,14 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         else if(responseHeader.statusCode == SIP_RESPONSE_MULTIPLE_CHOICES_CODE || responseHeader.statusCode == SIP_RESPONSE_AMBIGUOUS_CODE)
         {
             //select first choice (Contact) and try again
-            updateNetworkConfig(&responseHeader, &packageInfo);
-            sendInviteRequest();
+            updateNetworkConfig(&responseHeader, &packageInfo, remoteUA);
+            sendInviteRequest(remoteUA);
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_MOVED_PERMANENTLY_CODE || responseHeader.statusCode == SIP_RESPONSE_MOVED_TEMPORARILY_CODE)
         {
             //change remote-address and retry
-            updateNetworkConfig(&responseHeader, &packageInfo);
-            sendInviteRequest();
+            updateNetworkConfig(&responseHeader, &packageInfo, remoteUA);
+            sendInviteRequest(remoteUA);
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_BAD_REQUEST_CODE)
         {
@@ -481,7 +485,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         {
             //remote is busy or call was declined
             std::cout << "SIP: Could not establish connection: " << responseHeader.reasonPhrase << std::endl;
-            sendAckRequest();
+            sendAckRequest(remoteUA);
             state  = SessionState::SHUTDOWN;
             shutdown();
         }
@@ -509,13 +513,13 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     }
     catch(const std::exception& error)
     {
-        sendResponse(SIP_RESPONSE_SERVER_ERROR_CODE, SIP_RESPONSE_SERVER_ERROR, nullptr);
+        sendResponse(SIP_RESPONSE_SERVER_ERROR_CODE, SIP_RESPONSE_SERVER_ERROR, nullptr, remoteUA);
         std::cerr << "SIP: Server-error: " << error.what() << std::endl;
         shutdown();
     }
 }
 
-void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader)
+void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA)
 {
     //mandatory header-fields:
     //To, From, CSeq, Call-ID, Max-Forwards, Via, Contact
@@ -523,23 +527,26 @@ void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHea
     //"rport" is specified in RFC3581 and requests the response to be sent to the originating port
     //"branch"-tag unique for all requests, randomly generated, starting with "z9hG4bK", ACK has same as INVITE (for non-2xx ACK) -> 8.1.1.7 Via
     //"received"-tag has the IP of the receiving endpoint
-    lastBranch = requestHeader != nullptr ? requestHeader->getBranchTag() : (std::string("z9hG4bK") + std::to_string(rand()));
+    remoteUA.lastBranch = requestHeader != nullptr ? requestHeader->getBranchTag() : (std::string("z9hG4bK") + std::to_string(rand()));
     const std::string receivedTag = requestHeader != nullptr ? std::string(";received=") + userAgents.thisUA.ipAddress : "";
     header[SIP_HEADER_VIA] = ((SIP_VERSION + "/UDP ") + userAgents.thisUA.hostName + ":") + ((((std::to_string(sipConfig.localPort)
-                             + ";rport") + receivedTag) + ";branch=") + lastBranch);
+                             + ";rport") + receivedTag) + ";branch=") + remoteUA.lastBranch);
     //TODO for response, copy/retain VIA-fields of request (multiple!)
     
     header[SIP_HEADER_CONTACT] = (userAgents.thisUA.userName + " <") + userAgents.thisUA.getSIPURI() + ">";
-    header[SIP_HEADER_CALL_ID] =  callID;
+    //if we INVITE, the remote call-ID is empty and we use ours, otherwise use the remote's
+    header[SIP_HEADER_CALL_ID] =  remoteUA.callID.empty() ? userAgents.thisUA.callID : remoteUA.callID;
     try
     {
         SIPRequestHeader& reqHeader = dynamic_cast<SIPRequestHeader&>(header);
-        ++sequenceNumber;
+        ++remoteUA.sequenceNumber;
         reqHeader[SIP_HEADER_MAX_FORWARDS] = std::to_string(SIP_MAX_FORWARDS);
-        reqHeader[SIP_HEADER_CSEQ] = (std::to_string(sequenceNumber) + " ") + requestMethod;
+        reqHeader[SIP_HEADER_CSEQ] = (std::to_string(remoteUA.sequenceNumber) + " ") + requestMethod;
 
         //"tag"-tag for user-identification
-        reqHeader[SIP_HEADER_TO] = ((userAgents.getRemoteUA().userName + " <") + userAgents.getRemoteUA().getSIPURI() + ">") + (userAgents.getRemoteUA().tag.empty() ? std::string("") : (std::string(";tag=") + userAgents.getRemoteUA().tag));
+        //if we INVITE, remote-tag is empty
+        //if we got invited, remote-tag is correctly the tag sent by remote
+        reqHeader[SIP_HEADER_TO] = ((remoteUA.userName + " <") + remoteUA.getSIPURI() + ">") + (remoteUA.tag.empty() ? std::string("") : (std::string(";tag=") + remoteUA.tag));
         reqHeader[SIP_HEADER_FROM] = (((userAgents.thisUA.userName + " <") + userAgents.thisUA.getSIPURI() + ">") + ";tag=") + userAgents.thisUA.tag;
     }
     
@@ -605,43 +612,42 @@ int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& availableMe
     return -1;
 }
 
-void SIPHandler::updateNetworkConfig(const SIPHeader* header, const NetworkWrapper::Package* packageInfo)
+void SIPHandler::updateNetworkConfig(const SIPHeader* header, const NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA)
 {
     if(header != nullptr)
     {
         //set values for remote user/host and remote-address into SIP user agent database
         //this enables receiving INVITES from user agents other than the one, we sent the initial INVITE to
         const SIPGrammar::SIPAddress remoteAddress = header->getAddress();
-        userAgents.getRemoteUA().userName = remoteAddress.displayName;
-        userAgents.getRemoteUA().hostName = remoteAddress.uri.host;
+        remoteUA.userName = remoteAddress.displayName;
+        remoteUA.hostName = remoteAddress.uri.host;
         if(packageInfo != nullptr)
         {
             //use the actual address/port from the package received
             //NOTE: this is the easiest and fastest way to determine host/port, but may be inaccurate for some special cases
             //e.g. when remote uses different input/output ports or the package was meant to forward to another host
             const auto socketAddress = Utility::getSocketAddress(&(packageInfo->ipv6Address), sizeof(packageInfo->ipv6Address), packageInfo->isIPv6);
-            userAgents.getRemoteUA().ipAddress = socketAddress.first;
-            userAgents.getRemoteUA().port = socketAddress.second;
+            remoteUA.ipAddress = socketAddress.first;
+            remoteUA.port = socketAddress.second;
         }
         else
         {
-            userAgents.getRemoteUA().ipAddress = Utility::getAddressForHostName(remoteAddress.uri.host);
-            userAgents.getRemoteUA().port = remoteAddress.uri.port == -1 ? SIP_DEFAULT_PORT : remoteAddress.uri.port;
+            remoteUA.ipAddress = Utility::getAddressForHostName(remoteAddress.uri.host);
+            remoteUA.port = remoteAddress.uri.port == -1 ? SIP_DEFAULT_PORT : remoteAddress.uri.port;
         }
-        if(userAgents.getRemoteUA().ipAddress.empty())
+        if(remoteUA.ipAddress.empty())
         {
             std::cerr << "No address found for host: " << remoteAddress.uri.host << std::endl;
             throw std::invalid_argument("Invalid IP address!");
         }
     }
     //check if configuration has changed
-    if(sipConfig.remotePort != userAgents.getRemoteUA().port ||
-       userAgents.getRemoteUA().ipAddress.compare(sipConfig.remoteIPAddress) != 0)
+    if(sipConfig.remotePort != remoteUA.port || remoteUA.ipAddress.compare(sipConfig.remoteIPAddress) != 0)
     {
         std::cout << "Reconnecting SIP ..." << std::endl;
         //reset network-wrapper to send new packages to correct address
-        sipConfig.remoteIPAddress = userAgents.getRemoteUA().ipAddress;
-        sipConfig.remotePort = userAgents.getRemoteUA().port;
+        sipConfig.remoteIPAddress = remoteUA.ipAddress;
+        sipConfig.remotePort = remoteUA.port;
         network->closeNetwork();
         std::cout << "Connecting to: " << sipConfig.remoteIPAddress << ':' << sipConfig.remotePort << std::endl;
         //wait for socket to be closed
