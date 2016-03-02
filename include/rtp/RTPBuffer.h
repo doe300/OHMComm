@@ -8,17 +8,11 @@
 #ifndef RTPBUFFER_H
 #define	RTPBUFFER_H
 
+#include <mutex>    //std::mutex
+
 #include "RTPBufferHandler.h"
 #include "PlayoutPointAdaption.h"
 #include "LossConcealment.h"
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>    //mutex
-#else
-#include <mutex>    //std::mutex
-#endif
-
 
 /*!
  * Serves as jitter-buffer for RTP packages
@@ -64,11 +58,7 @@ private:
     /*!
      * Mutex guarding all access to ringBuffer, nextReadIndex, size and minSequenceNumber
      */
-#ifdef _WIN32
-    HANDLE bufferMutex;
-#else
     std::mutex bufferMutex;
-#endif
 
     /*!
      * Internal data structure to buffer RTP packages
@@ -152,10 +142,6 @@ private:
      * Calculates the new index in the buffer
      */
     uint16_t calculateIndex(uint16_t index, uint16_t offset);
-
-    void lockMutex();
-
-    void unlockMutex();
 };
 
 #endif	/* RTPBUFFER_H */

@@ -17,9 +17,6 @@ RTPBuffer::RTPBuffer(uint32_t ssrc, uint16_t maxCapacity, uint16_t maxDelay, uin
     ringBuffer = new RTPBufferPackage[maxCapacity];
     size = 0;
     minSequenceNumber = 0;
-    #ifdef _WIN32
-    bufferMutex = CreateMutex(nullptr, false, L"BufferMutex");
-    #endif
     Statistics::setCounter(Statistics::RTP_BUFFER_LIMIT, maxCapacity);
 }
 
@@ -30,7 +27,7 @@ RTPBuffer::~RTPBuffer()
 
 RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned int contentSize)
 {
-    lockMutex();
+    bufferMutex.lock();
     const RTPHeader *receivedHeader = package.getRTPPackageHeader();
     if(minSequenceNumber == 0 || receivedHeader->isMarked())
     {
@@ -49,21 +46,21 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
         //late loss
         //discard package, because it is older than the minimum sequence number to hold
         packageReceived(true);
-        unlockMutex();
+        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
     }
 
     if(size == capacity)
     {
         //buffer is full
-        unlockMutex();
+        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
     }
     if(receivedHeader->getSequenceNumber() - minSequenceNumber >= capacity)
     {
         //should never occur: package is far too new -> we have now choice but to discard it without getting into an undetermined state
         //TODO can occur if playout gets somehow stuck -> overwrite old packages (see alternative buffer)
-        unlockMutex();
+        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
     }
     uint16_t newWriteIndex = calculateIndex(nextReadIndex, receivedHeader->getSequenceNumber()-minSequenceNumber);
@@ -90,13 +87,13 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
     size++;
     Statistics::maxCounter(Statistics::RTP_BUFFER_MAXIMUM_USAGE, size);
     packageReceived(false);
-    unlockMutex();
+    bufferMutex.unlock();
     return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }
 
 RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
 {
-    lockMutex();
+    bufferMutex.lock();
     if(!isAdaptionBufferFilled())
     {
         //buffer has insufficient fill level
@@ -104,7 +101,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         createConcealmentPackage(package);
         //we do not increase the minimum sequence number here, because we want to stretch the play-out delay
         //for that, we need to insert, not replace packages
-        unlockMutex();
+        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
     //need to search for oldest valid package, newer than minSequenceNumber and newer than currentTimestamp - maxDelay
@@ -136,7 +133,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         //but skip check for first package
         if(minSequenceNumber != 0)
             minSequenceNumber = (minSequenceNumber + 1) % UINT16_MAX;
-        unlockMutex();
+        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
 
@@ -155,7 +152,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_LOST, (bufferPack->header.getSequenceNumber() - minSequenceNumber)%UINT16_MAX);
     //only accept newer packages (at least one sequence number more than last read package)
     minSequenceNumber = (bufferPack->header.getSequenceNumber() + 1) % UINT16_MAX;
-    unlockMutex();
+    bufferMutex.unlock();
     return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }
 
@@ -193,22 +190,3 @@ uint16_t RTPBuffer::incrementIndex(uint16_t index)
 {
     return (index+1) % capacity;
 }
-
-void RTPBuffer::lockMutex()
-{
-    #ifdef _WIN32
-    WaitForSingleObject(bufferMutex, INFINITE);
-    #else
-    bufferMutex.lock();
-    #endif
-}
-
-void RTPBuffer::unlockMutex()
-{
-    #ifdef _WIN32
-    ReleaseMutex(bufferMutex);
-    #else
-    bufferMutex.unlock();
-    #endif
-}
-

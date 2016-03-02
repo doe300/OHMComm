@@ -51,10 +51,10 @@ void RTPListener::runThread()
         else if(threadRunning && RTPPackageHandler::isRTPPackage(rtpHandler.getWorkBuffer(), receivedPackage.getReceivedSize()))
         {
             //2. write package to buffer
-            auto result = buffers.getBuffer(rtpHandler.getRTPPackageHeader()->getSSRC())->addPackage(rtpHandler, receivedPackage.getReceivedSize() - RTPHeader::MIN_HEADER_SIZE);
+            const uint8_t headerSize = rtpHandler.getRTPHeaderSize();
+            auto result = buffers.getBuffer(rtpHandler.getRTPPackageHeader()->getSSRC())->addPackage(rtpHandler, receivedPackage.getReceivedSize() - headerSize);
             if (result == RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW)
             {
-                //TODO some handling or simply discard?
                 std::cerr << "Input Buffer overflow" << std::endl;
             }
             else if (result == RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD)
@@ -87,8 +87,8 @@ void RTPListener::runThread()
                 participant.calculateInterarrivalJitter(rtpHandler.getRTPPackageHeader()->getTimestamp(), rtpHandler.getCurrentRTPTimestamp());
                 
                 Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_RECEIVED, 1);
-                Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, RTPHeader::MIN_HEADER_SIZE);
-                Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedPackage.getReceivedSize() - RTPHeader::MIN_HEADER_SIZE);
+                Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_RECEIVED, headerSize);
+                Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECEIVED, receivedPackage.getReceivedSize() - headerSize);
             }
         }
     }

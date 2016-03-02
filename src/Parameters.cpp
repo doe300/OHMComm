@@ -449,7 +449,7 @@ bool Parameters::parseParametersFromFile(const std::string& configFile)
         }
         stream.close();
     }
-    catch(std::ios_base::failure f)
+    catch(const std::ios_base::failure& f)
     {
         std::cerr << "Failed to read configuration-file!" << std::endl;
         std::cerr << strerror(errno) << std::endl;

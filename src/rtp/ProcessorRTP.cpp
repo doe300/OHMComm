@@ -65,7 +65,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     ourselves.totalBytes += rtpPackage->getRTPHeaderSize() + inputBufferByteSize;
     Statistics::incrementCounter(Statistics::COUNTER_FRAMES_SENT, userData->nBufferFrames);
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_SENT, 1);
-    Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, RTPHeader::MIN_HEADER_SIZE);
+    Statistics::incrementCounter(Statistics::COUNTER_HEADER_BYTES_SENT, rtpPackage->getRTPHeaderSize());
     Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_SENT, inputBufferByteSize);
 
     //no changes in buffer-size

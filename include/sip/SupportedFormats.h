@@ -67,8 +67,10 @@ private:
     static std::vector<SupportedFormat> availableFormats;
     
     //just for registration
+#ifdef OPUS_HEADER //only make opus available, if codec is included
     //as of RFC 7587, the opus format must be opus/48000/2
     static const SupportedFormat* OPUS_48000;
+#endif
     static const SupportedFormat* G711_PCMA;
     static const SupportedFormat* G711_PCMU;
     static const SupportedFormat* L16_2_44100;

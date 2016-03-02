@@ -9,6 +9,7 @@
 #define	JITTERBUFFERS_H
 
 #include <map>
+#include <mutex>
 #include <memory>
 
 #include "RTPBufferHandler.h"
@@ -46,6 +47,7 @@ private:
     const uint16_t maximumCapacity;
     const uint16_t maximumDelay;
     const uint16_t minBufferPackages;
+    std::mutex mutex;
     std::map<uint32_t, std::unique_ptr<RTPBufferHandler>> buffers;
 };
 

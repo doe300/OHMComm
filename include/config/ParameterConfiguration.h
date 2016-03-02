@@ -12,7 +12,9 @@
 #include "Parameters.h"
 
 /*!
- * Configuration using the given Parameters
+ * Configuration using the given Parameters.
+ * 
+ * This can also be used as fallback configuration-mode since it doesn't require to be fully configured before returning values
  */
 class ParameterConfiguration : public ConfigurationMode
 {

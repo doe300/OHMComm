@@ -127,7 +127,7 @@ public:
     /*!
      * \return a read-only map of all currently registered remote participants
      */
-    static const std::map<uint32_t, Participant> getAllRemoteParticipants()
+    static const std::map<uint32_t, Participant>& getAllRemoteParticipants()
     {
         return participants;
     }
@@ -141,7 +141,7 @@ public:
      */
     static bool removeParticipant(const uint32_t ssrc)
     {
-        participants.erase(ssrc) > 0;
+        return participants.erase(ssrc) > 0;
     }
     
 private:

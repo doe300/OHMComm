@@ -76,7 +76,7 @@ public:
      *
      * \return the number of bytes sent
      */
-    virtual int sendData(const void *buffer, const unsigned int bufferSize = 0) = 0;
+    virtual int sendData(const void *buffer, const unsigned int bufferSize) = 0;
 
     /*!
      * In case of an error, this method returns INVALID_SOCKET. In case of a blocking-timeout, this method returns RECEIVE_TIMEOUT
@@ -87,7 +87,7 @@ public:
      *
      * \return information about the received package
      */
-    virtual Package receiveData(void *buffer, unsigned int bufferSize = 0) = 0;
+    virtual Package receiveData(void *buffer, unsigned int bufferSize) = 0;
 
     /*!
      * Returns the last error code and a human-readable description

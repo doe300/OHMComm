@@ -16,20 +16,26 @@ JitterBuffers::JitterBuffers(const uint16_t maxCapacity, const uint16_t maxDelay
 
 const std::unique_ptr<RTPBufferHandler>& JitterBuffers::getBuffer(const uint32_t ssrc)
 {
-    //TODO needs to by locked due to direct access by 2 threads
+    //needs to by locked due to direct access by 2 threads
+    mutex.lock();
     if(buffers.find(ssrc) == buffers.end())
     {
         buffers.insert(std::pair<uint32_t, std::unique_ptr<RTPBufferHandler>>(ssrc, std::unique_ptr<RTPBufferHandler>(new RTPBuffer(ssrc, maximumCapacity, maximumDelay, minBufferPackages))));
     }
+    mutex.unlock();
     return buffers.at(ssrc);
 }
 
 void JitterBuffers::removeBuffer(const uint32_t ssrc)
 {
+    mutex.lock();
     buffers.erase(ssrc);
+    mutex.unlock();
 }
 
 void JitterBuffers::cleanup()
 {
+    mutex.lock();
     buffers.clear();
+    mutex.unlock();
 }

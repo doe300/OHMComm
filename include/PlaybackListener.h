@@ -25,6 +25,11 @@ class PlaybackListener
 {
 public:
     
+    virtual ~PlaybackListener()
+    {
+        //for destructor of derived classes to be called
+    }
+
     /*!
      * This method is invoked on registering this listener
      * 
