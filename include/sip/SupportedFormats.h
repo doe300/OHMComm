@@ -74,6 +74,7 @@ private:
     static const SupportedFormat* G711_PCMA;
     static const SupportedFormat* G711_PCMU;
     static const SupportedFormat* L16_2_44100;
+    //XXX speex, RFC 5574 section 5
 };
 
 #endif	/* SUPPORTEDFORMATS_H */

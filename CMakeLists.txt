@@ -46,6 +46,34 @@ else()
 	message(WARNING "No opus library found")
 endif()
 
+# iLBC - https://tools.ietf.org/html/rfc3951
+#Try to find precompiled library
+find_library(ILBC_LIBRARY NAMES ilbc libilbc)
+if(ILBC_LIBRARY)
+	message(STATUS "iLBC library found: " ${ILBC_LIBRARY})
+	#Set header to default include path
+	add_definitions(-DILBC_HEADER="ilbc.h")
+endif()
+
+# speex - http://www.speex.org/
+#Try to find precompiled library
+find_library(SPEEX_LIBRARY NAMES speex libspeex)
+if(SPEEX_LIBRARY)
+	message(STATUS "speex library found: " ${SPEEX_LIBRARY})
+	#Set header to default include path
+	add_definitions(-DSPEEX_HEADER="speex/speex.h")
+	add_definitions(-DSPEEX_STEREO_HEADER="speex/speex_stereo.h")
+endif()
+
+# AMR - https://sourceforge.net/projects/opencore-amr/
+#Try to find precompiled library
+find_library(AMR_LIBRARY NAMES amr "opencore-amrnb" "libopencore-amrnb")
+if(AMR_LIBRARY)
+	message(STATUS "opencore-AMR library found: " ${AMR_LIBRARY})
+	add_definitions(-DAMR_ENCODER_HEADER="opencore-amrnb/interf_enc.h")
+	add_definitions(-DAMR_DECODER_HEADER="opencore-amrnb/interf_dec.h")
+endif()
+
 # RTAudio - http://www.music.mcgill.ca/~gary/rtaudio/
 #Try to find precompiled library
 find_library(RTAUDIO_LIBRARY NAMES rtaudio librtaudio)
@@ -70,6 +98,7 @@ if(PORTAUDIO_LIBRARY)
 	add_definitions(-DPORTAUDIO_HEADER="portaudio.h")
 endif()
 
+# Check if any audio-library was added
 if(NOT RTAUDIO_LIBRARY AND NOT RTAUDIO_HEADER_PATH AND NOT PORTAUDIO_LIBRARY)
 	message(WARNING "No supported audio-library found!")
 endif()

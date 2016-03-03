@@ -23,6 +23,9 @@ public:
     static const std::string G711_PCMA;
     static const std::string G711_PCMU;
     static const std::string GAIN_CONTROL;
+    static const std::string ILBC_CODEC;
+    static const std::string AMR_CODEC;
+    static const std::string SPEEX_CODEC;
 
     /*!
      * Returns the AudioProcessor for the given name

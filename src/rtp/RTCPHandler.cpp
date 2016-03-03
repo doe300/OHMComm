@@ -121,7 +121,6 @@ void RTCPHandler::runThread()
             const uint32_t ssrc = handleRTCPPackage(rtcpHandler.rtcpPackageBuffer.data(), result.getReceivedSize());
             //since every participant (at least using OHMComm) sends SR first on joining conversation,
             //this call to remote(ssrc) is very likely to create the new participant
-            //XXX skip creating participant here, only set if exists??
             ParticipantDatabase::remote(ssrc).lastPackageReceived = std::chrono::steady_clock::now();
         }
     }

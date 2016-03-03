@@ -57,7 +57,6 @@ void SIPHandler::shutdown()
     else if(state == SessionState::ESTABLISHED)
     {
         // Send a SIP BYE-packet, to tell the other side that communication has been stopped
-        //FIXME segmentation fault on program exit in SIPUserAgent::getSIPURI (but globals are alive until the end!?!)
         sendByeRequest(userAgents.getRemoteUA());
     }
     stopCallback();

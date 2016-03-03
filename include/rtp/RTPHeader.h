@@ -8,12 +8,15 @@
 #ifndef RTPHEADER_H
 #define	RTPHEADER_H
 
+#include <stdexcept>
 //For htons/htonl and ntohs/ntohl
 #ifdef _WIN32
 #include <winsock2.h>
 #else
 #include <netinet/in.h>
 #endif
+
+#include "PayloadType.h"
 
 /*!
  * A RTP header extension has the following format:
@@ -97,57 +100,6 @@ public:
     {
         return extensions;
     }
-};
-
-/*!
- * List of default mappings for payload-type, as specified in https://www.ietf.org/rfc/rfc3551.txt
- *
- * Also see: https://en.wikipedia.org/wiki/RTP_audio_video_profile
- *
- * Currently only containing audio mappings.
- */
-enum PayloadType : signed char
-{
-    //ITU-T G.711 PCMU - https://en.wikipedia.org/wiki/PCMU
-    PCMU = 0,
-    //GSM Full Rate - https://en.wikipedia.org/wiki/Full_Rate
-    GSM = 3,
-    //ITU-T G.723.1 - https://en.wikipedia.org/wiki/G.723.1
-    G723 = 4,
-    //IMA ADPCM 32 kbit/s - https://en.wikipedia.org/wiki/Adaptive_differential_pulse-code_modulation
-    DVI4_32 = 5,
-    //IMA ADPCM 64 kbit/s
-    DVI4_64 = 6,
-    //LPC - https://en.wikipedia.org/wiki/Linear_predictive_coding
-    LPC = 7,
-    //ITU-T G.711 PCMA - https://en.wikipedia.org/wiki/PCMA
-    PCMA = 8,
-    //ITU-T G.722 - https://en.wikipedia.org/wiki/G.722
-    G722 = 9,
-    //Linear PCM, 2 channels - https://en.wikipedia.org/wiki/Linear_PCM
-    L16_2 = 10,
-    //Linear PCM, 1 channel - https://en.wikipedia.org/wiki/Linear_PCM
-    L16_1 = 11,
-    //Qualcomm Code Excited Linear Prediction
-    QCELP = 12,
-    //Comfort noise
-    CN = 13,
-    //MPEG-1 or MPEG-2 audio - https://en.wikipedia.org/wiki/MPEG-1 / https://en.wikipedia.org/wiki/MPEG-2
-    MPA = 14,
-    //ITU-T G.728
-    G728 = 15,
-    //IMA ADPCM 44.1 kbit/s
-    DVI4_44 = 16,
-    //IMA ADPCM 88.2 kbit/s
-    DVI4_88 = 17,
-    //ITU-T G.729(a) - https://en.wikipedia.org/wiki/G.729
-    G729 = 18,
-    //OPUS variable bandwidth - https://en.wikipedia.org/wiki/Opus_%28audio_format%29
-    //RFC 7587 (RTP Payload Format for Opus, see: https://ietf.org/rfc/rfc7587.txt) defines the opus payload-type as dynamic
-    OPUS = 112,
-    //dummy payload-type to accept all types
-    ALL = -1
-
 };
 
 /*!
@@ -274,12 +226,12 @@ private:
     
     //data[8-11]
     //32 bit SSRC field
-    uint8_t data[12];
 
+    //data[12 - 71]
     //list of 32 bit CSRCs
-    //TODO adding this requires correct handling of RTPHeader (depending on the csrc_count)
-    //also watch out for byte-order and order of fields
-    //uint32_t csrc_list[15];
+    //FIXME setting this to 72 creates schlieren in the audio-output
+    //but exactly the same number of total/payload-bytes is sent/received for 12 and 72 bytes header??!?
+    uint8_t data[12];
     
     static constexpr unsigned int shiftVersion = 6;
     static constexpr unsigned int shiftPadding = 5;
@@ -400,6 +352,32 @@ public:
         data[10] = (uint8_t) (tmp >> 16);
         data[9] = (uint8_t) (tmp >> 8);
         data[8] = (uint8_t) (tmp & 0xFF);
+    }
+    
+    inline uint32_t getCSRC(uint8_t index) const
+    {
+        if(index >= getCSRCCount())
+            throw std::out_of_range("CSRC index greater than the CSRC count!");
+        //offset of 12 bytes + 4 bytes per CSRC
+        const uint8_t startIndex = 12 + (index << 2);
+        return ntohl(data[startIndex + 3] << 24 | data[startIndex + 2] << 16 | data[startIndex + 1] << 8 | data[startIndex]);
+    }
+    
+    inline void setCSRC(const uint8_t index, const uint32_t csrc)
+    {
+        if(index == getCSRCCount())
+            //increase CSRC-count by one
+            setCSRCCount(index + 1);
+        else if(index > getCSRCCount())
+            //otherwise we would convert a gap into a valid CSRC
+            throw std::out_of_range("CSRCs must be added sequential!");
+        //offset of 12 bytes + 4 bytes per CSRC
+        const uint8_t startIndex = 12 + (index << 2);
+        const uint32_t tmp = htonl(csrc);
+        data[startIndex + 3] = (uint8_t) (tmp >> 24);
+        data[startIndex + 2] = (uint8_t) (tmp >> 16);
+        data[startIndex + 1] = (uint8_t) (tmp >> 8);
+        data[startIndex] = (uint8_t) (tmp & 0xFF);
     }
 };
 

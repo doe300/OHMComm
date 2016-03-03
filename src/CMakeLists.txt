@@ -51,6 +51,17 @@ if(NOT OPUS_LIBRARY) #Only manually link opus, if it not provided via a library
 	target_link_libraries(OHMCommLib silk_fixed)
 	target_link_libraries(OHMCommLib silk_float)
 endif()
+
+# Only link libraries, if available
 if(PORTAUDIO_LIBRARY)
 	target_link_libraries(OHMCommLib portaudio)
+endif()
+if(ILBC_LIBRARY)
+	target_link_libraries(OHMCommLib ilbc)
+endif()
+if(AMR_LIBRARY)
+	target_link_libraries(OHMCommLib opencore-amrnb)
+endif()
+if(SPEEX_LIBRARY)
+	target_link_libraries(OHMCommLib speex)
 endif()

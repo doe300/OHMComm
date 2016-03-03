@@ -13,7 +13,7 @@
 
 #include "configuration.h"
 #include "KeyValuePairs.h"
-#include "rtp/RTPHeader.h"
+#include "PayloadType.h"
 #include "sip/SupportedFormats.h"
 
 struct SessionKey : public KeyValuePair<char>

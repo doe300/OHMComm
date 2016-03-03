@@ -8,7 +8,7 @@
 
 #include "configuration.h"
 #include "ConfigurationMode.h"
-#include "rtp/RTPHeader.h"
+#include "PayloadType.h"
 
 /*!
  * Information about the stream to be passed to the process-methods of AudioProcessor.
