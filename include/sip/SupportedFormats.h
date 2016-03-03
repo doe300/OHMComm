@@ -71,6 +71,9 @@ private:
     //as of RFC 7587, the opus format must be opus/48000/2
     static const SupportedFormat* OPUS_48000;
 #endif
+#ifdef ILBC_HEADER
+    static const SupportedFormat* iLBC;
+#endif
     static const SupportedFormat* G711_PCMA;
     static const SupportedFormat* G711_PCMU;
     static const SupportedFormat* L16_2_44100;

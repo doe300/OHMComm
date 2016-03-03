@@ -5,9 +5,9 @@
  * Created on March 2, 2016, 1:22 PM
  */
 #ifdef ILBC_HEADER  //Only include of iLBC is linked
-//XXX wrong iLBC implementation, this one is from WebRTC, we need the source (from RFC)
-//TODO is not yet tested due to incompatible sample-rates
+
 #include <iostream>
+#include <string.h>
 
 #include "codecs/ProcessoriLBC.h"
 
@@ -42,8 +42,8 @@ unsigned int ProcessoriLBC::getSupportedSampleRates() const
 const std::vector<int> ProcessoriLBC::getSupportedBufferSizes(unsigned int sampleRate) const
 {
     //as of RFC 3952 section 2 use default frame sizes of 20 and 30ms
-    const int packageSize20ms = 20 * 8000 / 1000;    //20 ms
-    const int packageSize30ms = 30 * 8000 / 1000;    //30 ms
+    const int packageSize20ms = 20 * sampleRate / 1000;    //20 ms
+    const int packageSize30ms = 30 * sampleRate / 1000;    //30 ms
     return {packageSize20ms, packageSize30ms, BUFFER_SIZE_ANY};
 }
 
@@ -64,9 +64,9 @@ bool ProcessoriLBC::configure(const AudioConfiguration& audioConfig, const std::
     //else if the buffer-size contains 30ms of mono/stereo data, use 30
     const int bufferSize20ms = 20 * 8000 / 1000 * sizeof(int16_t);    //20 ms * sizeof(SINT16)
     const int bufferSize30ms = 30 * 8000 / 1000 * sizeof(int16_t);    //30 ms
-    if(bufferSize == bufferSize20ms || bufferSize == 2 * bufferSize20ms)
+    if(bufferSize % bufferSize20ms == 0)
         frameLength = 20;
-    else if(bufferSize == bufferSize30ms || bufferSize == 2 * bufferSize30ms)
+    else if(bufferSize % bufferSize30ms == 0)
         frameLength = 30;
     else
     {
@@ -86,7 +86,6 @@ bool ProcessoriLBC::configure(const AudioConfiguration& audioConfig, const std::
 unsigned int ProcessoriLBC::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
     resampler.processInputData(inputBuffer, inputBufferByteSize, userData);
-    //XXX does in-place converting work??
     const WebRtc_Word16 result = WebRtcIlbcfix_Encode(iLBCEncoder, (WebRtc_Word16*)inputBuffer, userData->nBufferFrames, (WebRtc_Word16*)inputBuffer);
     if(result < 0)
     {
@@ -106,15 +105,14 @@ unsigned int ProcessoriLBC::processOutputData(void* outputBuffer, const unsigned
     }
     else
     {
-        //XXX does in-place converting work??
         result = WebRtcIlbcfix_Decode(iLBCDecoder, (WebRtc_Word16*)outputBuffer, outputBufferByteSize, (WebRtc_Word16*)outputBuffer, &speechType);
+        userData->nBufferFrames = result;
         result = resampler.processOutputData(outputBuffer, result * sizeof(WebRtc_Word16), userData);
     }
     if(result < 0)
     {
         std::cerr << "iLBC: Error while decoding!" << std::endl;
     }
-    userData->nBufferFrames = result;
     return result;
 }
 

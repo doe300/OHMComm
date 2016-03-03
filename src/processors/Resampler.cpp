@@ -11,7 +11,7 @@
 //TODO we can now resample to lower sample-rates
 //but how to spoof the configuration to believe the lower sample-rate??
 
-Resampler::Resampler(const std::string& name) : AudioProcessor(name)
+Resampler::Resampler(const std::string& name) : AudioProcessor(name), writeBuffer(nullptr)
 {
 }
 
@@ -76,7 +76,9 @@ bool Resampler::configure(unsigned int audioFormatFlag, uint8_t inputChannels, u
 
 unsigned int Resampler::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
-    return audioFormatSize * numInputChannels * compressFunc(inputBuffer, inputBuffer, userData->nBufferFrames, numInputChannels, samplesFactor);
+    const uint16_t numFrames = compressFunc(inputBuffer, inputBuffer, userData->nBufferFrames, numInputChannels, samplesFactor);
+    userData->nBufferFrames = numFrames;
+    return audioFormatSize * numInputChannels * numFrames;
 }
 
 unsigned int Resampler::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
@@ -87,7 +89,9 @@ unsigned int Resampler::processOutputData(void* outputBuffer, const unsigned int
     }
     //since we increase the number of valid bytes in the buffer, we can't edit them in-place
     memcpy(writeBuffer, outputBuffer, outputBufferByteSize);
-    return audioFormatSize * numOutputChannels * extrapolateFunc(writeBuffer, outputBuffer, userData->nBufferFrames, numOutputChannels, samplesFactor);
+    const uint16_t numFrames = extrapolateFunc(writeBuffer, outputBuffer, userData->nBufferFrames, numOutputChannels, samplesFactor);
+    userData->nBufferFrames = numFrames;
+    return audioFormatSize * numOutputChannels * numFrames;
 }
 
 bool Resampler::cleanUp()
@@ -110,7 +114,7 @@ unsigned int Resampler::compress(const void* input, void* output, unsigned int n
     AudioFormat* outputBuffer = (AudioFormat*) output;
     
     //iterate over all frames
-    for(unsigned int i = 0; i < numSamples; ++i)
+    for(unsigned int i = 0; i < numSamples / factor; ++i)
     {
         //iterate over all channels in a single frame
         for(uint8_t c = 0; c < numChannels; ++c)

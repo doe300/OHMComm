@@ -11,8 +11,9 @@
 #include "AudioProcessor.h"
 
 /*!
- * Resamples higher sample-rates to lower ones.
+ * Simple resampler to convert higher sample-rates to lower ones (and back).
  * 
+ * This implementation only supports integer conversion rates -> the higher sample-rate must be a integer multiple of the lower one.
  * This can be used as audio-processor (not yet) and as tool inside of an audio-processor
  */
 class Resampler : public AudioProcessor

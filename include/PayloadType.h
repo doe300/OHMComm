@@ -57,7 +57,7 @@ enum PayloadType : signed char
     //AMR-NB - https://en.wikipedia.org/wiki/Adaptive_Multi-Rate_audio_codec
     //RFC 4867 (RTP Payload format for AMR, see: https://tools.ietf.org/html/rfc4867) defines the AMR payload-type as dynamic
     AMR_NB = 113,
-    //iLBC - https://en.wikipedia.org/wiki/Internet_Low_Bitrate_Codec
+    //iLBC - https://tools.ietf.org/html/rfc3951
     //https://en.wikipedia.org/wiki/RTP_audio_video_profile suggests a dynamic payload type
     ILBC = 114,
     //speex - http://speex.org/
