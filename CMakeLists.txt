@@ -55,16 +55,6 @@ if(ILBC_LIBRARY)
 	add_definitions(-DILBC_HEADER="ilbc.h")
 endif()
 
-# speex - http://www.speex.org/
-#Try to find precompiled library
-find_library(SPEEX_LIBRARY NAMES speex libspeex)
-if(SPEEX_LIBRARY)
-	message(STATUS "speex library found: " ${SPEEX_LIBRARY})
-	#Set header to default include path
-	add_definitions(-DSPEEX_HEADER="speex/speex.h")
-	add_definitions(-DSPEEX_STEREO_HEADER="speex/speex_stereo.h")
-endif()
-
 # AMR - https://sourceforge.net/projects/opencore-amr/
 #Try to find precompiled library
 find_library(AMR_LIBRARY NAMES amr "opencore-amrnb" "libopencore-amrnb")

@@ -60,9 +60,6 @@ enum PayloadType : signed char
     //iLBC - https://tools.ietf.org/html/rfc3951
     //https://en.wikipedia.org/wiki/RTP_audio_video_profile suggests a dynamic payload type
     ILBC = 114,
-    //speex - http://speex.org/
-    //https://en.wikipedia.org/wiki/RTP_audio_video_profile suggests a dynamic payload type
-    SPEEX = 115,
     //dummy payload-type to accept all types
     ALL = -1
 
