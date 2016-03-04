@@ -19,6 +19,37 @@ int main(int argc, char* argv[])
     Parameters params(AudioHandlerFactory::getAudioHandlerNames(), AudioProcessorFactory::getAudioProcessorNames());
     if(params.parseParameters(argc, argv))
     {
+        if(params.isParameterSet(Parameters::LIST_AUDIO_DEVICES))
+        {
+            //XXX move to Parameters, but creates dependency on audio-handler
+            std::unique_ptr<AudioHandler> handler;
+            if(params.isParameterSet(Parameters::AUDIO_HANDLER))
+                handler = AudioHandlerFactory::getAudioHandler(params.getParameterValue(Parameters::AUDIO_HANDLER));
+            else
+                handler = AudioHandlerFactory::getAudioHandler(AudioHandlerFactory::getDefaultAudioHandlerName());           
+            std::cout << std::endl;
+            std::cout << "Listing local audio-devices:" << std::endl;
+            for(const AudioDevice& device : handler->getAudioDevices())
+            {
+                std::cout << "\tName: " << device.name << std::endl;
+                std::cout << "\tInput Channels: " << device.inputChannels << std::endl;
+                std::cout << "\tOutput Channels: " << device.outputChannels << std::endl;
+                std::cout << "\tDefault input device: " << (device.defaultInputDevice ? "true" : "false") << std::endl;
+                std::cout << "\tDefault output device: " << (device.defaultOutputDevice ? "true" : "false") << std::endl;
+                std::cout << "\tNative audio formats: " << std::endl;
+                for(uint16_t i = 1; i <= AudioConfiguration::AUDIO_FORMAT_FLOAT64; i <<=1)
+                {
+                    std::cout << "\t\t" << AudioConfiguration::getAudioFormatDescription(i, false) << std::endl;
+                }
+                std::cout << "\tNative sample rates: ";
+                for(auto sampleRate : device.sampleRates)
+                {
+                    std::cout << sampleRate << ' ';
+                }
+                std::cout  << std::endl << std::endl;
+            }
+            exit(0);
+        }
         if(params.isParameterSet(Parameters::SIP_LOCAL_PORT) || params.isParameterSet(Parameters::SIP_REMOTE_PORT))
         {
             NetworkConfiguration sipConfig{0};
