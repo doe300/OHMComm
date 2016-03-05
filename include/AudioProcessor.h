@@ -9,6 +9,7 @@
 #include "configuration.h"
 #include "ConfigurationMode.h"
 #include "PayloadType.h"
+#include "processors/ProcessorCapabilities.h"
 
 /*!
  * Information about the stream to be passed to the process-methods of AudioProcessor.
@@ -54,7 +55,7 @@ public:
      */
     static constexpr int BUFFER_SIZE_ANY{1};
     
-    AudioProcessor(const std::string name);
+    AudioProcessor(const std::string name, const ProcessorCapabilities capabilities = {});
 
     virtual ~AudioProcessor()
     {
@@ -159,8 +160,18 @@ public:
      * \return the new number of valid bytes in the outputBuffer, maximal StreamData#maxBufferSize
      */
     virtual unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) = 0;
+    
+    /*!
+     * Returns all capabilities of this audio-processor.
+     * These capabilities are optional and not required for the core functionality,
+     * but are used to improve compatibility and functionality.
+     * 
+     * \return a struct containing all available processor-capabilities
+     */
+    const ProcessorCapabilities& getCapabilities() const;
 private:
     const std::string name;
+    const ProcessorCapabilities capabilities;
 };
 
 

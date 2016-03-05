@@ -1,6 +1,6 @@
 #include "AudioProcessor.h"
 
-AudioProcessor::AudioProcessor(const std::string name) : name(name)
+AudioProcessor::AudioProcessor(const std::string name, const ProcessorCapabilities capabilities) : name(name), capabilities(capabilities)
 {
 }
 
@@ -44,4 +44,9 @@ bool AudioProcessor::cleanUp()
 void AudioProcessor::startup()
 {
     //dummy implementation, does nothing
+}
+
+const ProcessorCapabilities& AudioProcessor::getCapabilities() const
+{
+    return capabilities;
 }
