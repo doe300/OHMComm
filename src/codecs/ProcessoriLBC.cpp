@@ -11,9 +11,17 @@
 
 #include "codecs/ProcessoriLBC.h"
 
-ProcessoriLBC::ProcessoriLBC(const std::string& name) : AudioProcessor(name), iLBCEncoder(nullptr), iLBCDecoder(nullptr),
-        frameLength(0), resampler("dummy")
+static constexpr ProcessorCapabilities iLBCCapabilities = {true, false, true, true, false, 
+            AudioConfiguration::SAMPLE_RATE_16000|AudioConfiguration::SAMPLE_RATE_24000|
+            AudioConfiguration::SAMPLE_RATE_32000|AudioConfiguration::SAMPLE_RATE_48000, 
+            1900   //304 Bit per 20 ms -> 38 Byte per 20 ms -> 1900 B/s
+                    //400 Bit per 30 ms -> 50 Byte per 30 ms -> 1666 B/s
+};
+
+ProcessoriLBC::ProcessoriLBC(const std::string& name) : AudioProcessor(name, iLBCCapabilities), 
+        iLBCEncoder(nullptr), iLBCDecoder(nullptr), frameLength(0), resampler("dummy")
 {
+    //XXX remove internal resampler
 }
 
 ProcessoriLBC::~ProcessoriLBC()
@@ -34,9 +42,10 @@ unsigned int ProcessoriLBC::getSupportedAudioFormats() const
 unsigned int ProcessoriLBC::getSupportedSampleRates() const
 {
     //iLBC only supports 8kHz, but we can resample the other sample-rates
+    //96kHz and 192kHz are supported by the resampler too, but it is counter-productive to use high sampling rate just 
+    //to have more samples to be combined
     return AudioConfiguration::SAMPLE_RATE_8000|AudioConfiguration::SAMPLE_RATE_16000|AudioConfiguration::SAMPLE_RATE_24000|
-            AudioConfiguration::SAMPLE_RATE_32000|AudioConfiguration::SAMPLE_RATE_48000|
-            AudioConfiguration::SAMPLE_RATE_96000|AudioConfiguration::SAMPLE_RATE_192000;
+            AudioConfiguration::SAMPLE_RATE_32000|AudioConfiguration::SAMPLE_RATE_48000;
 }
 
 const std::vector<int> ProcessoriLBC::getSupportedBufferSizes(unsigned int sampleRate) const
@@ -80,6 +89,10 @@ bool ProcessoriLBC::configure(const AudioConfiguration& audioConfig, const std::
         return false;
     }
     
+    char buf[21];
+    WebRtcIlbcfix_version(buf);
+    std::cout << "iLBC: configured in version: " << buf << std::endl;
+    
     return resampler.configure(audioConfig.audioFormatFlag, audioConfig.inputDeviceChannels, audioConfig.outputDeviceChannels, audioConfig.sampleRate/8000);
 }
 
@@ -101,7 +114,7 @@ unsigned int ProcessoriLBC::processOutputData(void* outputBuffer, const unsigned
     WebRtc_Word16 result;
     if(packageLost)
     {
-        result = WebRtcIlbcfix_NetEqPlc(iLBCDecoder, (WebRtc_Word16*)outputBuffer, userData->nBufferFrames);
+        result = WebRtcIlbcfix_DecodePlc(iLBCDecoder, (WebRtc_Word16*)outputBuffer, 1);
     }
     else
     {

@@ -8,7 +8,9 @@
 #include "codecs/ProcessorMuLaw.h"
 #include <string.h>
 
-ProcessorMuLaw::ProcessorMuLaw(const std::string& name) : AudioProcessor(name)
+static constexpr ProcessorCapabilities g711Capabilities = {true, false, false, false, false, 0, 0};
+
+ProcessorMuLaw::ProcessorMuLaw(const std::string& name) : AudioProcessor(name, g711Capabilities)
 {
 }
 
