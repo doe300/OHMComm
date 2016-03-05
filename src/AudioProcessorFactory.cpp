@@ -30,7 +30,7 @@ AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name,
     #ifdef PROCESSOROPUS_H
     if(name == OPUS_CODEC)
     {
-        processor = new ProcessorOpus(OPUS_CODEC, OPUS_APPLICATION_VOIP);
+        processor = new ProcessorOpus(OPUS_CODEC);
     }
     #endif
     #ifdef PROCESSORWAV_H

@@ -2,10 +2,11 @@
 #include "codecs/ProcessorOpus.h"
 #include "Parameters.h"
 
-ProcessorOpus::ProcessorOpus(const std::string name, int opusApplication) : 
-    AudioProcessor(name), OpusEncoderObject(nullptr), OpusDecoderObject(nullptr)
+static constexpr ProcessorCapabilities opusCapabilities = {true, true, true, true, false, 0, 0};
+
+ProcessorOpus::ProcessorOpus(const std::string name) : 
+    AudioProcessor(name, opusCapabilities), OpusEncoderObject(nullptr), OpusDecoderObject(nullptr), useFEC(false)
 {
-    this->OpusApplication = opusApplication;
 }
 
 ProcessorOpus::~ProcessorOpus()
@@ -66,59 +67,30 @@ bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::
     outputDeviceChannels = audioConfig.outputDeviceChannels;
     rtaudioFormat = audioConfig.audioFormatFlag;
 
-    OpusEncoderObject = opus_encoder_create(audioConfig.sampleRate, audioConfig.inputDeviceChannels, OpusApplication, &ErrorCode);
-    OpusDecoderObject = opus_decoder_create(audioConfig.sampleRate, audioConfig.outputDeviceChannels, &ErrorCode);
+    int errorCode = OPUS_OK;
+    OpusEncoderObject = opus_encoder_create(audioConfig.sampleRate, audioConfig.inputDeviceChannels, OPUS_APPLICATION_VOIP, &errorCode);
+    OpusDecoderObject = opus_decoder_create(audioConfig.sampleRate, audioConfig.outputDeviceChannels, &errorCode);
+    
+    if (errorCode != OPUS_OK)
+    {
+        std::cerr << "Opus: " << opus_strerror(errorCode) << std::endl;
+        return false;
+    }
     
     //enable DTX for Opus, if enabled generally
     opus_encoder_ctl(OpusEncoderObject, OPUS_SET_DTX(configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX")));
-
-    if (ErrorCode == OPUS_OK)
-    {
-        return true;
-    }
-    else
-    {
-        if (ErrorCode == OPUS_ALLOC_FAIL)
-        {
-            std::cerr << "Opus: Memory allocation has failed." << std::endl;
-            return false;
-        }
-        else if (ErrorCode == OPUS_BAD_ARG)
-        {
-            std::cerr << "Opus: One or more invalid/out of range arguments." << std::endl;
-            return false;
-        }
-        else if (ErrorCode == OPUS_BUFFER_TOO_SMALL)
-        {
-            std::cerr << "Opus: The mode struct passed is invalid." << std::endl;
-            return false;
-        }
-        else if (ErrorCode == OPUS_INTERNAL_ERROR)
-        {
-            std::cerr << "Opus: Internal error." << std::endl;
-            return false;
-        }
-        else if (ErrorCode == OPUS_INVALID_PACKET)
-        {
-            std::cerr << "Opus: The compressed data passed is corrupted." << std::endl;
-            return false;
-        }
-        else if (ErrorCode == OPUS_INVALID_STATE)
-        {
-            std::cerr << "Opus: An encoder or decoder structure is invalid or already freed." << std::endl;
-            return false;
-        }
-        else if (ErrorCode == OPUS_UNIMPLEMENTED)
-        {
-            std::cerr << "Opus: Invalid/unsupported request number. " << std::endl;
-            return false;
-        }
-        else
-        {
-            std::cerr << "Opus: Unknown error." << std::endl;
-            return false;
-        }
-    }
+    
+    //enable FEC for opus
+    //XXX FEC doesn't work yet, is not added to package??
+//    if(configMode->isCustomConfigurationSet(Parameters::ENABLE_FEC->longName, "Enable FEC"))
+//    {
+//        //useFEC = true;
+//        opus_encoder_ctl(OpusEncoderObject, OPUS_SET_INBAND_FEC(1));
+//    }
+    
+    std::cout << "Opus: configured using version: " << opus_get_version_string() << std::endl;
+    
+    return true;
 }
 
 unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
@@ -147,17 +119,24 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
 
 unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
+    const bool packageLost = userData->isSilentPackage;
     unsigned int numberOfDecodedSamples = 0;
     if (rtaudioFormat == AudioConfiguration::AUDIO_FORMAT_SINT16)
     {
-        numberOfDecodedSamples = opus_decode(OpusDecoderObject, (unsigned char *)outputBuffer, outputBufferByteSize, (opus_int16 *)outputBuffer, userData->maxBufferSize, 0);
+        if(packageLost) //to trigger PLC (package loss concealment), set data to nullptr
+            numberOfDecodedSamples = opus_decode(OpusDecoderObject, nullptr, outputBufferByteSize, (opus_int16 *)outputBuffer, userData->nBufferFrames, useFEC);
+        else
+            numberOfDecodedSamples = opus_decode(OpusDecoderObject, (unsigned char *)outputBuffer, outputBufferByteSize, (opus_int16 *)outputBuffer, userData->nBufferFrames, useFEC);
         userData->nBufferFrames = numberOfDecodedSamples;
         const unsigned int outputBufferInBytes = (numberOfDecodedSamples * sizeof(opus_int16) * outputDeviceChannels);
         return outputBufferInBytes;
     }
     else if (rtaudioFormat == AudioConfiguration::AUDIO_FORMAT_FLOAT32)
     {
-        numberOfDecodedSamples = opus_decode_float(OpusDecoderObject, (const unsigned char *)outputBuffer, outputBufferByteSize, (float *)outputBuffer, userData->maxBufferSize, 0);
+        if(packageLost) //to trigger PLC (package loss concealment), set data to nullptr
+            numberOfDecodedSamples = opus_decode_float(OpusDecoderObject, nullptr, outputBufferByteSize, (float *)outputBuffer, userData->nBufferFrames, useFEC);
+        else
+            numberOfDecodedSamples = opus_decode_float(OpusDecoderObject, (const unsigned char *)outputBuffer, outputBufferByteSize, (float *)outputBuffer, userData->nBufferFrames, useFEC);
         userData->nBufferFrames = numberOfDecodedSamples;
         const unsigned int outputBufferInBytes = (numberOfDecodedSamples * sizeof(float) * outputDeviceChannels);
         return outputBufferInBytes;

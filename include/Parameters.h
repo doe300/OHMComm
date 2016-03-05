@@ -153,6 +153,7 @@ public:
     static const Parameter* AUDIO_PROCESSOR;
     static const Parameter* PROFILE_PROCESSORS;
     static const Parameter* ENABLE_DTX;
+    static const Parameter* ENABLE_FEC;
     
     static const Parameter* SDES_CNAME;
     static const Parameter* SDES_EMAIL;

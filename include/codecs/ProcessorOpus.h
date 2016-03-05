@@ -11,7 +11,7 @@ class ProcessorOpus : public AudioProcessor
 public:
 
     //! constructor, initialises the OpusApplication type and the OpusEncoderObject and OpusDecoderObject
-    ProcessorOpus(const std::string name, int opusApplication);
+    ProcessorOpus(const std::string name);
 
     //! returns supported Audio Formats by Opus: only rtaudio SINT16 or FLOAT32 supported
     unsigned int getSupportedAudioFormats() const;
@@ -63,8 +63,7 @@ public:
 private:
     OpusEncoder *OpusEncoderObject;
     OpusDecoder *OpusDecoderObject;
-    int OpusApplication;
-    int ErrorCode;
+    bool useFEC;
     //number of outputDeviceChannels needed for the calculation of outputBytes in processOutputData
     unsigned int outputDeviceChannels;
     //RtAudioFormat needed to decide if we need the floating point or the fixed-point implementation of opus-encode/decode
