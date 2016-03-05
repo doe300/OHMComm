@@ -222,7 +222,7 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
         return false;
     }
     audioConfiguration.audioFormatFlag = autoSelectAudioFormat(supportedFormats);
-    audioConfiguration.sampleRate = autoSelectSampleRate(supportedSampleRates);
+    audioConfiguration.sampleRate = AudioConfiguration::flagToSampleRate(supportedSampleRates);
 
     //find common supported buffer-size, defaults to 512
     int supportedBufferSize = findOptimalBufferSize(512, audioConfiguration.sampleRate);
@@ -260,62 +260,16 @@ unsigned int ProcessorManager::autoSelectAudioFormat(unsigned int supportedForma
     return AudioConfiguration::AUDIO_FORMAT_SINT8;
 }
 
-unsigned int ProcessorManager::autoSelectSampleRate(unsigned int supportedRatesFlag)
-{
-    if ((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_192000) == AudioConfiguration::SAMPLE_RATE_192000) {
-        return 192000;
-    }
-    if ((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_96000) == AudioConfiguration::SAMPLE_RATE_96000) {
-        return 96000;
-    }
-    if ((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_48000) == AudioConfiguration::SAMPLE_RATE_48000) {
-        return 48000;
-    }
-    if ((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_44100) == AudioConfiguration::SAMPLE_RATE_44100) {
-        return 44100;
-    }
-    if ((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_32000) == AudioConfiguration::SAMPLE_RATE_32000) {
-        return 32000;
-    }
-    if ((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_24000) == AudioConfiguration::SAMPLE_RATE_24000) {
-        return 24000;
-    }
-    if ((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_16000) == AudioConfiguration::SAMPLE_RATE_16000) {
-        return 16000;
-    }
-    if ((supportedRatesFlag & AudioConfiguration::SAMPLE_RATE_12000) == AudioConfiguration::SAMPLE_RATE_12000) {
-        return 12000;
-    }
-    //fall back to worst sample-rate
-    return 8000;
-}
-
 unsigned int ProcessorManager::mapDeviceSampleRates(std::vector<unsigned int> sampleRates)
 {
     unsigned int sampleRate;
     unsigned int sampleRatesFlags = 0;
     for (unsigned int i = 0; i < sampleRates.size(); i++) {
         sampleRate = sampleRates.at(i);
-        if (sampleRate == 8000)
-            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_8000;
-        else if (sampleRate == 12000)
-            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_12000;
-        else if (sampleRate == 16000)
-            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_16000;
-        else if (sampleRate == 24000)
-            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_24000;
-        else if (sampleRate == 32000)
-            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_32000;
-        else if (sampleRate == 44100)
-            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_44100;
-        else if (sampleRate == 48000)
-            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_48000;
-        else if (sampleRate == 96000)
-            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_96000;
-        else if (sampleRate == 192000)
-            sampleRatesFlags |= AudioConfiguration::SAMPLE_RATE_192000;
-        else
+        if(AudioConfiguration::sampleRateToFlag(sampleRate) == 0)
             std::cout << "Unrecognized sample-rate: " << sampleRate << std::endl;
+        else
+            sampleRatesFlags |= AudioConfiguration::sampleRateToFlag(sampleRate);
     }
 
     return sampleRatesFlags;

@@ -124,6 +124,46 @@ struct AudioConfiguration
             default: return "unrecognized audio-format";
         }
     }
+    
+    /*!
+     * Returns the highest sample-rate represented in the flag-parameter
+     * 
+     * \param sampleRateFlag one of AudioConfiguration::SAMPLE_RATE_XXX
+     * 
+     * \return the sample-rate in samples per second or zero for an unrecognized sample-rate
+     */
+    constexpr static unsigned int flagToSampleRate(const uint32_t sampleRateFlag)
+    {
+        return ((sampleRateFlag & SAMPLE_RATE_192000) == SAMPLE_RATE_192000) ? 192000 :
+            ((sampleRateFlag & SAMPLE_RATE_96000) == SAMPLE_RATE_96000) ? 96000 :
+            ((sampleRateFlag & SAMPLE_RATE_48000) == SAMPLE_RATE_48000) ? 48000 :
+            ((sampleRateFlag & SAMPLE_RATE_44100) == SAMPLE_RATE_44100) ? 44100 :
+            ((sampleRateFlag & SAMPLE_RATE_32000) == SAMPLE_RATE_32000) ? 32000 :
+            ((sampleRateFlag & SAMPLE_RATE_24000) == SAMPLE_RATE_24000) ? 24000 :
+            ((sampleRateFlag & SAMPLE_RATE_16000) == SAMPLE_RATE_16000) ? 16000 :
+            ((sampleRateFlag & SAMPLE_RATE_12000) == SAMPLE_RATE_12000) ? 12000 :
+            ((sampleRateFlag & SAMPLE_RATE_8000) == SAMPLE_RATE_8000) ? 8000 : 0;
+    }
+    
+    /*!
+     * Returns the sample-rate flag for the given sample-rate
+     * 
+     * \param sampleRate The sample-rate in samples per second
+     * 
+     * \return the sample-rate flag as one of AudioConfiguration::SAMPLE_RATE_XXX or zero for an unrecognized flag
+     */
+    constexpr static unsigned int sampleRateToFlag(const uint32_t sampleRate)
+    {
+        return (sampleRate == 8000) ? AudioConfiguration::SAMPLE_RATE_8000 : 
+            (sampleRate == 12000) ? AudioConfiguration::SAMPLE_RATE_12000 :
+            (sampleRate == 16000) ? AudioConfiguration::SAMPLE_RATE_16000 :
+            (sampleRate == 24000) ? AudioConfiguration::SAMPLE_RATE_24000 :
+            (sampleRate == 32000) ? AudioConfiguration::SAMPLE_RATE_32000 :
+            (sampleRate == 44100) ? AudioConfiguration::SAMPLE_RATE_44100 :
+            (sampleRate == 48000) ? AudioConfiguration::SAMPLE_RATE_48000 :
+            (sampleRate == 96000) ? AudioConfiguration::SAMPLE_RATE_96000 :
+            (sampleRate == 192000) ? AudioConfiguration::SAMPLE_RATE_192000 : 0;
+    }
 };
 
 #endif	/* CONFIGURATION_H */

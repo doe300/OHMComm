@@ -123,11 +123,6 @@ private:
     static unsigned int autoSelectAudioFormat(unsigned int supportedFormats);
 
     /*!
-     * Returns the sample-rate as number of the best supported sample-rate flag
-     */
-    static unsigned int autoSelectSampleRate(unsigned int supportedRatesFlag);
-
-    /*!
      * Maps the supported sample-rates from the device to the flags specified in AudioConfiguration
      */
     static unsigned int mapDeviceSampleRates(std::vector<unsigned int> sampleRates);
