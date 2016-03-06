@@ -193,9 +193,7 @@ unsigned int ProcessorManager::findOptimalBufferSize(unsigned int defaultBufferS
 bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfiguration, const AudioDevice& inputDevice)
 {
     //preset supported audio-formats with device-supported formats
-    //although there is a value for native audio-formats in the device-info, RtAudio documentation says:
-    // "However, RtAudio will automatically provide format conversion if a particular format is not natively supported."
-    unsigned int supportedFormats = AudioConfiguration::AUDIO_FORMAT_ALL;
+    unsigned int supportedFormats = inputDevice.supportsArbitraryFormats ? AudioConfiguration::AUDIO_FORMAT_ALL : inputDevice.nativeFormats;
     if (audioConfiguration.forceAudioFormatFlag != 0) {
         //force the specific audio-format
         supportedFormats = audioConfiguration.forceAudioFormatFlag;

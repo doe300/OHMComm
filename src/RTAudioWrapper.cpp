@@ -220,8 +220,10 @@ const std::vector<AudioDevice>& RtAudioWrapper::getAudioDevices()
             RtAudio::DeviceInfo deviceInfo = rtaudio.getDeviceInfo(i);
             if(deviceInfo.probed)
             {
+                //although there is a value for native audio-formats in the device-info, RtAudio documentation says:
+                // "However, RtAudio will automatically provide format conversion if a particular format is not natively supported."
                 devices.push_back({deviceInfo.name, deviceInfo.outputChannels, deviceInfo.inputChannels, 
-                        deviceInfo.isDefaultOutput, deviceInfo.isDefaultInput, (unsigned int)deviceInfo.nativeFormats, deviceInfo.sampleRates});
+                        deviceInfo.isDefaultOutput, deviceInfo.isDefaultInput, (unsigned int)deviceInfo.nativeFormats, true, deviceInfo.sampleRates});
             }
         }
     }

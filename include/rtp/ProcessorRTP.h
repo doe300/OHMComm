@@ -24,7 +24,7 @@ public:
      *
      * \param name The name of the AudioProcessor
      *
-     * \param networkwrapper The NetworkWrapper to use sending packages
+     * \param networkConfig The network-configuration to use sending packages
      *
      * \param payloadType The payload-type for the RTP packages
      */

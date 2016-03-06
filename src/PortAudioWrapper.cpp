@@ -147,7 +147,7 @@ const std::vector<AudioDevice>& PortAudioWrapper::getAudioDevices()
             {
                 devices.push_back({info->name, (unsigned int)info->maxOutputChannels, (unsigned int)info->maxInputChannels, 
                         i == defaultOutputDeviceIndex, i == defaultInputDeviceIndex, 
-                        0 /* no way to simply get native formats */, getSupportedSampleRates(i)});
+                        0 /* no way to simply get native formats */, true, getSupportedSampleRates(i)});
             }
         }
     }

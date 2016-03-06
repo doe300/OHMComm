@@ -29,6 +29,8 @@ struct AudioDevice
     const bool defaultInputDevice;
     //a bit-mask of natively supported audio-formats
     const unsigned int nativeFormats;
+    //whether this audio-device supports arbitrary audio-formats, otherwise, only the #nativeFormats are supported
+    const bool supportsArbitraryFormats;
     //a list of all supported sample-rates
     const std::vector<unsigned int> sampleRates;
 
