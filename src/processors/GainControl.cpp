@@ -17,7 +17,9 @@ const Parameter* GainControl::TARGET_GAIN = Parameters::registerParameter(Parame
 double GainControl::lowerSampleLimit = std::numeric_limits<double>::max();
 double GainControl::upperSampleLimit = std::numeric_limits<double>::min();
 
-GainControl::GainControl(const std::string& name) : AudioProcessor(name), gainEnabled(false), gain(1.0), amplifier(nullptr), calculator(nullptr)
+static constexpr ProcessorCapabilities gainCapabilities = {false, true, false, false, false, 0, 0};
+
+GainControl::GainControl(const std::string& name) : AudioProcessor(name, gainCapabilities), gainEnabled(false), gain(1.0), amplifier(nullptr), calculator(nullptr)
 {
 }
 

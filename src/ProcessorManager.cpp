@@ -239,6 +239,36 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
     return true;
 }
 
+const ProcessorCapabilities ProcessorManager::getCombinedCapabilities()
+{
+    ProcessorCapabilities caps = {false, false, false, false, false, 0, 0};
+    for(const std::unique_ptr<AudioProcessor>& proc : audioProcessors)
+    {
+        const ProcessorCapabilities& procCaps = proc->getCapabilities();
+        if(procCaps.isCodec)
+            //there is at least one audio-codec
+            caps.isCodec = true;
+        if(procCaps.canDetectSilence)
+            //at least one processor can detect silence
+            caps.canDetectSilence = true;
+        if(procCaps.canHandleSilence)
+            //at least one processor can handle silence-packages in some special way
+            caps.canHandleSilence = true;
+        if(procCaps.generatesComfortNoise)
+            //at least one processor generates comfort noise
+            caps.generatesComfortNoise = true;
+        if(procCaps.usesForwardErrorCorrection)
+            //at least one processor uses FEC
+            caps.usesForwardErrorCorrection = true;
+        if(procCaps.maximumBandwidth > caps.maximumBandwidth)
+            //return maximum of all bandwidths
+            caps.maximumBandwidth = procCaps.maximumBandwidth;
+        //make a list of all supported resample-rates
+        caps.supportedResampleRates |= procCaps.supportedResampleRates;
+    }
+    return caps;
+}
+
 unsigned int ProcessorManager::autoSelectAudioFormat(unsigned int supportedFormats)
 {
     if ((supportedFormats & AudioConfiguration::AUDIO_FORMAT_FLOAT64) == AudioConfiguration::AUDIO_FORMAT_FLOAT64) {

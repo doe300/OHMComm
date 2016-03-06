@@ -14,19 +14,19 @@
  * Simple resampler to convert higher sample-rates to lower ones (and back).
  * 
  * This implementation only supports integer conversion rates -> the higher sample-rate must be a integer multiple of the lower one.
- * This can be used as audio-processor (not yet) and as tool inside of an audio-processor
+ * This resampler is used to decorate an audio-codec which requires lower sample-rates than supported by the hardware
  */
 class Resampler : public AudioProcessor
 {
 public:
-    Resampler(const std::string& name);
+    Resampler(const std::string& name, std::unique_ptr<AudioProcessor>&& processor, const unsigned int outputSampleRate);
     virtual ~Resampler();
 
     virtual unsigned int getSupportedAudioFormats() const;
+    virtual PayloadType getSupportedPlayloadType() const;
 
-
+    virtual void startup();
     virtual bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
-    bool configure(unsigned int audioFormatFlag, uint8_t inputChannels, uint8_t outputChannels, uint8_t resampleFactor);
 
     virtual unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
     virtual unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
@@ -36,6 +36,8 @@ public:
 private:
     typedef unsigned int (*Compressor)(const void* input, void* output, unsigned int numSamples, uint8_t numChannels, uint8_t factor);
     typedef unsigned int (*Extrapolator)(const void* input, void* output, unsigned int numSamples, uint8_t numChannels, uint8_t factor);
+    const std::unique_ptr<AudioProcessor> processor;
+    const unsigned int outputSampleRate;
     uint8_t audioFormatSize;
     uint8_t samplesFactor;
     uint8_t numInputChannels;

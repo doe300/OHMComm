@@ -99,6 +99,9 @@ public:
      */
     void startupAudioProcessors();
     
+    /*!
+     * Calls AudioProcessor#cleanup() on all registered audio-processors
+     */
     bool cleanUpAudioProcessors();
     
     /*!
@@ -108,6 +111,13 @@ public:
      * \return whether all processors could agree on a value for every field
      */
     bool queryProcessorSupport(AudioConfiguration& audioConfiguration, const AudioDevice& inputDevice);
+    
+    /*!
+     * Returns the combination of the processor-capabilities for all registered audio-processors
+     * 
+     * \return the combined processor-capabilities
+     */
+    const ProcessorCapabilities getCombinedCapabilities();
     
 private:
     std::vector<std::unique_ptr<AudioProcessor>> audioProcessors;

@@ -1,6 +1,6 @@
 #include "ProfilingAudioProcessor.h"
 
-ProfilingAudioProcessor::ProfilingAudioProcessor(AudioProcessor* profiledProcessor) : AudioProcessor(profiledProcessor->getName()),
+ProfilingAudioProcessor::ProfilingAudioProcessor(AudioProcessor* profiledProcessor) : AudioProcessor(profiledProcessor->getName(), profiledProcessor->getCapabilities()),
     profiledProcessor(profiledProcessor), outputProcessingTime(0), inputProcessingTime(0), count(0)
 {
 }

@@ -8,10 +8,9 @@
 #include <string.h>
 
 #include "processors/Resampler.h"
-//TODO we can now resample to lower sample-rates
-//but how to spoof the configuration to believe the lower sample-rate??
 
-Resampler::Resampler(const std::string& name) : AudioProcessor(name), writeBuffer(nullptr)
+Resampler::Resampler(const std::string& name, std::unique_ptr<AudioProcessor>&& processor, const unsigned int outputSampleRate) : AudioProcessor(name), 
+        processor(std::move(processor)), outputSampleRate(outputSampleRate), writeBuffer(nullptr)
 {
 }
 
@@ -25,24 +24,23 @@ unsigned int Resampler::getSupportedAudioFormats() const
 {
     //we support every format except 24 bit signed integer, because there is no such native data type
     //since we don't know the size (in bytes) of float and double, we need to check these here
-    return AudioConfiguration::AUDIO_FORMAT_SINT8 | AudioConfiguration::AUDIO_FORMAT_SINT16 | AudioConfiguration::AUDIO_FORMAT_SINT32 | 
-            (sizeof(float) == 4 ? AudioConfiguration::AUDIO_FORMAT_FLOAT32 : 0) | (sizeof(double) == 8 ? AudioConfiguration::AUDIO_FORMAT_FLOAT64 : 0);
+    // -> only choose formats supported by both the resampler and the internal processor
+    return (AudioConfiguration::AUDIO_FORMAT_SINT8 | AudioConfiguration::AUDIO_FORMAT_SINT16 | AudioConfiguration::AUDIO_FORMAT_SINT32 | 
+            (sizeof(float) == 4 ? AudioConfiguration::AUDIO_FORMAT_FLOAT32 : 0) | (sizeof(double) == 8 ? AudioConfiguration::AUDIO_FORMAT_FLOAT64 : 0))
+            & processor->getSupportedAudioFormats();
 }
 
+PayloadType Resampler::getSupportedPlayloadType() const
+{
+    return processor->getSupportedPlayloadType();
+}
 
 bool Resampler::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
-    //XXX factor
-    return configure(audioConfig.audioFormatFlag, audioConfig.inputDeviceChannels, audioConfig.outputDeviceChannels, 1);
-}
-
-bool Resampler::configure(unsigned int audioFormatFlag, uint8_t inputChannels, uint8_t outputChannels, uint8_t resampleFactor)
-{
-    //configuration for usage as internal tool
-    numInputChannels = inputChannels;
-    numOutputChannels = outputChannels;
-    samplesFactor = resampleFactor;
-    switch(audioFormatFlag)
+    numInputChannels = audioConfig.inputDeviceChannels;
+    numOutputChannels = audioConfig.outputDeviceChannels;
+    samplesFactor = audioConfig.sampleRate / outputSampleRate;
+    switch(audioConfig.audioFormatFlag)
     {
         case AudioConfiguration::AUDIO_FORMAT_SINT8:
             audioFormatSize = sizeof(int8_t);
@@ -70,25 +68,33 @@ bool Resampler::configure(unsigned int audioFormatFlag, uint8_t inputChannels, u
             extrapolateFunc = &Resampler::extrapolate<double>;
             break;
     }
-    return true;
+    AudioConfiguration tmp = audioConfig;
+    tmp.sampleRate = outputSampleRate;
+    //fool the internal processor to think the smaller sample-rate is set
+    return processor->configure(tmp, configMode, bufferSize);
 }
 
+void Resampler::startup()
+{
+    processor->startup();
+}
 
 unsigned int Resampler::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
     const uint16_t numFrames = compressFunc(inputBuffer, inputBuffer, userData->nBufferFrames, numInputChannels, samplesFactor);
     userData->nBufferFrames = numFrames;
-    return audioFormatSize * numInputChannels * numFrames;
+    return processor->processInputData(inputBuffer, audioFormatSize * numInputChannels * numFrames, userData);
 }
 
 unsigned int Resampler::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
 {
+    const unsigned int outputBufferSize = processor->processOutputData(outputBuffer, outputBufferByteSize, userData);
     if(writeBuffer == nullptr)
     {
         writeBuffer = new char[userData->maxBufferSize];
     }
     //since we increase the number of valid bytes in the buffer, we can't edit them in-place
-    memcpy(writeBuffer, outputBuffer, outputBufferByteSize);
+    memcpy(writeBuffer, outputBuffer, outputBufferSize);
     const uint16_t numFrames = extrapolateFunc(writeBuffer, outputBuffer, userData->nBufferFrames, numOutputChannels, samplesFactor);
     userData->nBufferFrames = numFrames;
     return audioFormatSize * numOutputChannels * numFrames;
@@ -99,7 +105,7 @@ bool Resampler::cleanUp()
     if(writeBuffer != nullptr)
         delete[] writeBuffer;
     writeBuffer = nullptr;
-    return true;
+    return processor->cleanUp();
 }
 
 

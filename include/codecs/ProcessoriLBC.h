@@ -10,7 +10,6 @@
 
 #include ILBC_HEADER
 #include "AudioProcessor.h"
-#include "processors/Resampler.h"
 
 /*!
  * Encoder/Decoder for the iLBC-codec
@@ -37,7 +36,6 @@ public:
 
     virtual bool cleanUp();
 private:
-    Resampler resampler;
     iLBC_encinst_t* iLBCEncoder;
     iLBC_decinst_t* iLBCDecoder;
     uint8_t frameLength;
