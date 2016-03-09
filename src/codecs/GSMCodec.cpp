@@ -54,6 +54,8 @@ bool GSMCodec::configure(const AudioConfiguration& audioConfig, const std::share
 {
     encoder = gsm_create();
     decoder = gsm_create();
+    
+    return true;
 }
 
 unsigned int GSMCodec::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
@@ -82,6 +84,8 @@ bool GSMCodec::cleanUp()
         gsm_destroy(decoder);
     encoder = nullptr;
     decoder = nullptr;
+    
+    return true;
 }
 
 #endif

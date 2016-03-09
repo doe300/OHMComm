@@ -14,30 +14,37 @@
  * Simple resampler to convert higher sample-rates to lower ones (and back).
  * 
  * This implementation only supports integer conversion rates -> the higher sample-rate must be a integer multiple of the lower one.
- * This resampler is used to decorate an audio-codec which requires lower sample-rates than supported by the hardware
  */
 class Resampler : public AudioProcessor
 {
 public:
-    Resampler(const std::string& name, std::unique_ptr<AudioProcessor>&& processor, const unsigned int outputSampleRate);
+    Resampler(const std::string& name, const std::vector<unsigned int>& inputSampleRates);
     virtual ~Resampler();
 
     virtual unsigned int getSupportedAudioFormats() const;
-    virtual PayloadType getSupportedPlayloadType() const;
 
-    virtual void startup();
     virtual bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
 
     virtual unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
     virtual unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
 
     virtual bool cleanUp();
+    
+    /*!
+     * Determines the best matching sample-rate from the given vector for the given output-rate
+     * 
+     * \param availableSampleRates A list of all available input sample-rates
+     * 
+     * \param outputSampleRate The output sample-rate to match
+     * 
+     * \return the best matching input sample-rate or zero if no such sample-rate could be found
+     */
+    static unsigned int getBestInputSampleRate(const std::vector<unsigned int>& availableSampleRates, const unsigned int outputSampleRate);
 
 private:
     typedef unsigned int (*Compressor)(const void* input, void* output, unsigned int numSamples, uint8_t numChannels, uint8_t factor);
     typedef unsigned int (*Extrapolator)(const void* input, void* output, unsigned int numSamples, uint8_t numChannels, uint8_t factor);
-    const std::unique_ptr<AudioProcessor> processor;
-    const unsigned int outputSampleRate;
+    const std::vector<unsigned int> inputSampleRates;
     uint8_t audioFormatSize;
     uint8_t samplesFactor;
     uint8_t numInputChannels;

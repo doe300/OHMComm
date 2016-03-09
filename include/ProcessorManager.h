@@ -121,6 +121,9 @@ public:
     
 private:
     std::vector<std::unique_ptr<AudioProcessor>> audioProcessors;
+    //selected best sample-rate to be used by all audio-processors
+    //in normal case (no resampling required), this is the same as the audio-configuration's sample-rate
+    unsigned int processorsSampleRate;
     
     /*!
      * Returns the best match for the number of buffered frames according to all processors

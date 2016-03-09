@@ -7,8 +7,9 @@
 
 #include "ProcessorManager.h"
 #include "ProfilingAudioProcessor.h"
+#include "processors/Resampler.h"
 
-ProcessorManager::ProcessorManager() : audioProcessors()
+ProcessorManager::ProcessorManager() : audioProcessors(), processorsSampleRate(0)
 {
 
 }
@@ -88,9 +89,15 @@ unsigned int ProcessorManager::processAudioInput(void *inputBuffer, const unsign
 
 bool ProcessorManager::configureAudioProcessors(const AudioConfiguration& audioConfiguration, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
+    AudioConfiguration tmpConfig = audioConfiguration;
+    if(audioConfiguration.sampleRate != processorsSampleRate)
+    {
+        std::cout << "Configuring audio-processors with custom sample-rate: " << processorsSampleRate << std::endl;
+        tmpConfig.sampleRate = processorsSampleRate;
+    }
     for (const auto& processor : audioProcessors) {
         std::cout << "Configuring audio-processor '" << processor->getName() << "'..." << std::endl;
-        bool result = processor->configure(audioConfiguration, configMode, bufferSize);
+        bool result = processor->configure(tmpConfig, configMode, bufferSize);
         if (result == false) // Configuration failed
             return false;
     }
@@ -198,8 +205,8 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
         //force the specific audio-format
         supportedFormats = audioConfiguration.forceAudioFormatFlag;
     }
-    //preset supported sample-rates with device-supported rates
-    unsigned int supportedSampleRates = mapDeviceSampleRates(inputDevice.sampleRates);
+    //pretend to support all sample-rates for processors to be un-biased in selecting them
+    unsigned int supportedSampleRates = AudioConfiguration::SAMPLE_RATE_ALL;
     if (audioConfiguration.forceSampleRate != 0) {
         //force the specific sample-rate
         supportedSampleRates = mapDeviceSampleRates({audioConfiguration.forceSampleRate});
@@ -221,18 +228,51 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
     }
     audioConfiguration.audioFormatFlag = autoSelectAudioFormat(supportedFormats);
     audioConfiguration.sampleRate = AudioConfiguration::flagToSampleRate(supportedSampleRates);
+    
+    processorsSampleRate = audioConfiguration.sampleRate;
+    //now check if the audio-library also supports the selected sample-rate(s)
+    if((mapDeviceSampleRates(inputDevice.sampleRates) & supportedSampleRates) == 0)
+    {
+        //device doesn't support any of the available sample-rates
+        std::cout << "Device does not support selected sample-rate, trying resampling..." << std::endl;
+        //add re-sampler to beginning of chain and check compatibility
+        std::unique_ptr<AudioProcessor> resampler(new Resampler("Resampling", inputDevice.sampleRates));
+        supportedFormats = supportedFormats & resampler->getSupportedAudioFormats();
+        if(supportedFormats == 0)
+        {
+            //an audio-format was selected which is not supported by the resampler
+            std::cerr << "Selected audio-format is not supported by resampling!" << std::endl;
+            return false;
+        }
+        
+        //overwrite sample-rate used by audio-library
+        audioConfiguration.sampleRate = Resampler::getBestInputSampleRate(inputDevice.sampleRates, processorsSampleRate);
+        if(audioConfiguration.sampleRate == 0)
+        {
+            std::cerr << "Failed to find matching sample-rate for resampling!" << std::endl;
+            return false;
+        }
+        
+        //XXX profile resampling??
+        audioProcessors.insert(audioProcessors.begin(), std::move(resampler));
+    }
 
     //find common supported buffer-size, defaults to 512
-    int supportedBufferSize = findOptimalBufferSize(512, audioConfiguration.sampleRate);
+    int supportedBufferSize = findOptimalBufferSize(512, processorsSampleRate);
     if (supportedBufferSize == 0) {
         std::cerr << "Could not find a single buffer-size supported by all processors!" << std::endl;
         return false;
     }
     audioConfiguration.framesPerPackage = supportedBufferSize;
-
+    if(processorsSampleRate != audioConfiguration.sampleRate)
+    {
+        //we need more frames from the audio-library, since they are then compressed
+        audioConfiguration.framesPerPackage = supportedBufferSize * (audioConfiguration.sampleRate/processorsSampleRate);
+    }
+    
     std::cout << "Using audio-format: " << AudioConfiguration::getAudioFormatDescription(audioConfiguration.audioFormatFlag, false) << std::endl;
     std::cout << "Using a sample-rate of " << audioConfiguration.sampleRate << " Hz" << std::endl;
-    std::cout << "Using a buffer-size of " << supportedBufferSize << " samples (" << (supportedBufferSize * 1000 / audioConfiguration.sampleRate) << " ms)" << std::endl;
+    std::cout << "Using a buffer-size of " << supportedBufferSize << " samples (" << (audioConfiguration.framesPerPackage * 1000 / audioConfiguration.sampleRate) << " ms)" << std::endl;
 
     return true;
 }
