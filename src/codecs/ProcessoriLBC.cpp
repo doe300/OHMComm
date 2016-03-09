@@ -10,9 +10,7 @@
 
 #include "codecs/ProcessoriLBC.h"
 
-static constexpr ProcessorCapabilities iLBCCapabilities = {true, false, true, true, false, 
-            AudioConfiguration::SAMPLE_RATE_16000|AudioConfiguration::SAMPLE_RATE_24000|
-            AudioConfiguration::SAMPLE_RATE_32000|AudioConfiguration::SAMPLE_RATE_48000, 
+static constexpr ProcessorCapabilities iLBCCapabilities = {true, false, true, true, false, 0,
             1900   //304 Bit per 20 ms -> 38 Byte per 20 ms -> 1900 B/s
                     //400 Bit per 30 ms -> 50 Byte per 30 ms -> 1666 B/s
 };

@@ -21,6 +21,11 @@ const SupportedFormat* SupportedFormats::OPUS_48000 = SupportedFormats::register
 //values as of RFC 3952
 const SupportedFormat* SupportedFormats::iLBC = SupportedFormats::registerFormat(SupportedFormat(PayloadType::ILBC, "iLBC", 8000, 1, AudioProcessorFactory::ILBC_CODEC, false, "mode=20"));
 #endif
+#ifdef AMR_ENCODER_HEADER
+//values according to RFC 4867
+//only allow mode 12.2kbps for now (since it is currently hard-coded into the encoder)
+const SupportedFormat* SupportedFormats::AMR_NB =SupportedFormats::registerFormat(SupportedFormat(PayloadType::AMR_NB, "AMR", 8000, 1, AudioProcessorFactory::AMR_CODEC, false, "mode-set=7;channels=1"));
+#endif
 const SupportedFormat* SupportedFormats::G711_PCMA = SupportedFormats::registerFormat(SupportedFormat(PayloadType::PCMA, SupportedFormat::MEDIA_PCMA, 8000, 1, AudioProcessorFactory::G711_PCMA, true));
 const SupportedFormat* SupportedFormats::G711_PCMU = SupportedFormats::registerFormat(SupportedFormat(PayloadType::PCMU, SupportedFormat::MEDIA_PCMU, 8000, 1, AudioProcessorFactory::G711_PCMU, true));
 #ifdef GSM_HEADER

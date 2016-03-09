@@ -76,6 +76,9 @@ private:
 #ifdef ILBC_HEADER
     static const SupportedFormat* iLBC;
 #endif
+#ifdef AMR_ENCODER_HEADER
+    static const SupportedFormat* AMR_NB;
+#endif
     static const SupportedFormat* G711_PCMA;
     static const SupportedFormat* G711_PCMU;
 #ifdef GSM_HEADER

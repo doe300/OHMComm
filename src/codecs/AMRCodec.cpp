@@ -10,9 +10,9 @@
 #include "codecs/AMRCodec.h"
 #include "Parameters.h"
 
-//FIXME doesn't work yet
+static constexpr ProcessorCapabilities amrCapabilities = {true, false, true, true, false, 0, 1525 /* highest mode says 12.2kbps */};
 
-AMRCodec::AMRCodec(const std::string& name) : AudioProcessor(name), amrEncoder(nullptr), amrDecoder(nullptr)
+AMRCodec::AMRCodec(const std::string& name) : AudioProcessor(name, amrCapabilities), amrEncoder(nullptr), amrDecoder(nullptr)
 {
 }
 
@@ -36,7 +36,7 @@ const std::vector<int> AMRCodec::getSupportedBufferSizes(unsigned int sampleRate
 {
     //RFC 4867 section 4.1: "The duration of one speech frame-block is 20 ms [...]"
     const int defaultPackageSize = 20 * sampleRate / 1000;    //20 ms
-    return {defaultPackageSize, BUFFER_SIZE_ANY};
+    return {defaultPackageSize};
 }
 
 PayloadType AMRCodec::getSupportedPlayloadType() const
@@ -56,18 +56,15 @@ bool AMRCodec::configure(const AudioConfiguration& audioConfig, const std::share
 unsigned int AMRCodec::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
     const bool isSilence = userData->isSilentPackage;
-    //XXX does in-place converting work??
     return Encoder_Interface_Encode(amrEncoder, isSilence ? Mode::MRDTX : Mode::MR122, (const short*)inputBuffer, (unsigned char*)inputBuffer, true);
 }
 
 unsigned int AMRCodec::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
 {
     const bool dtx = userData->isSilentPackage;
-    //XXX does this work??
     Decoder_Interface_Decode(amrDecoder, (unsigned char*)outputBuffer, (short*)outputBuffer, dtx);
-    //XXX need to set number of samples
-    //TODO what to return here??
-    return userData->maxBufferSize;
+    userData->nBufferFrames = 160;
+    return 160 * sizeof(int16_t);
 }
 
 bool AMRCodec::cleanUp()
