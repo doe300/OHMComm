@@ -19,6 +19,8 @@ struct SupportedFormat
     static const std::string MEDIA_PCMA;
     //media name for G.711 mu-law samples
     static const std::string MEDIA_PCMU;
+    //media name for GSM 06.10 samples
+    static const std::string MEDIA_GSM;
     
     //parameter name for opus DTX
     static const std::string FORMAT_OPUS_DTX;
@@ -76,6 +78,9 @@ private:
 #endif
     static const SupportedFormat* G711_PCMA;
     static const SupportedFormat* G711_PCMU;
+#ifdef GSM_HEADER
+    static const SupportedFormat* GSM;
+#endif
     static const SupportedFormat* L16_2_44100;
 };
 

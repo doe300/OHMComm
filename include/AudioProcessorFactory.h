@@ -24,6 +24,7 @@ public:
     static const std::string G711_PCMU;
     static const std::string GAIN_CONTROL;
     static const std::string ILBC_CODEC;
+    static const std::string GSM_CODEC;
     static const std::string AMR_CODEC;
 
     /*!

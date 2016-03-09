@@ -14,6 +14,7 @@
 #include "processors/GainControl.h"
 #include "ProfilingAudioProcessor.h"
 #include "codecs/ProcessoriLBC.h"
+#include "codecs/GSMCodec.h"
 #include "codecs/AMRCodec.h"
 
 const std::string AudioProcessorFactory::OPUS_CODEC = "Opus-Codec";
@@ -22,6 +23,7 @@ const std::string AudioProcessorFactory::G711_PCMA = "A-law";
 const std::string AudioProcessorFactory::G711_PCMU = "mu-law";
 const std::string AudioProcessorFactory::GAIN_CONTROL = "Gain Control";
 const std::string AudioProcessorFactory::ILBC_CODEC = "iLBC-Codec";
+const std::string AudioProcessorFactory::GSM_CODEC = "GSM";
 const std::string AudioProcessorFactory::AMR_CODEC = "AMR-Codec";
 
 AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name, bool createProfiler)
@@ -61,6 +63,10 @@ AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name,
     if(name == ILBC_CODEC)
         processor = new ProcessoriLBC(ILBC_CODEC);
     #endif
+    #ifdef GSMCODEC_H
+    if(name == GSM_CODEC)
+        processor = new GSMCodec(GSM_CODEC);
+    #endif
     #ifdef AMRCODEC_H
     if(name == AMR_CODEC)
         processor = new AMRCodec(AMR_CODEC);
@@ -96,6 +102,9 @@ const std::vector<std::string> AudioProcessorFactory::getAudioProcessorNames()
     #endif
     #ifdef PROCESSORILBC_H
     processorNames.push_back(ILBC_CODEC);
+    #endif
+    #ifdef GSMCODEC_H
+    processorNames.push_back(GSM_CODEC);
     #endif
     #ifdef AMRCODEC_H
     processorNames.push_back(AMR_CODEC);

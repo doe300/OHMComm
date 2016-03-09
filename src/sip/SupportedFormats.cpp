@@ -7,6 +7,7 @@
 const std::string SupportedFormat::MEDIA_LPCM("LPCM");
 const std::string SupportedFormat::MEDIA_PCMA("PCMA");
 const std::string SupportedFormat::MEDIA_PCMU("PCMU");
+const std::string SupportedFormat::MEDIA_GSM("GSM");
 
 const std::string SupportedFormat::FORMAT_OPUS_DTX("usedtx");
 const std::string SupportedFormat::FORMAT_OPUS_FEC("useinbandfec");
@@ -22,6 +23,9 @@ const SupportedFormat* SupportedFormats::iLBC = SupportedFormats::registerFormat
 #endif
 const SupportedFormat* SupportedFormats::G711_PCMA = SupportedFormats::registerFormat(SupportedFormat(PayloadType::PCMA, SupportedFormat::MEDIA_PCMA, 8000, 1, AudioProcessorFactory::G711_PCMA, true));
 const SupportedFormat* SupportedFormats::G711_PCMU = SupportedFormats::registerFormat(SupportedFormat(PayloadType::PCMU, SupportedFormat::MEDIA_PCMU, 8000, 1, AudioProcessorFactory::G711_PCMU, true));
+#ifdef GSM_HEADER
+const SupportedFormat* SupportedFormats::GSM = SupportedFormats::registerFormat(SupportedFormat(PayloadType::GSM, SupportedFormat::MEDIA_GSM, 8000, 1, AudioProcessorFactory::GSM_CODEC, true));
+#endif
 const SupportedFormat* SupportedFormats::L16_2_44100 = SupportedFormats::registerFormat(SupportedFormat(PayloadType::L16_2, SupportedFormat::MEDIA_LPCM, 44100, 2, "", true));
 
 const SupportedFormat* SupportedFormats::registerFormat(SupportedFormat&& format)

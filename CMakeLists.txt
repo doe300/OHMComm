@@ -88,6 +88,16 @@ if(PORTAUDIO_LIBRARY)
 	add_definitions(-DPORTAUDIO_HEADER="portaudio.h")
 endif()
 
+# GSM - http://www.quut.com/gsm/
+#Try to find precompiled library
+find_library(GSM_LIBRARY NAMES gsm libgsm)
+if(GSM_LIBRARY)
+	message(STATUS "GSM library found: " ${GSM_LIBRARY})
+	#Set header to default include path
+	#TODO somehow all libraries are found except libgsm. No idea why
+	#add_definitions(-DGSM_HEADER="gsm/gsm.h")
+endif()
+
 # Check if any audio-library was added
 if(NOT RTAUDIO_LIBRARY AND NOT RTAUDIO_HEADER_PATH AND NOT PORTAUDIO_LIBRARY)
 	message(WARNING "No supported audio-library found!")
