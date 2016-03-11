@@ -19,8 +19,8 @@ const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 
 RTCPHandler::RTCPHandler(const NetworkConfiguration& rtcpConfig, const std::shared_ptr<ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const bool isActiveSender):
-    wrapper(new UDPWrapper(rtcpConfig)), configMode(configMode), startAudioCallback(startCallback), rtcpHandler(), 
-        ourselves(ParticipantDatabase::self()), isActiveSender(isActiveSender)
+    wrapper(new UDPWrapper(rtcpConfig)), configMode(configMode), startAudioCallback(startCallback),
+        isActiveSender(isActiveSender), rtcpHandler(), ourselves(ParticipantDatabase::self())
 {
     //make sure, RTCP for self is set
     if(!ourselves.rtcpData)

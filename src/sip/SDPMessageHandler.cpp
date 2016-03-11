@@ -299,6 +299,10 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
                 {
                     results.push_back(MediaDescription(*(SupportedFormats::getFormat(PayloadType::PCMU)), (unsigned short)port, protocol));
                 }
+                else if(payloadType == PayloadType::GSM)
+                {
+                    results.push_back(MediaDescription(*(SupportedFormats::getFormat(PayloadType::GSM)), (unsigned short)port, protocol));
+                }
                 else
                 {
                     //we don't support any of the other predefined profiles
