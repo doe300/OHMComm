@@ -29,10 +29,9 @@ PayloadType AudioProcessor::getSupportedPlayloadType() const
     return PayloadType::ALL;
 }
 
-bool AudioProcessor::configure(const AudioConfiguration& config, std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void AudioProcessor::configure(const AudioConfiguration& config, std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     //dummy implementation, does nothing
-    return true;
 }
 
 bool AudioProcessor::cleanUp()

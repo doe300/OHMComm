@@ -3,11 +3,11 @@
 
 #include <string>
 #include <vector>
-#include <stdexcept>
 #include <memory>   //std::shared_ptr
 
 #include "configuration.h"
 #include "ConfigurationMode.h"
+#include "error_types.h"
 #include "PayloadType.h"
 #include "processors/ProcessorCapabilities.h"
 
@@ -121,9 +121,9 @@ public:
      * \param configMode The ConfigurationMode to retrieve custom configuration-values from
      * \param bufferSize The actual buffer-size used for a single call to processInputData/-OutputData
      *
-     * \return whether the configuration succeeded without errors
+     * \throw ohmcomm::configuration_error if the configuration failed
      */
-    virtual bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+    virtual void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
 
     /*!
      * Counterpart of configure(). This method is called, when the object is not needed any longer.
@@ -145,6 +145,7 @@ public:
      * \param userData A StreamData-object storing additional information about the stream
      *
      * \return the new number of valid bytes in the inputBuffer, maximal StreamData#maxBufferSize
+     * \throw ohmcomm::playback_error on any error while processing the input-data
      */
     virtual unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData) = 0;
 
@@ -158,6 +159,7 @@ public:
      * \param userData A StreamData-object storing additional information about the stream
      *
      * \return the new number of valid bytes in the outputBuffer, maximal StreamData#maxBufferSize
+     * * \throw ohmcomm::playback_error on any error while processing the output-data
      */
     virtual unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) = 0;
     

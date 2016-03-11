@@ -43,11 +43,10 @@ PayloadType ProcessorMuLaw::getSupportedPlayloadType() const
     return PayloadType::PCMU;
 }
 
-bool ProcessorMuLaw::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProcessorMuLaw::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     maxBufferSize = audioConfig.framesPerPackage * audioConfig.outputDeviceChannels;
     writeBuffer = new int16_t[maxBufferSize];
-    return true;
 }
 
 bool ProcessorMuLaw::cleanUp()

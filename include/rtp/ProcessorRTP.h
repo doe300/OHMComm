@@ -30,7 +30,7 @@ public:
      */
     ProcessorRTP(const std::string name, const NetworkConfiguration& networkConfig, const PayloadType payloadType);
     
-    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+    void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
     
     void startup();
 

@@ -46,7 +46,7 @@ PayloadType GainControl::getSupportedPlayloadType() const
     return PayloadType::ALL;
 }
 
-bool GainControl::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void GainControl::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     const std::string gainParameter = configMode->getCustomConfiguration(TARGET_GAIN->longName, "Insert gain to apply on the volume", "0.0");
     numInputChannels = audioConfig.inputDeviceChannels;
@@ -58,10 +58,9 @@ bool GainControl::configure(const AudioConfiguration& audioConfig, const std::sh
     }
     catch(const std::invalid_argument& e)
     {
-        std::cout << e.what() << std::endl;
         //fetches errors on converting input to double
         gainEnabled = false;
-        return false;
+        throw ohmcomm::configuration_error("GainControl", e.what());
     }
     //calculate amplifier-function to use
     switch(audioConfig.audioFormatFlag)
@@ -105,7 +104,6 @@ bool GainControl::configure(const AudioConfiguration& audioConfig, const std::sh
     {
         std::cout << "Gain Control: Using gain of " << gain << std::endl;
     }
-    return true;
 }
 
 bool GainControl::cleanUp()

@@ -26,7 +26,7 @@ public:
     const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
     PayloadType getSupportedPlayloadType() const;
     
-    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+    void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
     bool cleanUp();
     
     unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);

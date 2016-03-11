@@ -11,9 +11,10 @@ ProcessorRTP::ProcessorRTP(const std::string name, const NetworkConfiguration& n
     ourselves.payloadType = payloadType;
 }
 
-bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     //check whether to enable DTX at all
+    //XXX check if any processor with DTX capabilities exists before asking for configuration-value
     isDTXEnabled = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
     if(isDTXEnabled)
     {
@@ -23,7 +24,6 @@ bool ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::s
         totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
     }
     rtpListener.reset(new RTPListener(network, buffers, bufferSize));
-    return true;
 }
 
 void ProcessorRTP::startup()

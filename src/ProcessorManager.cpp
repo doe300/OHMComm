@@ -96,10 +96,16 @@ bool ProcessorManager::configureAudioProcessors(const AudioConfiguration& audioC
         tmpConfig.sampleRate = processorsSampleRate;
     }
     for (const auto& processor : audioProcessors) {
-        std::cout << "Configuring audio-processor '" << processor->getName() << "'..." << std::endl;
-        bool result = processor->configure(tmpConfig, configMode, bufferSize);
-        if (result == false) // Configuration failed
+        try
+        {
+            std::cout << "Configuring audio-processor '" << processor->getName() << "'..." << std::endl;
+            processor->configure(tmpConfig, configMode, bufferSize);
+        }
+        catch(const ohmcomm::configuration_error& error)
+        {
+            std::cerr << error.what() << std::endl;
             return false;
+        }
     }
     return true;
 }
@@ -272,7 +278,7 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
     
     std::cout << "Using audio-format: " << AudioConfiguration::getAudioFormatDescription(audioConfiguration.audioFormatFlag, false) << std::endl;
     std::cout << "Using a sample-rate of " << audioConfiguration.sampleRate << " Hz" << std::endl;
-    std::cout << "Using a buffer-size of " << supportedBufferSize << " samples (" << (audioConfiguration.framesPerPackage * 1000 / audioConfiguration.sampleRate) << " ms)" << std::endl;
+    std::cout << "Using a buffer-size of " << audioConfiguration.framesPerPackage << " samples (" << (audioConfiguration.framesPerPackage * 1000 / audioConfiguration.sampleRate) << " ms)" << std::endl;
 
     return true;
 }

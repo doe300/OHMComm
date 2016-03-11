@@ -43,11 +43,10 @@ PayloadType ProcessorALaw::getSupportedPlayloadType() const
     return PayloadType::PCMA;
 }
 
-bool ProcessorALaw::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProcessorALaw::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     maxBufferSize = audioConfig.framesPerPackage * audioConfig.outputDeviceChannels;
     writeBuffer = new int16_t[maxBufferSize];
-    return true;
 }
 
 bool ProcessorALaw::cleanUp()

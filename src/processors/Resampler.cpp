@@ -29,7 +29,7 @@ unsigned int Resampler::getSupportedAudioFormats() const
             (sizeof(float) == 4 ? AudioConfiguration::AUDIO_FORMAT_FLOAT32 : 0) | (sizeof(double) == 8 ? AudioConfiguration::AUDIO_FORMAT_FLOAT64 : 0);
 }
 
-bool Resampler::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void Resampler::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     numInputChannels = audioConfig.inputDeviceChannels;
     numOutputChannels = audioConfig.outputDeviceChannels;
@@ -37,8 +37,7 @@ bool Resampler::configure(const AudioConfiguration& audioConfig, const std::shar
     const unsigned int inputSampleRate = getBestInputSampleRate(inputSampleRates, audioConfig.sampleRate);
     if(inputSampleRate == 0)
     {
-        std::cerr << "Resampling: Could not determine matching sample-rate to resample to: " << audioConfig.sampleRate << std::endl;
-        return false;
+        throw ohmcomm::configuration_error("Resampling", std::string("Could not determine matching sample-rate to resample to: ") + std::to_string(audioConfig.sampleRate));
     }
     std::cout << "Resampling: Converting sample-rate of " << inputSampleRate << " to " << audioConfig.sampleRate << std::endl;
     samplesFactor = inputSampleRate / audioConfig.sampleRate;
@@ -71,7 +70,6 @@ bool Resampler::configure(const AudioConfiguration& audioConfig, const std::shar
             extrapolateFunc = &Resampler::extrapolate<double>;
             break;
     }
-    return true;
 }
 
 unsigned int Resampler::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)

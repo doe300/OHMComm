@@ -55,12 +55,11 @@ PayloadType ProcessoriLBC::getSupportedPlayloadType() const
     return PayloadType::ILBC;
 }
 
-bool ProcessoriLBC::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProcessoriLBC::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     if(WebRtcIlbcfix_EncoderCreate(&iLBCEncoder) != 0 || WebRtcIlbcfix_DecoderCreate(&iLBCDecoder) != 0)
     {
-        std::cerr << "iLBC: Error creating encoder and decoder!" << std::endl;
-        return false;
+        throw ohmcomm::configuration_error("iLBC", "Error creating encoder and decoder!");
     }
     
     //if the buffer-size is 20ms of mono or stereo audio-data, use 20
@@ -73,21 +72,17 @@ bool ProcessoriLBC::configure(const AudioConfiguration& audioConfig, const std::
         frameLength = 30;
     else
     {
-        std::cerr << "iLBC: Invalid buffer-size: " << bufferSize << std::endl;
-        return false;
+        throw ohmcomm::configuration_error("iLBC", std::string("Invalid buffer-size: ")+ std::to_string(bufferSize));
     }
     
     if(WebRtcIlbcfix_EncoderInit(iLBCEncoder, frameLength) != 0 || WebRtcIlbcfix_DecoderInit(iLBCDecoder, frameLength) != 0)
     {
-        std::cerr << "iLBC: Error initializing encoder or decoder!" << std::endl;
-        return false;
+        throw ohmcomm::configuration_error("iLBC", "Error initializing encoder or decoder!");
     }
     
     char buf[21];
     WebRtcIlbcfix_version(buf);
     std::cout << "iLBC: configured in version: " << buf << std::endl;
-    
-    return true;
 }
 
 unsigned int ProcessoriLBC::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
@@ -95,7 +90,7 @@ unsigned int ProcessoriLBC::processInputData(void* inputBuffer, const unsigned i
     const WebRtc_Word16 result = WebRtcIlbcfix_Encode(iLBCEncoder, (WebRtc_Word16*)inputBuffer, userData->nBufferFrames, (WebRtc_Word16*)inputBuffer);
     if(result < 0)
     {
-        std::cerr << "iLBC: Error while encoding!" << std::endl;
+        throw ohmcomm::playback_error("iLBC", "Error while encoding!");
     }
     return result;
 }
@@ -116,7 +111,7 @@ unsigned int ProcessoriLBC::processOutputData(void* outputBuffer, const unsigned
     }
     if(result < 0)
     {
-        std::cerr << "iLBC: Error while decoding!" << std::endl;
+        throw ohmcomm::playback_error("iLBC", "Error while decoding!");
     }
     return result;
 }
@@ -129,5 +124,7 @@ bool ProcessoriLBC::cleanUp()
         WebRtcIlbcfix_DecoderFree(iLBCDecoder);
     iLBCEncoder = nullptr;
     iLBCDecoder = nullptr;
+    
+    return true;
 }
 #endif

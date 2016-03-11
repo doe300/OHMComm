@@ -62,7 +62,7 @@ PayloadType ProcessorOpus::getSupportedPlayloadType() const
     return PayloadType::OPUS;
 }
 
-bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     outputDeviceChannels = audioConfig.outputDeviceChannels;
     rtaudioFormat = audioConfig.audioFormatFlag;
@@ -73,8 +73,7 @@ bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::
     
     if (errorCode != OPUS_OK)
     {
-        std::cerr << "Opus: " << opus_strerror(errorCode) << std::endl;
-        return false;
+        throw ohmcomm::configuration_error("Opus", opus_strerror(errorCode));
     }
     
     //enable DTX for Opus, if enabled generally
@@ -82,20 +81,19 @@ bool ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::
     
     //enable FEC for opus
     //XXX FEC doesn't work yet, is not added to package??
-//    if(configMode->isCustomConfigurationSet(Parameters::ENABLE_FEC->longName, "Enable FEC"))
-//    {
-//        //useFEC = true;
-//        opus_encoder_ctl(OpusEncoderObject, OPUS_SET_INBAND_FEC(1));
-//    }
-    
+    if(configMode->isCustomConfigurationSet(Parameters::ENABLE_FEC->longName, "Enable FEC"))
+    {
+        //useFEC = true;
+        opus_encoder_ctl(OpusEncoderObject, OPUS_SET_INBAND_FEC(1));
+    }
     std::cout << "Opus: configured using version: " << opus_get_version_string() << std::endl;
     
-    return true;
+    //XXX rewrite, so sint16/float32 is only checked once and not on every run
 }
 
 unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
-    unsigned int lengthEncodedPacketInBytes = 0;
+    int lengthEncodedPacketInBytes = 0;
     if (rtaudioFormat == AudioConfiguration::AUDIO_FORMAT_SINT16)
     {
         lengthEncodedPacketInBytes = opus_encode(OpusEncoderObject, (opus_int16 *)inputBuffer, userData->nBufferFrames, (unsigned char *)inputBuffer, userData->maxBufferSize);
@@ -106,13 +104,16 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
     }
     else
     {
-        std::cerr << "Opus: No matching encoder found!" << std::endl;
-        return 0;
+        throw ohmcomm::playback_error("Opus", "No matching encoder found!");
     }
     //if output length is 1, DTX is applied
     if(lengthEncodedPacketInBytes == 1)
     {
         userData->isSilentPackage = true;
+    }
+    else if(lengthEncodedPacketInBytes < 0)
+    {
+        throw ohmcomm::playback_error("Opus", opus_strerror(lengthEncodedPacketInBytes));
     }
     return lengthEncodedPacketInBytes;
 }
@@ -143,8 +144,7 @@ unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned
     }
     else
     {
-        std::cerr << "Opus: No matching decoder found!" << std::endl;
-        return 0;
+        throw ohmcomm::playback_error("Opus", "No matching decoder found!");
     }
 }
 

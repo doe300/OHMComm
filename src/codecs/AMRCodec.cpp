@@ -44,13 +44,11 @@ PayloadType AMRCodec::getSupportedPlayloadType() const
     return PayloadType::AMR_NB;
 }
 
-bool AMRCodec::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void AMRCodec::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     const bool useDTX = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
     amrEncoder = Encoder_Interface_init(useDTX);
     amrDecoder = Decoder_Interface_init();
-    //all configured
-    return true;
 }
 
 unsigned int AMRCodec::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
@@ -79,5 +77,7 @@ bool AMRCodec::cleanUp()
         Decoder_Interface_exit(amrDecoder);
         amrDecoder = nullptr;
     }
+    
+    return true;
 }
 #endif

@@ -41,7 +41,7 @@ public:
     PayloadType getSupportedPlayloadType() const;
 
     //! configure the Opus Processor, this creates OpusEncoder and OpusDecoderObject and initializes private variables: outputDeviceChannels, rtaudioFormat and ErrorCode
-    bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+    void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
 
     /*! 
 	 * encodes the Data in inputBuffer(only Signed 16bit or float 32bit PCM and one frame supported) and writes the encoded Data in inputBuffer
