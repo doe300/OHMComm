@@ -13,8 +13,8 @@
 
 using namespace ohmcomm::sip;
 
-SIPConfiguration::SIPConfiguration(const Parameters& params, const NetworkConfiguration& sipConfig) : 
-    ParameterConfiguration(params), handler(sipConfig, "remote", [this](const MediaDescription media, const NetworkConfiguration rtpConfig, const NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
+SIPConfiguration::SIPConfiguration(const ohmcomm::Parameters& params, const ohmcomm::NetworkConfiguration& sipConfig) : 
+    ParameterConfiguration(params), handler(sipConfig, "remote", [this](const MediaDescription media, const ohmcomm::NetworkConfiguration rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
 {
     //overwrite settings from ParameterConfiguration
     useDefaultAudioConfig = false;
@@ -92,7 +92,7 @@ bool SIPConfiguration::isCustomConfigurationSet(const std::string key, const std
     return customConfig.count(key) != 0 || ParameterConfiguration::isCustomConfigurationSet(key, message);
 }
 
-void SIPConfiguration::onRegister(PlaybackObservee* ohmComm)
+void SIPConfiguration::onRegister(ohmcomm::PlaybackObservee* ohmComm)
 {
     handler.stopCallback = ohmComm->createStopCallback();
 }
@@ -102,7 +102,7 @@ void SIPConfiguration::onPlaybackStop()
     handler.shutdown();
 }
 
-void SIPConfiguration::setConfig(const MediaDescription& media, const NetworkConfiguration& rtpConfig, const NetworkConfiguration& customRTCPConfig)
+void SIPConfiguration::setConfig(const MediaDescription& media, const ohmcomm::NetworkConfiguration& rtpConfig, const ohmcomm::NetworkConfiguration& customRTCPConfig)
 {
     //RTP-config
     networkConfig.localPort = rtpConfig.localPort;

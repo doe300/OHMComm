@@ -46,20 +46,20 @@ ohmcomm::PayloadType AMRCodec::getSupportedPlayloadType() const
     return PayloadType::AMR_NB;
 }
 
-void AMRCodec::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void AMRCodec::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     const bool useDTX = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
     amrEncoder = Encoder_Interface_init(useDTX);
     amrDecoder = Decoder_Interface_init();
 }
 
-unsigned int AMRCodec::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
+unsigned int AMRCodec::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, ohmcomm::StreamData* userData)
 {
     const bool isSilence = userData->isSilentPackage;
     return Encoder_Interface_Encode(amrEncoder, isSilence ? Mode::MRDTX : Mode::MR122, (const short*)inputBuffer, (unsigned char*)inputBuffer, true);
 }
 
-unsigned int AMRCodec::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
+unsigned int AMRCodec::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, ohmcomm::StreamData* userData)
 {
     const bool dtx = userData->isSilentPackage;
     Decoder_Interface_Decode(amrDecoder, (unsigned char*)outputBuffer, (short*)outputBuffer, dtx);

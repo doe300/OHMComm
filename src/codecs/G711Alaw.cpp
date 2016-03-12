@@ -45,7 +45,7 @@ ohmcomm::PayloadType G711Alaw::getSupportedPlayloadType() const
     return PayloadType::PCMA;
 }
 
-void G711Alaw::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void G711Alaw::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     maxBufferSize = audioConfig.framesPerPackage * audioConfig.outputDeviceChannels;
     writeBuffer = new int16_t[maxBufferSize];
@@ -59,7 +59,7 @@ bool G711Alaw::cleanUp()
     return true;
 }
 
-unsigned int G711Alaw::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
+unsigned int G711Alaw::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, ohmcomm::StreamData* userData)
 {
     const int16_t* readBuffer = (int16_t*) inputBuffer;
     uint8_t* writeBuffer = (uint8_t*) inputBuffer;
@@ -74,7 +74,7 @@ unsigned int G711Alaw::processInputData(void* inputBuffer, const unsigned int in
     return numSamples;
 }
 
-unsigned int G711Alaw::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
+unsigned int G711Alaw::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, ohmcomm::StreamData* userData)
 {
     //WARNING: we cant just copy from and to the same buffer, since the output type is larger than the input
     //and would override our next input samples!!

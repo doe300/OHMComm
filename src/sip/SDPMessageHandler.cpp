@@ -33,7 +33,7 @@ SDPMessageHandler::SDPMessageHandler()
 {
 }
 
-std::string SDPMessageHandler::createSessionDescription(const std::string& localUserName, const NetworkConfiguration& config, const std::vector<MediaDescription>& media)
+std::string SDPMessageHandler::createSessionDescription(const std::string& localUserName, const ohmcomm::NetworkConfiguration& config, const std::vector<MediaDescription>& media)
 {
     ohmcomm::rtp::NTPTimestamp now = ohmcomm::rtp::NTPTimestamp::now();
     std::string localIP = Utility::getLocalIPAddress(Utility::getNetworkType(config.remoteIPAddress));

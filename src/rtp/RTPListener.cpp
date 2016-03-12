@@ -10,7 +10,7 @@
 
 using namespace ohmcomm::rtp;
 
-RTPListener::RTPListener(std::shared_ptr<NetworkWrapper> wrapper, JitterBuffers& buffers, unsigned int receiveBufferSize) :
+RTPListener::RTPListener(std::shared_ptr<ohmcomm::NetworkWrapper> wrapper, JitterBuffers& buffers, unsigned int receiveBufferSize) :
     wrapper(wrapper), buffers(buffers), rtpHandler(receiveBufferSize)
 {
 }

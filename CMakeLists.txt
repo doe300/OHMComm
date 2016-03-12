@@ -22,7 +22,7 @@ if(NOT MSVC)
 	endif()
 else()
 	# visual studio specific flags
-	set(CMAKE_CXX_FLAGS "/W3 /D_UNICODE /DUNICODE /DNOMINMAX")
+	set(CMAKE_CXX_FLAGS "/W3 /D_UNICODE /DUNICODE /DNOMINMAX /EHsc")
 	add_definitions(-DWIN32_LEAN_AND_MEAN)
 endif()
 

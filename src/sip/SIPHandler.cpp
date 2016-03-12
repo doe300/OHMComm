@@ -15,16 +15,16 @@ using namespace ohmcomm::sip;
 const std::string SIPHandler::SIP_ALLOW_METHODS = Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");
 const std::string SIPHandler::SIP_ACCEPT_TYPES = Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 
-SIPHandler::SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)> configFunction) : 
+SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const ohmcomm::NetworkConfiguration, const ohmcomm::NetworkConfiguration)> configFunction) : 
         userAgents(std::to_string(rand())), network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
 {
-    userAgents.thisUA.userName = Utility::getUserName();
-    userAgents.thisUA.hostName = Utility::getDomainName();
+    userAgents.thisUA.userName = ohmcomm::Utility::getUserName();
+    userAgents.thisUA.hostName = ohmcomm::Utility::getDomainName();
     //we need an initial value for the local IP-address for the ";received="-tag
-    userAgents.thisUA.ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
+    userAgents.thisUA.ipAddress = ohmcomm::Utility::getLocalIPAddress(ohmcomm::Utility::getNetworkType(sipConfig.remoteIPAddress));
     userAgents.thisUA.tag = std::to_string(rand());
     userAgents.thisUA.port = sipConfig.localPort;
-    userAgents.thisUA.callID = SIPHandler::generateCallID(Utility::getDomainName());
+    userAgents.thisUA.callID = SIPHandler::generateCallID(ohmcomm::Utility::getDomainName());
     SIPUserAgent& initialRemoteUA = userAgents.getRemoteUA();
     initialRemoteUA.userName = remoteUser;
     initialRemoteUA.ipAddress = sipConfig.remoteIPAddress;
@@ -189,7 +189,7 @@ void SIPHandler::sendAckRequest(SIPUserAgent& remoteUA)
     network->sendData(message.data(), message.size());
 }
 
-void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo)
+void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength, const ohmcomm::NetworkWrapper::Package& packageInfo)
 {
     SIPRequestHeader requestHeader;
     std::string requestBody;
@@ -331,7 +331,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     }
 }
 
-void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo)
+void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLength, const ohmcomm::NetworkWrapper::Package& packageInfo)
 {
     SIPResponseHeader responseHeader;
     std::string responseBody;
@@ -613,7 +613,7 @@ int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& availableMe
     return -1;
 }
 
-void SIPHandler::updateNetworkConfig(const SIPHeader* header, const NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA)
+void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA)
 {
     if(header != nullptr)
     {
@@ -660,7 +660,7 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header, const NetworkWrapp
     }
 }
 
-void SIPHandler::startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig)
+void SIPHandler::startCommunication(const MediaDescription& descr, const ohmcomm::NetworkConfiguration& rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig)
 {
     state = SessionState::ESTABLISHED;
     std::cout << "SIP: Using following SDP configuration: "

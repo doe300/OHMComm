@@ -6,14 +6,14 @@
 
 using namespace ohmcomm::rtp;
 
-ProcessorRTP::ProcessorRTP(const std::string name, const NetworkConfiguration& networkConfig, const PayloadType payloadType) : AudioProcessor(name), 
-        network(new UDPWrapper(networkConfig)), buffers(128, 200, 1), ourselves(ParticipantDatabase::self()), lastPackageWasSilent(false)
+ProcessorRTP::ProcessorRTP(const std::string name, const ohmcomm::NetworkConfiguration& networkConfig, const ohmcomm::PayloadType payloadType) : 
+    AudioProcessor(name), network(new ohmcomm::UDPWrapper(networkConfig)), buffers(128, 200, 1), ourselves(ParticipantDatabase::self()), lastPackageWasSilent(false)
         //XXX make jitter-settings configurable (or at least use better values)
 {
     ourselves.payloadType = payloadType;
 }
 
-void ProcessorRTP::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProcessorRTP::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     //check whether to enable DTX at all
     //XXX check if any processor with DTX capabilities exists before asking for configuration-value
@@ -33,7 +33,7 @@ void ProcessorRTP::startup()
     rtpListener->startUp();
 }
 
-unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
+unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, ohmcomm::StreamData *userData)
 {
     // pack data into a rtp-package
     if (rtpPackage.get() == nullptr)
@@ -74,7 +74,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
     return inputBufferByteSize;
 }
 
-unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
+unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, ohmcomm::StreamData *userData)
 {
     // unpack data from a RTP-package
     if (rtpPackage.get() == nullptr)

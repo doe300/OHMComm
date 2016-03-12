@@ -65,7 +65,7 @@ ohmcomm::PayloadType OpusCodec::getSupportedPlayloadType() const
     return PayloadType::OPUS;
 }
 
-void OpusCodec::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void OpusCodec::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     outputDeviceChannels = audioConfig.outputDeviceChannels;
     rtaudioFormat = audioConfig.audioFormatFlag;
@@ -94,7 +94,7 @@ void OpusCodec::configure(const AudioConfiguration& audioConfig, const std::shar
     //XXX rewrite, so sint16/float32 is only checked once and not on every run
 }
 
-unsigned int OpusCodec::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
+unsigned int OpusCodec::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, ohmcomm::StreamData *userData)
 {
     int lengthEncodedPacketInBytes = 0;
     if (rtaudioFormat == AudioConfiguration::AUDIO_FORMAT_SINT16)
@@ -121,7 +121,7 @@ unsigned int OpusCodec::processInputData(void *inputBuffer, const unsigned int i
     return lengthEncodedPacketInBytes;
 }
 
-unsigned int OpusCodec::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
+unsigned int OpusCodec::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, ohmcomm::StreamData *userData)
 {
     const bool packageLost = userData->isSilentPackage;
     unsigned int numberOfDecodedSamples = 0;

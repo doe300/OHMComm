@@ -19,9 +19,9 @@ using namespace ohmcomm::rtp;
 const std::chrono::seconds RTCPHandler::sendSRInterval{5};
 const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 
-RTCPHandler::RTCPHandler(const NetworkConfiguration& rtcpConfig, const std::shared_ptr<ConfigurationMode> configMode, 
+RTCPHandler::RTCPHandler(const ohmcomm::NetworkConfiguration& rtcpConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const bool isActiveSender):
-    wrapper(new UDPWrapper(rtcpConfig)), configMode(configMode), startAudioCallback(startCallback),
+    wrapper(new ohmcomm::UDPWrapper(rtcpConfig)), configMode(configMode), startAudioCallback(startCallback),
         isActiveSender(isActiveSender), rtcpHandler(), ourselves(ParticipantDatabase::self())
 {
     //make sure, RTCP for self is set
@@ -54,7 +54,7 @@ void RTCPHandler::shutdown()
     }
 }
 
-void RTCPHandler::onRegister(PlaybackObservee* ohmComm)
+void RTCPHandler::onRegister(ohmcomm::PlaybackObservee* ohmComm)
 {
     stopCallback = ohmComm->createStopCallback();
 }

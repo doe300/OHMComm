@@ -5,6 +5,7 @@
 #include <iostream>
 
 using namespace ohmcomm::sip;
+using namespace ohmcomm;
 
 const std::string SupportedFormat::MEDIA_LPCM("LPCM");
 const std::string SupportedFormat::MEDIA_PCMA("PCMA");

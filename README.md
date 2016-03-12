@@ -48,6 +48,7 @@ This will build the library/executable into `<project-directory>/build/` by defa
 - [Opus](http://www.opus-codec.org/): An highly effective audio-codec, primarily used for real-time applications (e.g. VoIP)
 - [G.711](https://www.itu.int/rec/T-REC-G.711): The two audio-codecs (A-law and mu-law) used for digital telephony
 - [iLBC](https://tools.ietf.org/html/rfc3951): Another low-bandwidth VoIP codec, defined in RFC 3951, now a part of [WebRTC](https://webrtc.org/)
+- [GSM]: GSM 06.10 Mobile communication standard
 
 ## Features
 - Fully standard-conform communication based on [RTP](https://tools.ietf.org/html/rfc3550) including full [RTCP](https://tools.ietf.org/html/rfc3550#section-6) support
