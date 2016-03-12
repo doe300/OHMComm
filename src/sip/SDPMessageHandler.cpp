@@ -12,6 +12,8 @@
 #include "sip/SIPPackageHandler.h"
 #include "network/NetworkGrammars.h"
 
+using namespace ohmcomm::sip;
+
 //clang seems to need the static char-fields to be declared for linker to find them
 constexpr char SessionDescription::SDP_VERSION;
 constexpr char SessionDescription::SDP_ORIGIN;
@@ -33,7 +35,7 @@ SDPMessageHandler::SDPMessageHandler()
 
 std::string SDPMessageHandler::createSessionDescription(const std::string& localUserName, const NetworkConfiguration& config, const std::vector<MediaDescription>& media)
 {
-    NTPTimestamp now = NTPTimestamp::now();
+    ohmcomm::rtp::NTPTimestamp now = ohmcomm::rtp::NTPTimestamp::now();
     std::string localIP = Utility::getLocalIPAddress(Utility::getNetworkType(config.remoteIPAddress));
     std::string addrType = NetworkGrammars::isIPv6Address(localIP) ? "IP6" : "IP4";
     
@@ -326,7 +328,7 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
     return std::move(results);
 }
 
-NetworkConfiguration SDPMessageHandler::readRTCPAttribute(const SessionDescription& sdp)
+ohmcomm::NetworkConfiguration SDPMessageHandler::readRTCPAttribute(const SessionDescription& sdp)
 {
     NetworkConfiguration config{0};
     config.remoteIPAddress = "";

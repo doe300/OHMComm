@@ -7,6 +7,8 @@
 
 #include "TestParameters.h"
 
+using namespace ohmcomm;
+
 TestParameters::TestParameters() : params({},{})
 {
     TEST_ADD(TestParameters::testParseParameters);

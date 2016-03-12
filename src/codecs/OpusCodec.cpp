@@ -1,15 +1,18 @@
 #ifdef OPUS_HEADER //Only compile, if opus is linked
-#include "codecs/ProcessorOpus.h"
+#include "codecs/OpusCodec.h"
 #include "Parameters.h"
 
-static constexpr ProcessorCapabilities opusCapabilities = {true, true, true, true, false, 0, 0};
+using namespace ohmcomm::codecs;
 
-ProcessorOpus::ProcessorOpus(const std::string name) : 
+static constexpr ohmcomm::ProcessorCapabilities opusCapabilities = {true, true, true, true, false, 0, 0};
+
+
+OpusCodec::OpusCodec(const std::string name) : 
     AudioProcessor(name, opusCapabilities), OpusEncoderObject(nullptr), OpusDecoderObject(nullptr), useFEC(false)
 {
 }
 
-ProcessorOpus::~ProcessorOpus()
+OpusCodec::~OpusCodec()
 {
     if(OpusEncoderObject != nullptr)
         opus_encoder_destroy(OpusEncoderObject);
@@ -17,18 +20,18 @@ ProcessorOpus::~ProcessorOpus()
         opus_decoder_destroy(OpusDecoderObject);
 }
 
-unsigned int ProcessorOpus::getSupportedAudioFormats() const
+unsigned int OpusCodec::getSupportedAudioFormats() const
 {
     return AudioConfiguration::AUDIO_FORMAT_SINT16|AudioConfiguration::AUDIO_FORMAT_FLOAT32;
 }
 
-unsigned int ProcessorOpus::getSupportedSampleRates() const
+unsigned int OpusCodec::getSupportedSampleRates() const
 {
     unsigned int SupportedSampleRates = AudioConfiguration::SAMPLE_RATE_8000|AudioConfiguration::SAMPLE_RATE_12000|AudioConfiguration::SAMPLE_RATE_16000|AudioConfiguration::SAMPLE_RATE_24000|AudioConfiguration::SAMPLE_RATE_48000;
     return SupportedSampleRates;
 }
 
-const std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampleRate) const
+const std::vector<int> OpusCodec::getSupportedBufferSizes(unsigned int sampleRate) const
 {
     if (sampleRate == 8000)
     {
@@ -57,12 +60,12 @@ const std::vector<int> ProcessorOpus::getSupportedBufferSizes(unsigned int sampl
     }
 }
 
-PayloadType ProcessorOpus::getSupportedPlayloadType() const
+ohmcomm::PayloadType OpusCodec::getSupportedPlayloadType() const
 {
     return PayloadType::OPUS;
 }
 
-void ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void OpusCodec::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     outputDeviceChannels = audioConfig.outputDeviceChannels;
     rtaudioFormat = audioConfig.audioFormatFlag;
@@ -91,7 +94,7 @@ void ProcessorOpus::configure(const AudioConfiguration& audioConfig, const std::
     //XXX rewrite, so sint16/float32 is only checked once and not on every run
 }
 
-unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
+unsigned int OpusCodec::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData)
 {
     int lengthEncodedPacketInBytes = 0;
     if (rtaudioFormat == AudioConfiguration::AUDIO_FORMAT_SINT16)
@@ -118,7 +121,7 @@ unsigned int ProcessorOpus::processInputData(void *inputBuffer, const unsigned i
     return lengthEncodedPacketInBytes;
 }
 
-unsigned int ProcessorOpus::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
+unsigned int OpusCodec::processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData)
 {
     const bool packageLost = userData->isSilentPackage;
     unsigned int numberOfDecodedSamples = 0;

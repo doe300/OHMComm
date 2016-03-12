@@ -1,13 +1,15 @@
 
 #include <memory>
 #include "OHMComm.h"
-#include "AudioProcessorFactory.h"
-#include "AudioHandlerFactory.h"
+#include "processors/AudioProcessorFactory.h"
+#include "audio/AudioHandlerFactory.h"
 
 #include "config/InteractiveConfiguration.h"
 #include "config/ParameterConfiguration.h"
 #include "config/PassiveConfiguration.h"
 #include "sip/SIPConfiguration.h"
+
+using namespace ohmcomm;
 
 int main(int argc, char* argv[])
 {
@@ -56,7 +58,7 @@ int main(int argc, char* argv[])
             sipConfig.remoteIPAddress = Utility::getAddressForHostName(params.getParameterValue(Parameters::REMOTE_ADDRESS));
             sipConfig.remotePort = atoi(params.getParameterValue(Parameters::SIP_REMOTE_PORT).data());
             sipConfig.localPort = atoi(params.getParameterValue(Parameters::SIP_LOCAL_PORT).data());
-            ohmComm.reset(new OHMComm(new SIPConfiguration(params, sipConfig)));
+            ohmComm.reset(new OHMComm(new sip::SIPConfiguration(params, sipConfig)));
         }
         else if(params.isParameterSet(Parameters::PASSIVE_CONFIGURATION))
         {

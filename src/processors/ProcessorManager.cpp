@@ -5,9 +5,11 @@
  * Created on February 22, 2016, 11:17 AM
  */
 
-#include "ProcessorManager.h"
-#include "ProfilingAudioProcessor.h"
+#include "processors/ProcessorManager.h"
+#include "processors/ProfilingAudioProcessor.h"
 #include "processors/Resampler.h"
+
+using namespace ohmcomm;
 
 ProcessorManager::ProcessorManager() : audioProcessors(), processorsSampleRate(0)
 {

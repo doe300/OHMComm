@@ -10,6 +10,8 @@
 
 #include "processors/Resampler.h"
 
+using namespace ohmcomm;
+
 Resampler::Resampler(const std::string& name, const std::vector<unsigned int>& inputSampleRates) : AudioProcessor(name), 
         inputSampleRates(inputSampleRates), writeBuffer(nullptr)
 {

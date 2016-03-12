@@ -5,8 +5,9 @@
  * Created on July 22, 2015, 5:35 PM
  */
 
-#include "ProcessorWAV.h"
+#include "processors/ProcessorWAV.h"
 
+using namespace ohmcomm;
 using namespace wav;
 
 const Parameter* ProcessorWAV::INPUT_FILE_NAME = Parameters::registerParameter(Parameter(ParameterCategory::PROCESSORS, 'I', "input-wav-file", "wav-Writer. The name of the wav-file to log the audio-input", ""));
@@ -30,17 +31,15 @@ ProcessorWAV::~ProcessorWAV()
     }
 }
 
-bool ProcessorWAV::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode)
+void ProcessorWAV::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     if(audioConfig.audioFormatFlag != AudioConfiguration::AUDIO_FORMAT_SINT16)
     {
-        std::cerr << "Unsupported audio-format!" << std::endl;
-        return false;
+        throw ohmcomm::configuration_error("WAV", "Unsupported audio-format!");
     }
     if(audioConfig.sampleRate != 44100)
     {
-        std::cerr << "Unsupported sample-rate!" << std::endl;
-        return false;
+        throw ohmcomm::configuration_error("WAV", "Unsupported sample-rate!");
     }
     if(configMode->isCustomConfigurationSet(INPUT_FILE_NAME->longName, "Log audio-input?"))
     {
@@ -52,17 +51,11 @@ bool ProcessorWAV::configure(const AudioConfiguration& audioConfig, const std::s
         std::string fileName = configMode->getCustomConfiguration(OUTPUT_FILE_NAME->longName, "Type audio-output file-name", "");
         writeOutputFile = wavfile_open(fileName.c_str());
     }
-    return true;
 }
 
 unsigned int ProcessorWAV::getSupportedAudioFormats() const
 {
     return AudioConfiguration::AUDIO_FORMAT_SINT16;
-}
-
-const std::vector<int> ProcessorWAV::getSupportedBufferSizes(unsigned int sampleRate) const
-{
-    return std::vector<int>{BUFFER_SIZE_ANY};
 }
 
 unsigned int ProcessorWAV::getSupportedSampleRates() const

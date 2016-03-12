@@ -3,6 +3,8 @@
 
 #include "rtp/ParticipantDatabase.h"
 
+using namespace ohmcomm::rtp;
+
 Participant ParticipantDatabase::localParticipant = initLocalParticipant();
 std::map<uint32_t, Participant> ParticipantDatabase::participants{};
 

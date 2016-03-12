@@ -1,5 +1,7 @@
 #include "TestNetworkWrappers.h"
 
+using namespace ohmcomm;
+
 TestNetworkWrappers::TestNetworkWrappers() : bufferSize(511), sendBuffer(new char[bufferSize]), receiveBuffer(new char[bufferSize])
 {
     TEST_ADD(TestNetworkWrappers::testUDPWrapperIPv4);

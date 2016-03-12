@@ -13,8 +13,9 @@
  * effective data rate of 13,200 b/s."
  */
 static constexpr unsigned int GSM_FRAME_SIZE = 33;
-static constexpr ProcessorCapabilities gsmCapabilities = {true, false, false, false, false, 0, GSM_FRAME_SIZE * 50 /* 33 Byte times 50 frames per second */};
+static constexpr ohmcomm::ProcessorCapabilities gsmCapabilities = {true, false, false, false, false, 0, GSM_FRAME_SIZE * 50 /* 33 Byte times 50 frames per second */};
 
+using namespace ohmcomm::codecs;
 
 GSMCodec::GSMCodec(const std::string& name) : AudioProcessor(name, gsmCapabilities), encoder(nullptr), decoder(nullptr)
 {
@@ -45,17 +46,15 @@ const std::vector<int> GSMCodec::getSupportedBufferSizes(unsigned int sampleRate
     return {defaultPackageSize};
 }
 
-PayloadType GSMCodec::getSupportedPlayloadType() const
+ohmcomm::PayloadType GSMCodec::getSupportedPlayloadType() const
 {
     return PayloadType::GSM;
 }
 
-bool GSMCodec::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void GSMCodec::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     encoder = gsm_create();
     decoder = gsm_create();
-    
-    return true;
 }
 
 unsigned int GSMCodec::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)

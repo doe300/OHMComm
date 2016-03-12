@@ -10,6 +10,8 @@
 
 #include <chrono>
 
+using namespace ohmcomm::sip;
+
 const std::vector<std::string> STUNClient::STUN_SERVERS = {
     "stun.stunprotocol.org",
     "stun.sipgate.net",

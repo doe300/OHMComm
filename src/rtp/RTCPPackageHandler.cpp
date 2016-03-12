@@ -9,6 +9,8 @@
 
 #include "rtp/RTCPPackageHandler.h"
 
+using namespace ohmcomm::rtp;
+
 RTCPPackageHandler::RTCPPackageHandler() : rtcpPackageBuffer(8000)
 {
     //maximal SR size: 8 (header) + 20 (sender-info) + 31 (5 bit RC count) * 24 (reception report) = 772

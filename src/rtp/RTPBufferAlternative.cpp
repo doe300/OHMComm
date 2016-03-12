@@ -1,5 +1,7 @@
 #include "rtp/RTPBufferAlternative.h"
 
+using namespace ohmcomm::rtp;
+
 RTPBufferAlternative::RTPBufferAlternative(uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) :
 maxCapacity(maxCapacity), maxDelay(maxDelay), minBufferPackages(minBufferPackages), ringBuffer(nullptr)
 {

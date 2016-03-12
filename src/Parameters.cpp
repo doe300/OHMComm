@@ -11,6 +11,8 @@
 #include <string.h>
 #include <fstream>
 
+using namespace ohmcomm;
+
 std::list<Parameter> Parameters::availableParameters = {};
 //parameters must be registered after initializing the availableParameters
 const Parameter* Parameters::HELP = Parameters::registerParameter(Parameter(ParameterCategory::GENERAL, 'h', "help", "Print this help page and exit"));

@@ -24,8 +24,8 @@ private:
     const unsigned short maxCapacity;
     const unsigned short maxDelay;
     const unsigned short minBufferPackages;
-    RTPBufferHandler* handler;
-    RTPPackageHandler package;
+    ohmcomm::rtp::RTPBufferHandler* handler;
+    ohmcomm::rtp::RTPPackageHandler package;
 
 };
 

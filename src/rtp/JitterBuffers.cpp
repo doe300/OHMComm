@@ -8,6 +8,8 @@
 #include "rtp/JitterBuffers.h"
 #include "rtp/RTPBuffer.h"
 
+using namespace ohmcomm::rtp;
+
 JitterBuffers::JitterBuffers(const uint16_t maxCapacity, const uint16_t maxDelay, const uint16_t minBufferPackage) :
     maximumCapacity(maxCapacity), maximumDelay(maxDelay), minBufferPackages(minBufferPackage)
 {

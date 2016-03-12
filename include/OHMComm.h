@@ -10,8 +10,8 @@
 
 #include "PlaybackListener.h"
 
-#include "ConfigurationMode.h"
-#include "AudioHandler.h"
+#include "config/ConfigurationMode.h"
+#include "audio/AudioHandler.h"
 #include "rtp/RTCPHandler.h"
 
 #include <functional>
@@ -20,84 +20,87 @@
 #include <stdexcept>
 #include <vector>
 
-/*!
- * Main class containing all required methods to start and control the P2P communication.
- *
- * There are several modes, the OHMComm can run in. For a full list, see the ConfigurationMode subclasses
- */
-class OHMComm : public PlaybackObservee
+namespace ohmcomm
 {
-public:
-    
-    /*!
-     * Creates a new OHMComm with the given configuration-mode
-     */
-    OHMComm(ConfigurationMode* mode);
 
     /*!
-     * Delete copy-constructor
-     */
-    OHMComm(const OHMComm& orig) = delete;
-
-    /*!
-     * Delete copy-assignment
-     */
-    OHMComm& operator=(const OHMComm& orig) = delete;
-    virtual ~OHMComm();
-
-    /*!
-     * \return The configuration mode of this OHMComm object
-     */
-    std::shared_ptr<ConfigurationMode> getConfigurationMode() const;
-
-    /*!
-     * Once this OHMComm-object has been started, all calls to any configuration will not change any configuration-values
+     * Main class containing all required methods to start and control the P2P communication.
      *
-     * \return Whether the configuration is active
+     * There are several modes, the OHMComm can run in. For a full list, see the ConfigurationMode subclasses
      */
-    bool isConfigurationActive() const;
+    class OHMComm : public PlaybackObservee
+    {
+    public:
 
-    /*!
-     * \param runConfiguration Whether to run configuration if not yet configured
-     *
-     * \return Whether all necessary fields have been configured
-     */
-    bool isConfigurationDone(bool runConfiguration);
+        /*!
+         * Creates a new OHMComm with the given configuration-mode
+         */
+        OHMComm(ConfigurationMode* mode);
 
-    /*!
-     * Initializes and starts all audio-threads
-     */
-    void startAudioThreads();
+        /*!
+         * Delete copy-constructor
+         */
+        OHMComm(const OHMComm& orig) = delete;
 
-    /*!
-     * Stops all audio-threads
-     */
-    void stopAudioThreads();
+        /*!
+         * Delete copy-assignment
+         */
+        OHMComm& operator=(const OHMComm& orig) = delete;
+        virtual ~OHMComm();
 
-    /*!
-     * \return Whether the audio-communication is running
-     */
-    bool isRunning() const;
-    
-    std::function<void ()> createStopCallback();
-    
-private:
+        /*!
+         * \return The configuration mode of this OHMComm object
+         */
+        std::shared_ptr<ConfigurationMode> getConfigurationMode() const;
 
-    /*! Overall mode of configuration */
-    const std::shared_ptr<ConfigurationMode> configurationMode;
-    /*! Flag, whether this object can be configured */
-    bool configurationActive = true;
-    /*! Flag, whether this OHMComm is currently being executed */
-    bool running = false;
+        /*!
+         * Once this OHMComm-object has been started, all calls to any configuration will not change any configuration-values
+         *
+         * \return Whether the configuration is active
+         */
+        bool isConfigurationActive() const;
 
-    //Configuration fields
-    std::unique_ptr<AudioHandler> audioHandler;
-    std::shared_ptr<RTCPHandler> rtcpHandler;
+        /*!
+         * \param runConfiguration Whether to run configuration if not yet configured
+         *
+         * \return Whether all necessary fields have been configured
+         */
+        bool isConfigurationDone(bool runConfiguration);
 
-    void configureRTPProcessor(bool profileProcessors, const PayloadType payloadType);
-    
-    void startAudio();
-};
+        /*!
+         * Initializes and starts all audio-threads
+         */
+        void startAudioThreads();
 
+        /*!
+         * Stops all audio-threads
+         */
+        void stopAudioThreads();
+
+        /*!
+         * \return Whether the audio-communication is running
+         */
+        bool isRunning() const;
+
+        std::function<void () > createStopCallback();
+
+    private:
+
+        /*! Overall mode of configuration */
+        const std::shared_ptr<ConfigurationMode> configurationMode;
+        /*! Flag, whether this object can be configured */
+        bool configurationActive = true;
+        /*! Flag, whether this OHMComm is currently being executed */
+        bool running = false;
+
+        //Configuration fields
+        std::unique_ptr<AudioHandler> audioHandler;
+        std::shared_ptr<rtp::RTCPHandler> rtcpHandler;
+
+        void configureRTPProcessor(bool profileProcessors, const PayloadType payloadType);
+
+        void startAudio();
+    };
+}
 #endif	/* OHMCOMM_H */
 

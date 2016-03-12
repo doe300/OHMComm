@@ -11,73 +11,76 @@
 #include "ConfigurationMode.h"
 #include <map>
 
-/*!
- * Configuration via the provided methods to be used as library
- */
-class LibraryConfiguration : public ConfigurationMode
+namespace ohmcomm
 {
-public:
-    LibraryConfiguration();
-
-    virtual bool runConfiguration();
-
-    virtual bool isConfigured() const;
-    const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
-    int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
-    bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
-    bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
     /*!
-     * Configures the audio-handler for the LIBRARY configuration-mode
-     *
-     * \param audioHandlerName The name of the AudioHandler to use
-     *
-     * \param audioConfig The audio-configuration or a nullptr
-     *
+     * Configuration via the provided methods to be used as library
      */
-    void configureAudio(const std::string audioHandlerName, const AudioConfiguration* audioConfig);
+    class LibraryConfiguration : public ConfigurationMode
+    {
+    public:
+        LibraryConfiguration();
 
-    /*!
-     * Configures the network for the LIBRARY configuration-mode
-     *
-     * \param networkConfig The network-configuration to use
-     */
-    void configureNetwork(const NetworkConfiguration& networkConfig);
+        virtual bool runConfiguration();
 
-    /*!
-     * Configures the audio-processors for the LIBRARY configuration-mode
-     *
-     * \param processorNames A list of names of audio-processors to add (in the given order)
-     *
-     * \param profileProcessors Whether to create profiler for the given processors
-     */
-    void configureProcessors(const std::vector<std::string>& processorNames, bool profileProcessors);
+        virtual bool isConfigured() const;
+        const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
+        int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+        bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+        bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
-    /*!
-     * (Optional) Configures the log-file for the LIBRARY configuration-mode
-     *
-     * \param logFileName The file-name of the log-file
-     *
-     */
-    void configureLogToFile(const std::string logFileName);
-    
-    /*!
-     * (Optional) Configures whether this instance will wait for a passive configuration-request
-     * 
-     * \param waitForConfig Whether to wait for passive configuration-request
-     */
-    void configureWaitForConfigurationRequest(bool waitForConfig);
+        /*!
+         * Configures the audio-handler for the LIBRARY configuration-mode
+         *
+         * \param audioHandlerName The name of the AudioHandler to use
+         *
+         * \param audioConfig The audio-configuration or a nullptr
+         *
+         */
+        void configureAudio(const std::string audioHandlerName, const AudioConfiguration* audioConfig);
 
-    void configureCustomValue(std::string key, std::string value);
-    void configureCustomValue(std::string key, int value);
-    void configureCustomValue(std::string key, bool value);
+        /*!
+         * Configures the network for the LIBRARY configuration-mode
+         *
+         * \param networkConfig The network-configuration to use
+         */
+        void configureNetwork(const NetworkConfiguration& networkConfig);
 
-private:
-    std::map<std::string, std::string> customConfig;
-    bool isAudioConfigured = false;
-    bool isNetworkConfigured = false;
-    bool isProcessorsConfigured = false;
-};
+        /*!
+         * Configures the audio-processors for the LIBRARY configuration-mode
+         *
+         * \param processorNames A list of names of audio-processors to add (in the given order)
+         *
+         * \param profileProcessors Whether to create profiler for the given processors
+         */
+        void configureProcessors(const std::vector<std::string>& processorNames, bool profileProcessors);
 
+        /*!
+         * (Optional) Configures the log-file for the LIBRARY configuration-mode
+         *
+         * \param logFileName The file-name of the log-file
+         *
+         */
+        void configureLogToFile(const std::string logFileName);
+
+        /*!
+         * (Optional) Configures whether this instance will wait for a passive configuration-request
+         * 
+         * \param waitForConfig Whether to wait for passive configuration-request
+         */
+        void configureWaitForConfigurationRequest(bool waitForConfig);
+
+        void configureCustomValue(std::string key, std::string value);
+        void configureCustomValue(std::string key, int value);
+        void configureCustomValue(std::string key, bool value);
+
+    private:
+        std::map<std::string, std::string> customConfig;
+        bool isAudioConfigured = false;
+        bool isNetworkConfigured = false;
+        bool isProcessorsConfigured = false;
+    };
+}
 #endif	/* LIBRARYCONFIGURATION_H */
 

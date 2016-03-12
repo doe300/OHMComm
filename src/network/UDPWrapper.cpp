@@ -1,5 +1,7 @@
 #include "network/UDPWrapper.h"
 
+using namespace ohmcomm;
+
 UDPWrapper::UDPWrapper(unsigned short portIncoming, const std::string remoteIPAddress, unsigned short portOutgoing) :
 localAddress({0}), remoteAddress({0})
 {

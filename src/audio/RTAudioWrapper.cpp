@@ -1,5 +1,7 @@
-#include "RTAudioWrapper.h"
+#include "audio/RTAudioWrapper.h"
 #include "Statistics.h"
+
+using namespace ohmcomm;
 
 // constructor
 RtAudioWrapper::RtAudioWrapper() : AudioHandler(), bufferAudioOutput(nullptr), streamData(new StreamData())

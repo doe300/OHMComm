@@ -7,6 +7,7 @@
 
 #include "TestAudioProcessors.h"
 
+using namespace ohmcomm;
 
 TestAudioProcessors::TestAudioProcessors()
 {

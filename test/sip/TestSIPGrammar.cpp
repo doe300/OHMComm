@@ -7,6 +7,8 @@
 
 #include "TestSIPGrammar.h"
 
+using namespace ohmcomm::sip;
+
 TestSIPGrammar::TestSIPGrammar() : Suite()
 {
     TEST_ADD(TestSIPGrammar::testSIPURI);

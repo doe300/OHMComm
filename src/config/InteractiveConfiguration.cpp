@@ -7,8 +7,10 @@
 
 #include "config/InteractiveConfiguration.h"
 
-#include "AudioHandlerFactory.h"
-#include "AudioProcessorFactory.h"
+#include "audio/AudioHandlerFactory.h"
+#include "processors/AudioProcessorFactory.h"
+
+using namespace ohmcomm;
 
 bool InteractiveConfiguration::runConfiguration()
 {

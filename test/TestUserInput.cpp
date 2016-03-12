@@ -7,6 +7,8 @@
 
 #include "TestUserInput.h"
 
+using namespace ohmcomm;
+
 TestUserInput::TestUserInput()
 {
     TEST_ADD(TestUserInput::redirectStdin);

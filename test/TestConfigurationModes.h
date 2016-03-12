@@ -1,7 +1,7 @@
 #ifndef TESTCONFIGURATIONMODES_H
 #define TESTCONFIGURATIONMODES_H
 
-#include "ConfigurationMode.h"
+#include "config/ConfigurationMode.h"
 #include "config/InteractiveConfiguration.h"
 #include "config/LibraryConfiguration.h"
 #include "config/ParameterConfiguration.h"

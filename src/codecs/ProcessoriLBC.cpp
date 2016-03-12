@@ -10,10 +10,12 @@
 
 #include "codecs/ProcessoriLBC.h"
 
-static constexpr ProcessorCapabilities iLBCCapabilities = {true, false, true, true, false, 0,
+static constexpr ohmcomm::ProcessorCapabilities iLBCCapabilities = {true, false, true, true, false, 0,
             1900   //304 Bit per 20 ms -> 38 Byte per 20 ms -> 1900 B/s
                     //400 Bit per 30 ms -> 50 Byte per 30 ms -> 1666 B/s
 };
+
+using namespace ohmcomm::codecs;
 
 ProcessoriLBC::ProcessoriLBC(const std::string& name) : AudioProcessor(name, iLBCCapabilities), 
         iLBCEncoder(nullptr), iLBCDecoder(nullptr), frameLength(0)
@@ -50,7 +52,7 @@ const std::vector<int> ProcessoriLBC::getSupportedBufferSizes(unsigned int sampl
     return {packageSize20ms, packageSize30ms};
 }
 
-PayloadType ProcessoriLBC::getSupportedPlayloadType() const
+ohmcomm::PayloadType ProcessoriLBC::getSupportedPlayloadType() const
 {
     return PayloadType::ILBC;
 }

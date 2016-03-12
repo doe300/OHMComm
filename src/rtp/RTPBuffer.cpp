@@ -9,6 +9,7 @@
 #include "rtp/RTPBuffer.h"
 #include "rtp/ParticipantDatabase.h"
 
+using namespace ohmcomm::rtp;
 
 RTPBuffer::RTPBuffer(uint32_t ssrc, uint16_t maxCapacity, uint16_t maxDelay, uint16_t minBufferPackages) : PlayoutPointAdaption(200, minBufferPackages),
     ssrc(ssrc), capacity(maxCapacity), maxDelay(std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(maxDelay)))

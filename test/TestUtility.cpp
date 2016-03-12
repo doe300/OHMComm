@@ -7,6 +7,8 @@
 
 #include "TestUtility.h"
 
+using namespace ohmcomm;
+
 TestUtility::TestUtility()
 {
     TEST_ADD(TestUtility::printDomainInfo);

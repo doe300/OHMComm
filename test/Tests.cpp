@@ -1,5 +1,7 @@
 #include "Tests.h"
 
+using namespace ohmcomm;
+
 TestAudioIO::TestAudioIO() {
 	TEST_ADD(TestAudioIO::testAudioHandlerInstances);
 	TEST_ADD(TestAudioIO::testAudioProcessorInterface);

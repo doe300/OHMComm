@@ -1,4 +1,6 @@
-#include "AudioHandler.h"
+#include "audio/AudioHandler.h"
+
+using namespace ohmcomm;
 
 AudioHandler::AudioHandler() : audioConfiguration({0})
 {

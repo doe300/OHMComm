@@ -29,7 +29,7 @@ public:
     void testIsRTCPPackage();
     
 private:
-    RTCPPackageHandler handler;
+    ohmcomm::rtp::RTCPPackageHandler handler;
     uint32_t testSSRC = 123456789;
 };
 

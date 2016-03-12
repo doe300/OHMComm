@@ -15,131 +15,137 @@
 #include "rtp/RTPHeader.h"
 #include "rtp/ParticipantDatabase.h"
 
-class RTPPackageHandler
+namespace ohmcomm
 {
-public:
-    /*!
-     * Constructs a new RTPPackageHandler-object
-     *
-     * \param maximumPayloadSize The maximum size in bytes of the payload (body)
-     *
-     */
-    RTPPackageHandler(unsigned int maximumPayloadSize, Participant& ourselves = ParticipantDatabase::self());
+    namespace rtp
+    {
 
-    virtual ~RTPPackageHandler();
-    
-    /*!
-     * Generates a new RTP-package by generating the header and copying the payload-data (audio data)
-     *
-     * \param audioData The payload for the new RTP-package
-     *
-     * \param payloadSize The size in bytes of the audio-payload,
-     *  must be smaller or equals to #getMaximumPayloadSize()
-     *
-     * Returns a pointer to the internal buffer storing the new package
-     */
-    virtual const void* createNewRTPPackage(const void* audioData, unsigned int payloadSize);
+        class RTPPackageHandler
+        {
+        public:
+            /*!
+             * Constructs a new RTPPackageHandler-object
+             *
+             * \param maximumPayloadSize The maximum size in bytes of the payload (body)
+             *
+             */
+            RTPPackageHandler(unsigned int maximumPayloadSize, Participant& ourselves = ParticipantDatabase::self());
 
-    /*!
-     * Returns a pointer to the payload of the internal RTP-package
-     */
-    virtual const void* getRTPPackageData() const;
+            virtual ~RTPPackageHandler();
 
-    /*!
-     * Returns a RTPHeader pointer of the currently stored RTP-package.
-     */
-    virtual const RTPHeader* getRTPPackageHeader() const;
-    
-    /*!
-     * Returns a RTPHeaderExtension pointer to the extension in the stored RTP-package. 
-     * If no such extension exists, nullptr is returned.
-     */
-    virtual const RTPHeaderExtension getRTPHeaderExtension() const;
+            /*!
+             * Generates a new RTP-package by generating the header and copying the payload-data (audio data)
+             *
+             * \param audioData The payload for the new RTP-package
+             *
+             * \param payloadSize The size in bytes of the audio-payload,
+             *  must be smaller or equals to #getMaximumPayloadSize()
+             *
+             * Returns a pointer to the internal buffer storing the new package
+             */
+            virtual const void* createNewRTPPackage(const void* audioData, unsigned int payloadSize);
 
-    /*!
-     * Gets the maximum size for the RTP package (header + body)
-     */
-    unsigned int getMaximumPackageSize() const;
+            /*!
+             * Returns a pointer to the payload of the internal RTP-package
+             */
+            virtual const void* getRTPPackageData() const;
 
-    /*!
-     * Gets the RTPHeader size
-     */
-    unsigned int getRTPHeaderSize() const;
-    
-    /*!
-     * Returns the size (in bytes) of the currently stored RTP header-extension
-     */
-    unsigned int getRTPHeaderExtensionSize() const;
+            /*!
+             * Returns a RTPHeader pointer of the currently stored RTP-package.
+             */
+            virtual const RTPHeader* getRTPPackageHeader() const;
 
-    /*!
-     * Gets the maximum payload size
-     */
-    unsigned int getMaximumPayloadSize() const;
+            /*!
+             * Returns a RTPHeaderExtension pointer to the extension in the stored RTP-package. 
+             * If no such extension exists, nullptr is returned.
+             */
+            virtual const RTPHeaderExtension getRTPHeaderExtension() const;
 
-    /*!
-     * Returns the actual size of the currently buffered audio-payload
-     *
-     * Note: This value is only accurate if the #setActualPayloadSize() was set for the current payload
-     */
-    unsigned int getActualPayloadSize() const;
+            /*!
+             * Gets the maximum size for the RTP package (header + body)
+             */
+            unsigned int getMaximumPackageSize() const;
 
-    /*!
-     * Sets the payload-size in bytes of the currently buffered package
-     *
-     * \param payloadSize The new size in bytes
-     */
-    void setActualPayloadSize(unsigned int payloadSize);
+            /*!
+             * Gets the RTPHeader size
+             */
+            unsigned int getRTPHeaderSize() const;
 
-    /*!
-     * Returns the internal buffer, which could be used as receive buffer
-     */
-    void* getWorkBuffer();
+            /*!
+             * Returns the size (in bytes) of the currently stored RTP header-extension
+             */
+            unsigned int getRTPHeaderExtensionSize() const;
 
-    /*!
-     * Creates a silence-package in the internal work-buffer.
-     *
-     * A silence-package is a RTP-package with a dummy header and zeroed out payload resulting in silence on playback.
-     */
-    void createSilencePackage();
+            /*!
+             * Gets the maximum payload size
+             */
+            unsigned int getMaximumPayloadSize() const;
 
-    /*!
-     * Returns the current RTP timestamp for the internal clock
-     */
-    uint32_t getCurrentRTPTimestamp() const;
-    
-    /*!
-     * This method tries to determine whether the received buffer holds an RTP package.
-     *
-     * NOTE: There may be some type of packages, which are not distinguished and falsely accepted as valid RTP-package.
-     *
-     * \param packageBuffer The buffer storing the package-data
-     *
-     * \param packageLength The length of the package in bytes
-     *
-     * \return Whether this buffer COULD be holding hold an RTP package
-     */
-    static bool isRTPPackage(const void* packageBuffer, unsigned int packageLength );
+            /*!
+             * Returns the actual size of the currently buffered audio-payload
+             *
+             * Note: This value is only accurate if the #setActualPayloadSize() was set for the current payload
+             */
+            unsigned int getActualPayloadSize() const;
 
-protected:
-    Participant& ourselves;
-    // A buffer that can store a whole RTP-Package
-    void *workBuffer;
+            /*!
+             * Sets the payload-size in bytes of the currently buffered package
+             *
+             * \param payloadSize The new size in bytes
+             */
+            void setActualPayloadSize(unsigned int payloadSize);
 
-    unsigned int getRandomNumber();
-    unsigned int createStartingTimestamp();
+            /*!
+             * Returns the internal buffer, which could be used as receive buffer
+             */
+            void* getWorkBuffer();
 
-    std::mt19937 randomGenerator;
+            /*!
+             * Creates a silence-package in the internal work-buffer.
+             *
+             * A silence-package is a RTP-package with a dummy header and zeroed out payload resulting in silence on playback.
+             */
+            void createSilencePackage();
 
-    unsigned int sequenceNr;
-    unsigned int initialTimestamp;
+            /*!
+             * Returns the current RTP timestamp for the internal clock
+             */
+            uint32_t getCurrentRTPTimestamp() const;
 
-    unsigned int currentBufferSize;
-    unsigned int maximumPayloadSize;
-    unsigned int maximumBufferSize;
-    unsigned int actualPayloadSize;
-    
-    friend class ProcessorRTP;
-};
+            /*!
+             * This method tries to determine whether the received buffer holds an RTP package.
+             *
+             * NOTE: There may be some type of packages, which are not distinguished and falsely accepted as valid RTP-package.
+             *
+             * \param packageBuffer The buffer storing the package-data
+             *
+             * \param packageLength The length of the package in bytes
+             *
+             * \return Whether this buffer COULD be holding hold an RTP package
+             */
+            static bool isRTPPackage(const void* packageBuffer, unsigned int packageLength);
 
+        protected:
+            Participant& ourselves;
+            // A buffer that can store a whole RTP-Package
+            void *workBuffer;
+
+            unsigned int getRandomNumber();
+            unsigned int createStartingTimestamp();
+
+            std::mt19937 randomGenerator;
+
+            unsigned int sequenceNr;
+            unsigned int initialTimestamp;
+
+            unsigned int currentBufferSize;
+            unsigned int maximumPayloadSize;
+            unsigned int maximumBufferSize;
+            unsigned int actualPayloadSize;
+
+            friend class ProcessorRTP;
+        };
+    }
+}
 #endif	/* RTPPACKAGEHANDLER_H */
 

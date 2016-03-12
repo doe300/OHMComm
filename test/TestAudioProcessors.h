@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "cpptest.h"
-#include "AudioProcessorFactory.h"
+#include "processors/AudioProcessorFactory.h"
 
 class TestAudioProcessors : public Test::Suite
 {

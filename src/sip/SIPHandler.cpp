@@ -10,6 +10,8 @@
 #include "sip/SIPHandler.h"
 #include "network/UDPWrapper.h"
 
+using namespace ohmcomm::sip;
+
 const std::string SIPHandler::SIP_ALLOW_METHODS = Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");
 const std::string SIPHandler::SIP_ACCEPT_TYPES = Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 

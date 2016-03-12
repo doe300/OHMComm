@@ -4,7 +4,9 @@
  *
  * Created on August 19, 2015, 4:48 PM
  */
-#include "ConfigurationMode.h"
+#include "config/ConfigurationMode.h"
+
+using namespace ohmcomm;
 
 ConfigurationMode::ConfigurationMode() : audioConfig( {0} ), networkConfig( {0} ), processorNames(std::vector<std::string>(0))
 {

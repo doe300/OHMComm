@@ -1,4 +1,6 @@
-#include "ProfilingAudioProcessor.h"
+#include "processors/ProfilingAudioProcessor.h"
+
+using namespace ohmcomm;
 
 ProfilingAudioProcessor::ProfilingAudioProcessor(AudioProcessor* profiledProcessor) : AudioProcessor(profiledProcessor->getName(), profiledProcessor->getCapabilities()),
     profiledProcessor(profiledProcessor), outputProcessingTime(0), inputProcessingTime(0), count(0)

@@ -12,6 +12,8 @@
 #include "sip/SIPGrammar.h"
 #include "network/NetworkGrammars.h"
 
+using namespace ohmcomm::sip;
+
 const std::string SIPGrammar::PROTOCOL_SIP("sip");
 const std::string SIPGrammar::PROTOCOL_SIPS("sips");
 const auto flags = std::regex_constants::icase|std::regex_constants::optimize|std::regex_constants::ECMAScript;

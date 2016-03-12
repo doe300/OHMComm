@@ -25,7 +25,7 @@ public:
     void testGetAudioProcessors();
     
 private:
-    Parameters params;
+    ohmcomm::Parameters params;
 };
 
 #endif	/* TESTPARAMETERS_H */

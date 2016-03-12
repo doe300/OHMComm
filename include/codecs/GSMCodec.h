@@ -10,39 +10,45 @@
 #define	GSMCODEC_H
 
 #include GSM_HEADER
-#include "AudioProcessor.h"
+#include "processors/AudioProcessor.h"
 
-/*!
- * Codec using the GSM 06.10 standard available here: http://www.quut.com/gsm/
- * 
- * RTP payload for GSM is defined in RFC 3551
- */
-class GSMCodec : public AudioProcessor
+namespace ohmcomm
 {
-public:
-    GSMCodec(const std::string& name);
-    virtual ~GSMCodec();
+    namespace codecs
+    {
 
-    virtual unsigned int getSupportedAudioFormats() const;
+        /*!
+         * Codec using the GSM 06.10 standard available here: http://www.quut.com/gsm/
+         * 
+         * RTP payload for GSM is defined in RFC 3551
+         */
+        class GSMCodec : public AudioProcessor
+        {
+        public:
+            GSMCodec(const std::string& name);
+            virtual ~GSMCodec();
 
-    virtual unsigned int getSupportedSampleRates() const;
+            virtual unsigned int getSupportedAudioFormats() const;
 
-    virtual const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
+            virtual unsigned int getSupportedSampleRates() const;
 
-    virtual PayloadType getSupportedPlayloadType() const;
+            virtual const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
 
-    virtual bool configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+            virtual PayloadType getSupportedPlayloadType() const;
 
-    virtual unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
+            virtual void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
 
-    virtual unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
+            virtual unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
 
-    virtual bool cleanUp();
-    
-private:
-    gsm encoder;
-    gsm decoder;
-};
+            virtual unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
 
+            virtual bool cleanUp();
+
+        private:
+            gsm encoder;
+            gsm decoder;
+        };
+    }
+}
 #endif	/* GSMCODEC_H */
 #endif

@@ -12,112 +12,114 @@
 #include <memory>
 #include <functional>
 
-/*!
- * Defined to prevent circular includes when OHMComm uses this header to maintain a structure of listeners
- */
-class PlaybackObservee;
-
-/*!
- * Implementation of the observer/listener design-pattern to be notified on playback changes.
- * 
- */
-class PlaybackListener
+namespace ohmcomm
 {
-public:
-    
-    virtual ~PlaybackListener()
-    {
-        //for destructor of derived classes to be called
-    }
 
     /*!
-     * This method is invoked on registering this listener
+     * Defined to prevent circular includes when OHMComm uses this header to maintain a structure of listeners
+     */
+    class PlaybackObservee;
+
+    /*!
+     * Implementation of the observer/listener design-pattern to be notified on playback changes.
      * 
-     * \param ohmComm the observee to be bound to
      */
-    virtual void onRegister(PlaybackObservee* ohmComm)
+    class PlaybackListener
     {
-        //do nothing
-    };
-    
-    /*!
-     * This method is invoked on playback start
-     */
-    virtual void onPlaybackStart()
-    {
-        //do nothing
-    };
-    
-    /*!
-     * This method is invoked after playback ended
-     */
-    virtual void onPlaybackStop()
-    {
-        //do nothing
-    };
-};
+    public:
 
-/*!
- * Manages the playback-listeners and provides method for notifying them
- */
-class PlaybackObservee
-{
-public:
-    
-    /*!
-     * \param listener The listener to register
-     */
-    void registerPlaybackListener(const std::shared_ptr<PlaybackListener> listener)
-    {
-        if(listener != nullptr)
+        virtual ~PlaybackListener()
         {
-            listeners.push_back(listener);
-            listener->onRegister(this);
+            //for destructor of derived classes to be called
         }
-    }
-    
-    /*!
-     * \return a function, which will stop the playback on invocation
-     */
-    virtual std::function<void ()> createStopCallback() = 0;
-    
-protected:
-    
-    PlaybackObservee() : listeners()
-    {
-        
-    }
-    
-    virtual ~PlaybackObservee()
-    {
-        
-    }
-    
-    /*!
-     * Notifies all listeners about starting of playback
-     */
-    void notifyPlaybackStart()
-    {
-        for(const std::shared_ptr<PlaybackListener>& l : listeners)
+
+        /*!
+         * This method is invoked on registering this listener
+         * 
+         * \param ohmComm the observee to be bound to
+         */
+        virtual void onRegister(PlaybackObservee* ohmComm)
         {
-            l->onPlaybackStart();
-        }
-    }
-    
-    /*!
-     * Notifies all listeners, that playback has stopped
-     */
-    void notifyPlaybackStop()
-    {
-        for(const std::shared_ptr<PlaybackListener>& l : listeners)
+            //do nothing
+        };
+
+        /*!
+         * This method is invoked on playback start
+         */
+        virtual void onPlaybackStart()
         {
-            l->onPlaybackStop();
+            //do nothing
+        };
+
+        /*!
+         * This method is invoked after playback ended
+         */
+        virtual void onPlaybackStop()
+        {
+            //do nothing
+        };
+    };
+
+    /*!
+     * Manages the playback-listeners and provides method for notifying them
+     */
+    class PlaybackObservee
+    {
+    public:
+
+        /*!
+         * \param listener The listener to register
+         */
+        void registerPlaybackListener(const std::shared_ptr<PlaybackListener> listener)
+        {
+            if (listener != nullptr) {
+                listeners.push_back(listener);
+                listener->onRegister(this);
+            }
         }
-    }
-    
-private:
-    std::vector<std::shared_ptr<PlaybackListener>> listeners;
-};
+
+        /*!
+         * \return a function, which will stop the playback on invocation
+         */
+        virtual std::function<void () > createStopCallback() = 0;
+
+    protected:
+
+        PlaybackObservee() : listeners()
+        {
+
+        }
+
+        virtual ~PlaybackObservee()
+        {
+
+        }
+
+        /*!
+         * Notifies all listeners about starting of playback
+         */
+        void notifyPlaybackStart()
+        {
+            for (const std::shared_ptr<PlaybackListener>& l : listeners) {
+                l->onPlaybackStart();
+            }
+        }
+
+        /*!
+         * Notifies all listeners, that playback has stopped
+         */
+        void notifyPlaybackStop()
+        {
+            for (const std::shared_ptr<PlaybackListener>& l : listeners) {
+                l->onPlaybackStop();
+            }
+        }
+
+    private:
+        std::vector<std::shared_ptr<PlaybackListener>> listeners;
+    };
+
+}
 
 #endif	/* PLAYBACKLISTENER_H */
 

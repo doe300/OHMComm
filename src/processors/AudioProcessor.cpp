@@ -1,4 +1,6 @@
-#include "AudioProcessor.h"
+#include "processors/AudioProcessor.h"
+
+using namespace ohmcomm;
 
 AudioProcessor::AudioProcessor(const std::string name, const ProcessorCapabilities capabilities) : name(name), capabilities(capabilities)
 {

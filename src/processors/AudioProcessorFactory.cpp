@@ -5,17 +5,19 @@
  * Created on June 27, 2015, 10:15 AM
  */
 
-#include "AudioProcessorFactory.h"
+#include "processors/AudioProcessorFactory.h"
 
-#include "codecs/ProcessorOpus.h"
-#include "ProcessorWAV.h"
-#include "codecs/ProcessorALaw.h"
-#include "codecs/ProcessorMuLaw.h"
+#include "codecs/OpusCodec.h"
+#include "processors/ProcessorWAV.h"
+#include "codecs/G711Alaw.h"
+#include "codecs/G711Mulaw.h"
 #include "processors/GainControl.h"
-#include "ProfilingAudioProcessor.h"
+#include "processors/ProfilingAudioProcessor.h"
 #include "codecs/ProcessoriLBC.h"
 #include "codecs/GSMCodec.h"
 #include "codecs/AMRCodec.h"
+
+using namespace ohmcomm;
 
 const std::string AudioProcessorFactory::OPUS_CODEC = "Opus-Codec";
 const std::string AudioProcessorFactory::WAV_WRITER = "wav-Writer";
@@ -29,10 +31,10 @@ const std::string AudioProcessorFactory::AMR_CODEC = "AMR-Codec";
 AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name, bool createProfiler)
 {
     AudioProcessor* processor = nullptr;
-    #ifdef PROCESSOROPUS_H
+    #ifdef OHMCOMM_OPUS_H
     if(name == OPUS_CODEC)
     {
-        processor = new ProcessorOpus(OPUS_CODEC);
+        processor = new codecs::OpusCodec(OPUS_CODEC);
     }
     #endif
     #ifdef PROCESSORWAV_H
@@ -41,16 +43,16 @@ AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name,
         processor = new ProcessorWAV(WAV_WRITER);
     }
     #endif
-    #ifdef PROCESSORALAW_H
+    #ifdef OHMCOMM_G711ALAW_H
     if(name == G711_PCMA)
     {
-        processor = new ProcessorALaw(G711_PCMA);
+        processor = new codecs::G711Alaw(G711_PCMA);
     }
     #endif
-    #ifdef PROCESSORMULAW_H
+    #ifdef OHMCOMM_G711MULAW_H
     if(name == G711_PCMU)
     {
-        processor = new ProcessorMuLaw(G711_PCMU);
+        processor = new codecs::G711Mulaw(G711_PCMU);
     }
     #endif
     #ifdef GAINCONTROL_H
@@ -61,15 +63,15 @@ AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name,
     #endif
     #ifdef PROCESSORILBC_H
     if(name == ILBC_CODEC)
-        processor = new ProcessoriLBC(ILBC_CODEC);
+        processor = new codecs::ProcessoriLBC(ILBC_CODEC);
     #endif
     #ifdef GSMCODEC_H
     if(name == GSM_CODEC)
-        processor = new GSMCodec(GSM_CODEC);
+        processor = new codecs::GSMCodec(GSM_CODEC);
     #endif
     #ifdef AMRCODEC_H
     if(name == AMR_CODEC)
-        processor = new AMRCodec(AMR_CODEC);
+        processor = new codecs::AMRCodec(AMR_CODEC);
     #endif
     if(processor != nullptr)
     {
@@ -85,16 +87,16 @@ AudioProcessor* AudioProcessorFactory::getAudioProcessor(const std::string name,
 const std::vector<std::string> AudioProcessorFactory::getAudioProcessorNames()
 {
     std::vector<std::string> processorNames;
-    #ifdef PROCESSOROPUS_H
+    #ifdef OHMCOMM_OPUS_H
     processorNames.push_back(OPUS_CODEC);
     #endif
     #ifdef PROCESSORWAV_H
     processorNames.push_back(WAV_WRITER);
     #endif
-    #ifdef PROCESSORALAW_H
+    #ifdef OHMCOMM_G711ALAW_H
     processorNames.push_back(G711_PCMA);
     #endif
-    #ifdef PROCESSORMULAW_H
+    #ifdef OHMCOMM_G711MULAW_H
     processorNames.push_back(G711_PCMU);
     #endif
     #ifdef GAINCONTROL_H

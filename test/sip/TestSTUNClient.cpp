@@ -8,6 +8,8 @@
 #include "TestSTUNClient.h"
 #include "sip/STUNClient.h"
 
+using namespace ohmcomm::sip;
+
 TestSTUNClient::TestSTUNClient()
 {
     TEST_ADD(TestSTUNClient::testSTUNRequest);

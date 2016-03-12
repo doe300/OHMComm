@@ -10,7 +10,9 @@
 #include "codecs/AMRCodec.h"
 #include "Parameters.h"
 
-static constexpr ProcessorCapabilities amrCapabilities = {true, false, true, true, false, 0, 1525 /* highest mode says 12.2kbps */};
+using namespace ohmcomm::codecs;
+
+static constexpr ohmcomm::ProcessorCapabilities amrCapabilities = {true, false, true, true, false, 0, 1525 /* highest mode says 12.2kbps */};
 
 AMRCodec::AMRCodec(const std::string& name) : AudioProcessor(name, amrCapabilities), amrEncoder(nullptr), amrDecoder(nullptr)
 {
@@ -39,7 +41,7 @@ const std::vector<int> AMRCodec::getSupportedBufferSizes(unsigned int sampleRate
     return {defaultPackageSize};
 }
 
-PayloadType AMRCodec::getSupportedPlayloadType() const
+ohmcomm::PayloadType AMRCodec::getSupportedPlayloadType() const
 {
     return PayloadType::AMR_NB;
 }

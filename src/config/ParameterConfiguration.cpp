@@ -6,8 +6,10 @@
  */
 
 #include "config/ParameterConfiguration.h"
-#include "AudioHandlerFactory.h"
+#include "audio/AudioHandlerFactory.h"
 #include "Utility.h"
+
+using namespace ohmcomm;
 
 ParameterConfiguration::ParameterConfiguration(const Parameters& params) : ConfigurationMode(), params(params)
 {

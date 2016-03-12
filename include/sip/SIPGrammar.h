@@ -13,85 +13,92 @@
 
 #include "KeyValuePairs.h"
 
-/*!
- * Utility class to check and convert parts of the SIP protocol
- */
-class SIPGrammar
+namespace ohmcomm
 {
-public:
-
-    struct SIPURIParameter : public KeyValuePair<std::string>
+    namespace sip
     {
 
-        SIPURIParameter() : KeyValuePair()
+        /*!
+         * Utility class to check and convert parts of the SIP protocol
+         */
+        class SIPGrammar
         {
-        }
+        public:
 
-        SIPURIParameter(std::string key, std::string value) : KeyValuePair(key, value)
-        {
-        }
-    };
+            struct SIPURIParameter : public KeyValuePair<std::string>
+            {
 
-    struct SIPURIHeader : public KeyValuePair<std::string>
-    {
+                SIPURIParameter() : KeyValuePair()
+                {
+                }
 
-        SIPURIHeader() : KeyValuePair()
-        {
-        }
+                SIPURIParameter(std::string key, std::string value) : KeyValuePair(key, value)
+                {
+                }
+            };
 
-        SIPURIHeader(std::string key, std::string value) : KeyValuePair(key, value)
-        {
-        }
-    };
-    
-    struct SIPAddressParameter : public KeyValuePair<std::string>
-    {
-        SIPAddressParameter() : KeyValuePair()
-        {
-        }
+            struct SIPURIHeader : public KeyValuePair<std::string>
+            {
 
-        SIPAddressParameter(std::string key, std::string value) : KeyValuePair(key, value)
-        {
-        }
-    };
+                SIPURIHeader() : KeyValuePair()
+                {
+                }
 
-    static const std::string PROTOCOL_SIP;
-    static const std::string PROTOCOL_SIPS;
+                SIPURIHeader(std::string key, std::string value) : KeyValuePair(key, value)
+                {
+                }
+            };
 
-    struct SIPURI
-    {
-        std::string protocol;
-        std::string user;
-        std::string password;
-        std::string host;
-        int port;
-        KeyValuePairs<SIPURIParameter> parameters;
-        KeyValuePairs<SIPURIHeader> headers;
-    };
-    
-    struct SIPAddress
-    {
-        std::string displayName;
-        SIPURI uri;
-        KeyValuePairs<SIPAddressParameter> parameters;
-    };
+            struct SIPAddressParameter : public KeyValuePair<std::string>
+            {
 
-    static SIPURI readSIPURI(const std::string& sipURI, const unsigned short defaultPort);
+                SIPAddressParameter() : KeyValuePair()
+                {
+                }
 
-    static std::string toSIPURI(const SIPURI& sipURI);
+                SIPAddressParameter(std::string key, std::string value) : KeyValuePair(key, value)
+                {
+                }
+            };
 
-    static SIPAddress readNamedAddress(const std::string& namedAddress, const unsigned short defaultPort);
-    
-    static std::string toNamedAddress(const SIPURI& sipURI, const std::string& name = "");
-    
-    static std::tuple<std::string, SIPURI> readViaAddress(const std::string& viaField, const unsigned short defaultPort);
-    
-    static std::string toViaAddress(const SIPURI& sipURI, const std::string& protocolVersion);
-    
-    static bool isValidCallID(const std::string& callID);
-    
-    static bool isValidCSeq(const std::string& cSeq);
-};
+            static const std::string PROTOCOL_SIP;
+            static const std::string PROTOCOL_SIPS;
 
+            struct SIPURI
+            {
+                std::string protocol;
+                std::string user;
+                std::string password;
+                std::string host;
+                int port;
+                KeyValuePairs<SIPURIParameter> parameters;
+                KeyValuePairs<SIPURIHeader> headers;
+            };
+
+            struct SIPAddress
+            {
+                std::string displayName;
+                SIPURI uri;
+                KeyValuePairs<SIPAddressParameter> parameters;
+            };
+
+            static SIPURI readSIPURI(const std::string& sipURI, const unsigned short defaultPort);
+
+            static std::string toSIPURI(const SIPURI& sipURI);
+
+            static SIPAddress readNamedAddress(const std::string& namedAddress, const unsigned short defaultPort);
+
+            static std::string toNamedAddress(const SIPURI& sipURI, const std::string& name = "");
+
+            static std::tuple<std::string, SIPURI> readViaAddress(const std::string& viaField, const unsigned short defaultPort);
+
+            static std::string toViaAddress(const SIPURI& sipURI, const std::string& protocolVersion);
+
+            static bool isValidCallID(const std::string& callID);
+
+            static bool isValidCSeq(const std::string& cSeq);
+        };
+    }
+}
 #endif	/* SIPGRAMMAR_H */
 

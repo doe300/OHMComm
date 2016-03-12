@@ -1,6 +1,8 @@
-#include "AudioHandlerFactory.h"
-#include "RTAudioWrapper.h"
-#include "PortAudioWrapper.h"
+#include "audio/AudioHandlerFactory.h"
+#include "audio/RTAudioWrapper.h"
+#include "audio/PortAudioWrapper.h"
+
+using namespace ohmcomm;
 
 //Initialize names
 const std::string AudioHandlerFactory::RTAUDIO_WRAPPER = "RtAudio";

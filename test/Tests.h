@@ -2,7 +2,7 @@
 #define	OHMCOMMTESTS
 
 #include "cpptest.h"
-#include "AudioHandlerFactory.h"
+#include "audio/AudioHandlerFactory.h"
 #include "TestAudioProcessors.h"
 #include "TestUserInput.h"
 #include "TestParameters.h"

@@ -10,29 +10,34 @@
 
 #include "ConfigurationMode.h"
 #include "UserInput.h"
-#include "AudioHandler.h"
+#include "audio/AudioHandler.h"
 
-/*!
- * Configuration utilizing UserInput to ask the user for settings
- */
-class InteractiveConfiguration : public ConfigurationMode
+namespace ohmcomm
 {
-public:
-    InteractiveConfiguration()
+
+    /*!
+     * Configuration utilizing UserInput to ask the user for settings
+     */
+    class InteractiveConfiguration : public ConfigurationMode
     {
-    }
+    public:
 
-    virtual bool runConfiguration();
-    const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
-    int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
-    bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
-    bool isCustomConfigurationSet(const std::string key, const std::string message) const;
+        InteractiveConfiguration()
+        {
+        }
 
-private:
+        virtual bool runConfiguration();
+        const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
+        int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
+        bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
+        bool isCustomConfigurationSet(const std::string key, const std::string message) const;
 
-    void interactivelyConfigureAudioDevices(std::unique_ptr<AudioHandler>&& handler);
-    void interactivelyConfigureNetwork();
-    void interactivelyConfigureProcessors();
-};
+    private:
+
+        void interactivelyConfigureAudioDevices(std::unique_ptr<AudioHandler>&& handler);
+        void interactivelyConfigureNetwork();
+        void interactivelyConfigureProcessors();
+    };
+}
 #endif	/* INTERACTIVECONFIGURATION_H */
 

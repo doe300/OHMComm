@@ -1,8 +1,10 @@
 
 #include "sip/SupportedFormats.h"
-#include "AudioProcessorFactory.h"
+#include "processors/AudioProcessorFactory.h"
 
 #include <iostream>
+
+using namespace ohmcomm::sip;
 
 const std::string SupportedFormat::MEDIA_LPCM("LPCM");
 const std::string SupportedFormat::MEDIA_PCMA("PCMA");

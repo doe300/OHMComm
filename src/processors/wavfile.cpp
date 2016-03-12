@@ -7,7 +7,7 @@
  * Original Source: http://www3.nd.edu/%7Edthain/courses/cse20211/fall2013/wavfile/
 */
 
-#include "wavfile.h"
+#include "processors/wavfile.h"
 
 #include <stdio.h>
 #include <stdlib.h>

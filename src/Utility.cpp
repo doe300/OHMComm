@@ -30,7 +30,9 @@
 #include <ifaddrs.h>
 #endif
 
-const unsigned int MAX_NAME_SIZE{ 255 };
+using namespace ohmcomm;
+
+static const unsigned int MAX_NAME_SIZE{ 255 };
 
 std::string Utility::getDomainName()
 {
@@ -331,7 +333,7 @@ std::string Utility::getExternalLocalIPAddress()
 std::string Utility::getExternalNetworkIPAddress()
 {
     //use STUN to get our external IP/port
-    STUNClient stun;
+    sip::STUNClient stun;
     auto result = stun.retrieveSIPInfo();
     if(std::get<0>(result))
     {

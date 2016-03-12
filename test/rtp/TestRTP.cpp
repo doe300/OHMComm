@@ -7,6 +7,8 @@
 
 #include "TestRTP.h"
 
+using namespace ohmcomm::rtp;
+
 TestRTP::TestRTP() : Test::Suite()
 {
     TEST_ADD(TestRTP::testRTPPackage);
@@ -20,7 +22,7 @@ void TestRTP::testRTPPackage()
     pack.createNewRTPPackage((char *)payload.c_str(), payload.size());
     const void* headerBuffer = pack.getRTPPackageHeader();
     RTPHeader* header = (RTPHeader *)headerBuffer;
-    TEST_ASSERT_EQUALS_MSG(header->getPayloadType(), PayloadType::GSM, "Payload types don't match! 01");
+    TEST_ASSERT_EQUALS_MSG(header->getPayloadType(), ohmcomm::PayloadType::GSM, "Payload types don't match! 01");
 
     const void* contentBuffer = pack.getRTPPackageData();
     TEST_ASSERT_EQUALS_MSG(memcmp(payload.c_str(), contentBuffer, payload.size()), 0, "Payloads don't match! 02");

@@ -1,5 +1,7 @@
 #include "TestRTPBuffer.h"
 
+using namespace ohmcomm::rtp;
+
 TestRTPBuffer::TestRTPBuffer() : payloadSize(511), maxCapacity(128), maxDelay(100), minBufferPackages(20),
 handler(new RTPBufferAlternative(maxCapacity, maxDelay, minBufferPackages)), package(payloadSize)
 {

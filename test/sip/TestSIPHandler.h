@@ -31,7 +31,7 @@ public:
     virtual void after(const std::string& methodName, const bool success);
 
 private:
-    std::unique_ptr<SIPHandler> handler;
+    std::unique_ptr<ohmcomm::sip::SIPHandler> handler;
     
     void dummyHandler();
 };

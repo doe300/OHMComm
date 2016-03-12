@@ -6,11 +6,12 @@
  */
 
 #include "sip/SIPConfiguration.h"
-#include "AudioHandlerFactory.h"
-#include "AudioProcessorFactory.h"
+#include "processors/AudioProcessorFactory.h"
 #include "Parameters.h"
 
 #include <chrono>
+
+using namespace ohmcomm::sip;
 
 SIPConfiguration::SIPConfiguration(const Parameters& params, const NetworkConfiguration& sipConfig) : 
     ParameterConfiguration(params), handler(sipConfig, "remote", [this](const MediaDescription media, const NetworkConfiguration rtpConfig, const NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
@@ -59,7 +60,7 @@ bool SIPConfiguration::runConfiguration()
     return isConfigurationDone;
 }
 
-const NetworkConfiguration SIPConfiguration::getRTCPNetworkConfiguration() const
+const ohmcomm::NetworkConfiguration SIPConfiguration::getRTCPNetworkConfiguration() const
 {
     return rtcpConfig;
 }

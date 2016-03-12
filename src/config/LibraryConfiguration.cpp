@@ -6,7 +6,9 @@
  */
 
 #include "config/LibraryConfiguration.h"
-#include "AudioHandlerFactory.h"
+#include "audio/AudioHandlerFactory.h"
+
+using namespace ohmcomm;
 
 LibraryConfiguration::LibraryConfiguration()
 {

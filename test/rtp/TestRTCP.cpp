@@ -8,6 +8,8 @@
 #include "TestRTCP.h"
 #include "rtp/RTPPackageHandler.h"
 
+using namespace ohmcomm::rtp;
+
 TestRTCP::TestRTCP()
 {
     TEST_ADD(TestRTCP::testSenderReportPackage);

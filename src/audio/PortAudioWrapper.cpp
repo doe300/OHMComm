@@ -8,7 +8,9 @@
 #include <exception>
 #include <string.h>
 
-#include "PortAudioWrapper.h"
+#include "audio/PortAudioWrapper.h"
+
+using namespace ohmcomm;
 
 PortAudioWrapper::PortAudioWrapper() : streamData(new StreamData())
 {

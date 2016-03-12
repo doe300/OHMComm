@@ -10,6 +10,8 @@
 #include <cmath>
 #include <limits>
 
+using namespace ohmcomm;
+
 //silence threshold is at -30dB (since -40dB seems to be absolute silence)
 //Opus uses a lower silence-threshold
 const double GainControl::SILENCE_THRESHOLD = fromDB(-30);

@@ -7,9 +7,11 @@
 
 #include "OHMComm.h"
 #include "rtp/ProcessorRTP.h"
-#include "AudioProcessorFactory.h"
-#include "AudioHandlerFactory.h"
-#include "ConfigurationMode.h"
+#include "processors/AudioProcessorFactory.h"
+#include "audio/AudioHandlerFactory.h"
+#include "config/ConfigurationMode.h"
+
+using namespace ohmcomm;
 
 OHMComm::OHMComm(ConfigurationMode* mode) : configurationMode(mode), audioHandler(nullptr)
 {
@@ -96,7 +98,7 @@ void OHMComm::startAudioThreads()
     configurationMode->updateAudioConfiguration(audioHandler->getAudioConfiguration());
 
     //start RTCP-handler
-    rtcpHandler.reset(new RTCPHandler(configurationMode->getRTCPNetworkConfiguration(), configurationMode, 
+    rtcpHandler.reset(new rtp::RTCPHandler(configurationMode->getRTCPNetworkConfiguration(), configurationMode, 
             std::bind(&OHMComm::startAudio,this), (audioHandler->getMode() & AudioHandler::INPUT) == AudioHandler::INPUT));
     registerPlaybackListener(rtcpHandler);
     rtcpHandler->startUp();
@@ -174,7 +176,7 @@ bool OHMComm::isRunning() const
 
 void OHMComm::configureRTPProcessor(bool profileProcessors, const PayloadType payloadType)
 {
-    ProcessorRTP* rtpProcessor = new ProcessorRTP("RTP-Processor", configurationMode->getNetworkConfiguration(), payloadType);
+    rtp::ProcessorRTP* rtpProcessor = new rtp::ProcessorRTP("RTP-Processor", configurationMode->getNetworkConfiguration(), payloadType);
     if(profileProcessors)
     {
         //enabled profiling of the RTP processor

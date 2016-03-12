@@ -6,7 +6,10 @@
  */
 
 #include "config/PassiveConfiguration.h"
-#include "AudioHandlerFactory.h"
+#include "audio/AudioHandlerFactory.h"
+
+using namespace ohmcomm;
+using namespace ohmcomm::rtp;
 
 //TODO add fallback configuration-mode, because currently, it doesn't support custom-config (and therefore no SDES config)
 //problem: fallback config-mode is not fully configured and may throw errors!

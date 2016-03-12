@@ -2,6 +2,7 @@
 #include "UserInput.h"
 
 using namespace std;
+using namespace ohmcomm;
 
 inline void clearInput()
 {

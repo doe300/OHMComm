@@ -10,6 +10,8 @@
 
 #include "sip/SIPPackageHandler.h"
 
+using namespace ohmcomm::sip;
+
 SIPPackageHandler::SIPPackageHandler()
 {
 }

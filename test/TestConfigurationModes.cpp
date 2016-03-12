@@ -1,10 +1,12 @@
 #include "TestConfigurationModes.h"
-#include "AudioProcessorFactory.h"
-#include "AudioHandlerFactory.h"
+#include "processors/AudioProcessorFactory.h"
+#include "audio/AudioHandlerFactory.h"
 #include "OHMComm.h"
 
 #include <string>
 #include <vector>
+
+using namespace ohmcomm;
 
 TestConfigurationModes::TestConfigurationModes()
 {
@@ -180,7 +182,7 @@ void TestConfigurationModes::testFileConfiguration()
 void TestConfigurationModes::testSIPConfiguration()
 {
     const Parameters params({}, {});
-    ConfigurationMode* config = new SIPConfiguration(params, {54321, "127.0.0.1", SIPHandler::SIP_DEFAULT_PORT});
+    ConfigurationMode* config = new ohmcomm::sip::SIPConfiguration(params, {54321, "127.0.0.1", ohmcomm::sip::SIPHandler::SIP_DEFAULT_PORT});
     TEST_ASSERT_EQUALS(false, config->isConfigured());
     TEST_ASSERT(config->runConfiguration());
     TEST_ASSERT(config->isConfigured());

@@ -4,6 +4,8 @@
 #include "network/UDPWrapper.h"
 #include "rtp/RTPBuffer.h"
 
+using namespace ohmcomm::rtp;
+
 ProcessorRTP::ProcessorRTP(const std::string name, const NetworkConfiguration& networkConfig, const PayloadType payloadType) : AudioProcessor(name), 
         network(new UDPWrapper(networkConfig)), buffers(128, 200, 1), ourselves(ParticipantDatabase::self()), lastPackageWasSilent(false)
         //XXX make jitter-settings configurable (or at least use better values)

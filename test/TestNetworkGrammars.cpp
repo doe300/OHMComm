@@ -7,6 +7,8 @@
 
 #include "TestNetworkGrammars.h"
 
+using namespace ohmcomm;
+
 TestNetworkGrammars::TestNetworkGrammars() : Suite()
 {
     TEST_ADD(TestNetworkGrammars::testToHostAndPort);

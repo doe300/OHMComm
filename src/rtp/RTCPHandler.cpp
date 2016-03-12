@@ -13,6 +13,8 @@
 #include "Parameters.h"
 #include "Utility.h"
 
+using namespace ohmcomm::rtp;
+
 //standard-conform minimum interval of 5 seconds (no need to be adaptive, as long as we only have one remote) (RFC3550 Section 6.2)
 const std::chrono::seconds RTCPHandler::sendSRInterval{5};
 const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};

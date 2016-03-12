@@ -8,6 +8,8 @@
 #include "Statistics.h"
 #include <fstream>
 
+using namespace ohmcomm;
+
 long Statistics::counters[] = {0};
 std::vector<ProfilingAudioProcessor*> Statistics::audioProcessorStatistics;
 

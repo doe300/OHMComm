@@ -1,55 +1,57 @@
 /* 
- * File:   ProcessorALaw.cpp
+ * File:   G711Mulaw.cpp
  * Author: daniel
  * 
- * Created on January 7, 2016, 10:56 AM
+ * Created on January 8, 2016, 11:38 AM
  */
 
-#include "codecs/ProcessorALaw.h"
+#include "codecs/G711Mulaw.h"
 #include <string.h>
 
-static constexpr ProcessorCapabilities g711Capabilities = {true, false, false, false, false, 0, 0};
+static constexpr ohmcomm::ProcessorCapabilities g711Capabilities = {true, false, false, false, false, 0, 0};
 
-ProcessorALaw::ProcessorALaw(const std::string& name) : AudioProcessor(name, g711Capabilities)
+using namespace ohmcomm::codecs;
+
+G711Mulaw::G711Mulaw(const std::string& name) : AudioProcessor(name, g711Capabilities)
 {
 }
 
-ProcessorALaw::~ProcessorALaw()
+G711Mulaw::~G711Mulaw()
 {
     delete[] writeBuffer;
 }
 
-unsigned int ProcessorALaw::getSupportedAudioFormats() const
+unsigned int G711Mulaw::getSupportedAudioFormats() const
 {
     //on audio-handler side we use 16bit integer, which will be compressed into 8 bit
     return AudioConfiguration::AUDIO_FORMAT_SINT16;
 }
 
-unsigned int ProcessorALaw::getSupportedSampleRates() const
+unsigned int G711Mulaw::getSupportedSampleRates() const
 {
     //ITU-T G.711 says, it should be 8kHz, but the algorithm itself doesn't care
     return AudioConfiguration::SAMPLE_RATE_ALL;
 }
 
-const std::vector<int> ProcessorALaw::getSupportedBufferSizes(unsigned int sampleRate) const
+const std::vector<int> G711Mulaw::getSupportedBufferSizes(unsigned int sampleRate) const
 {
     //as of RFC3551 we use a default package size of 20ms -> 160 frames at 8kHz sampling rate
     const int defaultPackageSize = 20 * sampleRate / 1000;    //20 ms
     return {defaultPackageSize, BUFFER_SIZE_ANY};
 }
 
-PayloadType ProcessorALaw::getSupportedPlayloadType() const
+ohmcomm::PayloadType G711Mulaw::getSupportedPlayloadType() const
 {
-    return PayloadType::PCMA;
+    return PayloadType::PCMU;
 }
 
-void ProcessorALaw::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void G711Mulaw::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
 {
     maxBufferSize = audioConfig.framesPerPackage * audioConfig.outputDeviceChannels;
     writeBuffer = new int16_t[maxBufferSize];
 }
 
-bool ProcessorALaw::cleanUp()
+bool G711Mulaw::cleanUp()
 {
     delete[] writeBuffer;
     //set buffer to nullptr to prevent duplicate free on calling destructor
@@ -57,7 +59,7 @@ bool ProcessorALaw::cleanUp()
     return true;
 }
 
-unsigned int ProcessorALaw::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
+unsigned int G711Mulaw::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)
 {
     const int16_t* readBuffer = (int16_t*) inputBuffer;
     uint8_t* writeBuffer = (uint8_t*) inputBuffer;
@@ -66,13 +68,13 @@ unsigned int ProcessorALaw::processInputData(void* inputBuffer, const unsigned i
     for(unsigned int i = 0; i < numSamples;i++)
     {
         //this works, since the output type is smaller than the input type, so we don't override unread data
-        *(writeBuffer + i) = s16_to_alaw(*(readBuffer + i));
+        *(writeBuffer + i) = s16_to_ulaw(*(readBuffer + i));
     }
     //after conversion, we have numSamples * 1 Byte
     return numSamples;
 }
 
-unsigned int ProcessorALaw::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
+unsigned int G711Mulaw::processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData)
 {
     //WARNING: we cant just copy from and to the same buffer, since the output type is larger than the input
     //and would override our next input samples!!
@@ -84,7 +86,7 @@ unsigned int ProcessorALaw::processOutputData(void* outputBuffer, const unsigned
     for(unsigned int i = 0; i < bufferSize;i++)
     {
         //decompress samples in local buffer
-        *(writeBuffer + i) = alaw_to_s16(*(readBuffer + i));
+        *(writeBuffer + i) = ulaw_to_s16(*(readBuffer + i));
     }
     //we have now 2 Bytes per sample
     memcpy(outputBuffer, writeBuffer, bufferSize << 1);

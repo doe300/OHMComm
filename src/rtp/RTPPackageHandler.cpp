@@ -7,6 +7,8 @@
 
 #include "rtp/RTPPackageHandler.h"
 
+using namespace ohmcomm::rtp;
+
 RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, Participant& ourselves) : ourselves(ourselves)
 {
     this->maximumPayloadSize = maximumPayloadSize;
