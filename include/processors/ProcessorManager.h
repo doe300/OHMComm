@@ -34,7 +34,7 @@ namespace ohmcomm
          * \param outputStream The outputStream for printing (default is std::cout)
          */
         void printAudioProcessorOrder(std::ostream& outputStream = std::cout) const;
-
+        
         /*!
          * Adds a AudioProcessor to process chain
          *

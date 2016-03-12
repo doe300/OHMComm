@@ -12,8 +12,8 @@
 
 using namespace ohmcomm::sip;
 
-const std::string SIPHandler::SIP_ALLOW_METHODS = Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");
-const std::string SIPHandler::SIP_ACCEPT_TYPES = Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
+const std::string SIPHandler::SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");
+const std::string SIPHandler::SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 
 SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const ohmcomm::NetworkConfiguration, const ohmcomm::NetworkConfiguration)> configFunction) : 
         userAgents(std::to_string(rand())), network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
@@ -598,7 +598,7 @@ int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& availableMe
         unsigned int sampleRate = 0;
         for(unsigned short i = 0; i < availableMedias.size(); i++)
         {
-            if(Utility::equalsIgnoreCase(format.encoding, availableMedias[i].encoding) && availableMedias[i].sampleRate > sampleRate)
+            if(ohmcomm::Utility::equalsIgnoreCase(format.encoding, availableMedias[i].encoding) && availableMedias[i].sampleRate > sampleRate)
             {
                 index = i;
                 sampleRate = availableMedias[i].sampleRate;
@@ -627,7 +627,7 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::Net
             //use the actual address/port from the package received
             //NOTE: this is the easiest and fastest way to determine host/port, but may be inaccurate for some special cases
             //e.g. when remote uses different input/output ports or the package was meant to forward to another host
-            const auto socketAddress = Utility::getSocketAddress(&(packageInfo->ipv6Address), sizeof(packageInfo->ipv6Address), packageInfo->isIPv6);
+            const auto socketAddress = ohmcomm::Utility::getSocketAddress(&(packageInfo->ipv6Address), sizeof(packageInfo->ipv6Address), packageInfo->isIPv6);
             remoteUA.ipAddress = socketAddress.first;
             remoteUA.port = socketAddress.second;
         }
@@ -656,7 +656,7 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::Net
         network.reset(new UDPWrapper(sipConfig));
         
         //update all configuration-dependant values
-        userAgents.thisUA.ipAddress = Utility::getLocalIPAddress(Utility::getNetworkType(sipConfig.remoteIPAddress));
+        userAgents.thisUA.ipAddress = ohmcomm::Utility::getLocalIPAddress(ohmcomm::Utility::getNetworkType(sipConfig.remoteIPAddress));
     }
 }
 

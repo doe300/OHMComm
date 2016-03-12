@@ -36,6 +36,9 @@ namespace ohmcomm
          * \param name The name to look for
          *
          * \param createProfiler whether to create a profiler for the audio-processor
+         * 
+         * \retrun the newly created audio-processor
+         * \throw std::invalid_argument if no processor could be found for this name
          */
         static AudioProcessor* getAudioProcessor(const std::string name, bool createProfiler);
 
