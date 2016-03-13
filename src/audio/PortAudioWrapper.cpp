@@ -149,7 +149,7 @@ const std::vector<AudioDevice>& PortAudioWrapper::getAudioDevices()
             {
                 devices.push_back({info->name, (unsigned int)info->maxOutputChannels, (unsigned int)info->maxInputChannels, 
                         i == defaultOutputDeviceIndex, i == defaultInputDeviceIndex, 
-                        0 /* no way to simply get native formats */, true, getSupportedSampleRates(i)});
+                        0 /* no way to simply get native formats */, true, getSupportedSampleRates(i, *info)});
             }
         }
     }
@@ -157,16 +157,19 @@ const std::vector<AudioDevice>& PortAudioWrapper::getAudioDevices()
     return devices;
 }
 
-std::vector<unsigned int> PortAudioWrapper::getSupportedSampleRates(const PaDeviceIndex deviceIndex)
+std::vector<unsigned int> PortAudioWrapper::getSupportedSampleRates(const PaDeviceIndex deviceIndex, const PaDeviceInfo& deviceInfo)
 {
     //available sample-rates (according to AudioConfiguration) are
     const static std::vector<unsigned int> allSampleRates = {8000, 12000, 16000, 24000, 32000, 44100, 48000, 96000, 192000};
     const static PaStreamParameters inputParams = {deviceIndex, 2, paInt16, 0, nullptr};
     const static PaStreamParameters outputParams = {deviceIndex, 2, paInt16, 0, nullptr};
+    //for correct retrieval of input/output only rates
+    const PaStreamParameters* input = deviceInfo.maxInputChannels > 0 ? &inputParams : nullptr;
+    const PaStreamParameters* output = deviceInfo.maxOutputChannels > 0 ? &outputParams : nullptr;
     std::vector<unsigned int> supportedSampleRates{};
     for(unsigned int sampleRate : allSampleRates)
     {
-        if(Pa_IsFormatSupported(&inputParams, &outputParams, sampleRate) == 0)
+        if(Pa_IsFormatSupported(input, output, sampleRate) == 0)
         {
             supportedSampleRates.push_back(sampleRate);
         }
@@ -182,7 +185,7 @@ int PortAudioWrapper::callbackHelper(const void* input, void* output, unsigned l
 
 int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags)
 {
-    //FIXME crashes for playout/recording only modes (opus??)
+    printf("%d %d\n", frameCount, audioConfiguration.framesPerPackage);
     if(statusFlags == paInputOverflow)
     {
         std::cout << "Overflow\n";
@@ -214,9 +217,10 @@ int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsi
         //PortAudio input-buffer is read-only, so use own internal buffer
         const unsigned int inputBufferSize = frameCount * inputParams.channelCount * throwOnError(Pa_GetSampleSize(inputParams.sampleFormat));
         memcpy(&this->inputBuffer[0], inputBuffer, inputBufferSize);
-        //FIXME throws segmentation fault in RTPPackageHandler::createNewRTPPackage
-        // but only when used with Opus (opus returns OPUS_BAD_ARG)
+        //FIXME fails when used with Opus (opus throws playback-error OPUS_BAD_ARG)
+        //fails too with any other codec expecting a fixed number of frames in the first package
         //reason: in the first callback, the buffer is not fully filled -> results in a sample-number/size not supported by opus
+        //generally, PortAudio does not adhere to the buffer-size and fills it only as much as it deems necessary (which doesn't work for us)
         processors.processAudioInput(&this->inputBuffer[0], inputBufferSize, streamData);
     }
 
@@ -230,17 +234,19 @@ int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsi
 
 bool PortAudioWrapper::initStreamParameters()
 {
-    //XXX to solve bug with Opus (too small buffer size), could we set latency to the timespan of a package??
+    //XXX to solve bug with any codec expecting constant buffer size (too small buffer size), we set the latency to the buffer-size
+    const double optimalLatency = audioConfiguration.framesPerPackage/(double)audioConfiguration.sampleRate;
+    
     inputParams.channelCount = audioConfiguration.inputDeviceChannels;
     inputParams.device = audioConfiguration.inputDeviceID;
     inputParams.sampleFormat = mapSampleFormat(audioConfiguration.audioFormatFlag);
-    inputParams.suggestedLatency = Pa_GetDeviceInfo(inputParams.device)->defaultLowInputLatency;
+    inputParams.suggestedLatency = optimalLatency; //Pa_GetDeviceInfo(inputParams.device)->defaultLowInputLatency;
     inputParams.hostApiSpecificStreamInfo = nullptr;
 
     outputParams.channelCount = audioConfiguration.outputDeviceChannels;
     outputParams.device = audioConfiguration.outputDeviceID;
     outputParams.sampleFormat = mapSampleFormat(audioConfiguration.audioFormatFlag);
-    outputParams.suggestedLatency = Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
+    outputParams.suggestedLatency = optimalLatency; //Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
     outputParams.hostApiSpecificStreamInfo = nullptr;
     
     //check for supported parameters depends on the playback-mode

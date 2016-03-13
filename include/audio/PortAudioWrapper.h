@@ -51,7 +51,7 @@ namespace ohmcomm
             return (unsigned int) error;
         }
 
-        static std::vector<unsigned int> getSupportedSampleRates(const PaDeviceIndex deviceIndex);
+        static std::vector<unsigned int> getSupportedSampleRates(const PaDeviceIndex deviceIndex, const PaDeviceInfo& deviceInfo);
 
         static int callbackHelper(const void *input, void *output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
 

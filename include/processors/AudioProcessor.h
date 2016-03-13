@@ -28,7 +28,7 @@ namespace ohmcomm
         /*!
          * The current time in the stream (i.e. elapsed microseconds)
          */
-        unsigned int streamTime;
+        unsigned long streamTime;
 
         /*!
          * The maximum number of bytes to be stored in the input/output-buffer
