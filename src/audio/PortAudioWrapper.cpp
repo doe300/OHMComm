@@ -35,7 +35,8 @@ void PortAudioWrapper::startHandler(const PlaybackMode mode)
         PaStreamParameters* input = (mode & PlaybackMode::INPUT) == PlaybackMode::INPUT ? &inputParams : nullptr;
         PaStreamParameters* output = (mode & PlaybackMode::OUTPUT) == PlaybackMode::OUTPUT ? &outputParams : nullptr;
         streamStartTime = 0;
-        Pa_OpenStream(&stream, input, output, audioConfiguration.sampleRate, streamData->nBufferFrames, 0, &PortAudioWrapper::callbackHelper, this);
+        Pa_OpenStream(&stream, input, output, audioConfiguration.sampleRate, streamData->nBufferFrames, 0, nullptr, nullptr);
+        this->mode = mode;
         resume();
     }
     else
@@ -63,6 +64,7 @@ void PortAudioWrapper::resume()
     if(stream != nullptr && throwOnError(Pa_IsStreamStopped(stream)))
     {
         throwOnError(Pa_StartStream(stream));
+        audioThread = std::thread(&PortAudioWrapper::audioLoop, this);
     }
 }
 
@@ -122,12 +124,12 @@ bool PortAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMo
     }
     
     bool resultA = this->initStreamParameters();
-    bufferSize = audioConfiguration.framesPerPackage * Pa_GetSampleSize(inputParams.sampleFormat) * inputParams.channelCount;
-    bool resultB = processors.configureAudioProcessors(audioConfiguration, configMode, bufferSize);
+    inputBufferSize = audioConfiguration.framesPerPackage * Pa_GetSampleSize(inputParams.sampleFormat) * inputParams.channelCount;
+    outputBufferSize = audioConfiguration.framesPerPackage * Pa_GetSampleSize(outputParams.sampleFormat) * outputParams.channelCount;
+    bool resultB = processors.configureAudioProcessors(audioConfiguration, configMode, outputBufferSize);
 
     if (resultA && resultB) {
         this->flagPrepared = true;
-        inputBuffer.reserve(bufferSize);
         return true;
     }
 
@@ -177,15 +179,31 @@ std::vector<unsigned int> PortAudioWrapper::getSupportedSampleRates(const PaDevi
     return supportedSampleRates;
 }
 
-int PortAudioWrapper::callbackHelper(const void* input, void* output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
+void PortAudioWrapper::audioLoop()
 {
-    PortAudioWrapper* wrapper = static_cast <PortAudioWrapper*>(userData);
-    return wrapper->callback(input, output, frameCount, timeInfo->currentTime, statusFlags);
+    PaStreamCallbackFlags statusFlag = 0;
+    char buffer[inputBufferSize > outputBufferSize ? inputBufferSize : outputBufferSize] = {0};
+    while(Pa_IsStreamActive(stream))
+    {
+        //FIXME crashes on shutdown, when in blocking I/O operation when stream is closed and buffers are freed
+        if((mode & PlaybackMode::INPUT) != 0)
+        {
+            if(Pa_ReadStream(stream, buffer, audioConfiguration.framesPerPackage) == paInputOverflowed)
+                statusFlag = paInputOverflow;
+        }
+        callback(buffer, buffer, audioConfiguration.framesPerPackage, Pa_GetStreamTime(stream), statusFlag);
+        statusFlag = 0;
+        if((mode & PlaybackMode::OUTPUT) != 0)
+        {
+            if(Pa_WriteStream(stream, buffer, streamData->nBufferFrames) == paOutputUnderflowed)
+                //XXX generates underflow too often (maybe whole processor-chain with blocking I/O takes too long??)
+                statusFlag = paOutputUnderflow;
+        }
+    }
 }
 
-int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags)
+int PortAudioWrapper::callback(void* inputBuffer, void* outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags)
 {
-    printf("%d %d\n", frameCount, audioConfiguration.framesPerPackage);
     if(statusFlags == paInputOverflow)
     {
         std::cout << "Overflow\n";
@@ -204,37 +222,29 @@ int PortAudioWrapper::callback(const void* inputBuffer, void* outputBuffer, unsi
     //streamTime is the number of seconds since start of stream, so we convert to number of microseconds
     streamData->streamTime = lround((streamTime - streamStartTime) * 1000000);
     Statistics::setCounter(Statistics::TOTAL_ELAPSED_MILLISECONDS, (streamTime - streamStartTime) * 1000);
-    Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECORDED, bufferSize);
+    Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_RECORDED, inputBufferSize);
     Statistics::incrementCounter(Statistics::COUNTER_FRAMES_RECORDED, frameCount);
-    Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_OUTPUT, bufferSize);
+    Statistics::incrementCounter(Statistics::COUNTER_PAYLOAD_BYTES_OUTPUT, outputBufferSize);
     Statistics::incrementCounter(Statistics::COUNTER_FRAMES_OUTPUT, frameCount);
 
     //reset maximum size, in case a processor illegally modifies it
-    this->streamData->maxBufferSize = bufferSize;
+    this->streamData->maxBufferSize = inputBufferSize;
     this->streamData->isSilentPackage = false;
     if (inputBuffer != nullptr)
     {
-        //PortAudio input-buffer is read-only, so use own internal buffer
-        const unsigned int inputBufferSize = frameCount * inputParams.channelCount * throwOnError(Pa_GetSampleSize(inputParams.sampleFormat));
-        memcpy(&this->inputBuffer[0], inputBuffer, inputBufferSize);
-        //FIXME fails when used with Opus (opus throws playback-error OPUS_BAD_ARG)
-        //fails too with any other codec expecting a fixed number of frames in the first package
-        //reason: in the first callback, the buffer is not fully filled -> results in a sample-number/size not supported by opus
-        //generally, PortAudio does not adhere to the buffer-size and fills it only as much as it deems necessary (which doesn't work for us)
-        processors.processAudioInput(&this->inputBuffer[0], inputBufferSize, streamData);
+        processors.processAudioInput(inputBuffer, inputBufferSize, streamData);
     }
-
     //reset maximum size, in case a processor illegally modifies it
-    this->streamData->maxBufferSize = bufferSize;
+    this->streamData->maxBufferSize = outputBufferSize;
     if (outputBuffer != nullptr)
-        processors.processAudioOutput(outputBuffer, bufferSize, streamData);
+        processors.processAudioOutput(outputBuffer, outputBufferSize, streamData);
 
     return paContinue;
 }
 
 bool PortAudioWrapper::initStreamParameters()
 {
-    //XXX to solve bug with any codec expecting constant buffer size (too small buffer size), we set the latency to the buffer-size
+    //improves quality (even for blocking I/O)
     const double optimalLatency = audioConfiguration.framesPerPackage/(double)audioConfiguration.sampleRate;
     
     inputParams.channelCount = audioConfiguration.inputDeviceChannels;

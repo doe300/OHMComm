@@ -9,11 +9,22 @@
 #ifndef PORTAUDIOWRAPPER_H
 #define	PORTAUDIOWRAPPER_H
 
+#include <thread>
+
 #include "AudioHandler.h"
 #include PORTAUDIO_HEADER
 namespace ohmcomm
 {
 
+    /*!
+     * Audio-library wrapper for PortAudio - http://portaudio.com/
+     * 
+     * This implementation uses a extra thread with blocking I/O on the audio-stream.
+     * 
+     * Although a callback-implementation is possible (as it was before), PortAudio doesn't guarantee a steady
+     * number of samples per call to the callback, which is required by some codecs and audio-processors.
+     * So the implementation uses blocking I/O which guarantees the exact number of samples per call to the audio-processors.
+     */
     class PortAudioWrapper : public AudioHandler
     {
     public:
@@ -39,9 +50,11 @@ namespace ohmcomm
         PaStreamParameters outputParams;
         PaStreamParameters inputParams;
         PaStream* stream;
-        unsigned int bufferSize;
+        unsigned int inputBufferSize;
+        unsigned int outputBufferSize;
         PaTime streamStartTime = 0;
-        std::vector<char> inputBuffer;
+        PlaybackMode mode;
+        std::thread audioThread;
 
         static inline unsigned int throwOnError(PaError error)
         {
@@ -53,15 +66,15 @@ namespace ohmcomm
 
         static std::vector<unsigned int> getSupportedSampleRates(const PaDeviceIndex deviceIndex, const PaDeviceInfo& deviceInfo);
 
-        static int callbackHelper(const void *input, void *output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
-
-        int callback(const void *inputBuffer, void *outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags);
+        int callback(void *inputBuffer, void *outputBuffer, unsigned long frameCount, const double streamTime, PaStreamCallbackFlags statusFlags);
 
         bool initStreamParameters();
 
         static PaSampleFormat mapSampleFormat(const unsigned int sampleFormatFlag);
 
         void startHandler(const PlaybackMode mode);
+        
+        void audioLoop();
     };
 }
 #endif	/* PORTAUDIOWRAPPER_H */
