@@ -66,14 +66,13 @@ void RTPListener::runThread()
             else
             {
                 Participant& participant = ParticipantDatabase::remote(rtpHandler.getRTPPackageHeader()->getSSRC());
-                //on first package from remote, set values
+                //on first RTP-package from remote, set values
                 if(participant.payloadType == PayloadType::ALL)
                 {
                     participant.payloadType = rtpHandler.getRTPPackageHeader()->getPayloadType();
                     //set initial extended highest sequence number
                     participant.extendedHighestSequenceNumber = rtpHandler.getRTPPackageHeader()->getSequenceNumber();
                     participant.initialRTPTimestamp = rtpHandler.getRTPPackageHeader()->getTimestamp();
-                    std::cout << "RTP: New remote joined conversation: " << rtpHandler.getRTPPackageHeader()->getSSRC() << std::endl;
                 }
                 else if(participant.payloadType != rtpHandler.getRTPPackageHeader()->getPayloadType())
                 {

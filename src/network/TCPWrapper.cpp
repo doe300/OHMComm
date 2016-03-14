@@ -77,7 +77,7 @@ bool TCPWrapper::createSocket()
     unsigned int addressLength = getSocketAddressLength();
     // AF_INET - creating an IPv4 based socket
     // AF_INET6 - creating an IPv6 based socket
-    if(isIPv6)
+    if(remoteAddress.isIPv6)
     {
         this->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
     }
@@ -175,7 +175,7 @@ void TCPWrapper::closeNetwork()
 
 int TCPWrapper::getSocketAddressLength()
 {
-    if(isIPv6)
+    if(remoteAddress.isIPv6)
     {
         return sizeof(sockaddr_in6);
     }

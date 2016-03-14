@@ -167,7 +167,7 @@ void UDPWrapper::closeNetwork()
 
 int UDPWrapper::getSocketAddressLength()
 {
-    if(isIPv6)
+    if(remoteAddress.isIPv6)
     {
         return sizeof(sockaddr_in6);
     }

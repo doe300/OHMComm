@@ -8,7 +8,6 @@
 #ifndef PARTICIPANT_DATABASE_H
 #define	PARTICIPANT_DATABASE_H
 
-#include <stdlib.h> //abs for clang
 #include <map>
 #include <chrono>
 #include <memory>
@@ -78,31 +77,17 @@ namespace ohmcomm
              * 
              * \return the newly calculated interarrival-jitter
              */
-            float calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp)
-            {
-                //as of RFC 3550 (A.8):
-                //D(i, j)=(Rj - Sj) - (Ri - Si)
-                //with (Ri - Si) = lastDelay
-                int32_t currentDelay = receptionTimestamp - sentTimestamp;
-                int32_t currentDifference = currentDelay - lastDelay;
-                lastDelay = currentDelay;
-
-                //Ji = Ji-1 + (|D(i-1, 1)| - Ji-1)/16
-                double lastJitter = interarrivalJitter;
-                lastJitter = lastJitter + ((float) abs(currentDifference) - lastJitter) / 16.0;
-                interarrivalJitter = lastJitter;
-                return lastJitter;
-            }
+            float calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp);
         };
 
         class ParticipantDatabase
         {
         public:
-
+            
             /*!
              * \return the participant for this instance
              */
-            static Participant& self()
+            inline static Participant& self()
             {
                 return localParticipant;
             }
@@ -112,10 +97,13 @@ namespace ohmcomm
              * 
              * \return the n-th remote participant
              */
-            static Participant& remote(const uint32_t ssrc)
+            inline static Participant& remote(const uint32_t ssrc)
             {
                 if (!isInDatabase(ssrc))
+                {
                     participants.emplace(std::make_pair(ssrc, Participant{ssrc, false}));
+                    fireNewRemote(ssrc);
+                }
                 return participants.at(ssrc);
             }
 
@@ -124,7 +112,7 @@ namespace ohmcomm
              * 
              * \return whether a participant with this SSRC exists in the local database
              */
-            static bool isInDatabase(const uint32_t ssrc)
+            inline static bool isInDatabase(const uint32_t ssrc)
             {
                 return participants.find(ssrc) != participants.end();
             }
@@ -132,7 +120,7 @@ namespace ohmcomm
             /*!
              * \return a read-only map of all currently registered remote participants
              */
-            static const std::map<uint32_t, Participant>& getAllRemoteParticipants()
+            inline static const std::map<uint32_t, Participant>& getAllRemoteParticipants()
             {
                 return participants;
             }
@@ -144,16 +132,35 @@ namespace ohmcomm
              * 
              * \return whether a participant for this SSRC was found and removed
              */
-            static bool removeParticipant(const uint32_t ssrc)
+            inline static bool removeParticipant(const uint32_t ssrc)
             {
-                return participants.erase(ssrc) > 0;
+                if(participants.erase(ssrc) > 0)
+                {
+                    fireRemoveRemote(ssrc);
+                    return true;
+                }
+                return false;
             }
-
+            
+            /*!
+             * \return the number of currently active remote participants
+             */
+            inline static unsigned int getNumberOfRemotes()
+            {
+                return participants.size();
+            }
+            
         private:
             static Participant localParticipant;
             static std::map<uint32_t, Participant> participants;
 
             static Participant initLocalParticipant();
+            
+            //fires listeners for new remotes
+            static void fireNewRemote(const uint32_t ssrc);
+            
+            //fires listeners for removal of remotes
+            static void fireRemoveRemote(const uint32_t ssrc);
         };
     }
 }

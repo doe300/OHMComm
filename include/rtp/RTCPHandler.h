@@ -124,6 +124,10 @@ namespace ohmcomm
 
             static void printReceptionReports(const std::vector<ReceptionReport>& reports);
 
+            /*!
+             * Removes a remote participant from the conversation
+             */
+            void removeRemoteParticipant(const uint32_t ssrc) const;
         };
     }
 }
