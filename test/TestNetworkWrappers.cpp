@@ -1,6 +1,7 @@
 #include "TestNetworkWrappers.h"
 
 using namespace ohmcomm;
+using namespace ohmcomm::network;
 
 TestNetworkWrappers::TestNetworkWrappers() : bufferSize(511), sendBuffer(new char[bufferSize]), receiveBuffer(new char[bufferSize])
 {
@@ -26,7 +27,7 @@ void TestNetworkWrappers::testUDPWrapperIPv6()
     testUDPWrapper(wrapper);
 }
 
-void TestNetworkWrappers::testUDPWrapper(UDPWrapper& wrapper)
+void TestNetworkWrappers::testUDPWrapper(ohmcomm::network::UDPWrapper& wrapper)
 {
     const char* text = "This is a test, Lorem ipsum! We fill this buffer with some random stuff ..... And send a arbitrary amount of bytes and compare them to this original string...";
     strncpy(sendBuffer, text, 150);

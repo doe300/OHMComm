@@ -38,7 +38,7 @@ namespace ohmcomm
              * \param receiveBufferSize The maximum size (in bytes) a RTP-package can fill, according to the configuration
              *
              */
-            RTPListener(std::shared_ptr<NetworkWrapper> wrapper, JitterBuffers& buffers, unsigned int receiveBufferSize);
+            RTPListener(std::shared_ptr<ohmcomm::network::NetworkWrapper> wrapper, JitterBuffers& buffers, unsigned int receiveBufferSize);
             RTPListener(const RTPListener& orig);
             ~RTPListener();
 
@@ -53,7 +53,7 @@ namespace ohmcomm
             void startUp();
 
         private:
-            std::shared_ptr<NetworkWrapper> wrapper;
+            std::shared_ptr<ohmcomm::network::NetworkWrapper> wrapper;
             JitterBuffers& buffers;
             RTPPackageHandler rtpHandler;
             std::thread receiveThread;

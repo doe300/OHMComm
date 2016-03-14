@@ -3,7 +3,7 @@
 #include "network/NetworkWrapper.h"
 #include "network/NetworkGrammars.h"
 
-using namespace ohmcomm;
+using namespace ohmcomm::network;
 
 std::wstring NetworkWrapper::getLastError() const
 {

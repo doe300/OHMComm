@@ -46,9 +46,9 @@ SIPGrammar::SIPURI SIPGrammar::readSIPURI(const std::string& sipURI, const unsig
     {
         return SIPURI{};
     }
-    const std::tuple<std::string, int> hostAndPort = NetworkGrammars::toHostAndPort(result.str(6), defaultPort);
+    const std::tuple<std::string, int> hostAndPort = ohmcomm::network::NetworkGrammars::toHostAndPort(result.str(6), defaultPort);
     //host must not be empty, port must not be invalid
-    if(std::get<0>(hostAndPort).empty() || std::get<1>(hostAndPort) == NetworkGrammars::INVALID_PORT)
+    if(std::get<0>(hostAndPort).empty() || std::get<1>(hostAndPort) == ohmcomm::network::NetworkGrammars::INVALID_PORT)
     {
         return SIPURI{};
     }
@@ -251,7 +251,7 @@ bool SIPGrammar::isValidCallID(const std::string& callID)
             //first part doesn't match
             return false;
         }
-        return NetworkGrammars::isValidHost(callID.substr(index+1));
+        return ohmcomm::network::NetworkGrammars::isValidHost(callID.substr(index+1));
     }
     return std::regex_match(callID,wordRegex);
 }

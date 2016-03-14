@@ -10,7 +10,7 @@
 
 #include "network/NetworkGrammars.h"
 
-using namespace ohmcomm;
+using namespace ohmcomm::network;
 
 //due to some problem with clang++, this can't be constexpr (or declared in the header)
 const int NetworkGrammars::INVALID_PORT{-1};

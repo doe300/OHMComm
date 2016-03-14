@@ -49,7 +49,7 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::retrieveSIPInfo(
 
 const std::tuple<bool, std::string, unsigned short> STUNClient::testSTUNServer(const std::string& stunServer, unsigned short serverPort)
 {
-    UDPWrapper network(LOCAL_PORT, stunServer, serverPort);
+    ohmcomm::network::UDPWrapper network(LOCAL_PORT, stunServer, serverPort);
  
     std::cout << "STUN: Testing ... " << stunServer << ':' << serverPort << std::endl;
     const unsigned int sendSize = createRequestMessage(STUN_BINDING_REQUEST);
@@ -62,8 +62,8 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::testSTUNServer(c
         receivedSize = network.receiveData(buffer, BUFFER_SIZE).status;
         --numRetries;
     }
-    while(numRetries > 0 && receivedSize == UDPWrapper::RECEIVE_TIMEOUT);
-    if (receivedSize != INVALID_SOCKET && receivedSize != UDPWrapper::RECEIVE_TIMEOUT && receivedSize >= STUN_HEADER_SIZE)
+    while(numRetries > 0 && receivedSize == ohmcomm::network::UDPWrapper::RECEIVE_TIMEOUT);
+    if (receivedSize != INVALID_SOCKET && receivedSize != ohmcomm::network::UDPWrapper::RECEIVE_TIMEOUT && receivedSize >= STUN_HEADER_SIZE)
     {
         //handle response
         //1. check response-type

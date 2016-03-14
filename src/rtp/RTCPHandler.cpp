@@ -21,7 +21,7 @@ const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 
 RTCPHandler::RTCPHandler(const ohmcomm::NetworkConfiguration& rtcpConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const bool isActiveSender):
-    wrapper(new ohmcomm::UDPWrapper(rtcpConfig)), configMode(configMode), startAudioCallback(startCallback),
+    wrapper(new ohmcomm::network::UDPWrapper(rtcpConfig)), configMode(configMode), startAudioCallback(startCallback),
         isActiveSender(isActiveSender), rtcpHandler(), ourselves(ParticipantDatabase::self())
 {
     //make sure, RTCP for self is set
@@ -106,7 +106,7 @@ void RTCPHandler::runThread()
             sendSourceDescription();
         }
         //wait for package and store into RTCPPackageHandler
-        const NetworkWrapper::Package result = this->wrapper->receiveData(rtcpHandler.rtcpPackageBuffer.data(), rtcpHandler.rtcpPackageBuffer.capacity());
+        const ohmcomm::network::NetworkWrapper::Package result = this->wrapper->receiveData(rtcpHandler.rtcpPackageBuffer.data(), rtcpHandler.rtcpPackageBuffer.capacity());
         if(threadRunning == false || result.isInvalidSocket())
         {
             //socket was already closed

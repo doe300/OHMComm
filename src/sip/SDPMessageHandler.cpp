@@ -37,7 +37,7 @@ std::string SDPMessageHandler::createSessionDescription(const std::string& local
 {
     ohmcomm::rtp::NTPTimestamp now = ohmcomm::rtp::NTPTimestamp::now();
     std::string localIP = Utility::getLocalIPAddress(Utility::getNetworkType(config.remoteIPAddress));
-    std::string addrType = NetworkGrammars::isIPv6Address(localIP) ? "IP6" : "IP4";
+    std::string addrType = ohmcomm::network::NetworkGrammars::isIPv6Address(localIP) ? "IP6" : "IP4";
     
     std::vector<std::string> lines;
     //required: v, o, s, t, m

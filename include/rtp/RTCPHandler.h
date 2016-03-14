@@ -62,7 +62,7 @@ namespace ohmcomm
             void onPlaybackStop();
 
         private:
-            const std::unique_ptr<NetworkWrapper> wrapper;
+            const std::unique_ptr<ohmcomm::network::NetworkWrapper> wrapper;
             const std::shared_ptr<ConfigurationMode> configMode;
             const std::function<void () > startAudioCallback;
             const bool isActiveSender;

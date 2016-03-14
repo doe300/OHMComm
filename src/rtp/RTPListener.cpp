@@ -10,7 +10,7 @@
 
 using namespace ohmcomm::rtp;
 
-RTPListener::RTPListener(std::shared_ptr<ohmcomm::NetworkWrapper> wrapper, JitterBuffers& buffers, unsigned int receiveBufferSize) :
+RTPListener::RTPListener(std::shared_ptr<ohmcomm::network::NetworkWrapper> wrapper, JitterBuffers& buffers, unsigned int receiveBufferSize) :
     wrapper(wrapper), buffers(buffers), rtpHandler(receiveBufferSize)
 {
 }
@@ -40,7 +40,7 @@ void RTPListener::runThread()
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
-        const NetworkWrapper::Package receivedPackage = this->wrapper->receiveData(rtpHandler.getWorkBuffer(), rtpHandler.getMaximumPackageSize());
+        const ohmcomm::network::NetworkWrapper::Package receivedPackage = this->wrapper->receiveData(rtpHandler.getWorkBuffer(), rtpHandler.getMaximumPackageSize());
         if(receivedPackage.isInvalidSocket())
         {
             //socket was already closed

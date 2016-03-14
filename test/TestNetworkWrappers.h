@@ -19,7 +19,7 @@ private:
     char* sendBuffer;
     char* receiveBuffer;
     
-    void testUDPWrapper(ohmcomm::UDPWrapper& wrapper);
+    void testUDPWrapper(ohmcomm::network::UDPWrapper& wrapper);
 };
 
 #endif // TESTNETWORKWRAPPERS_H

@@ -16,7 +16,7 @@ const std::string SIPHandler::SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings(
 const std::string SIPHandler::SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 
 SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const ohmcomm::NetworkConfiguration, const ohmcomm::NetworkConfiguration)> configFunction) : 
-        userAgents(std::to_string(rand())), network(new UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
+        userAgents(std::to_string(rand())), network(new ohmcomm::network::UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
 {
     userAgents.thisUA.userName = ohmcomm::Utility::getUserName();
     userAgents.thisUA.hostName = ohmcomm::Utility::getDomainName();
@@ -86,7 +86,7 @@ void SIPHandler::runThread()
     while (threadRunning)
     {
         //wait for package and store it in the SIPPackageHandler
-        const NetworkWrapper::Package result = network->receiveData(buffer.data(), buffer.size());
+        const ohmcomm::network::NetworkWrapper::Package result = network->receiveData(buffer.data(), buffer.size());
         if (threadRunning == false || result.isInvalidSocket())
         {
             //socket was already closed
@@ -189,7 +189,7 @@ void SIPHandler::sendAckRequest(SIPUserAgent& remoteUA)
     network->sendData(message.data(), message.size());
 }
 
-void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength, const ohmcomm::NetworkWrapper::Package& packageInfo)
+void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength, const ohmcomm::network::NetworkWrapper::Package& packageInfo)
 {
     SIPRequestHeader requestHeader;
     std::string requestBody;
@@ -331,7 +331,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     }
 }
 
-void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLength, const ohmcomm::NetworkWrapper::Package& packageInfo)
+void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLength, const ohmcomm::network::NetworkWrapper::Package& packageInfo)
 {
     SIPResponseHeader responseHeader;
     std::string responseBody;
@@ -613,7 +613,7 @@ int SIPHandler::selectBestMedia(const std::vector<MediaDescription>& availableMe
     return -1;
 }
 
-void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA)
+void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::network::NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA)
 {
     if(header != nullptr)
     {
@@ -653,7 +653,7 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::Net
         std::cout << "Connecting to: " << sipConfig.remoteIPAddress << ':' << sipConfig.remotePort << std::endl;
         //wait for socket to be closed
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        network.reset(new UDPWrapper(sipConfig));
+        network.reset(new ohmcomm::network::UDPWrapper(sipConfig));
         
         //update all configuration-dependant values
         userAgents.thisUA.ipAddress = ohmcomm::Utility::getLocalIPAddress(ohmcomm::Utility::getNetworkType(sipConfig.remoteIPAddress));

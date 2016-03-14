@@ -7,7 +7,7 @@
 
 #include "TestNetworkGrammars.h"
 
-using namespace ohmcomm;
+using namespace ohmcomm::network;
 
 TestNetworkGrammars::TestNetworkGrammars() : Suite()
 {

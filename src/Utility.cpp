@@ -99,7 +99,7 @@ Utility::AddressType Utility::getNetworkType(const std::string& remoteAddress)
 
 std::string Utility::getAddressForHostName(const std::string& hostName)
 {
-    if(NetworkGrammars::isIPv4Address(hostName) || NetworkGrammars::isIPv6Address(hostName))
+    if(ohmcomm::network::NetworkGrammars::isIPv4Address(hostName) || ohmcomm::network::NetworkGrammars::isIPv6Address(hostName))
         return hostName;
     
     std::string ipAddress;

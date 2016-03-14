@@ -47,7 +47,7 @@ namespace ohmcomm
             //! Delay until treating input as silence
             //!Treat as silence after 500ms of no input
             static constexpr unsigned short SILENCE_DELAY{500};
-            const std::shared_ptr<NetworkWrapper> network;
+            const std::shared_ptr<ohmcomm::network::NetworkWrapper> network;
             JitterBuffers buffers;
             Participant& ourselves;
             std::unique_ptr<RTPPackageHandler> rtpPackage;

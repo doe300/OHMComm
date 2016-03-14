@@ -42,7 +42,7 @@ bool PassiveConfiguration::runConfiguration()
     NetworkConfiguration rtcpConfig = networkConfig;
     rtcpConfig.localPort += 1;
     rtcpConfig.remotePort += 1;
-    UDPWrapper wrapper(rtcpConfig);
+    ohmcomm::network::UDPWrapper wrapper(rtcpConfig);
 
     RTCPPackageHandler handler;
     RTCPHeader requestHeader(0);  //we do not have a SSID and it doesn't really matter
@@ -59,7 +59,7 @@ bool PassiveConfiguration::runConfiguration()
 
     //we can reuse buffer, because it is large enough (as of RTCPPackageHandler)
     int receivedSize = wrapper.receiveData(buffer, 6000).status;
-    while(receivedSize == NetworkWrapper::RECEIVE_TIMEOUT)
+    while(receivedSize == ohmcomm::network::NetworkWrapper::RECEIVE_TIMEOUT)
     {
         //we timed out - repeat
         receivedSize = wrapper.receiveData(buffer, 6000).status;

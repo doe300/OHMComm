@@ -82,7 +82,7 @@ namespace ohmcomm
                 SHUTDOWN,
             };
             UserAgentDatabase userAgents;
-            std::unique_ptr<NetworkWrapper> network;
+            std::unique_ptr<ohmcomm::network::NetworkWrapper> network;
             NetworkConfiguration sipConfig;
             const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration) > configFunction;
             std::function<void() > stopCallback = []()-> void
@@ -106,9 +106,9 @@ namespace ohmcomm
              */
             void initializeHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA);
 
-            void handleSIPRequest(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo);
+            void handleSIPRequest(const void* buffer, unsigned int packageLength, const ohmcomm::network::NetworkWrapper::Package& packageInfo);
 
-            void handleSIPResponse(const void* buffer, unsigned int packageLength, const NetworkWrapper::Package& packageInfo);
+            void handleSIPResponse(const void* buffer, unsigned int packageLength, const ohmcomm::network::NetworkWrapper::Package& packageInfo);
 
             void sendInviteRequest(SIPUserAgent& remoteUA);
 
@@ -122,7 +122,7 @@ namespace ohmcomm
 
             int selectBestMedia(const std::vector<MediaDescription>& availableMedias) const;
 
-            void updateNetworkConfig(const SIPHeader* header, const NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA);
+            void updateNetworkConfig(const SIPHeader* header, const ohmcomm::network::NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA);
 
             void startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig);
 

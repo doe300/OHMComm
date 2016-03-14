@@ -20,111 +20,114 @@
 
 namespace ohmcomm
 {
-
-    /*!
-     * Superclass for all networking-protocols.
-     *
-     * Implementations of this class provide methods to send/receive audio-data to/from the network.
-     *
-     */
-    class NetworkWrapper
+    namespace network
     {
-    public:
 
-        const static int RECEIVE_TIMEOUT{-2};
-
-        //Data-object containing information about a single package received
-
-        struct Package
+        /*!
+         * Superclass for all networking-protocols.
+         *
+         * Implementations of this class provide methods to send/receive audio-data to/from the network.
+         *
+         */
+        class NetworkWrapper
         {
-            //we define a union of an IPv4 and an IPv6 address to  guarantee to hold enough space
-            //for either of the IP protocol versions
+        public:
 
-            union
+            const static int RECEIVE_TIMEOUT{-2};
+
+            //Data-object containing information about a single package received
+
+            struct Package
             {
-                sockaddr_in ipv4Address;
-                sockaddr_in6 ipv6Address;
+                //we define a union of an IPv4 and an IPv6 address to  guarantee to hold enough space
+                //for either of the IP protocol versions
+
+                union
+                {
+                    sockaddr_in ipv4Address;
+                    sockaddr_in6 ipv6Address;
+                };
+                //error-code or package-size
+                int status;
+                //whether the returned address is an IPv6 address
+                bool isIPv6;
+
+                /*!
+                 * \return whether the call to receiveData() has timed out
+                 */
+                inline bool hasTimedOut() const
+                {
+                    return status == RECEIVE_TIMEOUT;
+                }
+
+                inline bool isInvalidSocket() const
+                {
+                    return status == INVALID_SOCKET;
+                }
+
+                inline unsigned int getReceivedSize() const
+                {
+                    return status > 0 ? status : 0;
+                }
             };
-            //error-code or package-size
-            int status;
-            //whether the returned address is an IPv6 address
-            bool isIPv6;
+
+            virtual ~NetworkWrapper()
+            {
+                //needs a virtual destructor to be overridden correctly
+            }
 
             /*!
-             * \return whether the call to receiveData() has timed out
+             * \param buffer The buffer to send
+             *
+             * \param bufferSize The number of bytes to send
+             *
+             * \return the number of bytes sent
              */
-            inline bool hasTimedOut() const
-            {
-                return status == RECEIVE_TIMEOUT;
-            }
+            virtual int sendData(const void *buffer, const unsigned int bufferSize) = 0;
 
-            inline bool isInvalidSocket() const
-            {
-                return status == INVALID_SOCKET;
-            }
+            /*!
+             * In case of an error, this method returns INVALID_SOCKET. In case of a blocking-timeout, this method returns RECEIVE_TIMEOUT
+             * 
+             * \param buffer The buffer to receive into
+             *
+             * \param bufferSize The maximum number of bytes to receive
+             *
+             * \return information about the received package
+             */
+            virtual Package receiveData(void *buffer, unsigned int bufferSize) = 0;
 
-            inline unsigned int getReceivedSize() const
-            {
-                return status > 0 ? status : 0;
-            }
-        };
+            /*!
+             * Returns the last error code and a human-readable description
+             */
+            virtual std::wstring getLastError() const;
 
-        virtual ~NetworkWrapper()
-        {
-            //needs a virtual destructor to be overridden correctly
-        }
+            /*!
+             * Closes the underlying socket
+             */
+            virtual void closeNetwork() = 0;
 
-        /*!
-         * \param buffer The buffer to send
-         *
-         * \param bufferSize The number of bytes to send
-         *
-         * \return the number of bytes sent
-         */
-        virtual int sendData(const void *buffer, const unsigned int bufferSize) = 0;
+            /*!
+             * \param ipAddress The address to check
+             *
+             * \return Whether the address given is an IPv6 address
+             */
+            static bool isIPv6(const std::string ipAddress);
+        protected:
 
-        /*!
-         * In case of an error, this method returns INVALID_SOCKET. In case of a blocking-timeout, this method returns RECEIVE_TIMEOUT
-         * 
-         * \param buffer The buffer to receive into
-         *
-         * \param bufferSize The maximum number of bytes to receive
-         *
-         * \return information about the received package
-         */
-        virtual Package receiveData(void *buffer, unsigned int bufferSize) = 0;
-
-        /*!
-         * Returns the last error code and a human-readable description
-         */
-        virtual std::wstring getLastError() const;
-
-        /*!
-         * Closes the underlying socket
-         */
-        virtual void closeNetwork() = 0;
-
-        /*!
-         * \param ipAddress The address to check
-         *
-         * \return Whether the address given is an IPv6 address
-         */
-        static bool isIPv6(const std::string ipAddress);
-    protected:
-
-        // Defines OS-independant flag to close socket
+            // Defines OS-independant flag to close socket
 #ifdef _WIN32
-        static constexpr int SHUTDOWN_BOTH{SD_BOTH};
-        static constexpr int INTERRUPTED_BY_SYSTEM_CALL{WSAEINTR};
+            static constexpr int SHUTDOWN_BOTH{SD_BOTH};
+            static constexpr int INTERRUPTED_BY_SYSTEM_CALL{WSAEINTR};
 #else
-        static constexpr int SHUTDOWN_BOTH{SHUT_RDWR};
-        static constexpr int INTERRUPTED_BY_SYSTEM_CALL{EINTR};
+            static constexpr int SHUTDOWN_BOTH{SHUT_RDWR};
+            static constexpr int INTERRUPTED_BY_SYSTEM_CALL{EINTR};
 #endif
 
-        /*!
-         * \return whether the recv()-method has returned because of a timeout
-         */
-        bool hasTimedOut() const;
-    };
+            /*!
+             * \return whether the recv()-method has returned because of a timeout
+             */
+            bool hasTimedOut() const;
+        };
+    }
 }
 #endif

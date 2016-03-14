@@ -1,6 +1,6 @@
 #include "network/TCPWrapper.h"
 
-using namespace ohmcomm;
+using namespace ohmcomm::network;
 
 TCPWrapper::TCPWrapper(unsigned short localPort, const std::string remoteIPAddress, unsigned short remotePort) :
     localAddress({0}), remoteAddress({0})
