@@ -16,10 +16,12 @@ using namespace ohmcomm;
 OHMComm::OHMComm(ConfigurationMode* mode) : configurationMode(mode), audioHandler(nullptr)
 {
     registerPlaybackListener(configurationMode);
+    rtp::ParticipantDatabase::registerListener(*this);
 }
 
 OHMComm::~OHMComm()
 {
+    rtp::ParticipantDatabase::unregisterListener(*this);
 }
 
 std::shared_ptr<ConfigurationMode> OHMComm::getConfigurationMode() const
@@ -172,6 +174,15 @@ void OHMComm::stopAudioThreads()
 bool OHMComm::isRunning() const
 {
     return running;
+}
+
+void OHMComm::onRemoteRemoved(const unsigned int ssrc)
+{
+    if(rtp::ParticipantDatabase::getNumberOfRemotes() == 0)
+    {
+        std::cout << "OHMComm: No more communication partners, shutting down..." << std::endl;
+        stopAudioThreads();
+    }
 }
 
 void OHMComm::configureRTPProcessor(bool profileProcessors, const PayloadType payloadType)

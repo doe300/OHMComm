@@ -13,6 +13,7 @@
 #include "config/ConfigurationMode.h"
 #include "audio/AudioHandler.h"
 #include "rtp/RTCPHandler.h"
+#include "rtp/ParticipantDatabase.h"
 
 #include <functional>
 #include <memory> // unique_ptr
@@ -28,7 +29,7 @@ namespace ohmcomm
      *
      * There are several modes, the OHMComm can run in. For a full list, see the ConfigurationMode subclasses
      */
-    class OHMComm : public PlaybackObservee
+    class OHMComm : public PlaybackObservee, private rtp::ParticipantListener
     {
     public:
 
@@ -81,7 +82,10 @@ namespace ohmcomm
          * \return Whether the audio-communication is running
          */
         bool isRunning() const;
+        
+        void onRemoteRemoved(const unsigned int ssrc) override;
 
+        //XXX remove this
         std::function<void () > createStopCallback();
 
     private:

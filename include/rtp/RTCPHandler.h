@@ -28,7 +28,7 @@ namespace ohmcomm
          * 
          * The port occupied by RTCP is per standard the RTP-port +1
          */
-        class RTCPHandler : public PlaybackListener
+        class RTCPHandler : public PlaybackListener, private ParticipantListener
         {
         public:
             RTCPHandler(const NetworkConfiguration& rtcpConfig, const std::shared_ptr<ConfigurationMode> configMode,
@@ -48,18 +48,22 @@ namespace ohmcomm
             /*!
              * Registers the stop-callback
              */
-            void onRegister(PlaybackObservee* ohmComm);
+            void onRegister(PlaybackObservee* ohmComm) override;
 
             /*!
              * Starts the RTCP-thread
              */
-            void onPlaybackStart();
+            void onPlaybackStart() override;
 
 
             /*!
              * Shuts down the RTCP-thread
              */
-            void onPlaybackStop();
+            void onPlaybackStop() override;
+            
+            virtual void onRemoteAdded(const unsigned int ssrc) override;
+
+            virtual void onRemoteRemoved(const unsigned int ssrc) override;
 
         private:
             const std::unique_ptr<ohmcomm::network::NetworkWrapper> wrapper;
@@ -123,11 +127,6 @@ namespace ohmcomm
             const void* createSourceDescription(unsigned int offset = 0);
 
             static void printReceptionReports(const std::vector<ReceptionReport>& reports);
-
-            /*!
-             * Removes a remote participant from the conversation
-             */
-            void removeRemoteParticipant(const uint32_t ssrc) const;
         };
     }
 }

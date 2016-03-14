@@ -11,6 +11,8 @@
 #include <map>
 #include <chrono>
 #include <memory>
+#include <vector>
+#include <functional>
 
 namespace ohmcomm
 {
@@ -79,6 +81,26 @@ namespace ohmcomm
              */
             float calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp);
         };
+        
+        /*!
+         * Subclasses of this listener will be notified when a new participant is added or an existing one removed
+         */
+        class ParticipantListener
+        {
+        public:
+            virtual ~ParticipantListener()
+            {
+                //for correct call to overriding destructor
+            }
+
+            virtual void onRemoteAdded(const unsigned int ssrc)
+            {
+            }
+            
+            virtual void onRemoteRemoved(const unsigned int ssrc)
+            {
+            }
+        };
 
         class ParticipantDatabase
         {
@@ -132,15 +154,7 @@ namespace ohmcomm
              * 
              * \return whether a participant for this SSRC was found and removed
              */
-            inline static bool removeParticipant(const uint32_t ssrc)
-            {
-                if(participants.erase(ssrc) > 0)
-                {
-                    fireRemoveRemote(ssrc);
-                    return true;
-                }
-                return false;
-            }
+            static bool removeParticipant(const uint32_t ssrc);
             
             /*!
              * \return the number of currently active remote participants
@@ -150,9 +164,21 @@ namespace ohmcomm
                 return participants.size();
             }
             
+            /*!
+             * Registers a new listener for participants
+             */
+            static void registerListener(ParticipantListener& listener);
+            
+            /*!
+             * Removes an existing listener for participants
+             */
+            static void unregisterListener(ParticipantListener& listener);
+            
         private:
             static Participant localParticipant;
             static std::map<uint32_t, Participant> participants;
+            //need to wrap references, since they cannot be stored in vectors
+            static std::vector<std::reference_wrapper<ParticipantListener>> listeners;
 
             static Participant initLocalParticipant();
             

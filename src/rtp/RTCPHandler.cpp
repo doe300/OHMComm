@@ -19,6 +19,9 @@ using namespace ohmcomm::rtp;
 const std::chrono::seconds RTCPHandler::sendSRInterval{5};
 const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 
+//XXX when someday passive configuration is removed in favor of SIP, clean this up and move its parent from OHMComm to RTP-processor
+//-> then has the exact same life-cycle as the RTP-processor
+
 RTCPHandler::RTCPHandler(const ohmcomm::NetworkConfiguration& rtcpConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, 
                          const std::function<void ()> startCallback, const bool isActiveSender):
     wrapper(new ohmcomm::network::UDPWrapper(rtcpConfig)), configMode(configMode), startAudioCallback(startCallback),
@@ -27,10 +30,12 @@ RTCPHandler::RTCPHandler(const ohmcomm::NetworkConfiguration& rtcpConfig, const 
     //make sure, RTCP for self is set
     if(!ourselves.rtcpData)
         ourselves.rtcpData.reset(new RTCPData);
+    ParticipantDatabase::registerListener(*this);
 }
 
 RTCPHandler::~RTCPHandler()
 {
+    ParticipantDatabase::unregisterListener(*this);
     // Wait until thread has really stopped
     listenerThread.join();
 }
@@ -69,6 +74,16 @@ void RTCPHandler::onPlaybackStop()
     shutdown();
 }
 
+void RTCPHandler::onRemoteAdded(const unsigned int ssrc)
+{
+    //XXX add to list of destinations
+}
+
+void RTCPHandler::onRemoteRemoved(const unsigned int ssrc)
+{
+    //XXX remove from list of destinations
+}
+
 void RTCPHandler::shutdownInternal()
 {
     // notify the thread to stop
@@ -95,8 +110,8 @@ void RTCPHandler::runThread()
                     //remote has not send any package for quite some time, end conversation
                     std::cout << "RTCP: Dialog partner has timed out, shutting down!" << std::endl;
                     shutdownInternal();
-                    //notify OHMComm about remote leaving
-                    removeRemoteParticipant((*it).second.ssrc);
+                    //notifies OHMComm about remote leaving
+                    ParticipantDatabase::removeParticipant((*it).second.ssrc);
                     break;
                 }
             }
@@ -139,8 +154,8 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
         std::cout << "RTCP: Received Goodbye-message: " << rtcpHandler.readByeMessage(receiveBuffer, receivedSize, header) << std::endl;
         std::cout << "RTCP: Dialog partner requested end of communication, shutting down!" << std::endl;
         shutdownInternal();
-        //notify OHMComm about remote leaving
-        removeRemoteParticipant(header.getSSRC());
+        //notifies OHMComm about remote leaving
+        ParticipantDatabase::removeParticipant(header.getSSRC());
         return header.getSSRC();
     }
     else if(header.getType() == RTCP_PACKAGE_SENDER_REPORT)
@@ -371,14 +386,5 @@ void RTCPHandler::printReceptionReports(const std::vector<ReceptionReport>& repo
             std::cout << "\t\tTotal package loss: " << report.getCummulativePackageLoss() << std::endl;
             std::cout << "\t\tInterarrival Jitter (in ms): " << report.getInterarrivalJitter() << std::endl;
         }
-    }
-}
-
-void RTCPHandler::removeRemoteParticipant(const uint32_t ssrc) const
-{
-    ParticipantDatabase::removeParticipant(ssrc);
-    if(ParticipantDatabase::getNumberOfRemotes() == 0)
-    {
-        stopCallback();
     }
 }
