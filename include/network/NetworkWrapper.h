@@ -24,6 +24,23 @@ namespace ohmcomm
     {
 
         /*!
+         * Container for a socket-address (IP-address and port) and a flag whether to use IPv4 or IPv6
+         */
+        struct SocketAddress
+        {
+        public:
+            //we define a union of an IPv4 and an IPv6 address
+            //because the two addresses have different size(16 bytes and 24 bytes) and therefore we can guarantee to hold enough space
+            //for either of the IP protocol versions
+            union
+            {
+                sockaddr_in6 ipv6;
+                sockaddr_in ipv4;
+            };
+            bool isIPv6;
+        };
+
+        /*!
          * Superclass for all networking-protocols.
          *
          * Implementations of this class provide methods to send/receive audio-data to/from the network.
@@ -39,18 +56,9 @@ namespace ohmcomm
 
             struct Package
             {
-                //we define a union of an IPv4 and an IPv6 address to  guarantee to hold enough space
-                //for either of the IP protocol versions
-
-                union
-                {
-                    sockaddr_in ipv4Address;
-                    sockaddr_in6 ipv6Address;
-                };
+                SocketAddress address;
                 //error-code or package-size
                 int status;
-                //whether the returned address is an IPv6 address
-                bool isIPv6;
 
                 /*!
                  * \return whether the call to receiveData() has timed out

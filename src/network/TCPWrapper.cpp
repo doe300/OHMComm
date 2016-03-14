@@ -46,7 +46,6 @@ void TCPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
     if(NetworkWrapper::isIPv6(remoteIPAddress))
     {
         std::cout << "Using IPv6 ..." << std::endl;
-        isIPv6 = true;
         localAddress.ipv6.sin6_family = AF_INET6;
         //listen on any address of this computer (localhost, local IP, ...)
         localAddress.ipv6.sin6_addr = in6addr_any;
@@ -56,11 +55,11 @@ void TCPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
         remoteAddress.ipv6.sin6_family = AF_INET6;
         inet_pton(AF_INET6, remoteIPAddress.c_str(), &(remoteAddress.ipv6.sin6_addr));
         remoteAddress.ipv6.sin6_port = htons(remotePort);
+        remoteAddress.isIPv6 = true;
     }
     else
     {
         std::cout << "Using IPv4 ..." << std::endl;
-        isIPv6 = false;
         localAddress.ipv4.sin_family = AF_INET;
         //listen on any address of this computer (localhost, local IP, ...)
         localAddress.ipv4.sin_addr.s_addr = INADDR_ANY;
@@ -68,6 +67,7 @@ void TCPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
         remoteAddress.ipv4.sin_family = AF_INET;
         inet_pton(AF_INET, remoteIPAddress.c_str(), &(remoteAddress.ipv4.sin_addr));
         remoteAddress.ipv4.sin_port = htons(remotePort);
+        remoteAddress.isIPv6 =false;
     }
 }
 
@@ -143,7 +143,7 @@ NetworkWrapper::Package TCPWrapper::receiveData(void *buffer, unsigned int buffe
     unsigned int addressLength = getSocketAddressLength();
 #endif
     NetworkWrapper::Package package{};
-    package.status = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(package.ipv6Address), &addressLength);
+    package.status = recvfrom(this->Socket, (char*)buffer, (int)bufferSize, 0, (sockaddr*)&(package.address.ipv6), &addressLength);
     if (package.status == -1)
     {
         if(hasTimedOut() || errno == INTERRUPTED_BY_SYSTEM_CALL)
@@ -155,7 +155,7 @@ NetworkWrapper::Package TCPWrapper::receiveData(void *buffer, unsigned int buffe
         std::wcerr << this->getLastError();
     }
     if(addressLength == sizeof(sockaddr_in6))
-        package.isIPv6 = true;
+        package.address.isIPv6 = true;
     return package;
 }
 

@@ -627,7 +627,7 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::net
             //use the actual address/port from the package received
             //NOTE: this is the easiest and fastest way to determine host/port, but may be inaccurate for some special cases
             //e.g. when remote uses different input/output ports or the package was meant to forward to another host
-            const auto socketAddress = ohmcomm::Utility::getSocketAddress(&(packageInfo->ipv6Address), sizeof(packageInfo->ipv6Address), packageInfo->isIPv6);
+            const auto socketAddress = ohmcomm::Utility::getSocketAddress(&(packageInfo->address.ipv6), sizeof(packageInfo->address.ipv6), packageInfo->address.isIPv6);
             remoteUA.ipAddress = socketAddress.first;
             remoteUA.port = socketAddress.second;
         }

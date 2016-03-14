@@ -26,19 +26,9 @@ namespace ohmcomm
 
             void closeNetwork();
         protected:
-            bool isIPv6;
             int Socket;
-            //we define a union of an IPv4 and an IPv6 address
-            //because the two addresses have different size(16 bytes and 24 bytes) and therefore we can guarantee to hold enough space
-            //for either of the IP protocol versions
-
-            union socketAddress
-            {
-                sockaddr_in6 ipv6;
-                sockaddr_in ipv4;
-            };
-            socketAddress localAddress;
-            socketAddress remoteAddress;
+            SocketAddress localAddress;
+            SocketAddress remoteAddress;
 
             void startWinsock();
 
