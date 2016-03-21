@@ -9,7 +9,7 @@ TCPWrapper::TCPWrapper(unsigned short localPort, const std::string remoteIPAddre
 	initializeNetwork();
 }
 
-TCPWrapper::TCPWrapper(const NetworkConfiguration& networkConfig) :
+TCPWrapper::TCPWrapper(const ohmcomm::NetworkConfiguration& networkConfig) :
     TCPWrapper(networkConfig.localPort, networkConfig.remoteIPAddress, networkConfig.remotePort)
 {
 }
@@ -70,7 +70,6 @@ void TCPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
         remoteAddress.isIPv6 =false;
     }
 }
-
 
 bool TCPWrapper::createSocket()
 {

@@ -9,7 +9,7 @@ localAddress({0}), remoteAddress({0})
     initializeNetwork();
 }
 
-UDPWrapper::UDPWrapper(const NetworkConfiguration& networkConfig) :
+UDPWrapper::UDPWrapper(const ohmcomm::NetworkConfiguration& networkConfig) :
 UDPWrapper(networkConfig.localPort, networkConfig.remoteIPAddress, networkConfig.remotePort)
 {
 }
