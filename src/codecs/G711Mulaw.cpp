@@ -45,7 +45,7 @@ ohmcomm::PayloadType G711Mulaw::getSupportedPlayloadType() const
     return PayloadType::PCMU;
 }
 
-void G711Mulaw::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
+void G711Mulaw::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ohmcomm::ProcessorCapabilities& chainCapabilities)
 {
     maxBufferSize = audioConfig.framesPerPackage * audioConfig.outputDeviceChannels;
     writeBuffer = new int16_t[maxBufferSize];

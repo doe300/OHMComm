@@ -45,7 +45,7 @@ ohmcomm::PayloadType G711Alaw::getSupportedPlayloadType() const
     return PayloadType::PCMA;
 }
 
-void G711Alaw::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
+void G711Alaw::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ohmcomm::ProcessorCapabilities& chainCapabilities)
 {
     maxBufferSize = audioConfig.framesPerPackage * audioConfig.outputDeviceChannels;
     writeBuffer = new int16_t[maxBufferSize];

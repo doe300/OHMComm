@@ -13,7 +13,7 @@ ProcessorRTP::ProcessorRTP(const std::string name, const ohmcomm::NetworkConfigu
     ourselves.payloadType = payloadType;
 }
 
-void ProcessorRTP::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
+void ProcessorRTP::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ohmcomm::ProcessorCapabilities& chainCapabilities)
 {
     //check whether to enable DTX at all
     //check if any processor with VAD capabilities exists before asking for configuration-value

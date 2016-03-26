@@ -200,7 +200,7 @@ const std::tuple<std::string, unsigned short> STUNClient::readMappedAddress(cons
     if(addressFamily == MAPPED_ADDRESS_IPv4)
     {
         unsigned char* addressPtr = (unsigned char*)attribute.valuePointer + 4;
-        const uint32_t xoredAddress = *((uint32_t*)addressPtr) xor magicCookie;
+        const uint32_t xoredAddress = *((uint32_t*)addressPtr) ^ magicCookie;
         std::string address("");
         if(attribute.type == STUN_XOR_MAPPED_ADDRESS)
         {

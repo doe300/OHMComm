@@ -65,7 +65,7 @@ ohmcomm::PayloadType OpusCodec::getSupportedPlayloadType() const
     return PayloadType::OPUS;
 }
 
-void OpusCodec::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
+void OpusCodec::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ohmcomm::ProcessorCapabilities& chainCapabilities)
 {
     outputDeviceChannels = audioConfig.outputDeviceChannels;
     rtaudioFormat = audioConfig.audioFormatFlag;

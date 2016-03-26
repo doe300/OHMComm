@@ -51,7 +51,7 @@ ohmcomm::PayloadType GSMCodec::getSupportedPlayloadType() const
     return PayloadType::GSM;
 }
 
-void GSMCodec::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
+void GSMCodec::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ohmcomm::ProcessorCapabilities& chainCapabilities)
 {
     encoder = gsm_create();
     decoder = gsm_create();
