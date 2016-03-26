@@ -31,7 +31,7 @@ ProcessorWAV::~ProcessorWAV()
     }
 }
 
-void ProcessorWAV::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProcessorWAV::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
 {
     if(audioConfig.audioFormatFlag != AudioConfiguration::AUDIO_FORMAT_SINT16)
     {
@@ -85,4 +85,18 @@ unsigned int ProcessorWAV::processOutputData(void* outputBuffer, const unsigned 
         wavfile_write(writeOutputFile, (short*)outputBuffer, userData->nBufferFrames*2);
     }
     return outputBufferByteSize;
+}
+
+bool ProcessorWAV::cleanUp()
+{
+    if(writeInputFile != nullptr)
+    {
+        wavfile_close(writeInputFile);
+    }
+    if(writeOutputFile != nullptr)
+    {
+        wavfile_close(writeOutputFile);
+    }
+    writeInputFile = nullptr;
+    writeOutputFile = nullptr;
 }

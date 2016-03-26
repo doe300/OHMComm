@@ -13,17 +13,20 @@ ProcessorRTP::ProcessorRTP(const std::string name, const ohmcomm::NetworkConfigu
     ourselves.payloadType = payloadType;
 }
 
-void ProcessorRTP::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProcessorRTP::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
 {
     //check whether to enable DTX at all
-    //XXX check if any processor with DTX capabilities exists before asking for configuration-value
-    isDTXEnabled = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
-    if(isDTXEnabled)
+    //check if any processor with VAD capabilities exists before asking for configuration-value
+    if(chainCapabilities.canDetectSilence)
     {
-        std::cout << "Using DTX after " << ProcessorRTP::SILENCE_DELAY << " ms of silence." << std::endl;
-        //calculate the number of packages to fill the specified delay
-        const double timeOfPackage = audioConfig.framesPerPackage / (double)audioConfig.sampleRate;
-        totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
+        isDTXEnabled = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
+        if(isDTXEnabled)
+        {
+            std::cout << "Using DTX after " << ProcessorRTP::SILENCE_DELAY << " ms of silence." << std::endl;
+            //calculate the number of packages to fill the specified delay
+            const double timeOfPackage = audioConfig.framesPerPackage / (double)audioConfig.sampleRate;
+            totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
+        }
     }
     rtpListener.reset(new RTPListener(network, buffers, bufferSize));
 }

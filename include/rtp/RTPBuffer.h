@@ -43,7 +43,7 @@ namespace ohmcomm
              *
              * Returns zero on success or one of the RTPBufferStatus-codes listed in RTPBuffer.h
              */
-            RTPBufferStatus addPackage(const RTPPackageHandler &package, unsigned int contentSize);
+            RTPBufferStatus addPackage(const RTPPackageHandler &package, unsigned int contentSize) override;
 
             /*!
              * Reads the oldest package in the buffer and writes it into the package-variable
@@ -51,15 +51,15 @@ namespace ohmcomm
              *
              * Returns zero on success or one if the RTPBufferStatus-codes listed in RTPBuffer.h
              */
-            RTPBufferStatus readPackage(RTPPackageHandler &package);
+            RTPBufferStatus readPackage(RTPPackageHandler &package) override;
 
             /*!
              * Returns the size of the buffer, the number of stored elements
              */
-            unsigned int getSize() const;
+            unsigned int getSize() const override;
         private:
 
-            bool repeatLastPackage(RTPPackageHandler& package, const uint16_t packageSequenceNumber);
+            bool repeatLastPackage(RTPPackageHandler& package, const uint16_t packageSequenceNumber) override;
             /*!
              * Mutex guarding all access to ringBuffer, nextReadIndex, size and minSequenceNumber
              */

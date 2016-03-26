@@ -23,18 +23,18 @@ namespace ohmcomm
 
             ~SIPConfiguration();
 
-            bool runConfiguration();
+            bool runConfiguration() override;
 
-            const NetworkConfiguration getRTCPNetworkConfiguration() const;
+            const NetworkConfiguration getRTCPNetworkConfiguration() const override;
 
-            const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
-            int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
-            bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
-            bool isCustomConfigurationSet(const std::string key, const std::string message) const;
+            const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const override;
+            int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const override;
+            bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const override;
+            bool isCustomConfigurationSet(const std::string key, const std::string message) const override;
 
 
-            void onRegister(PlaybackObservee* ohmComm);
-            void onPlaybackStop();
+            void onRegister(PlaybackObservee* ohmComm) override;
+            void onPlaybackStop() override;
 
         private:
             SIPHandler handler;

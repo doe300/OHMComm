@@ -22,13 +22,13 @@ namespace ohmcomm
     public:
         LibraryConfiguration();
 
-        virtual bool runConfiguration();
+        virtual bool runConfiguration() override;
 
-        virtual bool isConfigured() const;
-        const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
-        int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
-        bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
-        bool isCustomConfigurationSet(const std::string key, const std::string message) const;
+        virtual bool isConfigured() const override;
+        const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const override;
+        int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const override;
+        bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const override;
+        bool isCustomConfigurationSet(const std::string key, const std::string message) const override;
 
         /*!
          * Configures the audio-handler for the LIBRARY configuration-mode

@@ -97,11 +97,12 @@ bool ProcessorManager::configureAudioProcessors(const AudioConfiguration& audioC
         std::cout << "Configuring audio-processors with custom sample-rate: " << processorsSampleRate << std::endl;
         tmpConfig.sampleRate = processorsSampleRate;
     }
+    ProcessorCapabilities combinedCaps = getCombinedCapabilities();
     for (const auto& processor : audioProcessors) {
         try
         {
             std::cout << "Configuring audio-processor '" << processor->getName() << "'..." << std::endl;
-            processor->configure(tmpConfig, configMode, bufferSize);
+            processor->configure(tmpConfig, configMode, bufferSize, combinedCaps);
         }
         catch(const ohmcomm::configuration_error& error)
         {

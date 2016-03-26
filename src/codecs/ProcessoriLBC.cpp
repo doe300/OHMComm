@@ -57,7 +57,7 @@ ohmcomm::PayloadType ProcessoriLBC::getSupportedPlayloadType() const
     return PayloadType::ILBC;
 }
 
-void ProcessoriLBC::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProcessoriLBC::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
 {
     if(WebRtcIlbcfix_EncoderCreate(&iLBCEncoder) != 0 || WebRtcIlbcfix_DecoderCreate(&iLBCDecoder) != 0)
     {

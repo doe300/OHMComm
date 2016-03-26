@@ -25,7 +25,7 @@ namespace ohmcomm
         /*! The size of a configuration-message (without the vector) in bytes */
         static const uint8_t CONFIGURATION_MESSAGE_SIZE{12};
 
-        struct ConfigurationMessage //TODO network byte-order + shrinken size of struct
+        struct ConfigurationMessage //TODO network byte-order
         {
             unsigned int sampleRate; // 4 bytes
             unsigned int audioFormat; // 4 bytes
@@ -42,11 +42,11 @@ namespace ohmcomm
 
         PassiveConfiguration(const NetworkConfiguration& networkConfig, bool profileProcessors = false, std::string logFile = "");
 
-        virtual bool runConfiguration();
-        const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
-        int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
-        bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
-        bool isCustomConfigurationSet(const std::string key, const std::string message) const;
+        virtual bool runConfiguration() override;
+        const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const override;
+        int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const override;
+        bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const override;
+        bool isCustomConfigurationSet(const std::string key, const std::string message) const override;
 
         static const ConfigurationMessage readConfigurationMessage(const void* buffer, unsigned int bufferSize);
 

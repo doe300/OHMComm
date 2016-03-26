@@ -46,7 +46,7 @@ ohmcomm::PayloadType AMRCodec::getSupportedPlayloadType() const
     return PayloadType::AMR_NB;
 }
 
-void AMRCodec::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize)
+void AMRCodec::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
 {
     const bool useDTX = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
     amrEncoder = Encoder_Interface_init(useDTX);

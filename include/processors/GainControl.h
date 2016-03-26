@@ -24,16 +24,16 @@ namespace ohmcomm
     public:
         GainControl(const std::string& name);
 
-        unsigned int getSupportedAudioFormats() const;
-        unsigned int getSupportedSampleRates() const;
-        const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
-        PayloadType getSupportedPlayloadType() const;
+        unsigned int getSupportedAudioFormats() const override;
+        unsigned int getSupportedSampleRates() const override;
+        const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const override;
+        PayloadType getSupportedPlayloadType() const override;
 
-        void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
-        bool cleanUp();
+        void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities) override;
+        bool cleanUp() override;
 
-        unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);
-        unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
+        unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData) override;
+        unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) override;
 
     private:
         typedef void (*Amplifier)(void* buffer, const unsigned int bufferSize, double gain);

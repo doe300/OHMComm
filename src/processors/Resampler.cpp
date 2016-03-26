@@ -31,7 +31,7 @@ unsigned int Resampler::getSupportedAudioFormats() const
             (sizeof(float) == 4 ? AudioConfiguration::AUDIO_FORMAT_FLOAT32 : 0) | (sizeof(double) == 8 ? AudioConfiguration::AUDIO_FORMAT_FLOAT64 : 0);
 }
 
-void Resampler::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void Resampler::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
 {
     numInputChannels = audioConfig.inputDeviceChannels;
     numOutputChannels = audioConfig.outputDeviceChannels;

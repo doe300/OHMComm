@@ -24,14 +24,14 @@ namespace ohmcomm
         Resampler(const std::string& name, const std::vector<unsigned int>& inputSampleRates);
         virtual ~Resampler();
 
-        virtual unsigned int getSupportedAudioFormats() const;
+        virtual unsigned int getSupportedAudioFormats() const override;
 
-        virtual void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+        virtual void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities) override;
 
-        virtual unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
-        virtual unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
+        virtual unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData) override;
+        virtual unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData) override;
 
-        virtual bool cleanUp();
+        virtual bool cleanUp() override;
 
         /*!
          * Determines the best matching sample-rate from the given vector for the given output-rate

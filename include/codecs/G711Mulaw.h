@@ -31,21 +31,21 @@ namespace ohmcomm
 
             ~G711Mulaw();
 
-            unsigned int getSupportedAudioFormats() const;
+            unsigned int getSupportedAudioFormats() const override;
 
-            unsigned int getSupportedSampleRates() const;
+            unsigned int getSupportedSampleRates() const override;
 
-            const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
+            const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const override;
 
-            PayloadType getSupportedPlayloadType() const;
+            PayloadType getSupportedPlayloadType() const override;
 
-            void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+            void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities) override;
 
-            bool cleanUp();
+            bool cleanUp() override;
 
-            unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);
+            unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData) override;
 
-            unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
+            unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) override;
 
         private:
             int16_t* writeBuffer;

@@ -23,11 +23,11 @@ namespace ohmcomm
     public:
         ParameterConfiguration(const Parameters& params);
 
-        virtual bool runConfiguration();
-        const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const;
-        int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const;
-        bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const;
-        bool isCustomConfigurationSet(const std::string key, const std::string message) const;
+        virtual bool runConfiguration() override;
+        const std::string getCustomConfiguration(const std::string key, const std::string message, const std::string defaultValue) const override;
+        int getCustomConfiguration(const std::string key, const std::string message, const int defaultValue) const override;
+        bool getCustomConfiguration(const std::string key, const std::string message, const bool defaultValue) const override;
+        bool isCustomConfigurationSet(const std::string key, const std::string message) const override;
 
     private:
         const Parameters params;

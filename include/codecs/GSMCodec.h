@@ -28,21 +28,21 @@ namespace ohmcomm
             GSMCodec(const std::string& name);
             virtual ~GSMCodec();
 
-            virtual unsigned int getSupportedAudioFormats() const;
+            virtual unsigned int getSupportedAudioFormats() const override;
 
-            virtual unsigned int getSupportedSampleRates() const;
+            virtual unsigned int getSupportedSampleRates() const override;
 
-            virtual const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
+            virtual const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const override;
 
-            virtual PayloadType getSupportedPlayloadType() const;
+            virtual PayloadType getSupportedPlayloadType() const override;
 
-            virtual void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+            virtual void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities) override;
 
-            virtual unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
+            virtual unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData) override;
 
-            virtual unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
+            virtual unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData) override;
 
-            virtual bool cleanUp();
+            virtual bool cleanUp() override;
 
         private:
             gsm encoder;

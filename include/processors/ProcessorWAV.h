@@ -28,29 +28,32 @@ namespace ohmcomm
         ProcessorWAV(const std::string name);
         virtual ~ProcessorWAV();
 
-        void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+        void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities) override;
 
         /*!
          * The wav implementation only supports 16bit signed integer PCM samples
          */
-        unsigned int getSupportedAudioFormats() const;
+        unsigned int getSupportedAudioFormats() const override;
 
         /*!
          * The wav implementation only supports the 44.1kHz sample-rate
          */
-        unsigned int getSupportedSampleRates() const;
+        unsigned int getSupportedSampleRates() const override;
 
-        PayloadType getSupportedPlayloadType() const;
+        PayloadType getSupportedPlayloadType() const override;
 
         /*!
          * If input-logging is active, writes the audio-input to the input-logging file
          */
-        unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
+        unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData) override;
 
         /*!
          * If output-logging is active, writes the audio-output to the output-logging file
          */
-        unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
+        unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData) override;
+        
+        bool cleanUp() override;
+
     private:
         FILE* writeInputFile;
         FILE* writeOutputFile;

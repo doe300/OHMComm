@@ -26,8 +26,8 @@ namespace ohmcomm
 
             ~TCPWrapper();
 
-            int sendData(const void *buffer, const unsigned int bufferSize = 0);
-            Package receiveData(void *buffer, unsigned int bufferSize = 0);
+            int sendData(const void *buffer, const unsigned int bufferSize = 0) override;
+            Package receiveData(void *buffer, unsigned int bufferSize = 0) override;
 
             void closeNetwork();
         private:

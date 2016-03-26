@@ -36,16 +36,16 @@ namespace ohmcomm
         /*!
          * Wraps the configure-method of the profiled processor
          */
-        void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+        void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities) override;
 
-        bool cleanUp();
-        PayloadType getSupportedPlayloadType() const;
-        void startup();
-        unsigned int getSupportedAudioFormats() const;
-        const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const;
-        unsigned int getSupportedSampleRates() const;
-        unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData);
-        unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData);
+        bool cleanUp() override;
+        PayloadType getSupportedPlayloadType() const override;
+        void startup() override;
+        unsigned int getSupportedAudioFormats() const override;
+        const std::vector<int> getSupportedBufferSizes(unsigned int sampleRate) const override;
+        unsigned int getSupportedSampleRates() const override;
+        unsigned int processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData) override;
+        unsigned int processOutputData(void* outputBuffer, const unsigned int outputBufferByteSize, StreamData* userData) override;
     private:
         AudioProcessor* profiledProcessor;
         unsigned long outputProcessingTime;

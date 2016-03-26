@@ -36,15 +36,15 @@ namespace ohmcomm
         /* deny copies with the copy constructor */
         PortAudioWrapper(const PortAudioWrapper & copy) = delete;
 
-        void setConfiguration(const AudioConfiguration &audioConfiguration);
-        void suspend();
-        void resume();
-        void stop();
-        void reset();
-        void setDefaultAudioConfig();
-        auto prepare(const std::shared_ptr<ConfigurationMode> configMode) -> bool;
+        void setConfiguration(const AudioConfiguration &audioConfiguration) override;
+        void suspend() override;
+        void resume() override;
+        void stop() override;
+        void reset() override;
+        void setDefaultAudioConfig() override;
+        bool prepare(const std::shared_ptr<ConfigurationMode> configMode) override;
 
-        const std::vector<AudioDevice>& getAudioDevices();
+        const std::vector<AudioDevice>& getAudioDevices() override;
     private:
         StreamData* streamData;
         PaStreamParameters outputParams;
@@ -72,7 +72,7 @@ namespace ohmcomm
 
         static PaSampleFormat mapSampleFormat(const unsigned int sampleFormatFlag);
 
-        void startHandler(const PlaybackMode mode);
+        void startHandler(const PlaybackMode mode) override;
         
         void audioLoop();
     };

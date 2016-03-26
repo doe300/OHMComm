@@ -46,9 +46,9 @@ void ProfilingAudioProcessor::reset()
 	count = 0;
 }
 
-void ProfilingAudioProcessor::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize)
+void ProfilingAudioProcessor::configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities)
 {
-    profiledProcessor->configure(audioConfig, configMode, bufferSize);
+    profiledProcessor->configure(audioConfig, configMode, bufferSize, chainCapabilities);
 }
 
 unsigned int ProfilingAudioProcessor::getSupportedAudioFormats() const

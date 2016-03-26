@@ -30,20 +30,20 @@ namespace ohmcomm
         RtAudioWrapper(const RtAudioWrapper & copy) = delete;
 
         /* AudioIO methods */
-        void setConfiguration(const AudioConfiguration &audioConfiguration);
+        void setConfiguration(const AudioConfiguration &audioConfiguration) override;
         /* suspends the stream */
-        void suspend();
+        void suspend() override;
         /* resume the stream (only possible if the stream was not stopped) */
-        void resume();
+        void resume() override;
         /* close the whole communication process */
-        void stop();
+        void stop() override;
         /* stop() and resets audioConfiguration */
-        void reset();
+        void reset() override;
         /* sets default audio config */
-        void setDefaultAudioConfig();
-        auto prepare(const std::shared_ptr<ConfigurationMode> configMode) -> bool;
+        void setDefaultAudioConfig() override;
+        bool prepare(const std::shared_ptr<ConfigurationMode> configMode) override;
 
-        const std::vector<AudioDevice>& getAudioDevices();
+        const std::vector<AudioDevice>& getAudioDevices() override;
 
         /* Callbacks */
         auto callback(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData) -> int;
@@ -73,7 +73,7 @@ namespace ohmcomm
         /* returns the actual input framesize in bytes */
         auto getInputFrameSize() -> int;
 
-        void startHandler(const PlaybackMode mode);
+        void startHandler(const PlaybackMode mode) override;
     };
 }
 #endif

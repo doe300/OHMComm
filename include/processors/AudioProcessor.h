@@ -123,10 +123,11 @@ namespace ohmcomm
          * \param audioConfig The valid AudioConfiguration
          * \param configMode The ConfigurationMode to retrieve custom configuration-values from
          * \param bufferSize The actual buffer-size used for a single call to processInputData/-OutputData
+         * \param chainCapabilities The combined capabilities of the processor-chain
          *
          * \throw ohmcomm::configuration_error if the configuration failed
          */
-        virtual void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+        virtual void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities);
 
         /*!
          * Counterpart of configure(). This method is called, when the object is not needed any longer.

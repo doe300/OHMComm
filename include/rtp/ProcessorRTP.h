@@ -35,14 +35,14 @@ namespace ohmcomm
              */
             ProcessorRTP(const std::string name, const NetworkConfiguration& networkConfig, const PayloadType payloadType);
 
-            void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize);
+            void configure(const AudioConfiguration& audioConfig, const std::shared_ptr<ConfigurationMode> configMode, const uint16_t bufferSize, const ProcessorCapabilities& chainCapabilities) override;
 
-            void startup();
+            void startup() override;
 
-            unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData);
-            unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData);
+            unsigned int processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, StreamData *userData) override;
+            unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) override;
 
-            bool cleanUp();
+            bool cleanUp() override;
         private:
             //! Delay until treating input as silence
             //!Treat as silence after 500ms of no input
