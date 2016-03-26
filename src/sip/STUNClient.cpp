@@ -195,7 +195,7 @@ const std::tuple<std::string, unsigned short> STUNClient::readMappedAddress(cons
     //XOR'ing it with the most significant 16 bits of the magic cookie"
     if(attribute.type == STUN_XOR_MAPPED_ADDRESS)
     {
-        port = port xor (magicCookie >> 16);
+        port = port ^ (magicCookie >> 16);
     }
     if(addressFamily == MAPPED_ADDRESS_IPv4)
     {
