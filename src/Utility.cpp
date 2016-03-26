@@ -272,11 +272,11 @@ std::vector<std::string> Utility::splitString(const std::string& input, const ch
 std::string Utility::generateRandomUUID()
 {
     //[...]form 8-4-4-4-12 for a total of 36 characters
-    char strUuid[37];
+    char strUuid[37] = {};
     //taken from https://stackoverflow.com/questions/2174768/generating-random-uuids-in-linux
     srand(time(nullptr));
 
-    sprintf(strUuid, "%x%x-%x-%x-%x-%x%x%x", 
+    sprintf(strUuid, "%hx%hx-%hx-%hx-%hx-%hx%hx%hx", 
     rand(), rand(),                 // Generates a 64-bit Hex number
     rand(),                         // Generates a 32-bit Hex number
     ((rand() & 0x0fff) | 0x4000),   // Generates a 32-bit Hex number of the form 4xxx (4 indicates the UUID version)

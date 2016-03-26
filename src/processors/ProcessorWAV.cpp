@@ -99,4 +99,6 @@ bool ProcessorWAV::cleanUp()
     }
     writeInputFile = nullptr;
     writeOutputFile = nullptr;
+    
+    return true;
 }

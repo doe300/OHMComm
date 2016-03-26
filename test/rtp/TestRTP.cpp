@@ -16,8 +16,10 @@ TestRTP::TestRTP() : Test::Suite()
 
 void TestRTP::testRTPPackage()
 {
+    Participant part(15,true);
+    part.payloadType = ohmcomm::PayloadType::GSM;
     std::string payload("This is a dummy payload");
-    RTPPackageHandler pack(100);
+    RTPPackageHandler pack(100, part);
 
     pack.createNewRTPPackage((char *)payload.c_str(), payload.size());
     const void* headerBuffer = pack.getRTPPackageHeader();
