@@ -111,10 +111,8 @@ void SIPHandler::runThread()
 
 std::string SIPHandler::generateCallID(const std::string& host)
 {
-    //TODO generate UUID
-    //use or copy: https://github.com/graeme-hill/crossguid/blob/master/guid.cpp
     //Call-ID: UUID@host
-    return (std::to_string(std::rand()) + "@") +host;
+    return (ohmcomm::Utility::generateRandomUUID() + "@") +host;
 }
 
 void SIPHandler::sendInviteRequest(SIPUserAgent& remoteUA)

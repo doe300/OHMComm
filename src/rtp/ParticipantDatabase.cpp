@@ -44,7 +44,6 @@ bool ParticipantDatabase::removeParticipant(const uint32_t ssrc)
     return false;
 }
 
-
 void ParticipantDatabase::registerListener(ParticipantListener& listener)
 {
     listeners.push_back(std::ref(listener));

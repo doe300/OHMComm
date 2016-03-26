@@ -134,9 +134,11 @@ namespace ohmcomm
              * 
              * \param attribute The attribute-info to read the address from
              * 
+             * \param magicCookie The magicCookie to XOR for XOR-MAPPED-ADDRESS
+             * 
              * \return a tuple containing the IP-address and port
              */
-            const std::tuple<std::string, unsigned short> readMappedAddress(const STUNAttribute& attribute);
+            const std::tuple<std::string, unsigned short> readMappedAddress(const STUNAttribute& attribute, const uint32_t magicCookie);
         };
     }
 }

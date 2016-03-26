@@ -110,16 +110,20 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::testSTUNServer(c
                 //2.1. check MAPPED-ADDRESS
                 if(mappedAddressIndex != -1 && attributes[mappedAddressIndex].valueLength > 0)
                 {
-                    std::tuple<std::string, unsigned short> address = readMappedAddress(attributes[mappedAddressIndex]);
+                    std::tuple<std::string, unsigned short> address = readMappedAddress(attributes[mappedAddressIndex], magicCookie);
                     return std::make_tuple(true, std::get<0>(address), std::get<1>(address));
                 }
                 //2.2 check XOR-MAPPED-ADDRESS
-                //TODO how to get XOR-MAPPED-ADDRESS ?? (RFC 5389#15.2)
+                if(xorMappedAddressIndex != -1 && attributes[xorMappedAddressIndex].valueLength > 0)
+                {
+                    std::tuple<std::string, unsigned short> address = readMappedAddress(attributes[mappedAddressIndex], magicCookie);
+                    return std::make_tuple(true, std::get<0>(address), std::get<1>(address));
+                }
                 //2.3 check ALTERNATE-SERVER
                 if(alternateServerIndex != -1 && attributes[alternateServerIndex].valueLength > 0)
                 {
                     //try to contact alternate server
-                    const std::tuple<std::string, unsigned short> serverAddress = readMappedAddress(attributes[mappedAddressIndex]);
+                    const std::tuple<std::string, unsigned short> serverAddress = readMappedAddress(attributes[mappedAddressIndex], magicCookie);
                     return testSTUNServer(std::get<0>(serverAddress), std::get<1>(serverAddress));
                 }
                 //2.4 print info from ERROR-CODE
@@ -182,14 +186,29 @@ const STUNClient::STUNAttribute STUNClient::readAttribute(unsigned int maxSize, 
     return {attributeType, (const char*)(buffer + position + 4), attributeContentLength};
 }
 
-const std::tuple<std::string, unsigned short> STUNClient::readMappedAddress(const STUNAttribute& attribute)
+const std::tuple<std::string, unsigned short> STUNClient::readMappedAddress(const STUNAttribute& attribute, const uint32_t magicCookie)
 {
     const uint16_t addressFamily = ntohs(*((uint16_t*)attribute.valuePointer));
-    const uint16_t port = ntohs(*((uint16_t*)(attribute.valuePointer + 2)));
+    uint16_t port = ntohs(*((uint16_t*)(attribute.valuePointer + 2)));
+    //RFC 5389 section 15.2:
+    //"X-Port is computed by taking the mapped port in host byte order,
+    //XOR'ing it with the most significant 16 bits of the magic cookie"
+    if(attribute.type == STUN_XOR_MAPPED_ADDRESS)
+    {
+        port = port xor (magicCookie >> 16);
+    }
     if(addressFamily == MAPPED_ADDRESS_IPv4)
     {
-        const unsigned char* addressPtr = (unsigned char*)attribute.valuePointer + 4;
+        unsigned char* addressPtr = (unsigned char*)attribute.valuePointer + 4;
+        const uint32_t xoredAddress = *((uint32_t*)addressPtr) xor magicCookie;
         std::string address("");
+        if(attribute.type == STUN_XOR_MAPPED_ADDRESS)
+        {
+            //RFC 5389 section 15.2:
+            //"If the IP address family is IPv4, X-Address is computed by taking the mapped IP address in host byte order, 
+            //XOR'ing it with the magic cookie."
+            addressPtr = reinterpret_cast<unsigned char*>(xoredAddress);
+        }
         address.append(std::to_string(*addressPtr)).append(".");
         address.append(std::to_string(*(addressPtr+1))).append(".");
         address.append(std::to_string(*(addressPtr+2))).append(".");
@@ -200,6 +219,9 @@ const std::tuple<std::string, unsigned short> STUNClient::readMappedAddress(cons
     {
         const unsigned char* addressPtr = (unsigned char*)attribute.valuePointer + 4;
         std::string address("");
+        //TODO RFC 5389 section 15.2:
+        //"If the IP address family is IPv6, X-Address is computed by taking the mapped IP address
+        //in host byte order, XOR'ing it with the concatenation of the magic cookie and the 96-bit transaction ID" 
         //read hexadecimal values from ptr and join with ':'
         uint8_t part = *addressPtr;
         address.append(Utility::toHexString(part));
@@ -213,4 +235,3 @@ const std::tuple<std::string, unsigned short> STUNClient::readMappedAddress(cons
     }
     return std::make_tuple("", 0);
 }
-

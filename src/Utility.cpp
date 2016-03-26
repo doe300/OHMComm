@@ -5,6 +5,8 @@
  * Created on December 5, 2015, 4:14 PM
  */
 
+#include <time.h>
+#include <stdlib.h>
 #include <iostream>
 #include <sstream>
 
@@ -265,6 +267,23 @@ std::vector<std::string> Utility::splitString(const std::string& input, const ch
         result.push_back(token);
     }
     return result;
+}
+
+std::string Utility::generateRandomUUID()
+{
+    //[...]form 8-4-4-4-12 for a total of 36 characters
+    char strUuid[37];
+    //taken from https://stackoverflow.com/questions/2174768/generating-random-uuids-in-linux
+    srand(time(nullptr));
+
+    sprintf(strUuid, "%x%x-%x-%x-%x-%x%x%x", 
+    rand(), rand(),                 // Generates a 64-bit Hex number
+    rand(),                         // Generates a 32-bit Hex number
+    ((rand() & 0x0fff) | 0x4000),   // Generates a 32-bit Hex number of the form 4xxx (4 indicates the UUID version)
+    rand() % 0x3fff + 0x8000,       // Generates a 32-bit Hex number in the range [0x8000, 0xbfff]
+    rand(), rand(), rand());        // Generates a 96-bit Hex number
+    
+    return std::string(strUuid);
 }
 
 std::string Utility::getExternalLocalIPAddress()

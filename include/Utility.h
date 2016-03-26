@@ -160,6 +160,13 @@ namespace ohmcomm
          * \return a vector of tokens
          */
         static std::vector<std::string> splitString(const std::string& input, const char delimiter);
+        
+        /*!
+         * Generates a RFC 4122 version 4 random UUID
+         * 
+         * \return the string containing the random UUID in its common representation
+         */
+        static std::string generateRandomUUID();
 
     private:
 
