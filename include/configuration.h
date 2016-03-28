@@ -30,6 +30,19 @@ namespace ohmcomm
         //Remote port
         unsigned short remotePort;
     };
+    
+    //Container for modes of playback
+    enum PlaybackMode : unsigned char
+    {
+        //mode is not yet determined
+        UNDEFINED = 0x00,
+        //audio-output is played
+        OUTPUT = 0x01,
+        //audio-input is recorded
+        INPUT = 0x02,
+        //input is recorded and output is played
+        DUPLEX = 0x03
+    };
 
     struct AudioConfiguration
     {
@@ -62,6 +75,9 @@ namespace ohmcomm
 
         // set if configuration forces a specific audio-format
         unsigned int forceAudioFormatFlag;
+        
+        // the mode of playback
+        PlaybackMode playbackMode;
 
         friend bool operator==(const AudioConfiguration& lhs, const AudioConfiguration& rhs)
         {

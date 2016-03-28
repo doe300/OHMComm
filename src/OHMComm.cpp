@@ -106,20 +106,20 @@ void OHMComm::startAudioThreads()
 void OHMComm::startAudio()
 {
     notifyPlaybackStart();
-    if((audioHandler->getMode() & AudioHandler::DUPLEX) == AudioHandler::DUPLEX)
+    if((audioHandler->getMode() & PlaybackMode::DUPLEX) == PlaybackMode::DUPLEX)
     {
         std::cout << "OHMComm: starting duplex mode ..." << std::endl;
-        audioHandler->start(AudioHandler::DUPLEX);
+        audioHandler->start(PlaybackMode::DUPLEX);
     }
-    else if((audioHandler->getMode() & AudioHandler::OUTPUT) == AudioHandler::OUTPUT)
+    else if((audioHandler->getMode() & PlaybackMode::OUTPUT) == PlaybackMode::OUTPUT)
     {
         std::cout << "OHMComm: starting playback mode ..." << std::endl;
-        audioHandler->start(AudioHandler::OUTPUT);
+        audioHandler->start(PlaybackMode::OUTPUT);
     }
-    else if((audioHandler->getMode() & AudioHandler::INPUT) == AudioHandler::INPUT)
+    else if((audioHandler->getMode() & PlaybackMode::INPUT) == PlaybackMode::INPUT)
     {
         std::cout << "OHMComm: starting recording mode ..." << std::endl;
-        audioHandler->start(AudioHandler::INPUT);
+        audioHandler->start(PlaybackMode::INPUT);
     }
     else
     {

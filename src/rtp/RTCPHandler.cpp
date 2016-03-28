@@ -21,9 +21,6 @@ using namespace ohmcomm::rtp;
 const std::chrono::seconds RTCPHandler::sendSRInterval{5};
 const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 
-//XXX when someday passive configuration is removed in favor of SIP, clean this up and move its parent from OHMComm to RTP-processor
-//-> then has the exact same life-cycle as the RTP-processor
-
 RTCPHandler::RTCPHandler(const ohmcomm::NetworkConfiguration& rtcpConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const bool isActiveSender):
     wrapper(new ohmcomm::network::UDPWrapper(rtcpConfig)), configMode(configMode),
         isActiveSender(isActiveSender), rtcpHandler(), ourselves(ParticipantDatabase::self())

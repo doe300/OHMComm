@@ -29,9 +29,7 @@ void ProcessorRTP::configure(const ohmcomm::AudioConfiguration& audioConfig, con
         }
     }
     rtpListener.reset(new RTPListener(network, buffers, bufferSize));
-    //TODO how to detect if active sender?
-    //could pass some flag through #configure(), could be of interest for other processors, too
-    rtcpHandler.reset(new RTCPHandler(configMode->getRTCPNetworkConfiguration(), configMode, true));
+    rtcpHandler.reset(new RTCPHandler(configMode->getRTCPNetworkConfiguration(), configMode, (audioConfig.playbackMode & PlaybackMode::INPUT) != 0));
 }
 
 void ProcessorRTP::startup()

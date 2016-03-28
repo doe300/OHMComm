@@ -262,6 +262,9 @@ bool PortAudioWrapper::initStreamParameters()
     //check for supported parameters depends on the playback-mode
     const PaStreamParameters* input = Pa_GetDeviceInfo(inputParams.device)->maxInputChannels > 0 ? &inputParams : nullptr;
     const PaStreamParameters* output = Pa_GetDeviceInfo(outputParams.device)->maxOutputChannels > 0 ? &outputParams : nullptr;
+    
+    //set playback-mode
+    audioConfiguration.playbackMode = (PlaybackMode)((input != nullptr ? PlaybackMode::INPUT : 0) | (output != nullptr ? PlaybackMode::OUTPUT : 0));
     return throwOnError(Pa_IsFormatSupported(input, output, audioConfiguration.sampleRate)) == 0;
 }
 

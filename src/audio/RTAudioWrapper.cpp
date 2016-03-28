@@ -138,6 +138,9 @@ auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
     this->input.nChannels = audioConfiguration.inputDeviceChannels;
     this->output.nChannels = audioConfiguration.outputDeviceChannels;
     
+    //set playback-mode
+    audioConfiguration.playbackMode = (PlaybackMode)((input.deviceId != AudioConfiguration::INVALID_DEVICE ? PlaybackMode::INPUT : 0) | 
+            (output.deviceId != AudioConfiguration::INVALID_DEVICE ? PlaybackMode::OUTPUT : 0));
     return true;
 }
 

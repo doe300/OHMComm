@@ -37,10 +37,15 @@ bool AudioHandler::isPrepared() const
     return flagPrepared;
 }
 
-AudioHandler::PlaybackMode AudioHandler::getMode()
+PlaybackMode AudioHandler::getMode()
 {
     if(!flagAudioConfigSet || !flagPrepared)
         return UNDEFINED;
+    if(audioConfiguration.playbackMode != PlaybackMode::UNDEFINED)
+    {
+        //mode was set somewhere before
+        return audioConfiguration.playbackMode;
+    }
     PlaybackMode mode = UNDEFINED;
     if(audioConfiguration.inputDeviceID != AudioConfiguration::INVALID_DEVICE && getAudioDevices()[audioConfiguration.inputDeviceID].isInputDevice())
         mode = (PlaybackMode)(mode | INPUT);
