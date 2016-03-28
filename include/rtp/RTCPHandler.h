@@ -12,10 +12,8 @@
 #include <thread>
 #include "network/NetworkWrapper.h"
 #include "ParticipantDatabase.h"
-#include "RTCPData.h"
 #include "RTCPPackageHandler.h"
 #include "config/ConfigurationMode.h"
-#include "PlaybackListener.h"
 
 namespace ohmcomm
 {
@@ -27,7 +25,7 @@ namespace ohmcomm
          * 
          * The port occupied by RTCP is per standard the RTP-port +1
          */
-        class RTCPHandler : public PlaybackListener, private ParticipantListener
+        class RTCPHandler : private ParticipantListener
         {
         public:
             RTCPHandler(const NetworkConfiguration& rtcpConfig, const std::shared_ptr<ConfigurationMode> configMode, const bool isActiveSender = true);
@@ -43,22 +41,6 @@ namespace ohmcomm
              */
             void startUp();
 
-            /*!
-             * Registers the stop-callback
-             */
-            void onRegister(PlaybackObservee* ohmComm) override;
-
-            /*!
-             * Starts the RTCP-thread
-             */
-            void onPlaybackStart() override;
-
-
-            /*!
-             * Shuts down the RTCP-thread
-             */
-            void onPlaybackStop() override;
-            
             virtual void onRemoteAdded(const unsigned int ssrc) override;
 
             virtual void onRemoteRemoved(const unsigned int ssrc) override;
@@ -67,7 +49,6 @@ namespace ohmcomm
             const std::unique_ptr<ohmcomm::network::NetworkWrapper> wrapper;
             const std::shared_ptr<ConfigurationMode> configMode;
             const bool isActiveSender;
-            std::function<void () > stopCallback;
             RTCPPackageHandler rtcpHandler;
             Participant& ourselves;
 

@@ -3,6 +3,7 @@
 
 #include "ParticipantDatabase.h"
 #include "processors/AudioProcessor.h"
+#include "RTCPHandler.h"
 #include "RTPPackageHandler.h"
 #include "network/NetworkWrapper.h"
 #include "RTPBufferHandler.h"
@@ -52,6 +53,7 @@ namespace ohmcomm
             Participant& ourselves;
             std::unique_ptr<RTPPackageHandler> rtpPackage;
             std::unique_ptr<RTPListener> rtpListener;
+            std::unique_ptr<RTCPHandler> rtcpHandler;
             bool isDTXEnabled;
             bool lastPackageWasSilent;
             unsigned short totalSilenceDelayPackages;

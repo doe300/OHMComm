@@ -99,11 +99,6 @@ void OHMComm::startAudioThreads()
     //write configuration back to ConfigurationMode
     configurationMode->updateAudioConfiguration(audioHandler->getAudioConfiguration());
 
-    //start RTCP-handler
-    rtcpHandler.reset(new rtp::RTCPHandler(configurationMode->getRTCPNetworkConfiguration(), configurationMode, 
-            (audioHandler->getMode() & AudioHandler::INPUT) == AudioHandler::INPUT));
-    registerPlaybackListener(rtcpHandler);
-    rtcpHandler->startUp();
     //if we don't wait for configuration, begin audio-playback
     //otherwise, the #startAudio()-method is called from the RTCPHandler
     if(!configurationMode->isWaitForConfigurationRequest())

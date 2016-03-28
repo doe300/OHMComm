@@ -12,7 +12,6 @@
 
 #include "config/ConfigurationMode.h"
 #include "audio/AudioHandler.h"
-#include "rtp/RTCPHandler.h"
 #include "rtp/ParticipantDatabase.h"
 
 #include <functional>
@@ -99,7 +98,6 @@ namespace ohmcomm
 
         //Configuration fields
         std::unique_ptr<AudioHandler> audioHandler;
-        std::shared_ptr<rtp::RTCPHandler> rtcpHandler;
 
         void configureRTPProcessor(bool profileProcessors, const PayloadType payloadType);
 

@@ -8,6 +8,7 @@
 #include <cmath>    //round
 
 #include "rtp/RTCPHandler.h"
+#include "rtp/RTCPData.h"
 #include "config/InteractiveConfiguration.h"
 #include "network/UDPWrapper.h"
 #include "Parameters.h"
@@ -57,21 +58,6 @@ void RTCPHandler::shutdown()
         sendByePackage();
         shutdownInternal();
     }
-}
-
-void RTCPHandler::onRegister(ohmcomm::PlaybackObservee* ohmComm)
-{
-    stopCallback = ohmComm->createStopCallback();
-}
-
-void RTCPHandler::onPlaybackStart()
-{
-    startUp();
-}
-
-void RTCPHandler::onPlaybackStop()
-{
-    shutdown();
 }
 
 void RTCPHandler::onRemoteAdded(const unsigned int ssrc)
