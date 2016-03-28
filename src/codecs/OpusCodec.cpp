@@ -90,8 +90,6 @@ void OpusCodec::configure(const ohmcomm::AudioConfiguration& audioConfig, const 
         opus_encoder_ctl(OpusEncoderObject, OPUS_SET_INBAND_FEC(1));
     }
     std::cout << "Opus: configured using version: " << opus_get_version_string() << std::endl;
-    
-    //XXX rewrite, so sint16/float32 is only checked once and not on every run
 }
 
 unsigned int OpusCodec::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, ohmcomm::StreamData *userData)

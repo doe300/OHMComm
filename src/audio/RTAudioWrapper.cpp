@@ -69,9 +69,16 @@ void RtAudioWrapper::startHandler(const PlaybackMode mode)
 {
     if (this->flagPrepared)
     {
+        unsigned int bufferFrames = audioConfiguration.framesPerPackage;
         RtAudio::StreamParameters* inputParams = (mode & PlaybackMode::INPUT) == PlaybackMode::INPUT ? &input : nullptr;
         RtAudio::StreamParameters* outputParams = (mode & PlaybackMode::OUTPUT) == PlaybackMode::OUTPUT ? &output : nullptr;
-        this->rtaudio.openStream(outputParams, inputParams, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &audioConfiguration.framesPerPackage, &RtAudioWrapper::callbackHelper, this);
+        this->rtaudio.openStream(outputParams, inputParams, audioConfiguration.audioFormatFlag, audioConfiguration.sampleRate, &bufferFrames, &RtAudioWrapper::callbackHelper, this);
+        //RtAudio can update buffer-size, but some processors (i.e. Opus) require certain fixed buffer-sizes
+        //so disallow RtAudio to change the buffer-size
+        if(bufferFrames != audioConfiguration.framesPerPackage)
+        {
+            throw ohmcomm::configuration_error("RtAudio", "Invalid buffer-size update!");
+        }
         this->rtaudio.startStream();
     }
     else
@@ -119,7 +126,6 @@ void RtAudioWrapper::reset()
 auto RtAudioWrapper::initRtAudioStreamParameters() -> bool
 {
     // calculate the input- and output buffer sizes
-    //TODO buffer-size can be changed by audio-library on open stream, but this clashes with Opus which requires correct buffer-size
     this->outputBufferByteSize = audioConfiguration.framesPerPackage * audioConfiguration.outputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
     this->inputBufferByteSize = audioConfiguration.framesPerPackage * audioConfiguration.inputDeviceChannels * getAudioFormatByteSize(audioConfiguration.audioFormatFlag);
 

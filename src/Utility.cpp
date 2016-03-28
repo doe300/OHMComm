@@ -277,11 +277,11 @@ std::string Utility::generateRandomUUID()
     srand(time(nullptr));
 
     sprintf(strUuid, "%hx%hx-%hx-%hx-%hx-%hx%hx%hx", 
-    rand(), rand(),                 // Generates a 64-bit Hex number
-    rand(),                         // Generates a 32-bit Hex number
-    ((rand() & 0x0fff) | 0x4000),   // Generates a 32-bit Hex number of the form 4xxx (4 indicates the UUID version)
-    rand() % 0x3fff + 0x8000,       // Generates a 32-bit Hex number in the range [0x8000, 0xbfff]
-    rand(), rand(), rand());        // Generates a 96-bit Hex number
+    rand(), rand(),                 // Generates a 32-bit Hex number
+    rand(),                         // Generates a 16-bit Hex number
+    ((rand() & 0x0fff) | 0x4000),   // Generates a 16-bit Hex number of the form 4xxx (4 indicates the UUID version)
+    rand() % 0x3fff + 0x8000,       // Generates a 16-bit Hex number in the range [0x8000, 0xbfff]
+    rand(), rand(), rand());        // Generates a 48-bit Hex number
     
     return std::string(strUuid);
 }
