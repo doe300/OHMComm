@@ -85,11 +85,6 @@ const std::pair<bool, std::string> ConfigurationMode::getLogToFileConfiguration(
     return std::pair<bool, std::string>(logToFile, logFileName);
 }
 
-bool ConfigurationMode::isWaitForConfigurationRequest() const
-{
-    return waitForConfigurationRequest;
-}
-
 short ConfigurationMode::getPayloadType() const
 {
     return payloadType;

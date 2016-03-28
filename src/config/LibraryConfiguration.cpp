@@ -97,11 +97,6 @@ void LibraryConfiguration::configureLogToFile(const std::string logFileName)
     this->logFileName = logFileName;
 }
 
-void LibraryConfiguration::configureWaitForConfigurationRequest(bool waitForConfig)
-{
-    waitForConfigurationRequest = waitForConfig;
-}
-
 void LibraryConfiguration::configureCustomValue(std::string key, std::string value)
 {
     customConfig[key] = value;

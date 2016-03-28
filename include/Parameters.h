@@ -140,7 +140,6 @@ namespace ohmcomm
         static const Parameter* HELP;
         static const Parameter* LIST_LOCAL_ADDRESSES;
         static const Parameter* LIST_AUDIO_DEVICES;
-        static const Parameter* WAIT_FOR_PASSIVE_CONFIG;
         static const Parameter* SIP_LOCAL_PORT;
         static const Parameter* SIP_REMOTE_PORT;
         static const Parameter* LOG_TO_FILE;

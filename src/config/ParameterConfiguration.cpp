@@ -63,7 +63,6 @@ ParameterConfiguration::ParameterConfiguration(const Parameters& params) : Confi
     logToFile = params.isParameterSet(Parameters::LOG_TO_FILE);
     logFileName = params.getParameterValue(Parameters::LOG_TO_FILE);
 
-    waitForConfigurationRequest = params.isParameterSet(Parameters::WAIT_FOR_PASSIVE_CONFIG);
     //we completely configured OHMComm
     isConfigurationDone = true;
 }

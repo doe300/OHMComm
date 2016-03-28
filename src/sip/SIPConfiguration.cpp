@@ -20,7 +20,6 @@ SIPConfiguration::SIPConfiguration(const ohmcomm::Parameters& params, const ohmc
     useDefaultAudioConfig = false;
     networkConfig.localPort = DEFAULT_NETWORK_PORT;
     networkConfig.remoteIPAddress = sipConfig.remoteIPAddress;
-    waitForConfigurationRequest = false;
     isConfigurationDone = false;
 }
 

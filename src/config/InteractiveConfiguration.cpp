@@ -51,7 +51,6 @@ bool InteractiveConfiguration::runConfiguration()
     {
         createDefaultNetworkConfiguration();
     }
-    waitForConfigurationRequest = UserInput::inputBoolean("Enable configuration-requests?", false);
 
     interactivelyConfigureProcessors();
 

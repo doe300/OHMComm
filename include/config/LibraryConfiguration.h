@@ -64,13 +64,6 @@ namespace ohmcomm
          */
         void configureLogToFile(const std::string logFileName);
 
-        /*!
-         * (Optional) Configures whether this instance will wait for a passive configuration-request
-         * 
-         * \param waitForConfig Whether to wait for passive configuration-request
-         */
-        void configureWaitForConfigurationRequest(bool waitForConfig);
-
         void configureCustomValue(std::string key, std::string value);
         void configureCustomValue(std::string key, int value);
         void configureCustomValue(std::string key, bool value);

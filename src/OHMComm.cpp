@@ -99,12 +99,8 @@ void OHMComm::startAudioThreads()
     //write configuration back to ConfigurationMode
     configurationMode->updateAudioConfiguration(audioHandler->getAudioConfiguration());
 
-    //if we don't wait for configuration, begin audio-playback
-    //otherwise, the #startAudio()-method is called from the RTCPHandler
-    if(!configurationMode->isWaitForConfigurationRequest())
-    {
-        startAudio();
-    }
+    //begin audio-playback
+    startAudio();
 }
 
 void OHMComm::startAudio()
