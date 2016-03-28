@@ -60,8 +60,6 @@ void TestConfigurationModes::testInteractiveConfiguration()
     testStream << 'y' << std::endl;
     //default network config
     testStream << 'y' << std::endl;
-    //don't wait for passive configuration
-    testStream << 'n' << std::endl;
     //profile processors
     testStream << 'y' << std::endl;
     //log statistics

@@ -93,6 +93,7 @@ bool SIPConfiguration::isCustomConfigurationSet(const std::string key, const std
 
 void SIPConfiguration::onRegister(ohmcomm::PlaybackObservee* ohmComm)
 {
+    //TODO remove stop-callback, make participant-leave
     handler.stopCallback = ohmComm->createStopCallback();
 }
 

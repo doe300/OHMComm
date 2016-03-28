@@ -638,19 +638,6 @@ namespace ohmcomm
          */
         struct ApplicationDefined
         {
-            //some used application-defined sub-types
-            //NOTE: only 5 Bits can be used!
-            /*!
-             * Sub-type for the OHMComm configuration-request application-defined package type.
-             * This package-type has no content. See PassiveConfiguration for usage
-             */
-            static const uint8_t OHMCOMM_CONFIGURATION_REQUEST = 0xA; // 10
-            /*!
-             * Sub-type for the OHMComm configuration-response application-defined package-type.
-             * This package-type has a PassiveConfiguration::ConfigurationMessage as content.See PassiveConfiguration for usage
-             */
-            static const uint8_t OHMCOMM_CONFIGURATION_RESPONSE = 0xB; // 11
-
             //4 byte name field
             char name[4];
 

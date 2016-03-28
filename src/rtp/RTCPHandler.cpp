@@ -181,7 +181,9 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
     }
     else if(header.getType() == RTCP_PACKAGE_APPLICATION_DEFINED)
     {
+        const ApplicationDefined appDefinedRequest = rtcpHandler.readApplicationDefinedMessage(receiveBuffer, receivedSize, header);
         //currently there is no APP-defined package we know how to handle
+        std::cout << "RTCP: unknown APP-defined package received with name " << appDefinedRequest.name << " and type " << appDefinedRequest.subType << std::endl;
     }
     else
     {
