@@ -101,7 +101,7 @@ void OHMComm::startAudioThreads()
 
     //start RTCP-handler
     rtcpHandler.reset(new rtp::RTCPHandler(configurationMode->getRTCPNetworkConfiguration(), configurationMode, 
-            std::bind(&OHMComm::startAudio,this), (audioHandler->getMode() & AudioHandler::INPUT) == AudioHandler::INPUT));
+            (audioHandler->getMode() & AudioHandler::INPUT) == AudioHandler::INPUT));
     registerPlaybackListener(rtcpHandler);
     rtcpHandler->startUp();
     //if we don't wait for configuration, begin audio-playback

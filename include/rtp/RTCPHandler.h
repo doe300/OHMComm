@@ -15,7 +15,6 @@
 #include "RTCPData.h"
 #include "RTCPPackageHandler.h"
 #include "config/ConfigurationMode.h"
-#include "Statistics.h"
 #include "PlaybackListener.h"
 
 namespace ohmcomm
@@ -31,8 +30,7 @@ namespace ohmcomm
         class RTCPHandler : public PlaybackListener, private ParticipantListener
         {
         public:
-            RTCPHandler(const NetworkConfiguration& rtcpConfig, const std::shared_ptr<ConfigurationMode> configMode,
-                        const std::function<void () > startCallback, const bool isActiveSender = true);
+            RTCPHandler(const NetworkConfiguration& rtcpConfig, const std::shared_ptr<ConfigurationMode> configMode, const bool isActiveSender = true);
             ~RTCPHandler();
 
             /*!
@@ -68,7 +66,6 @@ namespace ohmcomm
         private:
             const std::unique_ptr<ohmcomm::network::NetworkWrapper> wrapper;
             const std::shared_ptr<ConfigurationMode> configMode;
-            const std::function<void () > startAudioCallback;
             const bool isActiveSender;
             std::function<void () > stopCallback;
             RTCPPackageHandler rtcpHandler;

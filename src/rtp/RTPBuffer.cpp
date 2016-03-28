@@ -28,16 +28,14 @@ RTPBuffer::~RTPBuffer()
 
 RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned int contentSize)
 {
-    bufferMutex.lock();
+    std::lock_guard<std::mutex> guard(bufferMutex);
     const RTPHeader *receivedHeader = package.getRTPPackageHeader();
     if(minSequenceNumber == 0 || receivedHeader->isMarked())
     {
         //if we receive our first package, we need to set minSequenceNumber
-        //same for the first package after a silent period
+        //same for a marked package after a silent period (for DTX)
+        //TODO same for any first package after a silent period (to correctly handle lost marked package and large consecutive losses)
         minSequenceNumber = receivedHeader->getSequenceNumber();
-        //TODO also, if we lost more then a certain number of consecutive packages, accept the next one
-        //(if its sequence-number is more than the last not-lost)
-        //-> this allows for continuation of communication for DTX, even if marked package gets lost
     }
 
     //we need to check for upper limit of range, because at some point a wrap around UINT16_MAX is expected behavior
@@ -47,21 +45,18 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
         //late loss
         //discard package, because it is older than the minimum sequence number to hold
         packageReceived(true);
-        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
     }
 
     if(size == capacity)
     {
         //buffer is full
-        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
     }
     if(receivedHeader->getSequenceNumber() - minSequenceNumber >= capacity)
     {
         //should never occur: package is far too new -> we have now choice but to discard it without getting into an undetermined state
         //TODO can occur if playout gets somehow stuck -> overwrite old packages (see alternative buffer)
-        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW;
     }
     uint16_t newWriteIndex = calculateIndex(nextReadIndex, receivedHeader->getSequenceNumber()-minSequenceNumber);
@@ -88,13 +83,12 @@ RTPBufferStatus RTPBuffer::addPackage(const RTPPackageHandler &package, unsigned
     size++;
     Statistics::maxCounter(Statistics::RTP_BUFFER_MAXIMUM_USAGE, size);
     packageReceived(false);
-    bufferMutex.unlock();
     return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }
 
 RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
 {
-    bufferMutex.lock();
+    std::lock_guard<std::mutex> guard(bufferMutex);
     if(!isAdaptionBufferFilled())
     {
         //buffer has insufficient fill level
@@ -102,7 +96,6 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         createConcealmentPackage(package);
         //we do not increase the minimum sequence number here, because we want to stretch the play-out delay
         //for that, we need to insert, not replace packages
-        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
     //need to search for oldest valid package, newer than minSequenceNumber and newer than currentTimestamp - maxDelay
@@ -134,7 +127,6 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         //but skip check for first package
         if(minSequenceNumber != 0)
             minSequenceNumber = (minSequenceNumber + 1) % UINT16_MAX;
-        bufferMutex.unlock();
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
 
@@ -154,7 +146,6 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
     Statistics::incrementCounter(Statistics::COUNTER_PACKAGES_LOST, (bufferPack->header.getSequenceNumber() - minSequenceNumber)%UINT16_MAX);
     //only accept newer packages (at least one sequence number more than last read package)
     minSequenceNumber = (bufferPack->header.getSequenceNumber() + 1) % UINT16_MAX;
-    bufferMutex.unlock();
     return RTPBufferStatus::RTP_BUFFER_ALL_OKAY;
 }
 

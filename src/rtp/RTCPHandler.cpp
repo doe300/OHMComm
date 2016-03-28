@@ -9,9 +9,10 @@
 
 #include "rtp/RTCPHandler.h"
 #include "config/InteractiveConfiguration.h"
-#include "config/PassiveConfiguration.h"
+#include "network/UDPWrapper.h"
 #include "Parameters.h"
 #include "Utility.h"
+#include "Statistics.h"
 
 using namespace ohmcomm::rtp;
 
@@ -22,9 +23,8 @@ const std::chrono::seconds RTCPHandler::remoteDropoutTimeout{60};
 //XXX when someday passive configuration is removed in favor of SIP, clean this up and move its parent from OHMComm to RTP-processor
 //-> then has the exact same life-cycle as the RTP-processor
 
-RTCPHandler::RTCPHandler(const ohmcomm::NetworkConfiguration& rtcpConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, 
-                         const std::function<void ()> startCallback, const bool isActiveSender):
-    wrapper(new ohmcomm::network::UDPWrapper(rtcpConfig)), configMode(configMode), startAudioCallback(startCallback),
+RTCPHandler::RTCPHandler(const ohmcomm::NetworkConfiguration& rtcpConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const bool isActiveSender):
+    wrapper(new ohmcomm::network::UDPWrapper(rtcpConfig)), configMode(configMode),
         isActiveSender(isActiveSender), rtcpHandler(), ourselves(ParticipantDatabase::self())
 {
     //make sure, RTCP for self is set
@@ -198,43 +198,7 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
     }
     else if(header.getType() == RTCP_PACKAGE_APPLICATION_DEFINED)
     {
-        //other side sent AD, assume it is an configuration-request
-        ApplicationDefined appDefinedRequest = rtcpHandler.readApplicationDefinedMessage(receiveBuffer, receivedSize, header);
-        if(appDefinedRequest.subType == ApplicationDefined::OHMCOMM_CONFIGURATION_REQUEST)
-        {
-            std::cout << "RTCP: Configuration-request received" << std::endl;
-            //write audio-configuration back to the remote
-            PassiveConfiguration::ConfigurationMessage msg;
-            const AudioConfiguration audioConfig = configMode->getAudioConfiguration();
-            msg.audioFormat = audioConfig.audioFormatFlag;
-            msg.bufferFrames = audioConfig.framesPerPackage;
-            msg.nChannels = audioConfig.inputDeviceChannels;
-            msg.sampleRate = audioConfig.sampleRate;
-            configMode->getAudioProcessorsConfiguration(msg.processorNames);
-            
-            const unsigned int configMessageBufferSize = 512;
-            char configMessageBuffer[configMessageBufferSize] = {0};
-            ApplicationDefined configResponse("RESC", configMessageBufferSize, configMessageBuffer, ApplicationDefined::OHMCOMM_CONFIGURATION_RESPONSE);
-            const int size = PassiveConfiguration::writeConfigurationMessage(configMessageBuffer, configMessageBufferSize, msg);
-            if(size < 0)
-            {
-                std::cerr << "Buffer not large enough!" << std::endl;
-                return header.getSSRC();
-            }
-            std::cout << "RTCP: Sending configuration-response: audio-format = " << AudioConfiguration::getAudioFormatDescription(msg.audioFormat, false) << ", sample-rate = " 
-                    << msg.sampleRate << ", channels = " << msg.nChannels << ", number of audio-processors = " << msg.numProcessorNames << std::endl;
-            RTCPPackageHandler handler;
-            RTCPHeader responseHeader(ourselves.ssrc);
-            const void* responseBuffer = handler.createApplicationDefinedPackage(responseHeader, configResponse);
-            wrapper->sendData(responseBuffer, RTCPPackageHandler::getRTCPPackageLength(responseHeader.getLength()));
-            
-            //remote device has connected, so send SDES
-            sendSourceDescription();
-            
-            //XXX could be extended to allow for multiple remotes to request configuration (group call)
-            //start audio-playback
-            startAudioCallback();
-        }
+        //currently there is no APP-defined package we know how to handle
     }
     else
     {

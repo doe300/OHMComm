@@ -6,7 +6,6 @@
 
 #include "config/InteractiveConfiguration.h"
 #include "config/ParameterConfiguration.h"
-#include "config/PassiveConfiguration.h"
 #include "sip/SIPConfiguration.h"
 
 using namespace ohmcomm;
@@ -59,14 +58,6 @@ int main(int argc, char* argv[])
             sipConfig.remotePort = atoi(params.getParameterValue(Parameters::SIP_REMOTE_PORT).data());
             sipConfig.localPort = atoi(params.getParameterValue(Parameters::SIP_LOCAL_PORT).data());
             ohmComm.reset(new OHMComm(new sip::SIPConfiguration(params, sipConfig)));
-        }
-        else if(params.isParameterSet(Parameters::PASSIVE_CONFIGURATION))
-        {
-            NetworkConfiguration networkConfig{0};
-            networkConfig.remoteIPAddress = Utility::getAddressForHostName(params.getParameterValue(Parameters::REMOTE_ADDRESS));
-            networkConfig.remotePort = atoi(params.getParameterValue(Parameters::REMOTE_PORT).data());
-            networkConfig.localPort = atoi(params.getParameterValue(Parameters::LOCAL_PORT).data());
-            ohmComm.reset(new OHMComm(new PassiveConfiguration(networkConfig)));
         }
         else
         {

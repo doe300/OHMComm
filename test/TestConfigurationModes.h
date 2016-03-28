@@ -5,7 +5,6 @@
 #include "config/InteractiveConfiguration.h"
 #include "config/LibraryConfiguration.h"
 #include "config/ParameterConfiguration.h"
-#include "config/PassiveConfiguration.h"
 #include "sip/SIPConfiguration.h"
 #include "cpptest.h"
 
@@ -20,8 +19,6 @@ public:
 
     void testLibraryConfiguration();
 
-    void testPassiveConfiguration();
-    
     void testFileConfiguration();
     
     void testSIPConfiguration();
