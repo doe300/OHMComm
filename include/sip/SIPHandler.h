@@ -14,6 +14,7 @@
 #include <exception>
 #include <chrono>
 
+#include "rtp/ParticipantDatabase.h"
 #include "network/NetworkWrapper.h"
 #include "SDPMessageHandler.h"
 #include "SIPPackageHandler.h"
@@ -24,7 +25,7 @@ namespace ohmcomm
     namespace sip
     {
 
-        class SIPHandler
+        class SIPHandler : private ohmcomm::rtp::ParticipantListener
         {
         public:
 
@@ -55,6 +56,10 @@ namespace ohmcomm
              * \return whether the SIP-thread is up and running
              */
             bool isRunning() const;
+            
+            void onRemoteConnected(const unsigned int ssrc, const std::string& address, const unsigned short port) override;
+            
+            void onRemoteRemoved(const unsigned int ssrc) override;
 
             static std::string generateCallID(const std::string& host);
 

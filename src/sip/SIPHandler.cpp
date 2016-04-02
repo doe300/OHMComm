@@ -65,6 +65,28 @@ void SIPHandler::shutdown()
     shutdownInternal();
 }
 
+void SIPHandler::onRemoteConnected(const unsigned int ssrc, const std::string& address, const unsigned short port)
+{
+    //associate SIP user-data with RTP-participant
+    SIPUserAgent* agent = userAgents.findForAddress(address, port);
+    if(agent != nullptr)
+    {
+        agent->associatedSSRC = ssrc;
+    }
+    //XXX add to destinations
+}
+
+void SIPHandler::onRemoteRemoved(const unsigned int ssrc)
+{
+    //remove SIP user-agent for given SSRC
+    SIPUserAgent* agent = userAgents.findForSSRC(ssrc);
+    if(agent != nullptr)
+    {
+        userAgents.removeRemoteUA(agent->tag);
+    }
+    //XXX remove from destinations
+}
+
 void SIPHandler::shutdownInternal()
 {
     // notify the thread to stop
@@ -76,6 +98,7 @@ void SIPHandler::shutdownInternal()
 
 void SIPHandler::runThread()
 {
+    ohmcomm::rtp::ParticipantDatabase::registerListener(*this);
     std::cout << "SIP-Handler started ..." << std::endl;
     state = SessionState::UNKNOWN;
 
@@ -107,6 +130,7 @@ void SIPHandler::runThread()
     }
     state = SessionState::SHUTDOWN;
     std::cout << "SIP-Handler shut down!" << std::endl;
+    ohmcomm::rtp::ParticipantDatabase::unregisterListener(*this);
 }
 
 std::string SIPHandler::generateCallID(const std::string& host)
@@ -291,6 +315,12 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             std::cout << "SIP: BYE received, shutting down ..." << std::endl;
             //send ok to verify reception
             sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
+            //remove remote user-agent
+            if(remoteUA.associatedSSRC >= 0)
+            {
+                ohmcomm::rtp::ParticipantDatabase::removeParticipant((uint32_t)remoteUA.associatedSSRC);
+            }
+            userAgents.removeRemoteUA(remoteUA.tag);
             //end communication, if established
             shutdownInternal();
             stopCallback();

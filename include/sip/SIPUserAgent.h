@@ -73,6 +73,38 @@ namespace ohmcomm
             {
                 return remoteAgents.find(tag) != remoteAgents.end();
             }
+            
+            bool removeRemoteUA(const std::string& tag)
+            {
+                return remoteAgents.erase(tag) > 0;
+            }
+            
+            SIPUserAgent* findForSSRC(const uint32_t ssrc)
+            {
+                auto it = remoteAgents.begin();
+                auto end = remoteAgents.end();
+                while(it != end)
+                {
+                    if((*it).second.associatedSSRC == ssrc)
+                        return &((*it).second);
+                    ++it;
+                }
+                return nullptr;
+            }
+            
+            SIPUserAgent* findForAddress(const std::string& address, const uint16_t port)
+            {
+                auto it = remoteAgents.begin();
+                auto end = remoteAgents.end();
+                while(it != end)
+                {
+                    if((*it).second.ipAddress.compare(address) == 0)
+                        //XXX we need to compare port too (especially for NATs), but RTP-ports not SIP-port with RTP-port
+                        return &((*it).second);
+                    ++it;
+                }
+                return nullptr;
+            }
         private:
             std::map<std::string, SIPUserAgent> remoteAgents;
         };
