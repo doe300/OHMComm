@@ -270,11 +270,19 @@ std::vector<std::string> SIPPackageHandler::readPackage(const void* sipPackage, 
     }
     //skip the empty line
     index += 2;
-    if(contentLength > (packageLength - index))
+    if(contentLength != UINT_MAX && (packageLength - index) != 0)
     {
-        throw std::invalid_argument("Content-Length header-field longer than message-body!");
+        if(contentLength > (packageLength - index))
+        {
+            throw std::invalid_argument("Content-Length header-field longer than message-body!");
+        }
+        //the remainder is the message-body
+        results.at(3) = package.substr(index, contentLength);
     }
-    //the remainder is the message-body
-    results.at(3) = package.substr(index, contentLength);
+    else
+    {
+        //empty body
+        results.at(3) = "";
+    }
     return results;
 }

@@ -10,11 +10,11 @@ std::pair<std::string, uint16_t> SocketAddress::toAddressAndPort() const
     uint16_t port;
     char buffer[65];
     if (isIPv6) {
-        inet_ntop(ipv6.sin6_family, &(ipv6.sin6_addr), buffer, 64);
+        inet_ntop(ipv6.sin6_family, (void*)&(ipv6.sin6_addr), buffer, 64);
         port = ntohs(ipv6.sin6_port);
     }
     else {
-        inet_ntop(ipv4.sin_family, &(ipv4.sin_addr), buffer, 64);
+        inet_ntop(ipv4.sin_family, (void*)&(ipv4.sin_addr), buffer, 64);
         port = ntohs(ipv4.sin_port);
     }
     return std::make_pair(std::string(buffer), port);
