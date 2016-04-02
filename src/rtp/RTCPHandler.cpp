@@ -135,6 +135,7 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
     {
         //other side sent an BYE-package, shutting down
         std::cout << "RTCP: Received Goodbye-message: " << rtcpHandler.readByeMessage(receiveBuffer, receivedSize, header) << std::endl;
+        //XXX remove next two lines
         std::cout << "RTCP: Dialog partner requested end of communication, shutting down!" << std::endl;
         shutdownInternal();
         //notifies OHMComm about remote leaving

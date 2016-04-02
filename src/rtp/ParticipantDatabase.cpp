@@ -23,6 +23,12 @@ float Participant::calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t 
     return lastJitter;
 }
 
+void Participant::setRemoteAddress(const std::string& address, const uint16_t port)
+{
+    ParticipantDatabase::fireConnectedRemote(ssrc, address, port);
+}
+
+std::mutex ParticipantDatabase::databaseMutex;
 Participant ParticipantDatabase::localParticipant = initLocalParticipant();
 std::map<uint32_t, Participant> ParticipantDatabase::participants{};
 std::vector<std::reference_wrapper<ParticipantListener>> ParticipantDatabase::listeners{};
@@ -37,6 +43,7 @@ Participant ParticipantDatabase::initLocalParticipant()
 
 bool ParticipantDatabase::removeParticipant(const uint32_t ssrc)
 {
+    std::lock_guard<std::mutex> guard(databaseMutex);
     if (participants.erase(ssrc) > 0) {
         fireRemoveRemote(ssrc);
         return true;
@@ -76,5 +83,14 @@ void ParticipantDatabase::fireRemoveRemote(const uint32_t ssrc)
     for(ParticipantListener& l : listeners)
     {
         l.onRemoteRemoved(ssrc);
+    }
+}
+
+void ParticipantDatabase::fireConnectedRemote(const uint32_t ssrc, const std::string& address, const uint16_t port)
+{
+    std::cout << "RTP: Remote connected: " << ssrc << ", address: " << address << ':' << port <<  std::endl;
+    for(ParticipantListener& l : listeners)
+    {
+        l.onRemoteConnected(ssrc, address, port);
     }
 }

@@ -73,6 +73,9 @@ void RTPListener::runThread()
                     //set initial extended highest sequence number
                     participant.extendedHighestSequenceNumber = rtpHandler.getRTPPackageHeader()->getSequenceNumber();
                     participant.initialRTPTimestamp = rtpHandler.getRTPPackageHeader()->getTimestamp();
+                    //set remote address
+                    auto remoteAddress = receivedPackage.address.toAddressAndPort();
+                    participant.setRemoteAddress(remoteAddress.first, remoteAddress.second);
                 }
                 else if(participant.payloadType != rtpHandler.getRTPPackageHeader()->getPayloadType())
                 {

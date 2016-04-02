@@ -13,6 +13,8 @@
 #include <memory>
 #include <vector>
 #include <functional>
+#include <mutex>
+#include <string>
 
 namespace ohmcomm
 {
@@ -80,6 +82,15 @@ namespace ohmcomm
              * \return the newly calculated interarrival-jitter
              */
             float calculateInterarrivalJitter(uint32_t sentTimestamp, uint32_t receptionTimestamp);
+            
+            /*!
+             * Sets the remote-address and notifies the listeners
+             * 
+             * \param address The IP-address of the remote device
+             * 
+             * \param port The remote-port
+             */
+            void setRemoteAddress(const std::string& address, const uint16_t port);
         };
         
         /*!
@@ -93,10 +104,23 @@ namespace ohmcomm
                 //for correct call to overriding destructor
             }
 
+            /*!
+             * This method is triggered when a new remote is added to the list of participants
+             */
             virtual void onRemoteAdded(const unsigned int ssrc)
             {
             }
             
+            /*!
+             * This method is triggered when a new remote has connected (send a message for the first time)
+             */
+            virtual void onRemoteConnected(const unsigned int ssrc, const std::string& address, const unsigned short port)
+            {
+            }
+            
+            /*!
+             * This message is triggered when a remote is being removed from the list of participants
+             */
             virtual void onRemoteRemoved(const unsigned int ssrc)
             {
             }
@@ -121,6 +145,7 @@ namespace ohmcomm
              */
             inline static Participant& remote(const uint32_t ssrc)
             {
+                std::lock_guard<std::mutex> guard(databaseMutex);
                 if (!isInDatabase(ssrc))
                 {
                     participants.emplace(std::make_pair(ssrc, Participant{ssrc, false}));
@@ -175,6 +200,7 @@ namespace ohmcomm
             static void unregisterListener(ParticipantListener& listener);
             
         private:
+            static std::mutex databaseMutex;
             static Participant localParticipant;
             static std::map<uint32_t, Participant> participants;
             //need to wrap references, since they cannot be stored in vectors
@@ -187,6 +213,11 @@ namespace ohmcomm
             
             //fires listeners for removal of remotes
             static void fireRemoveRemote(const uint32_t ssrc);
+            
+            //fires listeners for setting address for remote
+            static void fireConnectedRemote(const uint32_t ssrc, const std::string& address, const uint16_t port);
+            
+            friend class Participant;
         };
     }
 }
