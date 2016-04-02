@@ -5,40 +5,12 @@
 #include <string>
 #include <string.h> //for strerror
 
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#else
-#include <sys/socket.h> // socket(), connect()
-#include <arpa/inet.h> // sockaddr_in
-#include <stdexcept>
-#include <unistd.h> //socklen_t
-#define INVALID_SOCKET -1
-#define SOCKET_ERROR -1
-#define WSAETIMEDOUT 10060  //Dummy-support for WSAPI timeout-error
-#endif
+#include "SocketAddress.h"
 
 namespace ohmcomm
 {
     namespace network
     {
-
-        /*!
-         * Container for a socket-address (IP-address and port) and a flag whether to use IPv4 or IPv6
-         */
-        struct SocketAddress
-        {
-        public:
-            //we define a union of an IPv4 and an IPv6 address
-            //because the two addresses have different size(16 bytes and 24 bytes) and therefore we can guarantee to hold enough space
-            //for either of the IP protocol versions
-            union
-            {
-                sockaddr_in6 ipv6;
-                sockaddr_in ipv4;
-            };
-            bool isIPv6;
-        };
 
         /*!
          * Superclass for all networking-protocols.

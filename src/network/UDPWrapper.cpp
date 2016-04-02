@@ -45,29 +45,14 @@ void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
     if(NetworkWrapper::isIPv6(remoteIPAddress))
     {
         std::cout << "Using IPv6 ..." << std::endl;
-        localAddress.ipv6.sin6_family = AF_INET6;
-        //listen on any address of this computer (localhost, local IP, ...)
-        localAddress.ipv6.sin6_addr = in6addr_any;
-        localAddress.ipv6.sin6_port = htons(localPort);
-        localAddress.ipv6.sin6_flowinfo = {0};
-        localAddress.ipv6.sin6_scope_id = {0};
-        remoteAddress.ipv6.sin6_family = AF_INET6;
-        inet_pton(AF_INET6, remoteIPAddress.c_str(), &(remoteAddress.ipv6.sin6_addr));
-        remoteAddress.ipv6.sin6_port = htons(remotePort);
-        remoteAddress.isIPv6 = true;
+        localAddress = SocketAddress::createLocalAddress(true, localPort);
     }
     else
     {
         std::cout << "Using IPv4 ..." << std::endl;
-        localAddress.ipv4.sin_family = AF_INET;
-        //listen on any address of this computer (localhost, local IP, ...)
-        localAddress.ipv4.sin_addr.s_addr = INADDR_ANY;
-        localAddress.ipv4.sin_port = htons(localPort);
-        remoteAddress.ipv4.sin_family = AF_INET;
-        inet_pton(AF_INET, remoteIPAddress.c_str(), &(remoteAddress.ipv4.sin_addr));
-        remoteAddress.ipv4.sin_port = htons(remotePort);
-        remoteAddress.isIPv6 = false;
+        localAddress = SocketAddress::createLocalAddress(false, localPort);
     }
+    remoteAddress = SocketAddress::fromAddressAndPort(remoteIPAddress, remotePort);
 }
 
 bool UDPWrapper::createSocket()
