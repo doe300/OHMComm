@@ -28,6 +28,9 @@ namespace ohmcomm
         class SIPHandler : private ohmcomm::rtp::ParticipantListener
         {
         public:
+            
+            //Function-type used to add a new user to the conversation
+            using AddUserFunction = std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)>;
 
             //A list of all allowed SIP-methods
             static const std::string SIP_ALLOW_METHODS;
@@ -38,7 +41,7 @@ namespace ohmcomm
             //The default port for SIP, as of RFC 3261
             static constexpr unsigned short SIP_DEFAULT_PORT{5060};
 
-            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration) > configFunction);
+            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction);
 
             ~SIPHandler();
 
@@ -65,7 +68,7 @@ namespace ohmcomm
 
         private:
             static constexpr unsigned short SIP_BUFFER_SIZE{2048};
-
+            
             enum class SessionState
             {
                 /*!
@@ -89,7 +92,7 @@ namespace ohmcomm
             UserAgentDatabase userAgents;
             std::unique_ptr<ohmcomm::network::NetworkWrapper> network;
             NetworkConfiguration sipConfig;
-            const std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration) > configFunction;
+            const AddUserFunction addUserFunction;
             std::function<void() > stopCallback = []()-> void
             {
             };

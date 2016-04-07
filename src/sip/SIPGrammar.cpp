@@ -135,7 +135,7 @@ std::string SIPGrammar::toSIPURI(const SIPURI& sipURI)
 SIPGrammar::SIPAddress SIPGrammar::readNamedAddress(const std::string& namedAddress, const unsigned short defaultPort)
 {
     //syntax for SIP token (RFC 3261, section 25.1)
-    static const std::regex tokenRegex{"^([[:alnum:]]|\\-|\\.|\\!|\\%|\\*|\\_|\\+|\\`|\\'|\\~)+$", flags};
+    static const std::regex tokenRegex{"^([[:alnum:]]|\\-|\\.|\\!|\\%|\\*|\\_|\\+|\\`|\\'|\\~)*$", flags};
     const std::string::size_type openIndex = namedAddress.find('<');
     SIPAddress result;
     if(openIndex == std::string::npos && namedAddress.find('>') == std::string::npos)

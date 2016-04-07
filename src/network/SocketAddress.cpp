@@ -22,7 +22,7 @@ std::pair<std::string, uint16_t> SocketAddress::toAddressAndPort() const
 
 SocketAddress SocketAddress::fromAddressAndPort(const std::string& address, const uint16_t port)
 {
-    SocketAddress addr;
+    SocketAddress addr = {0};
     std::string ipAddress;
     if(NetworkGrammars::isIPv6Address(address))
     {

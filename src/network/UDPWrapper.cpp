@@ -1,4 +1,5 @@
 #include "network/UDPWrapper.h"
+#include "network/NetworkGrammars.h"
 
 using namespace ohmcomm::network;
 
@@ -42,7 +43,7 @@ void UDPWrapper::startWinsock()
 
 void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::string remoteIPAddress, unsigned short remotePort)
 {
-    if(NetworkWrapper::isIPv6(remoteIPAddress))
+    if(NetworkGrammars::isIPv6Address(remoteIPAddress))
     {
         std::cout << "Using IPv6 ..." << std::endl;
         localAddress = SocketAddress::createLocalAddress(true, localPort);

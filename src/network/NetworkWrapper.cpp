@@ -21,11 +21,6 @@ std::wstring NetworkWrapper::getLastError() const
     return (std::to_wstring(error) + L" - ") +tmp;
 }
 
-bool NetworkWrapper::isIPv6(const std::string ipAddress)
-{
-    return NetworkGrammars::isIPv6Address(ipAddress);
-}
-
 bool NetworkWrapper::hasTimedOut() const
 {
     int error;

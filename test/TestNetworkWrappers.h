@@ -1,9 +1,10 @@
 #ifndef TESTNETWORKWRAPPERS_H
 #define TESTNETWORKWRAPPERS_H
 
+#include <memory>
+
 #include "cpptest.h"
 #include "network/NetworkWrapper.h"
-#include "network/UDPWrapper.h"
 
 class TestNetworkWrappers : public Test::Suite
 {
@@ -12,14 +13,18 @@ public:
 
     virtual ~TestNetworkWrappers();
 
-    void testUDPWrapperIPv4();
-    void testUDPWrapperIPv6();
+    void testIPv4(char* type);
+    void testIPv6(char* type);
+    
+    void testMulticastWrapper();
 private:
     const unsigned int bufferSize;
     char* sendBuffer;
     char* receiveBuffer;
     
-    void testUDPWrapper(ohmcomm::network::UDPWrapper& wrapper);
+    void testWrapper(ohmcomm::network::NetworkWrapper& wrapper);
+    
+    static std::unique_ptr<ohmcomm::network::NetworkWrapper> getWrapper(const char* type, bool IPv6);
 };
 
 #endif // TESTNETWORKWRAPPERS_H

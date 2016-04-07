@@ -62,19 +62,19 @@ namespace ohmcomm
 
             }
 
-            SIPUserAgent& getRemoteUA(const std::string& tag = "")
+            inline SIPUserAgent& getRemoteUA(const std::string& tag = "")
             {
                 if (!isInUserAgentDB(tag))
                     remoteAgents.insert(std::pair<std::string, SIPUserAgent>(tag, SIPUserAgent(tag)));
                 return remoteAgents.at(tag);
             }
 
-            bool isInUserAgentDB(const std::string& tag) const
+            inline bool isInUserAgentDB(const std::string& tag) const
             {
                 return remoteAgents.find(tag) != remoteAgents.end();
             }
             
-            bool removeRemoteUA(const std::string& tag)
+            inline bool removeRemoteUA(const std::string& tag)
             {
                 return remoteAgents.erase(tag) > 0;
             }
@@ -105,6 +105,12 @@ namespace ohmcomm
                 }
                 return nullptr;
             }
+            
+            inline unsigned long getNumberOfRemotes() const
+            {
+                return remoteAgents.size();
+            }
+            
         private:
             std::map<std::string, SIPUserAgent> remoteAgents;
         };

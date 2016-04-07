@@ -15,8 +15,8 @@ using namespace ohmcomm::sip;
 const std::string SIPHandler::SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");
 const std::string SIPHandler::SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 
-SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const std::function<void(const MediaDescription, const ohmcomm::NetworkConfiguration, const ohmcomm::NetworkConfiguration)> configFunction) : 
-        userAgents(std::to_string(rand())), network(new ohmcomm::network::UDPWrapper(sipConfig)), sipConfig(sipConfig), configFunction(configFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
+SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction) : 
+        userAgents(std::to_string(rand())), network(new ohmcomm::network::UDPWrapper(sipConfig)), sipConfig(sipConfig), addUserFunction(addUserFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
 {
     userAgents.thisUA.userName = ohmcomm::Utility::getUserName();
     userAgents.thisUA.hostName = ohmcomm::Utility::getDomainName();
@@ -339,8 +339,13 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
                 std::cout << "SIP: CANCEL received, canceling session setup ..." << std::endl;
                 //send ok to verify reception
                 sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
-                shutdownInternal();
-                stopCallback();
+                userAgents.removeRemoteUA(remoteUA.tag);
+                if(userAgents.getNumberOfRemotes() == 0)
+                {
+                    //our initial call failed, shut down
+                    shutdownInternal();
+                    stopCallback();
+                }
             }
         }
         else
@@ -705,5 +710,5 @@ void SIPHandler::startCommunication(const MediaDescription& descr, const ohmcomm
             std::cout << "SIP: Using custom remote RTCP port: " << rtcpConfig.remotePort << std::endl;
         }
     }
-    configFunction(descr, rtpConfig, rtcpConfig);
+    addUserFunction(descr, rtpConfig, rtcpConfig);
 }

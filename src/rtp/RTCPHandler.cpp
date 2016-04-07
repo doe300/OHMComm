@@ -292,6 +292,7 @@ const void* RTCPHandler::createSourceDescription(unsigned int offset)
     //TODO clashes with interactive configuration (with input to shutdown server)
     if(sourceDescriptions.empty())
     {
+        //XXX could also use SIP ID as CNAME
         sourceDescriptions.push_back({RTCP_SOURCE_CNAME, (Utility::getUserName() + '@') + Utility::getDomainName()});
         if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr && configMode->isConfigured())
         {

@@ -86,12 +86,6 @@ namespace ohmcomm
              */
             virtual void closeNetwork() = 0;
 
-            /*!
-             * \param ipAddress The address to check
-             *
-             * \return Whether the address given is an IPv6 address
-             */
-            static bool isIPv6(const std::string ipAddress);
         protected:
 
             // Defines OS-independant flag to close socket
