@@ -72,7 +72,7 @@ namespace ohmcomm
         bool clearAudioProcessors();
 
         /*!
-         * Gives a information wheater an AudioProcessor is already added or not
+         * Gives a information whether an AudioProcessor is already added or not
          *
          * \param audioProcessor AudioProcessor object to check
          *
@@ -81,7 +81,7 @@ namespace ohmcomm
         bool hasAudioProcessor(AudioProcessor *audioProcessor) const;
 
         /*!
-         * Gives a information wheater the an AudioProcessor is already added or not
+         * Gives a information whether the an AudioProcessor is already added or not
          *
          * \param nameOfAudioProcessor The name of the AudioProcessor to check
          *

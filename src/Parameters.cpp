@@ -4,12 +4,13 @@
  *
  * Created on July 22, 2015, 1:57 PM
  */
-
-#include "Parameters.h"
-#include "Utility.h"
 #include <iomanip>
 #include <string.h>
 #include <fstream>
+
+#include "Parameters.h"
+#include "Utility.h"
+#include "Logger.h"
 
 using namespace ohmcomm;
 
@@ -49,12 +50,12 @@ const Parameter* Parameters::registerParameter(Parameter&& param)
     {
         if((*insertPos).shortName == param.shortName)
         {
-            std::cerr << "Short parameter name '" << param.shortName << "' already in use for parameter '" << (*insertPos).longName << "'!" << std::endl;
+            ohmcomm::error("Parameters") << "Short parameter name '" << param.shortName << "' already in use for parameter '" << (*insertPos).longName << "'!" << ohmcomm::endl;
             return nullptr;
         }
         if((*insertPos).longName == param.longName)
         {
-            std::cerr << "Long parameter name '" << param.longName << "' already in use!" << std::endl;
+            ohmcomm::error("Parameters") << "Long parameter name '" << param.longName << "' already in use!" << ohmcomm::endl;
             return nullptr;
         }
         //select position to insert Parameter into - choose first entry in list behind the Parameter
@@ -142,10 +143,10 @@ bool Parameters::parseParameters(int argc, char* argv[])
     {
         if(avParam.isRequired() && !isParameterSet(&avParam) && !avParam.hasDefaultValue())
         {
-            std::cout << "No value set for required parameter: " << avParam.longName << std::endl;
-            std::cout << "See \"OHMComm --help\" for a list of parameters and their possible values" << std::endl;
+            ohmcomm::error("Parameters") << "No value set for required parameter: " << avParam.longName << ohmcomm::endl;
+            ohmcomm::error("Parameters") << "See \"OHMComm --help\" for a list of parameters and their possible values" << ohmcomm::endl;
             //we most likely can't run with some essential parameter missing
-            std::cout << "Aborting." << std::endl;
+            ohmcomm::error("Parameters") << "Aborting." << ohmcomm::endl;
             exit(1);
         }
     }
@@ -318,8 +319,8 @@ void Parameters::parseParametersCommandLine(int argc, char* argv[])
         if(numSlashes == 0 || numSlashes > 2)
         {
             //Invalid argument syntax - print message and continue
-            std::cout << "Invalid syntax for parameter: " << paramText << std::endl;
-            std::cout << "See \"OHMComm --help\" for accepted parameters" << std::endl;
+            ohmcomm::warn("Parameters") << "Invalid syntax for parameter: " << paramText << ohmcomm::endl;
+            ohmcomm::warn("Parameters") << "See \"OHMComm --help\" for accepted parameters" << ohmcomm::endl;
             continue;
         }
         //2. get correct parameter
@@ -351,8 +352,8 @@ void Parameters::parseParametersCommandLine(int argc, char* argv[])
         if(param == nullptr)
         {
             //Unrecognized argument - print message and continue
-            std::cout << "Parameter \"" << paramText << "\" not found, skipping." << std::endl;
-            std::cout << "See \"OHMComm --help\" for a list of all parameters" << std::endl;
+            ohmcomm::warn("Parameters") << "Parameter \"" << paramText << "\" not found, skipping." << ohmcomm::endl;
+            ohmcomm::warn("Parameters") << "See \"OHMComm --help\" for a list of all parameters" << ohmcomm::endl;
             continue;
         }
         std::string value;
@@ -370,8 +371,8 @@ void Parameters::parseParametersCommandLine(int argc, char* argv[])
             if(value.empty())
             {
                 //No value set
-                std::cout << "No value set for parameter \"" << param->longName << "\", skipping." << std::endl;
-                std::cout << "See \"OHMComm --help\" for a list of parameters and their accepted values" << std::endl;
+                ohmcomm::warn("Parameters") << "No value set for parameter \"" << param->longName << "\", skipping." << ohmcomm::endl;
+                ohmcomm::warn("Parameters") << "See \"OHMComm --help\" for a list of parameters and their accepted values" << ohmcomm::endl;
                 continue;
             }
         }
@@ -390,7 +391,7 @@ bool Parameters::parseParametersFromFile(const std::string& configFile)
 {
     try
     {
-        std::cout << "Reading configuration file... " << configFile << std::endl;
+        ohmcomm::info("Parameters") << "Reading configuration file... " << configFile << ohmcomm::endl;
         //read configuration-file
         std::fstream stream(configFile, std::fstream::in);
         stream.exceptions ( std::ios::badbit );
@@ -414,7 +415,7 @@ bool Parameters::parseParametersFromFile(const std::string& configFile)
             index = line.find('=');
             if(index == std::string::npos)
             {
-                std::cerr << "Invalid configuration line: " << line << std::endl;
+                ohmcomm::warn("Parameters") << "Invalid configuration line: " << line << ohmcomm::endl;
                 continue;
             }
             key = Utility::trim(line.substr(0, index));
@@ -429,8 +430,8 @@ bool Parameters::parseParametersFromFile(const std::string& configFile)
             if(param == nullptr)
             {
                 //Unrecognized argument - print message and continue
-                std::cout << "Parameter \"" << line << "\" not found, skipping." << std::endl;
-                std::cout << "See \"OHMComm --help\" for a list of all parameters" << std::endl;
+                ohmcomm::warn("Parameters") << "Parameter \"" << line << "\" not found, skipping." << ohmcomm::endl;
+                ohmcomm::warn("Parameters") << "See \"OHMComm --help\" for a list of all parameters" << ohmcomm::endl;
                 continue;
             }
             index++;
@@ -458,11 +459,11 @@ bool Parameters::parseParametersFromFile(const std::string& configFile)
     }
     catch(const std::ios_base::failure& f)
     {
-        std::cerr << "Failed to read configuration-file!" << std::endl;
-        std::cerr << strerror(errno) << std::endl;
-        std::cerr << f.what() << std::endl;
+        ohmcomm::error("Parameters") << "Failed to read configuration-file!" << ohmcomm::endl;
+        ohmcomm::error("Parameters") << strerror(errno) << ohmcomm::endl;
+        ohmcomm::error("Parameters") << f.what() << ohmcomm::endl;
         return false;
     }
-    std::cout << "Configuration-file read" << std::endl;
+    ohmcomm::info("Parameters") << "Configuration-file read" << ohmcomm::endl;
     return true;
 }

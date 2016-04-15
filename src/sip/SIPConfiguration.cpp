@@ -5,6 +5,7 @@
  * Created on December 2, 2015, 1:06 PM
  */
 
+#include "Logger.h"
 #include "sip/SIPConfiguration.h"
 #include "processors/AudioProcessorFactory.h"
 #include "Parameters.h"
@@ -40,8 +41,8 @@ bool SIPConfiguration::runConfiguration()
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     // maximum time to wait before aborting configuration
     int timeLeft = SIPConfiguration::MAX_WAIT_TIME;
-    std::cout << "SIP: Calling remote ... " << std::endl;
-    std::cout << "SIP: Press Enter to cancel" << std::endl;
+    ohmcomm::info("SIP") << "Calling remote ... " << ohmcomm::endl;
+    ohmcomm::info("SIP") << "Press Enter to cancel" << ohmcomm::endl;
     
     //wait for configuration to be done
     while(!isConfigurationDone && handler.isRunning())

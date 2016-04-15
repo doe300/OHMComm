@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "rtp/ProcessorRTP.h"
 #include "Statistics.h"
 #include "Parameters.h"
@@ -22,7 +23,7 @@ void ProcessorRTP::configure(const ohmcomm::AudioConfiguration& audioConfig, con
         isDTXEnabled = configMode->isCustomConfigurationSet(Parameters::ENABLE_DTX->longName, "Enable DTX");
         if(isDTXEnabled)
         {
-            std::cout << "Using DTX after " << ProcessorRTP::SILENCE_DELAY << " ms of silence." << std::endl;
+            ohmcomm::info("RTP") << "Using DTX after " << ProcessorRTP::SILENCE_DELAY << " ms of silence." << ohmcomm::endl;
             //calculate the number of packages to fill the specified delay
             const double timeOfPackage = audioConfig.framesPerPackage / (double)audioConfig.sampleRate;
             totalSilenceDelayPackages = (SILENCE_DELAY /1000.0) / timeOfPackage;
@@ -52,7 +53,7 @@ unsigned int ProcessorRTP::processInputData(void *inputBuffer, const unsigned in
         if(currentSilenceDelayPackages > totalSilenceDelayPackages)
         {
             lastPackageWasSilent = true;
-            std::cout << "Not sending silent package" << std::endl;
+            ohmcomm::debug("RTP") << "Not sending silent package" << ohmcomm::endl;
             return inputBufferByteSize;
         }
     }
@@ -92,12 +93,12 @@ unsigned int ProcessorRTP::processOutputData(void *outputBuffer, const unsigned 
 
     if (result == RTPBufferStatus::RTP_BUFFER_IS_PUFFERING)
     {
-        std::cerr <<  "Buffer is buffering" << std::endl;
+        ohmcomm::warn("RTP") <<  "Buffer is buffering" << ohmcomm::endl;
     }
     else if (result == RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW)
     {
         userData->isSilentPackage = true;
-        std::cerr << "Output Buffer underflow" << std::endl;
+        ohmcomm::warn("RTP") << "Output Buffer underflow" << ohmcomm::endl;
     }
     else
     {
@@ -117,7 +118,7 @@ bool ProcessorRTP::cleanUp()
     //if we never sent a RTP-package, there is no need to end the communication
     if(rtpPackage)
     {
-        std::cout << "Communication terminated." << std::endl;
+        ohmcomm::info("RTP") << "Communication terminated." << ohmcomm::endl;
     }
     if(rtpListener)
         rtpListener->shutdown();

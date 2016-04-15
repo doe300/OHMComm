@@ -7,8 +7,9 @@
 
 #include <algorithm>
 
+#include "Logger.h"
 #include "sip/SIPHandler.h"
-#include "network/UDPWrapper.h"
+#include "network/MulticastNetworkWrapper.h"
 
 using namespace ohmcomm::sip;
 
@@ -16,7 +17,7 @@ const std::string SIPHandler::SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings(
 const std::string SIPHandler::SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 
 SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction) : 
-        userAgents(std::to_string(rand())), network(new ohmcomm::network::UDPWrapper(sipConfig)), sipConfig(sipConfig), addUserFunction(addUserFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
+        userAgents(std::to_string(rand())), network(new ohmcomm::network::MulticastNetworkWrapper(sipConfig)), sipConfig(sipConfig), addUserFunction(addUserFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
 {
     userAgents.thisUA.userName = ohmcomm::Utility::getUserName();
     userAgents.thisUA.hostName = ohmcomm::Utility::getDomainName();
@@ -73,7 +74,6 @@ void SIPHandler::onRemoteConnected(const unsigned int ssrc, const std::string& a
     {
         agent->associatedSSRC = ssrc;
     }
-    //XXX add to destinations
 }
 
 void SIPHandler::onRemoteRemoved(const unsigned int ssrc)
@@ -83,8 +83,19 @@ void SIPHandler::onRemoteRemoved(const unsigned int ssrc)
     if(agent != nullptr)
     {
         userAgents.removeRemoteUA(agent->tag);
+        //remove from destinations
+        ohmcomm::network::MulticastNetworkWrapper* multicast = dynamic_cast<ohmcomm::network::MulticastNetworkWrapper*>(network.get());
+        if(multicast != nullptr)
+        {
+            multicast->removeDestination(agent->ipAddress, agent->port);
+        }
+        ohmcomm::info("SIP") << "Remote removed: " << agent->getSIPURI() << ohmcomm::endl;
+        if(userAgents.getNumberOfRemotes() == 0)
+        {
+            //last remote left
+            shutdownInternal();
+        }
     }
-    //XXX remove from destinations
 }
 
 void SIPHandler::shutdownInternal()
@@ -99,7 +110,7 @@ void SIPHandler::shutdownInternal()
 void SIPHandler::runThread()
 {
     ohmcomm::rtp::ParticipantDatabase::registerListener(*this);
-    std::cout << "SIP-Handler started ..." << std::endl;
+    ohmcomm::info("SIP") << "SIP-Handler started ..." << ohmcomm::endl;
     state = SessionState::UNKNOWN;
 
     //how to determine if initiating or receiving side??
@@ -129,7 +140,7 @@ void SIPHandler::runThread()
         }
     }
     state = SessionState::SHUTDOWN;
-    std::cout << "SIP-Handler shut down!" << std::endl;
+    ohmcomm::info("SIP") << "SIP-Handler shut down!" << ohmcomm::endl;
     ohmcomm::rtp::ParticipantDatabase::unregisterListener(*this);
 }
 
@@ -156,7 +167,7 @@ void SIPHandler::sendInviteRequest(SIPUserAgent& remoteUA)
     const std::string messageBody = SDPMessageHandler::createSessionDescription(userAgents.thisUA.userName, rtpConfig);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, messageBody);
-    std::cout << "SIP: Sending INVITE to " << remoteUA.getSIPURI() << std::endl;
+    ohmcomm::info("SIP") << "Sending INVITE to " << remoteUA.getSIPURI() << ohmcomm::endl;
     network->sendData(message.data(), message.size());
     
     state = SessionState::INVITING;
@@ -175,7 +186,7 @@ void SIPHandler::sendCancelRequest(SIPUserAgent& remoteUA)
     header[SIP_HEADER_VIA].replace(header[SIP_HEADER_VIA].find_last_of('=') + 1, header.getBranchTag().size(), retainLastBranch);
     
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
-    std::cout << "SIP: Sending CANCEL to " << remoteUA.getSIPURI() << std::endl;
+    ohmcomm::info("SIP") << "Sending CANCEL to " << remoteUA.getSIPURI() << ohmcomm::endl;
     network->sendData(message.data(), message.size());
     
     state = SessionState::SHUTDOWN;
@@ -196,7 +207,7 @@ void SIPHandler::sendByeRequest(SIPUserAgent& remoteUA)
     initializeHeaderFields(SIP_REQUEST_BYE, header, nullptr, remoteUA);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
-    std::cout << "SIP: Sending BYE to " << remoteUA.getSIPURI() << std::endl;
+    ohmcomm::info("SIP") << "Sending BYE to " << remoteUA.getSIPURI() << ohmcomm::endl;
     network->sendData(message.data(), message.size());
     
     state = SessionState::SHUTDOWN;
@@ -219,7 +230,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     try
     {
         requestBody = SIPPackageHandler::readRequestPackage(buffer, packageLength, requestHeader);
-        std::cout << "SIP: Request received: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
+        ohmcomm::info("SIP") << "Request received: " << requestHeader.requestCommand << " " << requestHeader.requestURI << ohmcomm::endl;
         userAgents.getRemoteUA().tag = requestHeader.getRemoteTag();
         SIPPackageHandler::checkSIPHeader(&requestHeader);
         if(!requestHeader.hasKey(SIP_HEADER_MAX_FORWARDS) || atoi(requestHeader[SIP_HEADER_MAX_FORWARDS].data()) <= 0)
@@ -233,7 +244,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     {
         //fired on invalid IP-address or any error while parsing request
         //TODO error-response is sent to wrong (old) destination if the request came from another address
-        std::cout << "SIP: Received bad request: " << error.what() << std::endl;
+        ohmcomm::warn("SIP") << "Received bad request: " << error.what() << ohmcomm::endl;
         sendResponse(SIP_RESPONSE_BAD_REQUEST_CODE, SIP_RESPONSE_BAD_REQUEST, &requestHeader, remoteUA);
         return;
     }
@@ -255,7 +266,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             {
                 //2.1 send busy here if communication is already running
                 sendResponse(SIP_RESPONSE_BUSY_CODE, SIP_RESPONSE_BUSY, &requestHeader, remoteUA);
-                std::cout << "SIP: Received INVITE, but communication already active, answering: " << SIP_RESPONSE_BUSY << std::endl;
+                ohmcomm::info("SIP") << "Received INVITE, but communication already active, answering: " << SIP_RESPONSE_BUSY << ohmcomm::endl;
             }
             else if (requestHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(requestHeader))
             {
@@ -266,7 +277,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
                     requestBody = SIPPackageHandler::readMultipartBody(requestHeader, requestBody)[MIME_SDP];
                     if(requestBody.empty())
                     {
-                        std::cout << "SIP: Received multi-part INVITE without SDP body!" << std::endl;
+                        ohmcomm::warn("SIP") << "Received multi-part INVITE without SDP body!" << ohmcomm::endl;
                         shutdownInternal();
                         return;
                     }
@@ -294,7 +305,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
                 const std::string messageBody = SDPMessageHandler::createSessionDescription(userAgents.thisUA.userName, rtpConfig, {availableMedias[bestMediaIndex]});
                 const std::string message = SIPPackageHandler::createResponsePackage(responseHeader, messageBody);
 
-                std::cout << "SIP: Accepting INVITE from " << requestHeader[SIP_HEADER_CONTACT] << std::endl;
+                ohmcomm::info("SIP") << "Accepting INVITE from " << requestHeader[SIP_HEADER_CONTACT] << ohmcomm::endl;
                 network->sendData(message.data(), message.size());
 
                 //start communication
@@ -302,17 +313,17 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             }
             else
             {
-                std::cout << "SIP: Received INVITE without SDP body!" << std::endl;
+                ohmcomm::warn("SIP") << "Received INVITE without SDP body!" << ohmcomm::endl;
                 if(requestHeader.getContentLength() > 0)
                 {
-                    std::cout << requestHeader.getContentLength() << " " << requestHeader[SIP_HEADER_CONTENT_TYPE] << std::endl;
+                    ohmcomm::warn("SIP") << requestHeader.getContentLength() << " " << requestHeader[SIP_HEADER_CONTENT_TYPE] << ohmcomm::endl;
                 }
                 sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader, remoteUA);
             }
         }
         else if (SIP_REQUEST_BYE.compare(requestHeader.requestCommand) == 0)
         {
-            std::cout << "SIP: BYE received, shutting down ..." << std::endl;
+            ohmcomm::info("SIP") << "BYE received, shutting down ..." << ohmcomm::endl;
             //send ok to verify reception
             sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
             //remove remote user-agent
@@ -336,7 +347,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
             //if we have already established communication - do nothing
             if(state != SessionState::ESTABLISHED)
             {
-                std::cout << "SIP: CANCEL received, canceling session setup ..." << std::endl;
+                ohmcomm::info("SIP") << "CANCEL received, canceling session setup ..." << ohmcomm::endl;
                 //send ok to verify reception
                 sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
                 userAgents.removeRemoteUA(remoteUA.tag);
@@ -350,7 +361,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         }
         else
         {
-            std::cout << "SIP: Received not implemented request-method: " << requestHeader.requestCommand << " " << requestHeader.requestURI << std::endl;
+            ohmcomm::warn("SIP") << "Received not implemented request-method: " << requestHeader.requestCommand << " " << requestHeader.requestURI << ohmcomm::endl;
             //by default, send method not allowed
             sendResponse(SIP_RESPONSE_NOT_IMPLEMENTED_CODE, SIP_RESPONSE_NOT_IMPLEMENTED, &requestHeader, remoteUA);
             state = SessionState::UNKNOWN;
@@ -359,7 +370,7 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     catch(const std::exception& error)
     {
         sendResponse(SIP_RESPONSE_SERVER_ERROR_CODE, SIP_RESPONSE_SERVER_ERROR, &requestHeader, remoteUA);
-        std::cerr << "SIP: Server-error: " << error.what() << std::endl;
+        ohmcomm::error("SIP") << "Server-error: " << error.what() << ohmcomm::endl;
         shutdown();
     }
 }
@@ -371,7 +382,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     try
     {
         responseBody = SIPPackageHandler::readResponsePackage(buffer, packageLength, responseHeader);
-        std::cout << "SIP: Response received: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+        ohmcomm::info("SIP") << "Response received: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << ohmcomm::endl;
         //TODO if we invite somebody, the ACK for the OK has no user-name set, because the info is updated later
         //workaround:
         if(userAgents.getRemoteUA().userName.empty())
@@ -382,7 +393,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     catch(const std::invalid_argument& error)
     {
         //fired on invalid IP-address or any error while parsing request
-        std::cout << "SIP: Received bad response: " << error.what() << std::endl;
+        ohmcomm::warn("SIP") << "Received bad response: " << error.what() << ohmcomm::endl;
         return;
     }
     SIPUserAgent& remoteUA = userAgents.getRemoteUA(/*XXXrequestHeader.getRemoteTag()*/);
@@ -407,7 +418,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
                     responseBody = SIPPackageHandler::readMultipartBody(responseHeader, responseBody)[MIME_SDP];
                     if(responseBody.empty())
                     {
-                        std::cout << "SIP: Received multi-part OK without SDP body!" << std::endl;
+                        ohmcomm::warn("SIP") << "Received multi-part OK without SDP body!" << ohmcomm::endl;
                         shutdownInternal();
                         return;
                     }
@@ -423,7 +434,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
                 unsigned short mediaIndex = 0;
                 //select best media
                 if (selectedMedias.size() < 1) {
-                    std::cerr << "SIP: Could not agree on audio-configuration, aborting!" << std::endl;
+                    ohmcomm::warn("SIP") << "Could not agree on audio-configuration, aborting!" << ohmcomm::endl;
                     shutdownInternal();
                 }
                 //support for SDP offer/answer model (RFC 3264)
@@ -434,15 +445,15 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
 
                 //update remote SIP-URI
                 updateNetworkConfig(nullptr, nullptr, remoteUA);
-                std::cout << "SIP: Our INVITE was accepted, initializing communication" << std::endl;
+                ohmcomm::info("SIP") << "Our INVITE was accepted, initializing communication" << ohmcomm::endl;
 
                 //start communication
                 startCommunication(selectedMedias[mediaIndex], rtpConfig, SDPMessageHandler::readRTCPAttribute(sdp));
             }
             else
             {
-                std::cout << "Currently not supported: " << requestCommand << std::endl;
-                std::cout << "SIP: Please file a bug report at: " << OHMCOMM_HOMEPAGE << std::endl;
+                ohmcomm::warn("SIP") << "Currently not supported: " << requestCommand << ohmcomm::endl;
+                ohmcomm::warn("SIP") << "Please file a bug report at: " << OHMCOMM_HOMEPAGE << ohmcomm::endl;
             }
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_MULTIPLE_CHOICES_CODE || responseHeader.statusCode == SIP_RESPONSE_AMBIGUOUS_CODE)
@@ -459,66 +470,66 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_BAD_REQUEST_CODE)
         {
-            std::cout << "SIP: We sent bad request: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
-            std::cout << "SIP: Please file a bug report at: " << OHMCOMM_HOMEPAGE << std::endl;
+            ohmcomm::warn("SIP") << "We sent bad request: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << ohmcomm::endl;
+            ohmcomm::warn("SIP") << "Please file a bug report at: " << OHMCOMM_HOMEPAGE << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_UNAUTHORIZED_CODE || responseHeader.statusCode == SIP_RESPONSE_PROXY_AUTHENTICATION_REQUIRED_CODE)
         {
-            std::cout << "SIP: Server requires authorization!" << std::endl;
+            ohmcomm::warn("SIP") << "Server requires authorization!" << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_FORBIDDEN_CODE)
         {
-            std::cout << "SIP: Access forbidden!" << std::endl;
+            ohmcomm::warn("SIP") << "Access forbidden!" << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_NOT_FOUND_CODE)
         {
-            std::cout << "SIP: Request-URI not found!" << std::endl;
+            ohmcomm::warn("SIP") << "Request-URI not found!" << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_METHOD_NOT_ALLOWED_CODE)
         {
-            std::cout << "SIP: Server didn't allow our request-method!" << std::endl;
+            ohmcomm::warn("SIP") << "Server didn't allow our request-method!" << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_NOT_ACCEPTABLE_CODE || responseHeader.statusCode == SIP_RESPONSE_NOT_ACCEPTABLE_HERE_CODE)
         {
-            std::cout << "SIP: Request could not be accepted: " << responseHeader.reasonPhrase << std::endl;
+            ohmcomm::warn("SIP") << "Request could not be accepted: " << responseHeader.reasonPhrase << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_TIMEOUT_CODE || responseHeader.statusCode == SIP_RESPONSE_GONE_CODE)
         {
-            std::cout << "SIP: Could not reach communication partner!" << std::endl;
+            ohmcomm::warn("SIP") << "Could not reach communication partner!" << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_REQUEST_ENTITY_TOO_LARGE_CODE || responseHeader.statusCode == SIP_RESPONSE_REQUEST_URI_TOO_LONG_CODE
                 || responseHeader.statusCode == SIP_RESPONSE_UNSUPPORTED_MEDIA_TYPE_CODE || responseHeader.statusCode == SIP_RESPONSE_UNSUPPORTED_SCHEME_CODE)
         {
-            std::cout << "SIP: Remote could not handle our request:" << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+            ohmcomm::warn("SIP") << "Remote could not handle our request:" << responseHeader.statusCode << " " << responseHeader.reasonPhrase << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_EXTENSION_REQUIRED_CODE)
         {
-            std::cout << "SIP: Remote requires an extension, we do not support!" << std::endl;
+            ohmcomm::warn("SIP") << "Remote requires an extension, we do not support!" << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_TEMPORARILY_UNAVAILABLE_CODE)
         {
-            std::cout << "SIP: Communication partner temporarily unavailable: " << responseHeader.reasonPhrase << std::endl;
+            ohmcomm::warn("SIP") << "Communication partner temporarily unavailable: " << responseHeader.reasonPhrase << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_LOOP_DETECTED_CODE || responseHeader.statusCode == SIP_RESPONSE_TOO_MANY_HOPS_CODE)
         {
-            std::cout << "SIP: Network-error: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+            ohmcomm::warn("SIP") << "Network-error: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_BUSY_CODE || responseHeader.statusCode == SIP_RESPONSE_BUSY_EVERYWHERE_CODE
                 || responseHeader.statusCode == SIP_RESPONSE_DECLINE_CODE)
         {
             //remote is busy or call was declined
-            std::cout << "SIP: Could not establish connection: " << responseHeader.reasonPhrase << std::endl;
+            ohmcomm::warn("SIP") << "Could not establish connection: " << responseHeader.reasonPhrase << ohmcomm::endl;
             sendAckRequest(remoteUA);
             state  = SessionState::SHUTDOWN;
             shutdown();
@@ -531,24 +542,24 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         else if(responseHeader.statusCode >= 500 && responseHeader.statusCode < 600)
         {
             //for all remote server errors - notify and shut down
-            std::cout << "SIP: Remote server error: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
+            ohmcomm::warn("SIP") << "Remote server error: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << ohmcomm::endl;
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_DOES_NOT_EXIST_ANYWHERE_CODE)
         {
-            std::cout << "SIP: Requested user does not exist!" << std::endl;
+            ohmcomm::warn("SIP") << "Requested user does not exist!" << ohmcomm::endl;
             shutdown();
         }
         else
         {
-            std::cout << "SIP: Received unsupported response: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << std::endl;
-            std::cout << "SIP: Please file a bug report at: " << OHMCOMM_HOMEPAGE << std::endl;
+            ohmcomm::warn("SIP") << "Received unsupported response: " << responseHeader.statusCode << " " << responseHeader.reasonPhrase << ohmcomm::endl;
+            ohmcomm::warn("SIP") << "Please file a bug report at: " << OHMCOMM_HOMEPAGE << ohmcomm::endl;
         }
     }
     catch(const std::exception& error)
     {
         sendResponse(SIP_RESPONSE_SERVER_ERROR_CODE, SIP_RESPONSE_SERVER_ERROR, nullptr, remoteUA);
-        std::cerr << "SIP: Server-error: " << error.what() << std::endl;
+        ohmcomm::error("SIP") << "Server-error: " << error.what() << ohmcomm::endl;
         shutdown();
     }
 }
@@ -671,19 +682,19 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::net
         }
         if(remoteUA.ipAddress.empty())
         {
-            std::cerr << "No address found for host: " << remoteAddress.uri.host << std::endl;
+            ohmcomm::error("SIP") << "No address found for host: " << remoteAddress.uri.host << ohmcomm::endl;
             throw std::invalid_argument("Invalid IP address!");
         }
     }
     //check if configuration has changed
     if(sipConfig.remotePort != remoteUA.port || remoteUA.ipAddress.compare(sipConfig.remoteIPAddress) != 0)
     {
-        std::cout << "Reconnecting SIP ..." << std::endl;
+        ohmcomm::info("SIP") << "Reconnecting SIP ..." << ohmcomm::endl;
         //reset network-wrapper to send new packages to correct address
         sipConfig.remoteIPAddress = remoteUA.ipAddress;
         sipConfig.remotePort = remoteUA.port;
         network->closeNetwork();
-        std::cout << "Connecting to: " << sipConfig.remoteIPAddress << ':' << sipConfig.remotePort << std::endl;
+        ohmcomm::info("SIP") << "Connecting to: " << sipConfig.remoteIPAddress << ':' << sipConfig.remotePort << ohmcomm::endl;
         //wait for socket to be closed
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         network.reset(new ohmcomm::network::UDPWrapper(sipConfig));
@@ -696,18 +707,18 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::net
 void SIPHandler::startCommunication(const MediaDescription& descr, const ohmcomm::NetworkConfiguration& rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig)
 {
     state = SessionState::ESTABLISHED;
-    std::cout << "SIP: Using following SDP configuration: "
+    ohmcomm::info("SIP") << "Using following SDP configuration: "
             << descr.protocol << " " << descr.payloadType << " " << descr.encoding << '/' << descr.sampleRate << '/' << descr.numChannels
-            << std::endl;
+            << ohmcomm::endl;
     if(rtcpConfig.remotePort != 0)
     {
         if(!rtcpConfig.remoteIPAddress.empty())
         {
-            std::cout << "SIP: Using custom remote RTCP address: " << rtcpConfig.remoteIPAddress << ":" << rtcpConfig.remotePort << std::endl;
+            ohmcomm::info("SIP") << "Using custom remote RTCP address: " << rtcpConfig.remoteIPAddress << ":" << rtcpConfig.remotePort << ohmcomm::endl;
         }
         else
         {
-            std::cout << "SIP: Using custom remote RTCP port: " << rtcpConfig.remotePort << std::endl;
+            ohmcomm::info("SIP") << "Using custom remote RTCP port: " << rtcpConfig.remotePort << ohmcomm::endl;
         }
     }
     addUserFunction(descr, rtpConfig, rtcpConfig);

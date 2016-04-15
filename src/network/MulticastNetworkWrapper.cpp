@@ -6,6 +6,7 @@
  */
 #include <string.h>
 
+#include "Logger.h"
 #include "network/MulticastNetworkWrapper.h"
 #include "network/UDPWrapper.h"
 
@@ -27,7 +28,7 @@ int MulticastNetworkWrapper::sendData(const void* buffer, const unsigned int buf
         const int status = sendto(this->Socket, (char*) buffer, (int) bufferSize, 0, (sockaddr*)&(dest.ipv6), socketAddressLength);
         if(status < 0)
         {
-            std::wcout << "Error sending: " << getLastError() << std::endl;
+            ohmcomm::error("Network") << "Error sending: " << getLastError() << ohmcomm::endl;
         }
         totalBytesSent += status;
     }

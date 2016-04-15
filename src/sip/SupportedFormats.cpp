@@ -1,8 +1,7 @@
 
+#include "Logger.h"
 #include "sip/SupportedFormats.h"
 #include "processors/AudioProcessorFactory.h"
-
-#include <iostream>
 
 using namespace ohmcomm::sip;
 using namespace ohmcomm;
@@ -43,7 +42,7 @@ const SupportedFormat* SupportedFormats::registerFormat(SupportedFormat&& format
     {
         if((*pos).payloadType == format.payloadType)
         {
-            std::cerr << "Format already registered for payload-type " << format.payloadType << ": " << (*pos).encoding << "/" << (*pos).sampleRate << std::endl;
+            ohmcomm::error("Formats") << "Format already registered for payload-type " << format.payloadType << ": " << (*pos).encoding << "/" << (*pos).sampleRate << ohmcomm::endl;
             return nullptr;
         }
         ++pos;

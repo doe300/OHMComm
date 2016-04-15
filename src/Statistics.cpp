@@ -4,9 +4,10 @@
  *
  * Created on June 30, 2015, 5:06 PM
  */
+#include <fstream>
 
 #include "Statistics.h"
-#include <fstream>
+#include "Logger.h"
 
 using namespace ohmcomm;
 
@@ -45,12 +46,12 @@ void Statistics::printStatisticsToFile(const std::string fileName)
     }
     else
     {
-        std::cerr << "Error while opening log-file!" << std::endl;
+        ohmcomm::error("Statistics") << "Error while opening log-file!" << ohmcomm::endl;
     }
     fileStream.close();
     if(fileStream.fail())
     {
-        std::cerr << "Error while writing statistics!" << std::endl;
+        ohmcomm::error("Statistics") << "Error while writing statistics!" << ohmcomm::endl;
     }
 }
 

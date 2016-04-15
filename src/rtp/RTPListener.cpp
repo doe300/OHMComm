@@ -5,6 +5,7 @@
  * Created on May 16, 2015, 12:49 PM
  */
 
+#include "Logger.h"
 #include "rtp/RTPListener.h"
 #include "Statistics.h"
 
@@ -36,7 +37,7 @@ void RTPListener::startUp()
 
 void RTPListener::runThread()
 {
-    std::cout << "RTP-Listener started ..." << std::endl;
+    ohmcomm::info("RTP") << "RTP-Listener started ..." << ohmcomm::endl;
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
@@ -57,11 +58,11 @@ void RTPListener::runThread()
             auto result = buffers.getBuffer(rtpHandler.getRTPPackageHeader()->getSSRC())->addPackage(rtpHandler, receivedPackage.getReceivedSize() - headerSize);
             if (result == RTPBufferStatus::RTP_BUFFER_INPUT_OVERFLOW)
             {
-                std::cerr << "Input Buffer overflow" << std::endl;
+                ohmcomm::warn("RTP") << "Input Buffer overflow" << ohmcomm::endl;
             }
             else if (result == RTPBufferStatus::RTP_BUFFER_PACKAGE_TO_OLD)
             {
-                std::cerr << "Package was too old, discarding" << std::endl;
+                ohmcomm::warn("RTP") << "Package was too old, discarding" << ohmcomm::endl;
             }
             else
             {
@@ -79,7 +80,7 @@ void RTPListener::runThread()
                 }
                 else if(participant.payloadType != rtpHandler.getRTPPackageHeader()->getPayloadType())
                 {
-                    std::cerr << "RTP: Invalid payload-type for remote! " << std::endl;
+                    ohmcomm::warn("RTP") << "Invalid payload-type for remote! " << ohmcomm::endl;
                 }
                 else    //set extended highest sequence number
                 {
@@ -96,7 +97,7 @@ void RTPListener::runThread()
             }
         }
     }
-    std::cout << "RTP-Listener shut down" << std::endl;
+    ohmcomm::info("RTP") << "RTP-Listener shut down" << ohmcomm::endl;
 }
 
 void RTPListener::shutdown()

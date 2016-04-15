@@ -5,6 +5,7 @@
  * Created on February 22, 2016, 11:17 AM
  */
 
+#include "Logger.h"
 #include "processors/ProcessorManager.h"
 #include "processors/ProfilingAudioProcessor.h"
 #include "processors/Resampler.h"
@@ -94,14 +95,14 @@ bool ProcessorManager::configureAudioProcessors(const AudioConfiguration& audioC
     AudioConfiguration tmpConfig = audioConfiguration;
     if(audioConfiguration.sampleRate != processorsSampleRate)
     {
-        std::cout << "Configuring audio-processors with custom sample-rate: " << processorsSampleRate << std::endl;
+        ohmcomm::info("Processors") << "Configuring audio-processors with custom sample-rate: " << processorsSampleRate << ohmcomm::endl;
         tmpConfig.sampleRate = processorsSampleRate;
     }
     ProcessorCapabilities combinedCaps = getCombinedCapabilities();
     for (const auto& processor : audioProcessors) {
         try
         {
-            std::cout << "Configuring audio-processor '" << processor->getName() << "'..." << std::endl;
+            ohmcomm::info("Processors") << "Configuring audio-processor '" << processor->getName() << "'..." << ohmcomm::endl;
             processor->configure(tmpConfig, configMode, bufferSize, combinedCaps);
         }
         catch(const ohmcomm::configuration_error& error)
@@ -227,12 +228,12 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
     }
     if (supportedFormats == 0) {
         //there is no format supported by all processors
-        std::cerr << "Could not find a single audio-format supported by all processors!" << std::endl;
+        ohmcomm::error("Processors") << "Could not find a single audio-format supported by all processors!" << ohmcomm::endl;
         return false;
     }
     if (supportedSampleRates == 0) {
         //there is no sample-rate supported by all processors
-        std::cerr << "Could not find a single sample-rate supported by all processors!" << std::endl;
+        ohmcomm::error("Processors") << "Could not find a single sample-rate supported by all processors!" << ohmcomm::endl;
         return false;
     }
     audioConfiguration.audioFormatFlag = autoSelectAudioFormat(supportedFormats);
@@ -243,14 +244,14 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
     if((mapDeviceSampleRates(inputDevice.sampleRates) & supportedSampleRates) == 0)
     {
         //device doesn't support any of the available sample-rates
-        std::cout << "Device does not support selected sample-rate, trying resampling..." << std::endl;
+        ohmcomm::info("Processors") << "Device does not support selected sample-rate, trying resampling..." << ohmcomm::endl;
         //add re-sampler to beginning of chain and check compatibility
         std::unique_ptr<AudioProcessor> resampler(new Resampler("Resampling", inputDevice.sampleRates));
         supportedFormats = supportedFormats & resampler->getSupportedAudioFormats();
         if(supportedFormats == 0)
         {
             //an audio-format was selected which is not supported by the resampler
-            std::cerr << "Selected audio-format is not supported by resampling!" << std::endl;
+            ohmcomm::error("Processors") << "Selected audio-format is not supported by resampling!" << ohmcomm::endl;
             return false;
         }
         
@@ -258,7 +259,7 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
         audioConfiguration.sampleRate = Resampler::getBestInputSampleRate(inputDevice.sampleRates, processorsSampleRate);
         if(audioConfiguration.sampleRate == 0)
         {
-            std::cerr << "Failed to find matching sample-rate for resampling!" << std::endl;
+            ohmcomm::error("Processors") << "Failed to find matching sample-rate for resampling!" << ohmcomm::endl;
             return false;
         }
         
@@ -269,7 +270,7 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
     //find common supported buffer-size, defaults to 512
     int supportedBufferSize = findOptimalBufferSize(512, processorsSampleRate);
     if (supportedBufferSize == 0) {
-        std::cerr << "Could not find a single buffer-size supported by all processors!" << std::endl;
+        ohmcomm::error("Processors") << "Could not find a single buffer-size supported by all processors!" << ohmcomm::endl;
         return false;
     }
     audioConfiguration.framesPerPackage = supportedBufferSize;
@@ -279,9 +280,10 @@ bool ProcessorManager::queryProcessorSupport(AudioConfiguration& audioConfigurat
         audioConfiguration.framesPerPackage = supportedBufferSize * (audioConfiguration.sampleRate/processorsSampleRate);
     }
     
-    std::cout << "Using audio-format: " << AudioConfiguration::getAudioFormatDescription(audioConfiguration.audioFormatFlag, false) << std::endl;
-    std::cout << "Using a sample-rate of " << audioConfiguration.sampleRate << " Hz" << std::endl;
-    std::cout << "Using a buffer-size of " << audioConfiguration.framesPerPackage << " samples (" << (audioConfiguration.framesPerPackage * 1000 / audioConfiguration.sampleRate) << " ms)" << std::endl;
+    ohmcomm::info("Processors") << "Using audio-format: " << AudioConfiguration::getAudioFormatDescription(audioConfiguration.audioFormatFlag, false) << ohmcomm::endl;
+    ohmcomm::info("Processors") << "Using a sample-rate of " << audioConfiguration.sampleRate << " Hz" << ohmcomm::endl;
+    ohmcomm::info("Processors") << "Using a buffer-size of " << audioConfiguration.framesPerPackage << " samples (" 
+            << (audioConfiguration.framesPerPackage * 1000 / audioConfiguration.sampleRate) << " ms)" << ohmcomm::endl;
 
     return true;
 }
@@ -344,7 +346,7 @@ unsigned int ProcessorManager::mapDeviceSampleRates(std::vector<unsigned int> sa
     for (unsigned int i = 0; i < sampleRates.size(); i++) {
         sampleRate = sampleRates.at(i);
         if(AudioConfiguration::sampleRateToFlag(sampleRate) == 0)
-            std::cout << "Unrecognized sample-rate: " << sampleRate << std::endl;
+            ohmcomm::info("Processors") << "Unrecognized sample-rate: " << sampleRate << ohmcomm::endl;
         else
             sampleRatesFlags |= AudioConfiguration::sampleRateToFlag(sampleRate);
     }

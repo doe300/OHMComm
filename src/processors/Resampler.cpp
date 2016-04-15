@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string.h>
 
+#include "Logger.h"
 #include "processors/Resampler.h"
 
 using namespace ohmcomm;
@@ -41,7 +42,7 @@ void Resampler::configure(const AudioConfiguration& audioConfig, const std::shar
     {
         throw ohmcomm::configuration_error("Resampling", std::string("Could not determine matching sample-rate to resample to: ") + std::to_string(audioConfig.sampleRate));
     }
-    std::cout << "Resampling: Converting sample-rate of " << inputSampleRate << " to " << audioConfig.sampleRate << std::endl;
+    ohmcomm::info("Resampling") << "Converting sample-rate of " << inputSampleRate << " to " << audioConfig.sampleRate << ohmcomm::endl;
     samplesFactor = inputSampleRate / audioConfig.sampleRate;
     
     switch(audioConfig.audioFormatFlag)

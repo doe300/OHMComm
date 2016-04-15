@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "network/UDPWrapper.h"
 #include "network/NetworkGrammars.h"
 
@@ -36,7 +37,7 @@ void UDPWrapper::startWinsock()
     WSADATA w;
     if (int result = WSAStartup(MAKEWORD(2, 2), &w) != 0)
     {
-        std::cerr << "Failed to start Winsock 2! Error #" << result << std::endl;
+        ohmcomm::error("UDP") << "Failed to start Winsock 2! Error #" << result << ohmcomm::endl;
     }
 #endif
 }
@@ -45,12 +46,12 @@ void UDPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
 {
     if(NetworkGrammars::isIPv6Address(remoteIPAddress))
     {
-        std::cout << "Using IPv6 ..." << std::endl;
+        ohmcomm::info("UDP") << "Using IPv6 ..." << ohmcomm::endl;
         localAddress = SocketAddress::createLocalAddress(true, localPort);
     }
     else
     {
-        std::cout << "Using IPv4 ..." << std::endl;
+        ohmcomm::info("UDP") << "Using IPv4 ..." << ohmcomm::endl;
         localAddress = SocketAddress::createLocalAddress(false, localPort);
     }
     remoteAddress = SocketAddress::fromAddressAndPort(remoteIPAddress, remotePort);
@@ -71,12 +72,12 @@ bool UDPWrapper::createSocket()
     }
     if (Socket == INVALID_SOCKET)
     {
-        std::wcerr << "Error on creating socket: " << getLastError() << std::endl;
+        ohmcomm::error("UDP") << "Error on creating socket: " << getLastError() << ohmcomm::endl;
         return false;
     }
     else
     {
-        std::cout << "Socket created." << std::endl;
+        ohmcomm::info("UDP") << "Socket created." << ohmcomm::endl;
     }
     
     //set socket timeout to 1sec
@@ -93,17 +94,17 @@ bool UDPWrapper::createSocket()
     if(setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, (char*) &yes, sizeof (int)) < 0)
     {
         perror("setsockopt");
-        std::wcout << "Reuse: " << getLastError() << std::endl;
+        ohmcomm::info("UDP") << "Reuse: " << getLastError() << ohmcomm::endl;
     }
 
     if (bind(Socket, (sockaddr*)&(this->localAddress), addressLength) == SOCKET_ERROR)
     {
-        std::wcerr << "Error binding the socket: " << getLastError() << std::endl;
+        ohmcomm::error("UDP") << "Error binding the socket: " << getLastError() << ohmcomm::endl;
         return false;
     }
     else
     {
-        std::cout << "Local port bound." << std::endl;
+        ohmcomm::info("UDP") << "Local port bound." << ohmcomm::endl;
     }
     return true;
 }

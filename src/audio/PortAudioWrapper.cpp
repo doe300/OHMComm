@@ -8,6 +8,7 @@
 #include <exception>
 #include <string.h>
 
+#include "Logger.h"
 #include "audio/PortAudioWrapper.h"
 
 using namespace ohmcomm;
@@ -41,7 +42,7 @@ void PortAudioWrapper::startHandler(const PlaybackMode mode)
     }
     else
     {
-        std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
+        ohmcomm::warn("PortAudio") << "Did you forget to call AudioHandler::prepare()?" << ohmcomm::endl;
     }
 }
 
@@ -103,8 +104,8 @@ void PortAudioWrapper::setDefaultAudioConfig()
 
 bool PortAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMode)
 {
-    std::cout << "Using PortAudio in version: " << Pa_GetVersionText() << std::endl;
-    std::cout << "\tDefault Host API: " << Pa_GetHostApiInfo(Pa_GetDefaultHostApi())->name << std::endl;
+    ohmcomm::info("PortAudio") << "Using PortAudio in version: " << Pa_GetVersionText() << ohmcomm::endl;
+    ohmcomm::info("PortAudio") << "\tDefault Host API: " << Pa_GetHostApiInfo(Pa_GetDefaultHostApi())->name << ohmcomm::endl;
     
     /* If there is no configuration set, then load the default */
     if (flagAudioConfigSet == false)
@@ -119,7 +120,7 @@ bool PortAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMo
     //checks if there is a configuration all processors support
     if(!processors.queryProcessorSupport(audioConfiguration, getAudioDevices()[audioConfiguration.inputDeviceID]))
     {
-        std::cerr << "AudioProcessors could not agree on configuration!" << std::endl;
+        ohmcomm::error("PortAudio") << "AudioProcessors could not agree on configuration!" << ohmcomm::endl;
         return false;
     }
     
@@ -206,11 +207,11 @@ int PortAudioWrapper::callback(void* inputBuffer, void* outputBuffer, unsigned l
 {
     if(statusFlags == paInputOverflow)
     {
-        std::cout << "Overflow\n";
+        ohmcomm::warn("PortAudio") << "Overflow" << ohmcomm::endl;
     }
     if(statusFlags == paOutputUnderflow)
     {
-        std::cout << "Underflow\n";
+        ohmcomm::warn("PortAudio") << "Underflow" << ohmcomm::endl;
     }
     
     if(streamStartTime == 0)

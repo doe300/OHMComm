@@ -3,6 +3,7 @@
 #include <stdlib.h> //abs for clang
 #include <iostream>
 
+#include "Logger.h"
 #include "rtp/ParticipantDatabase.h"
 
 using namespace ohmcomm::rtp;
@@ -70,7 +71,7 @@ void ParticipantDatabase::unregisterListener(ParticipantListener& listener)
 
 void ParticipantDatabase::fireNewRemote(const uint32_t ssrc)
 {
-    std::cout << "RTP: New remote joined conversation: " << ssrc << std::endl;
+    ohmcomm::info("RTP") << "New remote joined conversation: " << ssrc << ohmcomm::endl;
     for(ParticipantListener& l : listeners)
     {
         l.onRemoteAdded(ssrc);
@@ -79,7 +80,7 @@ void ParticipantDatabase::fireNewRemote(const uint32_t ssrc)
 
 void ParticipantDatabase::fireRemoveRemote(const uint32_t ssrc)
 {
-    std::cout << "RTP: Remote left conversation: " << ssrc << std::endl;
+    ohmcomm::info("RTP") << "Remote left conversation: " << ssrc << ohmcomm::endl;
     for(ParticipantListener& l : listeners)
     {
         l.onRemoteRemoved(ssrc);
@@ -88,7 +89,7 @@ void ParticipantDatabase::fireRemoveRemote(const uint32_t ssrc)
 
 void ParticipantDatabase::fireConnectedRemote(const uint32_t ssrc, const std::string& address, const uint16_t port)
 {
-    std::cout << "RTP: Remote connected: " << ssrc << ", address: " << address << ':' << port <<  std::endl;
+    ohmcomm::info("RTP") << "Remote connected: " << ssrc << ", address: " << address << ':' << port <<  ohmcomm::endl;
     for(ParticipantListener& l : listeners)
     {
         l.onRemoteConnected(ssrc, address, port);

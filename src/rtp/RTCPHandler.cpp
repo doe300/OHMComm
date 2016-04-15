@@ -7,6 +7,7 @@
 
 #include <cmath>    //round
 
+#include "Logger.h"
 #include "rtp/RTCPHandler.h"
 #include "rtp/RTCPData.h"
 #include "config/InteractiveConfiguration.h"
@@ -78,7 +79,7 @@ void RTCPHandler::shutdownInternal()
 
 void RTCPHandler::runThread()
 {
-    std::cout << "RTCP-Handler started ..." << std::endl;
+    ohmcomm::info("RTCP") << "RTCP-Handler started ..." << ohmcomm::endl;
     
     while(threadRunning)
     {
@@ -91,7 +92,7 @@ void RTCPHandler::runThread()
                 if(now - (*it).second.lastPackageReceived > remoteDropoutTimeout)
                 {
                     //remote has not send any package for quite some time, end conversation
-                    std::cout << "RTCP: Dialog partner has timed out, shutting down!" << std::endl;
+                    ohmcomm::info("RTCP") << "Dialog partner has timed out, shutting down!" << ohmcomm::endl;
                     shutdownInternal();
                     //notifies OHMComm about remote leaving
                     ParticipantDatabase::removeParticipant((*it).second.ssrc);
@@ -121,7 +122,7 @@ void RTCPHandler::runThread()
             ParticipantDatabase::remote(ssrc).lastPackageReceived = std::chrono::steady_clock::now();
         }
     }
-    std::cout << "RTCP-Handler shut down!" << std::endl;
+    ohmcomm::info("RTCP") << "RTCP-Handler shut down!" << ohmcomm::endl;
 }
 
 uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int receivedSize)
@@ -134,9 +135,9 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
     if(header.getType() == RTCP_PACKAGE_GOODBYE)
     {
         //other side sent an BYE-package, shutting down
-        std::cout << "RTCP: Received Goodbye-message: " << rtcpHandler.readByeMessage(receiveBuffer, receivedSize, header) << std::endl;
+        ohmcomm::info("RTCP") << "Received Goodbye-message: " << rtcpHandler.readByeMessage(receiveBuffer, receivedSize, header) << ohmcomm::endl;
         //XXX remove next two lines
-        std::cout << "RTCP: Dialog partner requested end of communication, shutting down!" << std::endl;
+        ohmcomm::info("RTCP") << "Dialog partner requested end of communication, shutting down!" << ohmcomm::endl;
         shutdownInternal();
         //notifies OHMComm about remote leaving
         ParticipantDatabase::removeParticipant(header.getSSRC());
@@ -152,16 +153,16 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
         NTPTimestamp ntpTime;
         SenderInformation senderReport(ntpTime, 0, 0,0);
         std::vector<ReceptionReport> receptionReports = rtcpHandler.readSenderReport(receiveBuffer, receivedSize, header, senderReport);
-        std::cout << "RTCP: Received Sender Report: " << std::endl;
-        std::cout << "\tTotal package sent: " << senderReport.getPacketCount() << std::endl;
-        std::cout << "\tTotal bytes sent: " << senderReport.getOctetCount() << std::endl;
+        ohmcomm::info("RTCP") << "Received Sender Report: " << ohmcomm::endl;
+        ohmcomm::info("RTCP") << "\tTotal package sent: " << senderReport.getPacketCount() << ohmcomm::endl;
+        ohmcomm::info("RTCP") << "\tTotal bytes sent: " << senderReport.getOctetCount() << ohmcomm::endl;
         printReceptionReports(receptionReports);
     }
     else if(header.getType() == RTCP_PACKAGE_RECEIVER_REPORT)
     {
         //other side sent RR, so print output
         std::vector<ReceptionReport> receptionReports = rtcpHandler.readReceiverReport(receiveBuffer, receivedSize, header);
-        std::cout << "RTCP: Received Receiver Report: " << std::endl;
+        ohmcomm::info("RTCP") << "Received Receiver Report: " << ohmcomm::endl;
         printReceptionReports(receptionReports);
     }
     else if(header.getType() == RTCP_PACKAGE_SOURCE_DESCRIPTION)
@@ -173,22 +174,22 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
         std::vector<SourceDescription> sourceDescriptions = rtcpHandler.readSourceDescription(receiveBuffer, receivedSize, header);
         //set remote source descriptions
         participant.rtcpData->sourceDescriptions = sourceDescriptions;
-        std::cout << "RTCP: Received Source Description:" << std::endl;
+        ohmcomm::info("RTCP") << "Received Source Description:" << ohmcomm::endl;
         for(const SourceDescription& descr : sourceDescriptions)
         {
-            std::cout << "\t" << descr.getTypeName() << ": " << descr.value << std::endl;
+            ohmcomm::info("RTCP") << "\t" << descr.getTypeName() << ": " << descr.value << ohmcomm::endl;
         }
-        std::cout << std::endl;
+        ohmcomm::info("RTCP") << ohmcomm::endl;
     }
     else if(header.getType() == RTCP_PACKAGE_APPLICATION_DEFINED)
     {
         const ApplicationDefined appDefinedRequest = rtcpHandler.readApplicationDefinedMessage(receiveBuffer, receivedSize, header);
         //currently there is no APP-defined package we know how to handle
-        std::cout << "RTCP: unknown APP-defined package received with name " << appDefinedRequest.name << " and type " << appDefinedRequest.subType << std::endl;
+        ohmcomm::info("RTCP") << "unknown APP-defined package received with name " << appDefinedRequest.name << " and type " << appDefinedRequest.subType << ohmcomm::endl;
     }
     else
     {
-        std::cerr << "RTCP: Unrecognized package-type: " << (unsigned int)header.getType() << std::endl;
+        ohmcomm::warn("RTCP") << "Unrecognized package-type: " << (unsigned int)header.getType() << ohmcomm::endl;
         return header.getSSRC();
     }
     
@@ -205,7 +206,7 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
 
 void RTCPHandler::sendSourceDescription()
 {
-    std::cout << "RTCP: Sending Report + SDES ..." << std::endl;
+    ohmcomm::info("RTCP") << "Sending Report + SDES ..." << ohmcomm::endl;
     const void* buffer = isActiveSender ? createSenderReport() : createReceiverReport();
     unsigned int length = RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)buffer)->getLength());
     const void* tmp = createSourceDescription(length);
@@ -218,7 +219,7 @@ void RTCPHandler::sendSourceDescription()
 
 void RTCPHandler::sendByePackage()
 {
-    std::cout << "RTCP: Sending Report + SDES + BYE ..." << std::endl;
+    ohmcomm::info("RTCP") << "Sending Report + SDES + BYE ..." << ohmcomm::endl;
     const void* buffer = isActiveSender ? createSenderReport() : createReceiverReport();
     unsigned int length = RTCPPackageHandler::getRTCPPackageLength(((const RTCPHeader*)buffer)->getLength());
     const void* tmp = createSourceDescription(length);
@@ -231,7 +232,7 @@ void RTCPHandler::sendByePackage()
     
     Statistics::incrementCounter(Statistics::RTCP_PACKAGES_SENT);
     Statistics::incrementCounter(Statistics::RTCP_BYTES_SENT, length);
-    std::cout << "RTCP: BYE-Package sent." << std::endl;
+    ohmcomm::info("RTCP") << "BYE-Package sent." << ohmcomm::endl;
 }
 
 const void* RTCPHandler::createSenderReport(unsigned int offset)
@@ -328,14 +329,14 @@ void RTCPHandler::printReceptionReports(const std::vector<ReceptionReport>& repo
 {
     if(reports.size() > 0)
     {
-        std::cout << "RTCP: Received Reception Reports:" << std::endl;
+        ohmcomm::info("RTCP") << "Received Reception Reports:" << ohmcomm::endl;
         for(const ReceptionReport& report : reports)
         {
-            std::cout << "\tReception Report for: " << report.getSSRC() << std::endl;
-            std::cout << "\t\tExtended highest sequence number: " << report.getExtendedHighestSequenceNumber() << std::endl;
-            std::cout << "\t\tFraction Lost (1/256): " << (unsigned int)report.getFractionLost() << std::endl;
-            std::cout << "\t\tTotal package loss: " << report.getCummulativePackageLoss() << std::endl;
-            std::cout << "\t\tInterarrival Jitter (in ms): " << report.getInterarrivalJitter() << std::endl;
+            ohmcomm::info("RTCP") << "\tReception Report for: " << report.getSSRC() << ohmcomm::endl;
+            ohmcomm::info("RTCP") << "\t\tExtended highest sequence number: " << report.getExtendedHighestSequenceNumber() << ohmcomm::endl;
+            ohmcomm::info("RTCP") << "\t\tFraction Lost (1/256): " << (unsigned int)report.getFractionLost() << ohmcomm::endl;
+            ohmcomm::info("RTCP") << "\t\tTotal package loss: " << report.getCummulativePackageLoss() << ohmcomm::endl;
+            ohmcomm::info("RTCP") << "\t\tInterarrival Jitter (in ms): " << report.getInterarrivalJitter() << ohmcomm::endl;
         }
     }
 }

@@ -5,10 +5,12 @@
  * Created on January 16, 2016, 1:33 PM
  */
 
-#include "processors/GainControl.h"
 #include <exception>
 #include <cmath>
 #include <limits>
+
+#include "Logger.h"
+#include "processors/GainControl.h"
 
 using namespace ohmcomm;
 
@@ -104,7 +106,7 @@ void GainControl::configure(const AudioConfiguration& audioConfig, const std::sh
     }
     if(gainEnabled)
     {
-        std::cout << "Gain Control: Using gain of " << gain << std::endl;
+        ohmcomm::info("Gain Control") << "Using gain of " << gain << ohmcomm::endl;
     }
 }
 

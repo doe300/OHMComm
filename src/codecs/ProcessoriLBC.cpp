@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+#include "Logger.h"
 #include "codecs/ProcessoriLBC.h"
 
 static constexpr ohmcomm::ProcessorCapabilities iLBCCapabilities = {true, false, true, true, false, 0,
@@ -84,7 +85,7 @@ void ProcessoriLBC::configure(const AudioConfiguration& audioConfig, const std::
     
     char buf[21];
     WebRtcIlbcfix_version(buf);
-    std::cout << "iLBC: configured in version: " << buf << std::endl;
+    ohmcomm::info("iLBC") << "configured in version: " << buf << ohmcomm::endl;
 }
 
 unsigned int ProcessoriLBC::processInputData(void* inputBuffer, const unsigned int inputBufferByteSize, StreamData* userData)

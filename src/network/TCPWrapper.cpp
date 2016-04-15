@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "network/TCPWrapper.h"
 #include "network/NetworkGrammars.h"
 
@@ -37,7 +38,7 @@ void TCPWrapper::startWinsock()
 	WSADATA w;
 	if (int result = WSAStartup(MAKEWORD(2, 2), &w) != 0)
 	{
-		std::cerr << "Failed to start Winsock 2! Error #" << result << std::endl;
+		ohmcomm::error("TCP") << "Failed to start Winsock 2! Error #" << result << ohmcomm::endl;
 	}
 	#endif
 }
@@ -46,12 +47,12 @@ void TCPWrapper::initializeNetworkConfig(unsigned short localPort, const std::st
 {
     if(NetworkGrammars::isIPv6Address(remoteIPAddress))
     {
-        std::cout << "Using IPv6 ..." << std::endl;
+        ohmcomm::info("TCP") << "Using IPv6 ..." << ohmcomm::endl;
         localAddress = SocketAddress::createLocalAddress(true, localPort);
     }
     else
     {
-        std::cout << "Using IPv4 ..." << std::endl;
+        ohmcomm::info("TCP") << "Using IPv4 ..." << ohmcomm::endl;
         localAddress = SocketAddress::createLocalAddress(false, localPort);
     }
     remoteAddress = SocketAddress::fromAddressAndPort(remoteIPAddress, remotePort);
@@ -72,12 +73,12 @@ bool TCPWrapper::createSocket()
     }
     if (Socket == INVALID_SOCKET)
     {
-        std::wcerr << "Error on creating socket: " << getLastError() << std::endl;
+        ohmcomm::error("TCP") << "Error on creating socket: " << getLastError() << ohmcomm::endl;
         return false;
     }
     else
     {
-        std::cout << "Socket created." << std::endl;
+        ohmcomm::info("TCP") << "Socket created." << ohmcomm::endl;
     }
     
     //set socket timeout to 1sec
@@ -95,22 +96,22 @@ bool TCPWrapper::createSocket()
     
     if (bind(Socket, (sockaddr*)&(this->localAddress), addressLength) == SOCKET_ERROR)
     {
-        std::wcerr << "Error binding the socket: " << getLastError() << std::endl;
+        ohmcomm::error("TCP") << "Error binding the socket: " << getLastError() << ohmcomm::endl;
         return false;
     }
     else
     {
-        std::cout << "Local port bound." << std::endl;
+        ohmcomm::info("TCP") << "Local port bound." << ohmcomm::endl;
     }
     
     if(connect(Socket, (sockaddr*)&(this->remoteAddress), addressLength) == SOCKET_ERROR)
     {
-        std::wcerr << "Error connecting the socket: " << getLastError() << std::endl;
+        ohmcomm::error("TCP") << "Error connecting the socket: " << getLastError() << ohmcomm::endl;
         return false;
     }
     else
     {
-        std::cout << "Connection established." << std::endl;
+        ohmcomm::info("TCP") << "Connection established." << ohmcomm::endl;
     }
     return true;
 }

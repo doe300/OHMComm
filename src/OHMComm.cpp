@@ -6,6 +6,7 @@
  */
 
 #include "OHMComm.h"
+#include "Logger.h"
 #include "rtp/ProcessorRTP.h"
 #include "processors/AudioProcessorFactory.h"
 #include "audio/AudioHandlerFactory.h"
@@ -56,7 +57,7 @@ void OHMComm::startAudioThreads()
 {
     if(running)
     {
-        std::cout << "OHMComm already running..." << std::endl;
+        ohmcomm::info("OHMComm") << "OHMComm already running..." << ohmcomm::endl;
         return;
     }
     if(!isConfigurationDone(false))
@@ -108,26 +109,26 @@ void OHMComm::startAudio()
     notifyPlaybackStart();
     if((audioHandler->getMode() & PlaybackMode::DUPLEX) == PlaybackMode::DUPLEX)
     {
-        std::cout << "OHMComm: starting duplex mode ..." << std::endl;
+        ohmcomm::info("OHMComm") << "starting duplex mode ..." << ohmcomm::endl;
         audioHandler->start(PlaybackMode::DUPLEX);
     }
     else if((audioHandler->getMode() & PlaybackMode::OUTPUT) == PlaybackMode::OUTPUT)
     {
-        std::cout << "OHMComm: starting playback mode ..." << std::endl;
+        ohmcomm::info("OHMComm") << "starting playback mode ..." << ohmcomm::endl;
         audioHandler->start(PlaybackMode::OUTPUT);
     }
     else if((audioHandler->getMode() & PlaybackMode::INPUT) == PlaybackMode::INPUT)
     {
-        std::cout << "OHMComm: starting recording mode ..." << std::endl;
+        ohmcomm::info("OHMComm") << "starting recording mode ..." << ohmcomm::endl;
         audioHandler->start(PlaybackMode::INPUT);
     }
     else
     {
-        std::cerr << "OHMComm: No supported playback-mode configured!" << std::endl;
+        ohmcomm::error("OHMComm") << "No supported playback-mode configured!" << ohmcomm::endl;
         return;
     }
     
-    std::cout << "OHMComm started!" << std::endl;
+    ohmcomm::info("OHMComm") << "OHMComm started!" << ohmcomm::endl;
     running = true;
 }
 
@@ -136,7 +137,7 @@ void OHMComm::stopAudioThreads()
     if(!running)
     {
         //to prevent recursive calls
-        std::cout << "OHMComm is not running" << std::endl;
+        ohmcomm::info("OHMComm") << "OHMComm is not running" << ohmcomm::endl;
         return;
     }
     running = false;
@@ -148,12 +149,12 @@ void OHMComm::stopAudioThreads()
     //this is mostly to prevent from parallel logging to console
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     
-    std::cout << "OHMComm stopped!" << std::endl;
+    ohmcomm::info("OHMComm") << "OHMComm stopped!" << ohmcomm::endl;
     const std::pair<bool, std::string> logConfig = configurationMode->getLogToFileConfiguration();
     if(logConfig.first)
     {
         Statistics::printStatisticsToFile(logConfig.second);
-        std::cout << "Statistics file written" << std::endl;
+        ohmcomm::info("OHMComm") << "Statistics file written" << ohmcomm::endl;
     }
     //print statistics to stdout anyway
     Statistics::printStatistics();
@@ -171,7 +172,7 @@ void OHMComm::onRemoteRemoved(const unsigned int ssrc)
 {
     if(rtp::ParticipantDatabase::getNumberOfRemotes() == 0)
     {
-        std::cout << "OHMComm: No more communication partners, shutting down..." << std::endl;
+        ohmcomm::info("OMHComm") << "No more communication partners, shutting down..." << ohmcomm::endl;
         stopAudioThreads();
     }
 }

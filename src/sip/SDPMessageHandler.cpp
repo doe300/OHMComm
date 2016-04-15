@@ -7,6 +7,7 @@
 
 #include <iostream>
 
+#include "Logger.h"
 #include "sip/SDPMessageHandler.h"
 #include "rtp/RTCPHeader.h"
 #include "sip/SIPPackageHandler.h"
@@ -260,7 +261,7 @@ const SessionDescription SDPMessageHandler::readSessionDescription(std::string m
 
 std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const SessionDescription& sdp)
 {
-    std::cout << "SDP: Reading media descriptions..." << std::endl;
+    ohmcomm::info("SDP") << "Reading media descriptions..." << ohmcomm::endl;
     std::vector<MediaDescription> results;
     const std::vector<std::string> mediaFields = sdp.getFieldValues(SessionDescription::SDP_MEDIA);
     for(const std::string& mediaField : mediaFields)
@@ -324,7 +325,7 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
             }
         }
     }
-    std::cout << "SDP: " << results.size() << " useful media descriptions found" << std::endl;
+    ohmcomm::info("SDP") << results.size() << " useful media descriptions found" << ohmcomm::endl;
     return std::move(results);
 }
 

@@ -1,6 +1,7 @@
 #ifdef OPUS_HEADER //Only compile, if opus is linked
 #include "codecs/OpusCodec.h"
 #include "Parameters.h"
+#include "Logger.h"
 
 using namespace ohmcomm::codecs;
 
@@ -55,7 +56,7 @@ const std::vector<int> OpusCodec::getSupportedBufferSizes(unsigned int sampleRat
     }
     else
     {
-        std::cerr << "Opus: No supported buffer size found!" << std::endl;
+        ohmcomm::error("Opus") << "No supported buffer size found!" << ohmcomm::endl;
         return std::vector<int>({ });
     }
 }
@@ -89,7 +90,7 @@ void OpusCodec::configure(const ohmcomm::AudioConfiguration& audioConfig, const 
         //useFEC = true;
         opus_encoder_ctl(OpusEncoderObject, OPUS_SET_INBAND_FEC(1));
     }
-    std::cout << "Opus: configured using version: " << opus_get_version_string() << std::endl;
+    ohmcomm::info("Opus") << "configured using version: " << opus_get_version_string() << ohmcomm::endl;
 }
 
 unsigned int OpusCodec::processInputData(void *inputBuffer, const unsigned int inputBufferByteSize, ohmcomm::StreamData *userData)

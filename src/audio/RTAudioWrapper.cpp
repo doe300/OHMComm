@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "audio/RTAudioWrapper.h"
 #include "Statistics.h"
 
@@ -33,13 +34,13 @@ auto RtAudioWrapper::callback(void *outputBuffer, void *inputBuffer, unsigned in
     if (status == RTAUDIO_INPUT_OVERFLOW)
     {
         // TODO: Create a log. Input data was discarded because of an overflow (data loss)
-        std::cout << "Overflow\n";
+        ohmcomm::warn("RtAudio") << "Overflow" << ohmcomm::endl;
     }
 
     if (status == RTAUDIO_OUTPUT_UNDERFLOW)
     {
         // TODO: Create a log. Output buffer ran low, produces a break in the output sound.
-        std::cout << "Underflow\n";
+        ohmcomm::warn("RtAudio") << "Underflow" << ohmcomm::endl;
     }
 
     this->streamData->nBufferFrames = nBufferFrames;
@@ -82,7 +83,7 @@ void RtAudioWrapper::startHandler(const PlaybackMode mode)
         this->rtaudio.startStream();
     }
     else
-        std::cout << "Did you forget to call AudioHandler::prepare()?" << std::endl;
+        ohmcomm::warn("RtAudio") << "Did you forget to call AudioHandler::prepare()?" << ohmcomm::endl;
 }
 
 void RtAudioWrapper::setConfiguration(const AudioConfiguration &audioConfig)
@@ -203,7 +204,7 @@ bool RtAudioWrapper::prepare(const std::shared_ptr<ConfigurationMode> configMode
     //checks if there is a configuration all processors support
     if(!processors.queryProcessorSupport(audioConfiguration, getAudioDevices()[audioConfiguration.inputDeviceID]))
     {
-        std::cerr << "AudioProcessors could not agree on configuration!" << std::endl;
+        ohmcomm::error("RtAudio") << "AudioProcessors could not agree on configuration!" << ohmcomm::endl;
         return false;
     }
     

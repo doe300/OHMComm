@@ -4,11 +4,11 @@
  * 
  * Created on January 1, 2016, 12:50 PM
  */
+#include <chrono>
 
+#include "Logger.h"
 #include "sip/STUNClient.h"
 #include "network/UDPWrapper.h"
-
-#include <chrono>
 
 using namespace ohmcomm::sip;
 
@@ -43,7 +43,7 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::retrieveSIPInfo(
         }
         ++index;
     }
-    std::cout << "STUN: Found result: " << std::get<1>(result) << ':' << std::get<2>(result) << std::endl;
+    ohmcomm::info("STUN") << "Found result: " << std::get<1>(result) << ':' << std::get<2>(result) << ohmcomm::endl;
     return result;
 }
 
@@ -51,7 +51,7 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::testSTUNServer(c
 {
     ohmcomm::network::UDPWrapper network(LOCAL_PORT, stunServer, serverPort);
  
-    std::cout << "STUN: Testing ... " << stunServer << ':' << serverPort << std::endl;
+    ohmcomm::info("STUN") << "Testing ... " << stunServer << ':' << serverPort << ohmcomm::endl;
     const unsigned int sendSize = createRequestMessage(STUN_BINDING_REQUEST);
     int receivedSize = INVALID_SOCKET;
     uint8_t numRetries = MAX_RETRIES;
@@ -77,11 +77,11 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::testSTUNServer(c
             const char* transID = (const char*)(buffer + 8);
             if(magicCookie != MAGIC_COOKIE)
             {
-                std::cout << "STUN: Magic Cookie does not match!" << std::endl;
+                ohmcomm::warn("STUN") << "Magic Cookie does not match!" << ohmcomm::endl;
             }
             else if(transactionID.compare(transID) != 0)
             {
-                std::cout << "STUN: Transaction-IDs do not match!" << std::endl;
+                ohmcomm::warn("STUN") << "Transaction-IDs do not match!" << ohmcomm::endl;
             }
             else //2. check attributes
             {
@@ -135,13 +135,13 @@ const std::tuple<bool, std::string, unsigned short> STUNClient::testSTUNServer(c
                     uint8_t errorNumber = *((uint8_t*)(attribute.valuePointer + 3));
                     uint16_t errorCode = errorClass * 100 + errorNumber;
                     std::string reason(attribute.valuePointer + 4, attribute.valueLength - 4);
-                    std::cout << "STUN: Error " << errorCode << " received: " << reason << std::endl;
+                    ohmcomm::warn("STUN") << "Error " << errorCode << " received: " << reason << ohmcomm::endl;
                 }
             }
         }
         else
         {
-            std::cout << "STUN: Invalid response type: " << responseType << std::endl;
+            ohmcomm::warn("STUN") << "Invalid response type: " << responseType << ohmcomm::endl;
         }
     }
     return std::make_tuple(false, "", 0);
