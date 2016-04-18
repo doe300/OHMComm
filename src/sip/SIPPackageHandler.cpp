@@ -8,6 +8,7 @@
 #include <sstream>
 #include <limits.h>
 
+#include "Logger.h"
 #include "sip/SIPPackageHandler.h"
 
 using namespace ohmcomm::sip;
@@ -102,6 +103,7 @@ std::map<std::string, std::string> SIPPackageHandler::readMultipartBody(const SI
     const std::string::size_type start = contentType.find("boundary=") + strlen("boundary=");
     //boundary may be surrounded by '"'
     const std::string boundary = std::string("--").append(contentType.substr((contentType[start] == '"' ? start+1 : start), (contentType[start] == '"' ? (contentType.find('"', start) - start) : std::string::npos)));
+    ohmcomm::debug("SIP") << "Using boundary '" << boundary << "' to read multipart body..." << ohmcomm::endl;
     
     std::map<std::string,std::string> parts;
     std::string::size_type index = 0;
@@ -121,14 +123,16 @@ std::map<std::string, std::string> SIPPackageHandler::readMultipartBody(const SI
         //content-type of part is next after the boundary, defaults to "text/plain"
         while(::isspace(body[index])) ++index;
         std::string partType("text/plain");
-        if(Utility::equalsIgnoreCase(body.substr(index, SIP_HEADER_CONTENT_LENGTH.size()), SIP_HEADER_CONTENT_TYPE))
+        if(Utility::equalsIgnoreCase(body.substr(index, SIP_HEADER_CONTENT_TYPE.size()), SIP_HEADER_CONTENT_TYPE))
         {
             //skip Content-Type:
             index += SIP_HEADER_CONTENT_TYPE.size() + 1;
+            while(::isspace(body[index])) ++index;
             //Content-Type could end with new-line or space
             partType = body.substr(index, body.find_first_of("\n \r", index) - index);
             index = body.find_first_of("\n \r", index) + 1;
         }
+        ohmcomm::debug("SIP") << "Found multipart-type: " << partType << ohmcomm::endl;
         //now the content is everything from index to the next boundary (or end)
         parts.insert({partType, body.substr(index, body.find(boundary, index) - index)});
     }

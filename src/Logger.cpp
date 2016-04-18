@@ -10,16 +10,22 @@
 
 using namespace ohmcomm;
 
-std::unique_ptr<Logger> Logger::LOGGER = std::unique_ptr<Logger>(new DefaultLogger());
+std::unique_ptr<Logger> Logger::LOGGER = std::unique_ptr<Logger>(new ConsoleLogger());
 
-std::wostream& DefaultLogger::write(const LogLevel level)
+std::wostream& ConsoleLogger::write(const LogLevel level)
 {
-    if(level >= WARNING)
-        return std::wcerr;
+    //select correct stream and set colors
+    if(level == ERROR)
+        return std::wcerr << "\033[31m";
+    if(level == WARNING)
+        return std::wcerr << "\033[33m";
+    if(level == DEBUG)
+        return std::wcerr << "\033[37m";
     return std::wcout;
 }
 
-std::wostream& DefaultLogger::end(std::wostream& stream)
+std::wostream& ConsoleLogger::end(std::wostream& stream)
 {
-    return std::endl(stream);
+    //reset colors and print EOL
+    return stream << "\033[39;49m" << std::endl;
 }

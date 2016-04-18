@@ -11,8 +11,15 @@ using namespace ohmcomm;
 
 TestAudioProcessors::TestAudioProcessors()
 {
+#ifdef OPUS_HEADER
     TEST_ADD_WITH_STRING(TestAudioProcessors::testAudioProcessorConfiguration, AudioProcessorFactory::OPUS_CODEC);
+#endif
     TEST_ADD_WITH_STRING(TestAudioProcessors::testAudioProcessorConfiguration, AudioProcessorFactory::WAV_WRITER);
+    TEST_ADD_WITH_STRING(TestAudioProcessors::testAudioProcessorConfiguration, AudioProcessorFactory::G711_PCMA);
+    TEST_ADD_WITH_STRING(TestAudioProcessors::testAudioProcessorConfiguration, AudioProcessorFactory::G711_PCMU);
+#ifdef ILBC_HEADER
+    TEST_ADD_WITH_STRING(TestAudioProcessors::testAudioProcessorConfiguration, AudioProcessorFactory::ILBC_CODEC);
+#endif
 }
 
 void TestAudioProcessors::testAudioProcessorConfiguration(const std::string processorName)
@@ -29,6 +36,12 @@ void TestAudioProcessors::testAudioProcessorConfiguration(const std::string proc
         TEST_ASSERT_MSG(!bufferSizes.empty(), "Processor does not list any buffer-sizes for supported sample-rate");
     }
     
+    TEST_ASSERT_MSG(proc->getSupportedPlayloadType() == PayloadType::ALL || proc->getSupportedPlayloadType() >= 0, "Invalid payload-type!");
+    
+    if(proc->getCapabilities().supportedResampleRates != 0)
+    {
+        TEST_ASSERT_MSG(AudioConfiguration::flagToSampleRate(proc->getCapabilities().supportedResampleRates) != 0, "Invalid sample-rates supported!");
+    }
     delete proc;
 }
 

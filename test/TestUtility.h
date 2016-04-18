@@ -36,6 +36,8 @@ public:
     void testToHexString();
     
     void testWaitForUserInput();
+    
+    void testSplitString();
 };
 
 #endif	/* TESTUTILITY_H */

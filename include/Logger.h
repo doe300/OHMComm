@@ -58,7 +58,7 @@ namespace ohmcomm
      * 
      * \since 0.9
      */
-    class DefaultLogger : public Logger
+    class ConsoleLogger : public Logger
     {
         virtual std::wostream& write(const LogLevel level);
         virtual std::wostream& end(std::wostream& stream);

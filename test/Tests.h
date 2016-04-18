@@ -2,7 +2,7 @@
 #define	OHMCOMMTESTS
 
 #include "cpptest.h"
-#include "audio/AudioHandlerFactory.h"
+#include "audio/TestAudioHandler.h"
 #include "TestAudioProcessors.h"
 #include "TestUserInput.h"
 #include "TestParameters.h"
@@ -14,17 +14,12 @@
 #include "rtp/TestRTCP.h"
 #include "rtp/TestRTPBuffer.h"
 #include "sip/TestSIPHandler.h"
+#include "sip/TestSIPPackages.h"
+#include "sip/TestSDP.h"
 #include "sip/TestSTUNClient.h"
 #include "sip/TestSIPGrammar.h"
 
 #include <iostream>
 #include <fstream>
-
-class TestAudioIO : public Test::Suite {
-    void testAudioHandlerInstances(); // getNewAudioIO(..)
-    void testAudioProcessorInterface(); // add, remove, reset
-public:
-    TestAudioIO();
-};
 
 #endif

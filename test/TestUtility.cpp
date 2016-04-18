@@ -21,6 +21,7 @@ TestUtility::TestUtility()
     TEST_ADD(TestUtility::testDecodeURI);
     TEST_ADD(TestUtility::testToHexString);
     TEST_ADD(TestUtility::testWaitForUserInput);
+    TEST_ADD(TestUtility::testSplitString);
 }
 
 void TestUtility::printDomainInfo()
@@ -90,4 +91,13 @@ void TestUtility::testWaitForUserInput()
 {
     TEST_ASSERT_EQUALS(-1, Utility::waitForUserInput(500));
     TEST_ASSERT_EQUALS(-1, Utility::waitForUserInput(5));
+}
+
+void TestUtility::testSplitString()
+{
+    const std::vector<std::string> parts = Utility::splitString("1 1 1 1 1 1 1 1 1", ' ');
+    TEST_ASSERT_EQUALS(9, parts.size());
+    
+    const std::vector<std::string> parts1 = Utility::splitString("1  1 1  1 1  1111", ' ');
+    TEST_ASSERT_EQUALS(9, parts1.size());
 }
