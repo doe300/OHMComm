@@ -51,7 +51,7 @@ const SupportedFormat* SupportedFormats::registerFormat(SupportedFormat&& format
     return &(*pos);
 }
 
-const std::vector<SupportedFormat> SupportedFormats::getFormats()
+const std::vector<SupportedFormat>& SupportedFormats::getFormats()
 {
     return availableFormats;
 }

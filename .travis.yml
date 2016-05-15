@@ -26,7 +26,7 @@ before_script:
   - cd build
   - cmake -DTEST_OUTPUT_CONSOLE=ON ../
   
-script: make -j2
+script: make
 
 after_script:
   - cd build

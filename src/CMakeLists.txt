@@ -18,7 +18,7 @@ if(MSVC)
 endif()
 
 #Build OHMCommLib
-add_library( OHMComm STATIC ${SRCS} ${HDRS} )
+add_library( OHMComm SHARED ${SRCS} ${HDRS} )
 
 #Build OHMComm
 add_executable( OHMCommStandalone "OHMCommStandalone.cpp" )

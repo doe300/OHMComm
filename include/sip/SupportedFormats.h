@@ -65,7 +65,7 @@ namespace ohmcomm
              */
             static const SupportedFormat* registerFormat(SupportedFormat&& format);
 
-            static const std::vector<SupportedFormat> getFormats();
+            static const std::vector<SupportedFormat>& getFormats();
 
             static const SupportedFormat* getFormat(const int payloadType);
 
