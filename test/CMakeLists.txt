@@ -29,7 +29,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/lib/cpptest-lite/include")
 
 add_executable(Tests ${SRCS})
 target_link_libraries(Tests cpptest-lite)
-target_link_libraries(Tests OHMCommLib)
+target_link_libraries(Tests OHMComm)
 target_link_libraries(Tests opus)
 if(NOT OPUS_LIBRARY) #Only manually link opus, if it not provided via a library
 	target_link_libraries(Tests celt)

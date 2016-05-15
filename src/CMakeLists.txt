@@ -18,22 +18,21 @@ if(MSVC)
 endif()
 
 #Build OHMCommLib
-add_library( OHMCommLib STATIC ${SRCS} ${HDRS} )
+add_library( OHMComm STATIC ${SRCS} ${HDRS} )
 
 #Build OHMComm
-add_executable( OHMComm "OHMCommStandalone.cpp" )
-target_link_libraries(OHMComm OHMCommLib)
+add_executable( OHMCommStandalone "OHMCommStandalone.cpp" )
+target_link_libraries(OHMCommStandalone OHMComm)
 
 if(MSVC) 
 # Visual Studio Compiler
+	target_link_libraries(OHMCommStandalone rtaudio_static)
+	target_link_libraries(OHMCommStandalone WS2_32)
 	target_link_libraries(OHMComm rtaudio_static)
 	target_link_libraries(OHMComm WS2_32)
-	target_link_libraries(OHMCommLib rtaudio_static)
-	target_link_libraries(OHMCommLib WS2_32)
 else ()
 	# other compilers
 	target_link_libraries(OHMComm rtaudio)
-	target_link_libraries(OHMCommLib rtaudio)
 endif()
 
 #Common libraries
@@ -44,24 +43,17 @@ if(NOT OPUS_LIBRARY) #Only manually link opus, if it not provided via a library
 	target_link_libraries(OHMComm silk_fixed)
 	target_link_libraries(OHMComm silk_float)
 endif()
-target_link_libraries(OHMCommLib opus)
-if(NOT OPUS_LIBRARY) #Only manually link opus, if it not provided via a library
-	target_link_libraries(OHMCommLib celt)
-	target_link_libraries(OHMCommLib silk_common)
-	target_link_libraries(OHMCommLib silk_fixed)
-	target_link_libraries(OHMCommLib silk_float)
-endif()
 
 # Only link libraries, if available
 if(PORTAUDIO_LIBRARY)
-	target_link_libraries(OHMCommLib portaudio)
+	target_link_libraries(OHMComm portaudio)
 endif()
 if(ILBC_LIBRARY)
-	target_link_libraries(OHMCommLib ilbc)
+	target_link_libraries(OHMComm ilbc)
 endif()
 if(GSM_LIBRARY)
-	target_link_libraries(OHMCommLib gsm)
+	target_link_libraries(OHMComm gsm)
 endif()
 if(AMR_LIBRARY)
-	target_link_libraries(OHMCommLib opencore-amrnb)
+	target_link_libraries(OHMComm opencore-amrnb)
 endif()
