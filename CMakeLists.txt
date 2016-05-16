@@ -17,8 +17,10 @@ if(NOT MSVC)
 	# therefore enable it only when MSVC-compiler is not used
 	if(BUILD_DEBUG)
 		LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -g3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC")
+		LIST(APPEND CMAKE_C_FLAGS "-g3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC")
 	else()
 		LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC")
+		LIST(APPEND CMAKE_C_FLAGS "-O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC")
 	endif()
 else()
 	# visual studio specific flags
