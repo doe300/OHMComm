@@ -107,7 +107,8 @@ bool ProcessorManager::configureAudioProcessors(const AudioConfiguration& audioC
         }
         catch(const ohmcomm::configuration_error& error)
         {
-            std::cerr << error.what() << std::endl;
+            ohmcomm::error("Processors") << "Configuration failed!" << ohmcomm::endl;
+            ohmcomm::error("Processors") << error.what() << ohmcomm::endl;
             return false;
         }
     }

@@ -198,6 +198,17 @@ namespace ohmcomm
          * \return whether arguments have been set and parsed
          */
         bool parseParameters(int argc, char* argv[]);
+        
+        /*!
+         * Sets the given single parameter and its value
+         * 
+         * NOTE: This method does not validate required parameters and can't be used to print help or any other
+         * information!
+         * 
+         * \param param The Parameter to set
+         * \param value The parameter-value
+         */
+        void setParameter(const Parameter* param, const std::string& value = "");
 
         /*!
          * Prints the help-text to stdout

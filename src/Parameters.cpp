@@ -153,6 +153,16 @@ bool Parameters::parseParameters(int argc, char* argv[])
     return true;
 }
 
+void Parameters::setParameter(const Parameter* param, const std::string& value)
+{
+    readParameters.push_back(ParameterValue(param, value));
+    //4.1 if audio-processor, add to list
+    if(param == AUDIO_PROCESSOR)
+    {
+        processorNames.push_back(value);
+    }
+}
+
 const std::vector<std::string> Parameters::getAudioProcessors() const
 {
     return processorNames;
