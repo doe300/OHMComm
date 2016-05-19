@@ -123,7 +123,7 @@ namespace ohmcomm
              */
             const std::string getConnectionAddress() const
             {
-                const std::string connection = this->operator[](SDP_CONNECTION);
+                const std::string connection = (*this)[SDP_CONNECTION];
                 //c=<nettype> <addrtype> <connection-address>
                 const std::string::size_type index = connection.find_last_of(' ');
                 return connection.substr(index + 1);

@@ -72,7 +72,7 @@ const void* RTCPPackageHandler::createSourceDescriptionPackage(RTCPHeader& heade
     {
         assertCapacity(bufferOffset + offset + 32);
         //set type
-        memcpy(bufferStart + offset, &descriptions[i].type, 1);
+        memcpy(bufferStart + offset, &descriptions[i].key, 1);
         offset++;
         //set length
         uint8_t size = descriptions[i].value.size();

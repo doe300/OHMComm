@@ -603,18 +603,18 @@ void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHea
     {
         SIPResponseHeader& resHeader = dynamic_cast<SIPResponseHeader&>(header);
         //CSeq of response if the same as request
-        resHeader[SIP_HEADER_CSEQ] = requestHeader->operator[](SIP_HEADER_CSEQ);
+        resHeader[SIP_HEADER_CSEQ] = (*requestHeader)[SIP_HEADER_CSEQ];
         //From/To has the value from the request
-        if(requestHeader->operator [](SIP_HEADER_TO).find("tag=") == std::string::npos)
+        if((*requestHeader)[SIP_HEADER_TO].find("tag=") == std::string::npos)
         {
             //on initial response, add tag
-            resHeader[SIP_HEADER_TO] = (requestHeader->operator[](SIP_HEADER_TO) + ";tag=") + userAgents.thisUA.tag;
+            resHeader[SIP_HEADER_TO] = ((*requestHeader)[SIP_HEADER_TO] + ";tag=") + userAgents.thisUA.tag;
         }
         else
         {
-            resHeader[SIP_HEADER_TO] = requestHeader->operator[](SIP_HEADER_TO);
+            resHeader[SIP_HEADER_TO] = (*requestHeader)[SIP_HEADER_TO];
         }
-        resHeader[SIP_HEADER_FROM] = requestHeader->operator[](SIP_HEADER_FROM);
+        resHeader[SIP_HEADER_FROM] = (*requestHeader)[SIP_HEADER_FROM];
     }
     catch(const std::bad_cast& e)
     {

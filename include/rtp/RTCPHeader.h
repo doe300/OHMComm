@@ -20,6 +20,8 @@
 #include <netinet/in.h>
 #endif
 
+#include "KeyValuePairs.h"
+
 namespace ohmcomm
 {
     namespace rtp
@@ -532,20 +534,13 @@ namespace ohmcomm
          *
          * NOTE: Currently only source-descriptions for a single source are supported.
          */
-        struct SourceDescription
+        struct SourceDescription : public KeyValuePair<RTCPSourceDescriptionType>
         {
-            //8 bit type field
-            RTCPSourceDescriptionType type;
-
-            //variable length value
-            std::string value;
-
-            SourceDescription() : type(0), value("")
+            SourceDescription() : KeyValuePair(0, "")
             {
             }
 
-            SourceDescription(RTCPSourceDescriptionType type, std::string value) :
-            type(type), value(value)
+            SourceDescription(RTCPSourceDescriptionType type, std::string value) : KeyValuePair(type, value)
             {
             }
 
@@ -554,7 +549,7 @@ namespace ohmcomm
              */
             const std::string getTypeName() const
             {
-                switch (type) {
+                switch (key) {
                 case RTCP_SOURCE_CNAME:
                     return "Endpoint";
                 case RTCP_SOURCE_EMAIL:

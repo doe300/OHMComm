@@ -26,8 +26,8 @@ for *ALSA* this would be `libasound-dev` on Debian-based systems and `alsa-lib-d
 
 	$ cd <project-directory>
 	$ cmake -G "Unix Makefiles" ./CMakeLists.txt
-	$ make OHMCommLib	# To build the library
-	$ make OHMComm		# To build the executable
+	$ make OHMComm				# To build the library
+	$ make OHMCommStandalone	# To build the executable
 
 This will build the library/executable into `<project-directory>/build/` by default.
 ## Run it
@@ -35,9 +35,9 @@ This will build the library/executable into `<project-directory>/build/` by defa
 #### Under Linux/Mac OS/Windows
 
 	$ cd <executable-directory>	
-	$ ./OHMComm		# To run in interactive mode
-	$ ./OHMComm	-h	# Prints all command-line arguments
-	$ ./OHMComm path/to/config-file	# Runs in file-configuration mode
+	$ ./OHMCommStandalone		# To run in interactive mode
+	$ ./OHMCommStandalone	-h	# Prints all command-line arguments
+	$ ./OHMCommStandalone path/to/config-file	# Runs in file-configuration mode
 
 ## Supported libraries
 #### Audio libraries

@@ -253,7 +253,7 @@ namespace ohmcomm
 
             int getContentLength() const
             {
-                return atoi(operator[](SIP_HEADER_CONTENT_LENGTH).data());
+                return atoi((*this)[SIP_HEADER_CONTENT_LENGTH].data());
             }
 
             virtual const std::string getRequestCommand() const = 0;
@@ -263,7 +263,7 @@ namespace ohmcomm
              */
             const std::string getBranchTag() const
             {
-                const std::string& viaField = operator[](SIP_HEADER_VIA);
+                const std::string& viaField = (*this)[SIP_HEADER_VIA];
                 std::string::size_type index = viaField.find("branch=");
                 if (index == std::string::npos) {
                     return "";
@@ -286,7 +286,7 @@ namespace ohmcomm
             {
                 //read contact-field
                 //Contact/From: [<user-name>] "<sip:"<user>"@"<host>[":"<port>]">"
-                const std::string& headerField = this->operator[](SIP_HEADER_CONTACT).empty() ? this->operator[](SIP_HEADER_FROM) : this->operator[](SIP_HEADER_CONTACT);
+                const std::string& headerField = (*this)[SIP_HEADER_CONTACT].empty() ? (*this)[SIP_HEADER_FROM] : (*this)[SIP_HEADER_CONTACT];
                 if (headerField.empty()) {
                     return SIPGrammar::SIPAddress{"",
                         {},
@@ -317,7 +317,7 @@ namespace ohmcomm
 
             const std::string getRemoteTag() const
             {
-                const std::string& fromField = operator[](SIP_HEADER_FROM);
+                const std::string& fromField = (*this)[SIP_HEADER_FROM];
                 if (fromField.find("tag=") == std::string::npos) {
                     return "";
                 }
@@ -581,14 +581,14 @@ namespace ohmcomm
 
             const std::string getRequestCommand() const
             {
-                const std::string cSeq = operator[](SIP_HEADER_CSEQ);
+                const std::string cSeq = (*this)[SIP_HEADER_CSEQ];
                 //request-command is everything after the first space ' '
                 return cSeq.substr(cSeq.find(' ') + 1);
             }
 
             const std::string getRemoteTag() const
             {
-                const std::string& toField = operator[](SIP_HEADER_TO);
+                const std::string& toField = (*this)[SIP_HEADER_TO];
                 if (toField.find("tag=") == std::string::npos) {
                     return "";
                 }

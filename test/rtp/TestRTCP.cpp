@@ -83,10 +83,10 @@ void TestRTCP::testSourceDescriptionPacakge()
     //create package
     RTCPHeader header(testSSRC);
     SourceDescription descr1;
-    descr1.type = RTCP_SOURCE_NAME;
+    descr1.key = RTCP_SOURCE_NAME;
     descr1.value = name;
     SourceDescription descr2;
-    descr2.type = RTCP_SOURCE_TOOL;
+    descr2.key = RTCP_SOURCE_TOOL;
     descr2.value = tool;
     const void* package = handler.createSourceDescriptionPackage(header, {descr1, descr2});
 
@@ -101,9 +101,9 @@ void TestRTCP::testSourceDescriptionPacakge()
     TEST_ASSERT_EQUALS(header.getLength(), readHeader.getLength());
     TEST_ASSERT_EQUALS(testSSRC, readHeader.getSSRC());
     TEST_ASSERT_EQUALS(2, readDescriptions.size());
-    TEST_ASSERT_EQUALS(RTCP_SOURCE_NAME, readDescriptions[0].type);
+    TEST_ASSERT_EQUALS(RTCP_SOURCE_NAME, readDescriptions[0].key);
     TEST_ASSERT_EQUALS(name, readDescriptions[0].value);
-    TEST_ASSERT_EQUALS(RTCP_SOURCE_TOOL, readDescriptions[1].type);
+    TEST_ASSERT_EQUALS(RTCP_SOURCE_TOOL, readDescriptions[1].key);
     TEST_ASSERT_EQUALS(tool, readDescriptions[1].value);
 }
 

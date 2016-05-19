@@ -171,9 +171,9 @@ uint32_t RTCPHandler::handleRTCPPackage(const void* receiveBuffer, unsigned int 
         if(!participant.rtcpData)
             participant.rtcpData.reset(new RTCPData);
         //other side sent SDES, so print to output
-        std::vector<SourceDescription> sourceDescriptions = rtcpHandler.readSourceDescription(receiveBuffer, receivedSize, header);
+        const std::vector<SourceDescription> sourceDescriptions = rtcpHandler.readSourceDescription(receiveBuffer, receivedSize, header);
         //set remote source descriptions
-        participant.rtcpData->sourceDescriptions = sourceDescriptions;
+        participant.rtcpData->fields = sourceDescriptions;
         ohmcomm::info("RTCP") << "Received Source Description:" << ohmcomm::endl;
         for(const SourceDescription& descr : sourceDescriptions)
         {
@@ -289,40 +289,40 @@ const std::vector<ReceptionReport> RTCPHandler::createReceptionReports()
 
 const void* RTCPHandler::createSourceDescription(unsigned int offset)
 {
-    std::vector<SourceDescription>& sourceDescriptions = ourselves.rtcpData->sourceDescriptions;
+    std::shared_ptr<RTCPData> rtcpData = ourselves.rtcpData;
     //TODO clashes with interactive configuration (with input to shutdown server)
-    if(sourceDescriptions.empty())
+    if(rtcpData->fields.empty())
     {
         //XXX could also use SIP ID as CNAME
-        sourceDescriptions.push_back({RTCP_SOURCE_CNAME, (Utility::getUserName() + '@') + Utility::getDomainName()});
+        (*rtcpData)[RTCP_SOURCE_CNAME] = (Utility::getUserName() + '@') + Utility::getDomainName();
         if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr && configMode->isConfigured())
         {
             //add user configured values
             if(configMode->isCustomConfigurationSet(Parameters::SDES_EMAIL->longName, "SDES EMAIL?"))
             {
-                sourceDescriptions.emplace_back(RTCP_SOURCE_EMAIL, configMode->getCustomConfiguration(Parameters::SDES_EMAIL->longName, "Enter SDES EMAIL", "anon@noreply.com"));
+                (*rtcpData)[RTCP_SOURCE_EMAIL] = configMode->getCustomConfiguration(Parameters::SDES_EMAIL->longName, "Enter SDES EMAIL", "anon@noreply.com");
             }
             if(configMode->isCustomConfigurationSet(Parameters::SDES_LOC->longName, "SDES LOCATION?"))
             {
-                sourceDescriptions.emplace_back(RTCP_SOURCE_LOC, configMode->getCustomConfiguration(Parameters::SDES_LOC->longName, "Enter SDES LOCATION", "earth"));
+                (*rtcpData)[RTCP_SOURCE_LOC] = configMode->getCustomConfiguration(Parameters::SDES_LOC->longName, "Enter SDES LOCATION", "earth");
             }
             if(configMode->isCustomConfigurationSet(Parameters::SDES_NAME->longName, "SDES NAME?"))
             {
-                sourceDescriptions.emplace_back(RTCP_SOURCE_NAME, configMode->getCustomConfiguration(Parameters::SDES_NAME->longName, "Enter SDES NAME", "anon"));
+                (*rtcpData)[RTCP_SOURCE_NAME] = configMode->getCustomConfiguration(Parameters::SDES_NAME->longName, "Enter SDES NAME", "anon");
             }
             if(configMode->isCustomConfigurationSet(Parameters::SDES_NOTE->longName, "SDES NOTE?"))
             {
-                sourceDescriptions.emplace_back(RTCP_SOURCE_NOTE, configMode->getCustomConfiguration(Parameters::SDES_NOTE->longName, "Enter SDES NOTE", ""));
+                (*rtcpData)[RTCP_SOURCE_NOTE] = configMode->getCustomConfiguration(Parameters::SDES_NOTE->longName, "Enter SDES NOTE", "");
             }
             if(configMode->isCustomConfigurationSet(Parameters::SDES_PHONE->longName, "SDES PHONE?"))
             {
-                sourceDescriptions.emplace_back(RTCP_SOURCE_PHONE, configMode->getCustomConfiguration(Parameters::SDES_PHONE->longName, "Enter SDES PHONE", ""));
+                (*rtcpData)[RTCP_SOURCE_PHONE] = configMode->getCustomConfiguration(Parameters::SDES_PHONE->longName, "Enter SDES PHONE", "");
             }
         }
-        sourceDescriptions.push_back({RTCP_SOURCE_TOOL, std::string("OHMComm v") + OHMCOMM_VERSION});
+        (*rtcpData)[RTCP_SOURCE_TOOL] = std::string("OHMComm v") + OHMCOMM_VERSION;
     }
     RTCPHeader sdesHeader(ourselves.ssrc);
-    return rtcpHandler.createSourceDescriptionPackage(sdesHeader, sourceDescriptions, offset);
+    return rtcpHandler.createSourceDescriptionPackage(sdesHeader, rtcpData->fields, offset);
 }
 
 void RTCPHandler::printReceptionReports(const std::vector<ReceptionReport>& reports)
