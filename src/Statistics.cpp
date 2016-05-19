@@ -32,11 +32,6 @@ void Statistics::maxCounter(int counterIndex, long newValue)
     }
 }
 
-void Statistics::printStatistics()
-{
-    printStatistics(std::cout);
-}
-
 void Statistics::printStatisticsToFile(const std::string fileName)
 {
     std::ofstream fileStream(fileName.c_str(), std::ios_base::out|std::ios_base::trunc);
@@ -111,6 +106,15 @@ void Statistics::removeProfiler(ProfilingAudioProcessor* profiler)
 void Statistics::removeAllProfilers()
 {
     Statistics::audioProcessorStatistics.clear();
+}
+
+void Statistics::resetStatistics()
+{
+    for(unsigned char i = 0; i < 20; ++i)
+    {
+        Statistics::counters[i] = 0;
+    }
+    removeAllProfilers();
 }
 
 void Statistics::printStatistics(std::ostream& outputStream)

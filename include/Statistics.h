@@ -72,9 +72,11 @@ namespace ohmcomm
         static void maxCounter(int counterIndex, long newValue);
 
         /*!
-         * Prints some general statistical information to stdout
+         * Prints some general statistical information
+         * 
+         * \param outputStream The stream to print to (defaults to std::cout)
          */
-        static void printStatistics();
+        static void printStatistics(std::ostream& outputStream = std::cout);
 
         /*!
          * Prints the statistical information to the file specified by the given name
@@ -99,6 +101,11 @@ namespace ohmcomm
          * Removes all processors from the statistics array
          */
         static void removeAllProfilers();
+        
+        /*!
+         * Resets all counters and removes all registered profilers
+         */
+        static void resetStatistics();
 
     private:
 
@@ -110,10 +117,6 @@ namespace ohmcomm
 
         static std::vector<ProfilingAudioProcessor*> audioProcessorStatistics;
 
-        /*!
-         * Internal helper-method to print statistics to given output-stream
-         */
-        static void printStatistics(std::ostream& outputStream);
         /*!
          * Internal helper-method to print audio-processor profiling results to given output-stream
          */
