@@ -54,3 +54,6 @@ This will build the library/executable into `<project-directory>/build/` by defa
 - Fully standard-conform communication based on [RTP](https://tools.ietf.org/html/rfc3550) including full [RTCP](https://tools.ietf.org/html/rfc3550#section-6) support
 - Support for direct calls to and from any VoIP application featuring [SIP](https://tools.ietf.org/html/rfc3261)
 - Support for DTX to further decrease required bandwidth
+
+## Addons
+- A work-in-process graphical interface based on Qt5 is available [here](https://github.com/doe300/OHMComm-GUI)
