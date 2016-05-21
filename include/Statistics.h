@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "Utility.h"
 #include "processors/ProfilingAudioProcessor.h"
 
 namespace ohmcomm
@@ -110,10 +111,6 @@ namespace ohmcomm
     private:
 
         static long counters[20];
-
-        static double prettifyPercentage(double percentage);
-
-        static std::string prettifyByteSize(double byteSize);
 
         static std::vector<ProfilingAudioProcessor*> audioProcessorStatistics;
 

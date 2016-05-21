@@ -167,6 +167,26 @@ namespace ohmcomm
          * \return the string containing the random UUID in its common representation
          */
         static std::string generateRandomUUID();
+        
+        /*!
+         * Prettifies the percentage-value by converting it to xxx.yy
+         * 
+         * \param percentage The original value to convert
+         * 
+         * \return the converted value, multiplied by 100 and cut off after 2 decimals
+         * \since 0.9
+         */
+        static double prettifyPercentage(const double percentage);
+        
+        /*!
+         * Pretty prints the byte size in a human readable form
+         * 
+         * \param byteSize The size in Bytes
+         * 
+         * \return The human-readable form
+         * \since 0.9
+         */
+        static std::string prettifyByteSize(const double byteSize);
 
     private:
 

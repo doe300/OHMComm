@@ -22,6 +22,9 @@ TestUtility::TestUtility()
     TEST_ADD(TestUtility::testToHexString);
     TEST_ADD(TestUtility::testWaitForUserInput);
     TEST_ADD(TestUtility::testSplitString);
+    TEST_ADD(TestUtility::testGenerateRandomUUID);
+    TEST_ADD(TestUtility::testPrettifyPercentage);
+    TEST_ADD(TestUtility::testPrettifyByteSize);
 }
 
 void TestUtility::printDomainInfo()
@@ -100,4 +103,24 @@ void TestUtility::testSplitString()
     
     const std::vector<std::string> parts1 = Utility::splitString("1  1 1  1 1  1111", ' ');
     TEST_ASSERT_EQUALS(9, parts1.size());
+}
+
+void TestUtility::testGenerateRandomUUID()
+{
+    TEST_ASSERT_EQUALS(36, Utility::generateRandomUUID().size());
+    //TODO fails if UUIDs are retrieved in the same second
+    TEST_ASSERT(Utility::generateRandomUUID().compare(Utility::generateRandomUUID()) != 0);
+}
+
+void TestUtility::testPrettifyPercentage()
+{
+    TEST_ASSERT_EQUALS(100.0, Utility::prettifyPercentage(1.0));
+    TEST_ASSERT_EQUALS(50.05, Utility::prettifyPercentage(0.500512));
+}
+
+void TestUtility::testPrettifyByteSize()
+{
+    std::cout << Utility::prettifyByteSize(1025) << std::endl;
+    TEST_ASSERT(Utility::prettifyByteSize(12.0).compare("12.00 B") == 0);
+    TEST_ASSERT(Utility::prettifyByteSize(1025).compare("1.00 KB") == 0);
 }

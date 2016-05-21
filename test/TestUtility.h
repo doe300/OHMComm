@@ -38,6 +38,12 @@ public:
     void testWaitForUserInput();
     
     void testSplitString();
+    
+    void testGenerateRandomUUID();
+    
+    void testPrettifyPercentage();
+    
+    void testPrettifyByteSize();
 };
 
 #endif	/* TESTUTILITY_H */

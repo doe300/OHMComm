@@ -286,6 +286,46 @@ std::string Utility::generateRandomUUID()
     return std::string(strUuid);
 }
 
+double Utility::prettifyPercentage(const double percentage)
+{
+    int tmp = percentage * 10000;
+    return tmp / 100.0;
+}
+
+std::string Utility::prettifyByteSize(const double byteSize)
+{
+    if(byteSize < 0)
+    {
+        return "?";
+    }
+    std::string unit;
+    double dimensionValue;
+    if(byteSize > 1024 * 1024 * 1024)
+    {
+        unit = " GB";
+        dimensionValue = byteSize / (1024.0 * 1024.0 * 1024.0);
+    }
+    else if(byteSize > 1024 * 1024)
+    {
+        unit = " MB";
+        dimensionValue = byteSize / (1024.0 * 1024.0);
+    }
+    else if(byteSize > 1024)
+    {
+        unit = " KB";
+        dimensionValue = byteSize / 1024.0;
+    }
+    else
+    {
+        unit = " B";
+        dimensionValue = byteSize;
+    }
+    char buf[8];
+    int numChars = std::sprintf(buf, "%.2f", dimensionValue);
+    return std::string(buf, numChars) + unit;
+}
+
+
 std::string Utility::getExternalLocalIPAddress()
 {
     //find external IP of local device
