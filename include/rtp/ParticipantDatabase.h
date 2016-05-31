@@ -46,6 +46,8 @@ namespace ohmcomm
             double interarrivalJitter;
             //the timestamp of the reception of the last package (RTP/RTCP) sent by this participant, undefined for local user
             std::chrono::steady_clock::time_point lastPackageReceived;
+            //the timestamp if the reception of the first package (RTP/RTCP) from this participant in the current session
+            const std::chrono::steady_clock::time_point firstPackageReceived;
             //the amount of packages lost originating from this participant
             uint32_t packagesLost;
             //the amount of packages received originating from this participant
@@ -59,7 +61,7 @@ namespace ohmcomm
 
             Participant(const uint32_t ssrc, const bool localParticipant) : lastDelay(0), isLocalParticipant(localParticipant), ssrc(ssrc), payloadType(-1),
             initialRTPTimestamp(0), extendedHighestSequenceNumber(0), interarrivalJitter(0), lastPackageReceived(std::chrono::steady_clock::time_point::min()),
-            packagesLost(0), totalPackages(0), totalBytes(0), rtcpData(nullptr)
+            firstPackageReceived(std::chrono::steady_clock::now()), packagesLost(0), totalPackages(0), totalBytes(0), rtcpData(nullptr)
             {
 
             }
