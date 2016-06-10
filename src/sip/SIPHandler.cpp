@@ -258,6 +258,23 @@ void SIPHandler::sendAckRequest(SIPUserAgent& remoteUA)
     network->sendData(message.data(), message.size());
 }
 
+void SIPHandler::sendRegisterRequest(SIPUserAgent& registerUA)
+{
+    //RFC 3261, Section 10.2: 
+    //"The "userinfo" and "@" components of the SIP URI MUST NOT be present"
+    SIPRequestHeader header(SIP_REQUEST_REGISTER, SIPGrammar::toSIPURI({"sip", "", "", registerUA.hostName.empty() ? registerUA.ipAddress : registerUA.hostName, registerUA.port}));
+    initializeHeaderFields(SIP_REQUEST_REGISTER, header, nullptr, registerUA);
+    
+    header[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
+    header[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
+    header[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
+    header[SIP_HEADER_CONTACT] += SIP_CAPABILITIES;
+    
+    ohmcomm::info("SIP") << "Sending REGISTER to " << registerUA.getSIPURI() << ohmcomm::endl;
+    const std::string message = SIPPackageHandler::createRequestPackage(header, "");
+    network->sendData(message.data(), message.size());
+}
+
 void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength, const ohmcomm::network::NetworkWrapper::Package& packageInfo)
 {
     SIPRequestHeader requestHeader;

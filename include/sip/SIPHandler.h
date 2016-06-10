@@ -132,6 +132,8 @@ namespace ohmcomm
 
             void sendAckRequest(SIPUserAgent& remoteUA);
             
+            void sendRegisterRequest(SIPUserAgent& registerUA);
+            
             void sendOptionsResponse(SIPUserAgent& remoteUA, const SIPRequestHeader* requestHeader);
 
             void sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA);
