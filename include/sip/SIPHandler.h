@@ -40,6 +40,9 @@ namespace ohmcomm
             
             //A list of all supported SIP extension headers
             static const std::string SIP_SUPPORTED_FIELDS;
+            
+            //A list of all supported capabilities, as of RFC 3840 section 10
+            static const std::string SIP_CAPABILITIES;
 
             //The default port for SIP, as of RFC 3261
             static constexpr unsigned short SIP_DEFAULT_PORT{5060};
@@ -140,6 +143,8 @@ namespace ohmcomm
             void startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig);
 
             friend class SIPConfiguration;
+            
+            static SIPGrammar::SIPURI toSIPURI(const SIPUserAgent& sipUA, const bool withParameters);
         };
     }
 }

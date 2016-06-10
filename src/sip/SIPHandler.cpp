@@ -16,6 +16,8 @@ using namespace ohmcomm::sip;
 const std::string SIPHandler::SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL, SIP_REQUEST_OPTIONS, SIP_REQUEST_INFO}, " ");
 const std::string SIPHandler::SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 const std::string SIPHandler::SIP_SUPPORTED_FIELDS = ohmcomm::Utility::joinStrings({});
+//XXX sip.methods (one for each supported method)
+const std::string SIPHandler::SIP_CAPABILITIES = ohmcomm::Utility::joinStrings({";sip.audio", "sip.duplex=full"}, ";");
 
 SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction) : 
         userAgents(std::to_string(rand())), network(new ohmcomm::network::MulticastNetworkWrapper(sipConfig)), sipConfig(sipConfig), addUserFunction(addUserFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
@@ -204,6 +206,9 @@ void SIPHandler::sendOptionsResponse(SIPUserAgent& remoteUA, const SIPRequestHea
     responseHeader[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
     //RFC 3261, Section 20.2: "If no Accept-Encoding header field is present, the server SHOULD assume a default value of identity."
     //RFC 3261, Section 20.3: "If no Accept-Language header field is present, the server SHOULD assume all languages are acceptable to the client."
+    
+    //RFC 3840, Section 8: "[...] add feature parameters to the Contact header field in the OPTIONS [...]"
+    responseHeader[SIP_HEADER_CONTACT] += SIP_CAPABILITIES;
     
     //RFC 3261, Section 11.2: "A message body MAY be sent, the type of which is determined by the Accept header field 
     // in the OPTIONS request (application/sdp is the default if the Accept header field is not present). If the types
@@ -637,8 +642,7 @@ void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHea
     header[SIP_HEADER_VIA] = ((SIP_VERSION + "/UDP ") + userAgents.thisUA.hostName + ":") + ((((std::to_string(sipConfig.localPort)
                              + ";rport") + receivedTag) + ";branch=") + remoteUA.lastBranch);
     //TODO for response, copy/retain VIA-fields of request (multiple!)
-    
-    header[SIP_HEADER_CONTACT] = (userAgents.thisUA.userName + " <") + userAgents.thisUA.getSIPURI() + ">";
+    header[SIP_HEADER_CONTACT] = SIPGrammar::toNamedAddress(toSIPURI(userAgents.thisUA, false), userAgents.thisUA.userName);
     //if we INVITE, the remote call-ID is empty and we use ours, otherwise use the remote's
     header[SIP_HEADER_CALL_ID] =  remoteUA.callID.empty() ? userAgents.thisUA.callID : remoteUA.callID;
     try
@@ -651,8 +655,8 @@ void SIPHandler::initializeHeaderFields(const std::string& requestMethod, SIPHea
         //"tag"-tag for user-identification
         //if we INVITE, remote-tag is empty
         //if we got invited, remote-tag is correctly the tag sent by remote
-        reqHeader[SIP_HEADER_TO] = ((remoteUA.userName + " <") + remoteUA.getSIPURI() + ">") + (remoteUA.tag.empty() ? std::string("") : (std::string(";tag=") + remoteUA.tag));
-        reqHeader[SIP_HEADER_FROM] = (((userAgents.thisUA.userName + " <") + userAgents.thisUA.getSIPURI() + ">") + ";tag=") + userAgents.thisUA.tag;
+        reqHeader[SIP_HEADER_TO] = SIPGrammar::toNamedAddress(toSIPURI(remoteUA, true), remoteUA.userName);
+        reqHeader[SIP_HEADER_FROM] = SIPGrammar::toNamedAddress(toSIPURI(userAgents.thisUA, true), userAgents.thisUA.userName);
     }
     
     catch(const std::bad_cast& e)
@@ -782,4 +786,14 @@ void SIPHandler::startCommunication(const MediaDescription& descr, const ohmcomm
         }
     }
     addUserFunction(descr, rtpConfig, rtcpConfig);
+}
+
+SIPGrammar::SIPURI SIPHandler::toSIPURI(const SIPUserAgent& sipUA, const bool withParameters)
+{
+    SIPGrammar::SIPURI uri{"sip", sipUA.userName, "", sipUA.hostName.empty() ? sipUA.ipAddress : sipUA.hostName, sipUA.port};
+    if(withParameters && !sipUA.tag.empty())
+    {
+        uri.parameters["tag"] = sipUA.tag;
+    }
+    return uri;
 }

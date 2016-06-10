@@ -319,12 +319,12 @@ namespace ohmcomm
             {
             }
 
-            const std::string getRequestCommand() const
+            const std::string getRequestCommand() const override
             {
                 return requestCommand;
             }
 
-            const std::string getRemoteTag() const
+            const std::string getRemoteTag() const override
             {
                 const std::string& fromField = (*this)[SIP_HEADER_FROM];
                 if (fromField.find("tag=") == std::string::npos) {
@@ -588,14 +588,14 @@ namespace ohmcomm
             {
             }
 
-            const std::string getRequestCommand() const
+            const std::string getRequestCommand() const override
             {
                 const std::string cSeq = (*this)[SIP_HEADER_CSEQ];
                 //request-command is everything after the first space ' '
                 return cSeq.substr(cSeq.find(' ') + 1);
             }
 
-            const std::string getRemoteTag() const
+            const std::string getRemoteTag() const override
             {
                 const std::string& toField = (*this)[SIP_HEADER_TO];
                 if (toField.find("tag=") == std::string::npos) {
