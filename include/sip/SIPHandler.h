@@ -37,6 +37,9 @@ namespace ohmcomm
 
             //A list of all accepted MIME-types
             static const std::string SIP_ACCEPT_TYPES;
+            
+            //A list of all supported SIP extension headers
+            static const std::string SIP_SUPPORTED_FIELDS;
 
             //The default port for SIP, as of RFC 3261
             static constexpr unsigned short SIP_DEFAULT_PORT{5060};
@@ -125,6 +128,8 @@ namespace ohmcomm
             void sendByeRequest(SIPUserAgent& remoteUA);
 
             void sendAckRequest(SIPUserAgent& remoteUA);
+            
+            void sendOptionsResponse(SIPUserAgent& remoteUA, const SIPRequestHeader* requestHeader);
 
             void sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA);
 

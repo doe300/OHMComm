@@ -77,6 +77,7 @@ void TestUtility::testJoinStrings()
 {
     TEST_ASSERT(Utility::joinStrings({"one","two"}, " and ").compare("one and two") == 0);
     TEST_ASSERT(Utility::joinStrings({"beer", "fest", "ival"}, "").compare("beerfestival") == 0);
+    TEST_ASSERT(Utility::joinStrings({}).compare("") == 0);
 }
 
 void TestUtility::testDecodeURI()

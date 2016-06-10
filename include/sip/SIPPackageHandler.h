@@ -196,6 +196,15 @@ namespace ohmcomm
          * explicitly allows the presence of this header field.
          */
         const std::string SIP_HEADER_REASON("Reason");
+        
+        /*!
+         * The Supported header field enumerates all the extensions supported by the UAC or UAS.
+         * 
+         * The Supported header field contains a list of option tags, described in Section 19.2, that are understood by the UAC or UAS.
+         * A UA compliant to this specification MUST only include option tags corresponding to standards-track RFCs.
+         * If empty, it means that no extensions are supported.
+         */
+        const std::string SIP_HEADER_SUPPORTED("Supported");
 
         /*!
          * Specifies the logical recipient of the request. 

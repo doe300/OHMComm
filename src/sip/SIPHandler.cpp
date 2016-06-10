@@ -13,8 +13,9 @@
 
 using namespace ohmcomm::sip;
 
-const std::string SIPHandler::SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL}, " ");
+const std::string SIPHandler::SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL, SIP_REQUEST_OPTIONS, SIP_REQUEST_INFO}, " ");
 const std::string SIPHandler::SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
+const std::string SIPHandler::SIP_SUPPORTED_FIELDS = ohmcomm::Utility::joinStrings({});
 
 SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction) : 
         userAgents(std::to_string(rand())), network(new ohmcomm::network::MulticastNetworkWrapper(sipConfig)), sipConfig(sipConfig), addUserFunction(addUserFunction), buffer(SIP_BUFFER_SIZE), state(SessionState::UNKNOWN)
@@ -192,6 +193,36 @@ void SIPHandler::sendCancelRequest(SIPUserAgent& remoteUA)
     state = SessionState::SHUTDOWN;
 }
 
+void SIPHandler::sendOptionsResponse(SIPUserAgent& remoteUA, const SIPRequestHeader* requestHeader)
+{
+    SIPResponseHeader responseHeader(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK);
+    initializeHeaderFields("", responseHeader, requestHeader, remoteUA);
+    
+    //RFC 3261, Section 11.2: "Allow, Accept, Accept-Encoding, Accept-Language, and Supported header fields SHOULD be present[...]"
+    responseHeader[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
+    responseHeader[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
+    responseHeader[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
+    //RFC 3261, Section 20.2: "If no Accept-Encoding header field is present, the server SHOULD assume a default value of identity."
+    //RFC 3261, Section 20.3: "If no Accept-Language header field is present, the server SHOULD assume all languages are acceptable to the client."
+    
+    //RFC 3261, Section 11.2: "A message body MAY be sent, the type of which is determined by the Accept header field 
+    // in the OPTIONS request (application/sdp is the default if the Accept header field is not present). If the types
+    // include one that can describe media capabilities, the UAS SHOULD include a body in the response for that purpose"
+    std::string messageBody("");
+    if((*(requestHeader))[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0)
+    {
+        //add SDP message body
+        responseHeader[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
+        NetworkConfiguration rtpConfig = sipConfig;
+        rtpConfig.localPort = DEFAULT_NETWORK_PORT;
+        rtpConfig.remotePort = DEFAULT_NETWORK_PORT;
+        messageBody = SDPMessageHandler::createSessionDescription(userAgents.thisUA.userName, rtpConfig);
+    }
+    
+    const std::string message = SIPPackageHandler::createResponsePackage(responseHeader, messageBody);
+    ohmcomm::info("SIP") << "Sending OPTIONS response to " << remoteUA.getSIPURI() << ohmcomm::endl;
+    network->sendData(message.data(), message.size());
+}
 
 void SIPHandler::sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA)
 {
@@ -298,6 +329,11 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
                 SIPResponseHeader responseHeader(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK);
                 initializeHeaderFields(SIP_REQUEST_INVITE, responseHeader, &requestHeader, remoteUA);
                 responseHeader[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
+                //RFC 3261: "A 2xx response to an INVITE SHOULD contain the Allow header field and the Supported header field, 
+                // and MAY contain the Accept header field"
+                responseHeader[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
+                responseHeader[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
+                responseHeader[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
                 NetworkConfiguration rtpConfig;
                 rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
                 rtpConfig.localPort = DEFAULT_NETWORK_PORT;
@@ -358,6 +394,30 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
                     stopCallback();
                 }
             }
+        }
+        else if(SIP_REQUEST_OPTIONS.compare(requestHeader.requestCommand) == 0)
+        {
+            //remote has requested OPTIONS about our capabilities
+            //"The response code chosen MUST be the same that would have been chosen had the request been an INVITE.
+            // That is, a 200 (OK) would be returned if the UAS is ready to accept a call, a 486 (Busy Here)
+            // would be returned if the UAS is busy, etc."
+            if(state != SessionState::ESTABLISHED)
+            {
+                updateNetworkConfig(&requestHeader, &packageInfo, remoteUA);
+            }
+            //if we get invited, the Call-ID is set by the remote UAS
+            remoteUA.callID = requestHeader[SIP_HEADER_CALL_ID];
+            
+            sendOptionsResponse(remoteUA, &requestHeader);
+        }
+        else if(SIP_REQUEST_INFO.compare(requestHeader.requestCommand) == 0)
+        {
+            //RFC 2976, Section 2.2: "A 200 OK response MUST be sent by a UAS[...]"
+            //until an extension to SIP is supported utilizing INFO, we create a simple response,
+            //since there are no required fields for INFO responses as of RFC 2976
+            sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
+            
+            //NOTE: RFC 6068 extends INFO greatly but is not supported!
         }
         else
         {

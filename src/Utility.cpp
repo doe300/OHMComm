@@ -189,6 +189,10 @@ std::string Utility::replaceAll(std::string str, const std::string& from, const 
 
 std::string Utility::joinStrings(const std::vector<std::string>& vector, const std::string& delimiter)
 {
+    if(vector.empty())
+    {
+        return "";
+    }
     std::vector<std::string>::const_iterator it = vector.begin();
     std::string result(*it);
     ++it;
