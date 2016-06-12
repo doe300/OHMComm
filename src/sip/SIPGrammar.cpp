@@ -271,3 +271,9 @@ bool SIPGrammar::isValidCSeq(const std::string& cSeq)
     //check for existence of second part
     return !Utility::trim(cSeq.substr(index)).empty();
 }
+
+std::string SIPGrammar::generateCallID(const std::string& host)
+{
+    //Call-ID: UUID@host
+    return (ohmcomm::Utility::generateRandomUUID() + "@") +host;
+}

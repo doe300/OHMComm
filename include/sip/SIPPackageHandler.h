@@ -112,6 +112,15 @@ namespace ohmcomm
          * Supplying an Allow header field in responses to methods other than OPTIONS reduces the number of messages needed.
          */
         const std::string SIP_HEADER_ALLOW("Allow");
+        
+        /*!
+         * The Authorization header field contains authentication credentials of a UA.
+         * 
+         * This header field, along with Proxy-Authorization, breaks the general rules about multiple header field values.
+         * Although not a comma-separated list, this header field name may be present multiple times, 
+         * and MUST NOT be combined into a single header line
+         */
+        const std::string SIP_HEADER_AUTHORIZATION("Authorization");
 
         /*!
          * The Call-ID header field uniquely identifies a particular invitation or all registrations of a particular client.
@@ -239,6 +248,11 @@ namespace ohmcomm
          * sent to a SIPS URI, the protocol still indicates "SIP", and the transport protocol is TLS.
          */
         const std::string SIP_HEADER_VIA("Via");
+        
+        /*!
+         * A WWW-Authenticate header field value contains an authentication challenge.
+         */
+        const std::string SIP_HEADER_WWW_AUTHENTICATE("WWW-Authenticate");
 
         struct HeaderField : public KeyValuePair<std::string>
         {

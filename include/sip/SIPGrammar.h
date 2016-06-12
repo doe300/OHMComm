@@ -97,6 +97,8 @@ namespace ohmcomm
             static bool isValidCallID(const std::string& callID);
 
             static bool isValidCSeq(const std::string& cSeq);
+            
+            static std::string generateCallID(const std::string& host);
         };
     }
 }

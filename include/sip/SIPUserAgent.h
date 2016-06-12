@@ -25,7 +25,7 @@ namespace ohmcomm
             std::string userName;
             std::string hostName;
             std::string ipAddress;
-            int64_t associatedSSRC; //TODO how to map this??
+            int64_t associatedSSRC;
             unsigned short port;
             //the Call-ID associated with the conversation with this particular UA
             std::string callID;
