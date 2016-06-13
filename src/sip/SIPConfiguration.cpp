@@ -15,7 +15,7 @@
 using namespace ohmcomm::sip;
 
 SIPConfiguration::SIPConfiguration(const ohmcomm::Parameters& params, const ohmcomm::NetworkConfiguration& sipConfig) : 
-    ParameterConfiguration(params), handler(sipConfig, "remote", [this](const MediaDescription media, const ohmcomm::NetworkConfiguration rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
+    ParameterConfiguration(params), handler(sipConfig, "remote", [this](const MediaDescription media, const ohmcomm::NetworkConfiguration rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}, params.getParameterValue(Parameters::SIP_REGISTER_USER)), rtcpConfig({0})
 {
     //overwrite settings from ParameterConfiguration
     useDefaultAudioConfig = false;
@@ -41,7 +41,7 @@ bool SIPConfiguration::runConfiguration()
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     // maximum time to wait before aborting configuration
     int timeLeft = SIPConfiguration::MAX_WAIT_TIME;
-    ohmcomm::info("SIP") << "Calling remote ... " << ohmcomm::endl;
+    ohmcomm::info("SIP") << "Establishing connection ... " << ohmcomm::endl;
     ohmcomm::info("SIP") << "Press Enter to cancel" << ohmcomm::endl;
     
     //wait for configuration to be done

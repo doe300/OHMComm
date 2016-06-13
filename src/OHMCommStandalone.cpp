@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
             }
             exit(0);
         }
-        if(params.isParameterSet(Parameters::SIP_LOCAL_PORT) || params.isParameterSet(Parameters::SIP_REMOTE_PORT))
+        if(params.isParameterSet(Parameters::SIP_LOCAL_PORT) || params.isParameterSet(Parameters::SIP_REMOTE_PORT) || params.isParameterSet(Parameters::SIP_REGISTER_USER))
         {
             NetworkConfiguration sipConfig{0};
             sipConfig.remoteIPAddress = Utility::getAddressForHostName(params.getParameterValue(Parameters::REMOTE_ADDRESS));

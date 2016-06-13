@@ -19,8 +19,8 @@ const std::string SIPHandler::SIP_SUPPORTED_FIELDS = ohmcomm::Utility::joinStrin
 //XXX sip.methods (one for each supported method)
 const std::string SIPHandler::SIP_CAPABILITIES = ohmcomm::Utility::joinStrings({";sip.audio", "sip.duplex=full"}, ";");
 
-SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction) : 
-    SIPSession(sipConfig, remoteUser, addUserFunction), sipConfig(sipConfig), buffer(SIP_BUFFER_SIZE)
+SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction, const std::string& registerUser) : 
+    SIPSession(sipConfig, remoteUser, addUserFunction), registerUser(registerUser), sipConfig(sipConfig), buffer(SIP_BUFFER_SIZE)
 {
     updateNetworkConfig(nullptr, nullptr, userAgents.getRemoteUA());
 }
@@ -73,11 +73,24 @@ void SIPHandler::runThread()
     ohmcomm::info("SIP") << "SIP-Handler started ..." << ohmcomm::endl;
     state = SessionState::DISCONNECTED;
     
-    //TODO register on UAS, if specified
-
-    //how to determine if initiating or receiving side??
-    //doesn't really matter, if we are the first to start, the other side won't receive our INVITE, otherwise we INVITE
-    sendInviteRequest(userAgents.getRemoteUA());
+    //register on UAS, if specified
+    if(!registerUser.empty())
+    {
+        if(userAgents.getRemoteUA().hostName.empty())
+        {
+            userAgents.getRemoteUA().hostName = userAgents.getRemoteUA().ipAddress;
+        }
+        userAgents.getRemoteUA().userName = registerUser;
+        userAgents.thisUA.userName = registerUser;
+        userAgents.thisUA.hostName = userAgents.getRemoteUA().hostName;
+        sendRegisterRequest(userAgents.getRemoteUA());
+    }
+    else
+    {
+        //how to determine if initiating or receiving side??
+        //doesn't really matter, if we are the first to start, the other side won't receive our INVITE, otherwise we INVITE
+        sendInviteRequest(userAgents.getRemoteUA());
+    }
 
     while (threadRunning)
     {
@@ -108,78 +121,24 @@ void SIPHandler::runThread()
 
 void SIPHandler::sendInviteRequest(SIPUserAgent& remoteUA)
 {
-    SIPRequestHeader header;
-    header.requestCommand = SIP_REQUEST_INVITE;
-    header.requestURI = remoteUA.getSIPURI();
-    initializeHeaderFields(SIP_REQUEST_INVITE, header, nullptr, remoteUA, sipConfig);
-    //header-fields
-    header[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
-    header[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
-    header[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
-
     NetworkConfiguration rtpConfig = sipConfig;
     rtpConfig.localPort = DEFAULT_NETWORK_PORT;
     rtpConfig.remotePort = DEFAULT_NETWORK_PORT;
     const std::string messageBody = SDPMessageHandler::createSessionDescription(userAgents.thisUA.userName, rtpConfig);
-
-    const std::string message = SIPPackageHandler::createRequestPackage(header, messageBody);
-    ohmcomm::info("SIP") << "Sending INVITE to " << remoteUA.getSIPURI() << ohmcomm::endl;
-    network->sendData(message.data(), message.size());
+    
+    currentRequest.reset(new INVITERequest(userAgents.thisUA, {}, remoteUA, sipConfig.localPort, network.get()));
+    currentRequest->sendRequest(messageBody);
     
     state = SessionState::INVITING;
 }
 
 void SIPHandler::sendCancelRequest(SIPUserAgent& remoteUA)
 {
-    SIPRequestHeader header(SIP_REQUEST_CANCEL, remoteUA.getSIPURI());
-    //branch must be the same as on INVITE
-    const std::string retainLastBranch(remoteUA.lastBranch);
-    initializeHeaderFields(SIP_REQUEST_CANCEL, header, nullptr, remoteUA, sipConfig);
-    //need to manually overwrite CSeq to use the value from INVITE (previous request)
-    --remoteUA.sequenceNumber;
-    header[SIP_HEADER_CSEQ] = (std::to_string(remoteUA.sequenceNumber)+" ") + SIP_REQUEST_CANCEL;
-    //need to manually set the branch-tag to the value from the INVITE
-    header[SIP_HEADER_VIA].replace(header[SIP_HEADER_VIA].find_last_of('=') + 1, header.getBranchTag().size(), retainLastBranch);
+    currentRequest.reset(new CANCELRequest(userAgents.thisUA, {}, remoteUA, sipConfig.localPort, network.get()));
+    currentRequest->sendRequest("");
     
-    const std::string message = SIPPackageHandler::createRequestPackage(header, "");
-    ohmcomm::info("SIP") << "Sending CANCEL to " << remoteUA.getSIPURI() << ohmcomm::endl;
-    network->sendData(message.data(), message.size());
-    
+    //TODO not every cancel results in closed connection, does it?
     state = SessionState::SHUTDOWN;
-}
-
-void SIPHandler::sendOptionsResponse(SIPUserAgent& remoteUA, const SIPRequestHeader* requestHeader)
-{
-    SIPResponseHeader responseHeader(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK);
-    initializeHeaderFields("", responseHeader, requestHeader, remoteUA, sipConfig);
-    
-    //RFC 3261, Section 11.2: "Allow, Accept, Accept-Encoding, Accept-Language, and Supported header fields SHOULD be present[...]"
-    responseHeader[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
-    responseHeader[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
-    responseHeader[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
-    //RFC 3261, Section 20.2: "If no Accept-Encoding header field is present, the server SHOULD assume a default value of identity."
-    //RFC 3261, Section 20.3: "If no Accept-Language header field is present, the server SHOULD assume all languages are acceptable to the client."
-    
-    //RFC 3840, Section 8: "[...] add feature parameters to the Contact header field in the OPTIONS [...]"
-    responseHeader[SIP_HEADER_CONTACT] += SIP_CAPABILITIES;
-    
-    //RFC 3261, Section 11.2: "A message body MAY be sent, the type of which is determined by the Accept header field 
-    // in the OPTIONS request (application/sdp is the default if the Accept header field is not present). If the types
-    // include one that can describe media capabilities, the UAS SHOULD include a body in the response for that purpose"
-    std::string messageBody("");
-    if((*(requestHeader))[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0)
-    {
-        //add SDP message body
-        responseHeader[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
-        NetworkConfiguration rtpConfig = sipConfig;
-        rtpConfig.localPort = DEFAULT_NETWORK_PORT;
-        rtpConfig.remotePort = DEFAULT_NETWORK_PORT;
-        messageBody = SDPMessageHandler::createSessionDescription(userAgents.thisUA.userName, rtpConfig);
-    }
-    
-    const std::string message = SIPPackageHandler::createResponsePackage(responseHeader, messageBody);
-    ohmcomm::info("SIP") << "Sending OPTIONS response to " << remoteUA.getSIPURI() << ohmcomm::endl;
-    network->sendData(message.data(), message.size());
 }
 
 void SIPHandler::sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA)
@@ -192,12 +151,8 @@ void SIPHandler::sendResponse(const unsigned int responseCode, const std::string
 
 void SIPHandler::sendByeRequest(SIPUserAgent& remoteUA)
 {
-    SIPRequestHeader header(SIP_REQUEST_BYE, remoteUA.getSIPURI());
-    initializeHeaderFields(SIP_REQUEST_BYE, header, nullptr, remoteUA, sipConfig);
-
-    const std::string message = SIPPackageHandler::createRequestPackage(header, "");
-    ohmcomm::info("SIP") << "Sending BYE to " << remoteUA.getSIPURI() << ohmcomm::endl;
-    network->sendData(message.data(), message.size());
+    currentRequest.reset(new BYERequest(userAgents.thisUA, {}, remoteUA, sipConfig.localPort, network.get()));
+    currentRequest->sendRequest("");
     
     state = SessionState::SHUTDOWN;
 }
@@ -213,19 +168,8 @@ void SIPHandler::sendAckRequest(SIPUserAgent& remoteUA)
 
 void SIPHandler::sendRegisterRequest(SIPUserAgent& registerUA)
 {
-    //RFC 3261, Section 10.2: 
-    //"The "userinfo" and "@" components of the SIP URI MUST NOT be present"
-    SIPRequestHeader header(SIP_REQUEST_REGISTER, SIPGrammar::toSIPURI({"sip", "", "", registerUA.hostName.empty() ? registerUA.ipAddress : registerUA.hostName, registerUA.port}));
-    initializeHeaderFields(SIP_REQUEST_REGISTER, header, nullptr, registerUA, sipConfig);
-    
-    header[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
-    header[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
-    header[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
-    header[SIP_HEADER_CONTACT] += SIP_CAPABILITIES;
-    
-    ohmcomm::info("SIP") << "Sending REGISTER to " << registerUA.getSIPURI() << ohmcomm::endl;
-    const std::string message = SIPPackageHandler::createRequestPackage(header, "");
-    network->sendData(message.data(), message.size());
+    currentRequest.reset(new REGISTERRequest(userAgents.thisUA, {}, registerUA, sipConfig.localPort, network.get()));
+    currentRequest->sendRequest("");
 }
 
 void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength, const ohmcomm::network::NetworkWrapper::Package& packageInfo)
@@ -279,7 +223,8 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
         }
         else if(SIP_REQUEST_INFO.compare(requestHeader.requestCommand) == 0)
         {
-            handleINFORequest(packageInfo, requestHeader, requestBody, remoteUA);
+            INFORequest info(userAgents.thisUA, requestHeader, remoteUA, sipConfig.localPort, network.get());
+            info.handleRequest(requestBody);
         }
         else
         {
@@ -378,12 +323,8 @@ void SIPHandler::handleBYERequest(const ohmcomm::network::NetworkWrapper::Packag
 {
     ohmcomm::info("SIP") << "BYE received, shutting down ..." << ohmcomm::endl;
     //send ok to verify reception
-    sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
-    //remove remote user-agent
-    if(remoteUA.associatedSSRC >= 0)
-    {
-        ohmcomm::rtp::ParticipantDatabase::removeParticipant((uint32_t)remoteUA.associatedSSRC);
-    }
+    BYERequest bye(userAgents.thisUA, requestHeader, remoteUA, sipConfig.localPort, network.get());
+    bye.handleRequest(requestBody);
     userAgents.removeRemoteUA(remoteUA.tag);
     //end communication, if established
     shutdownInternal();
@@ -397,8 +338,9 @@ void SIPHandler::handleCANCELRequest(const ohmcomm::network::NetworkWrapper::Pac
     if(state != SessionState::ESTABLISHED)
     {
         ohmcomm::info("SIP") << "CANCEL received, canceling session setup ..." << ohmcomm::endl;
+        CANCELRequest cancel(userAgents.thisUA, requestHeader, remoteUA, sipConfig.localPort, network.get());
         //send ok to verify reception
-        sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
+        cancel.handleRequest(requestBody);
         userAgents.removeRemoteUA(remoteUA.tag);
         if(userAgents.getNumberOfRemotes() == 0)
         {
@@ -422,17 +364,8 @@ void SIPHandler::handleOPTIONSRequest(const ohmcomm::network::NetworkWrapper::Pa
     //if we get invited, the Call-ID is set by the remote UAS
     remoteUA.callID = requestHeader[SIP_HEADER_CALL_ID];
 
-    sendOptionsResponse(remoteUA, &requestHeader);
-}
-
-void SIPHandler::handleINFORequest(const ohmcomm::network::NetworkWrapper::Package& packageInfo, const SIPRequestHeader& requestHeader, const std::string& requestBody, SIPUserAgent& remoteUA)
-{
-    //RFC 2976, Section 2.2: "A 200 OK response MUST be sent by a UAS[...]"
-    //until an extension to SIP is supported utilizing INFO, we create a simple response,
-    //since there are no required fields for INFO responses as of RFC 2976
-    sendResponse(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK, &requestHeader, remoteUA);
-
-    //NOTE: RFC 6068 extends INFO greatly but is not supported!
+    OPTIONSRequest options(userAgents.thisUA, requestHeader, remoteUA, sipConfig.localPort, network.get());
+    options.handleRequest(requestBody);
 }
 
 void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLength, const ohmcomm::network::NetworkWrapper::Package& packageInfo)
@@ -459,7 +392,12 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     SIPUserAgent& remoteUA = userAgents.getRemoteUA(/*XXXrequestHeader.getRemoteTag()*/);
     try
     {
-        if(responseHeader.statusCode >= 100 && responseHeader.statusCode < 200)
+        if(currentRequest && currentRequest->handleResponse(packageInfo, responseHeader, responseBody, remoteUA))
+        {
+            //if previous request handles response, no need for extra handling
+            currentRequest.reset();
+        }
+        else if(responseHeader.statusCode >= 100 && responseHeader.statusCode < 200)
         {
             //for all provisional status-codes - do nothing
         }

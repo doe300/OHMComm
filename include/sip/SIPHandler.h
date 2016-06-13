@@ -13,6 +13,7 @@
 #include <chrono>
 
 #include "SIPSession.h"
+#include "SIPRequest.h"
 
 namespace ohmcomm
 {
@@ -38,7 +39,7 @@ namespace ohmcomm
             //The default port for SIP, as of RFC 3261
             static constexpr unsigned short SIP_DEFAULT_PORT{5060};
 
-            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const SIPSession::AddUserFunction addUserFunction);
+            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const SIPSession::AddUserFunction addUserFunction, const std::string& registerUser);
 
             ~SIPHandler();
 
@@ -62,6 +63,7 @@ namespace ohmcomm
             
         private:
             static constexpr unsigned short SIP_BUFFER_SIZE{2048};
+            const std::string registerUser;
             
             NetworkConfiguration sipConfig;
             const AddUserFunction addUserFunction;
@@ -72,6 +74,8 @@ namespace ohmcomm
 
             std::thread sipThread;
             bool threadRunning = false;
+            
+            std::unique_ptr<SIPRequest> currentRequest;
 
             /*!
              * Method called in the parallel thread, receiving SIP-packages and handling them
@@ -88,8 +92,6 @@ namespace ohmcomm
             
             void handleOPTIONSRequest(const ohmcomm::network::NetworkWrapper::Package& packageInfo, const SIPRequestHeader& requestHeader, const std::string& requestBody, SIPUserAgent& remoteUA);
             
-            void handleINFORequest(const ohmcomm::network::NetworkWrapper::Package& packageInfo, const SIPRequestHeader& requestHeader, const std::string& requestBody, SIPUserAgent& remoteUA);
-
             void handleSIPResponse(const void* buffer, unsigned int packageLength, const ohmcomm::network::NetworkWrapper::Package& packageInfo);
             
             void handleOKResponse(const ohmcomm::network::NetworkWrapper::Package& packageInfo, const SIPResponseHeader& responseHeader, std::string& responseBody, SIPUserAgent& remoteUA);
@@ -104,8 +106,6 @@ namespace ohmcomm
             
             void sendRegisterRequest(SIPUserAgent& registerUA);
             
-            void sendOptionsResponse(SIPUserAgent& remoteUA, const SIPRequestHeader* requestHeader);
-
             void sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA);
 
             void updateNetworkConfig(const SIPHeader* header, const ohmcomm::network::NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA);
