@@ -44,6 +44,8 @@ public:
     void testPrettifyPercentage();
     
     void testPrettifyByteSize();
+    
+    void testBase64();
 };
 
 #endif	/* TESTUTILITY_H */

@@ -187,6 +187,22 @@ namespace ohmcomm
          * \since 0.9
          */
         static std::string prettifyByteSize(const double byteSize);
+        
+        /*!
+         * Converts the given string into Base64
+         * 
+         * \return the Base64 encoded string
+         * \since 0.9
+         */
+        static std::string encodeBase64(const std::string& plainString);
+        
+        /*!
+         * Decodes the given Base64 encoded string
+         * 
+         * \return the decoded string
+         * \since 0.9
+         */
+        static std::string decodeBase64(const std::string& base64String);
 
     private:
 

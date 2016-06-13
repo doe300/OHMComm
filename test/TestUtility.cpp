@@ -25,6 +25,7 @@ TestUtility::TestUtility()
     TEST_ADD(TestUtility::testGenerateRandomUUID);
     TEST_ADD(TestUtility::testPrettifyPercentage);
     TEST_ADD(TestUtility::testPrettifyByteSize);
+    TEST_ADD(TestUtility::testBase64);
 }
 
 void TestUtility::printDomainInfo()
@@ -124,4 +125,13 @@ void TestUtility::testPrettifyByteSize()
     std::cout << Utility::prettifyByteSize(1025) << std::endl;
     TEST_ASSERT(Utility::prettifyByteSize(12.0).compare("12.00 B") == 0);
     TEST_ASSERT(Utility::prettifyByteSize(1025).compare("1.00 KB") == 0);
+}
+
+void TestUtility::testBase64()
+{
+    const std::string orig = "DummyString";
+    const std::string encoded = Utility::encodeBase64(orig);
+    const std::string decoded = Utility::decodeBase64(encoded);
+    
+    TEST_ASSERT(orig.compare(decoded) == 0);
 }
