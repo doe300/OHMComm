@@ -15,10 +15,12 @@ if(MSVC)
 	link_directories ("${PROJECT_BINARY_DIR}/build/cpptest/Release")
 	link_directories ("${PROJECT_BINARY_DIR}/build/opus/Debug")
 	link_directories ("${PROJECT_BINARY_DIR}/build/opus/Release")
+	#MSVC seems to be unable to link to shared library out of the box
+	add_library( OHMComm STATIC ${SRCS} ${HDRS} )
+else()
+	#Build shared library OHMComm
+	add_library( OHMComm SHARED ${SRCS} ${HDRS} )
 endif()
-
-#Build OHMCommLib
-add_library( OHMComm SHARED ${SRCS} ${HDRS} )
 
 #Build OHMComm
 add_executable( OHMCommStandalone "OHMCommStandalone.cpp" )
