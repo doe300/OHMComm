@@ -6,7 +6,7 @@ This project started as an IT-Project at the [faculty for Computer Science of th
 [![GitHub license](https://img.shields.io/github/license/doe300/OHMComm.svg)](https://github.com/doe300/OHMComm/blob/master/LICENSE)
 [![Release](https://img.shields.io/github/tag/doe300/OHMComm.svg)](https://github.com/doe300/OHMComm/releases/latest)
 
-This program is currently developed under linux (Fedora 22) and Windows (7/8) and tested under Mac OS X.
+This program is currently developed under linux (Fedora 23) and Windows (7/8) and tested under Mac OS X.
 
 OHMComm is based upon [RtAudio](http://www.music.mcgill.ca/~gary/rtaudio/) and therefore supports all audio-libraries supported by RtAudio (see [RtAudio API-Notes](http://www.music.mcgill.ca/~gary/rtaudio/apinotes.html)). 
 The audio-data are (optionally but highly recommended) encoded with the included [opus-codec](http://www.opus-codec.org/).
@@ -53,6 +53,7 @@ This will build the library/executable into `<project-directory>/build/` by defa
 ## Features
 - Fully standard-conform communication based on [RTP](https://tools.ietf.org/html/rfc3550) including full [RTCP](https://tools.ietf.org/html/rfc3550#section-6) support
 - Support for direct calls to and from any VoIP application featuring [SIP](https://tools.ietf.org/html/rfc3261)
+- Support for SIP-based registration with a VoIP-server is currently being developed
 - Support for DTX to further decrease required bandwidth
 
 ## Addons
