@@ -47,19 +47,19 @@ void TestNetworkWrappers::testMulticastWrapper()
     ohmcomm::network::UDPWrapper receiver1(ohmcomm::NetworkConfiguration{DEFAULT_NETWORK_PORT + 1, "127.0.0.1", DEFAULT_NETWORK_PORT});
     ohmcomm::network::UDPWrapper receiver2(ohmcomm::NetworkConfiguration{DEFAULT_NETWORK_PORT + 2, "127.0.0.1", DEFAULT_NETWORK_PORT});
     
-    const char* sendBuffer = "Hello, I will be sent and stuff!";
-    const int sendLength = strlen(sendBuffer);
+    const std::string sendBuffer = "Hello, I will be sent and stuff!";
+    const int sendLength = sendBuffer.size();
     
-    TEST_ASSERT_EQUALS(sendLength, sender.sendData(sendBuffer, sendLength));
+    TEST_ASSERT_EQUALS(sendLength, sender.sendData(sendBuffer.data(), sendLength));
     
-    char recvBuffer1[sendLength + 10];
-    char recvBuffer2[sendLength + 10];
+    std::string recvBuffer1(sendLength + 10, '\0');
+    std::string recvBuffer2(sendLength + 10, '\0');
     
     int receiveSize = -2;
     //repeat on timeout
     while(receiveSize == -2)
     {
-        receiveSize = receiver1.receiveData(recvBuffer1, sendLength + 5).status;
+        receiveSize = receiver1.receiveData(&(recvBuffer1[0]), sendLength + 5).status;
     }
     //make sure, both recipients receive complete package
     TEST_ASSERT_EQUALS(sendLength, receiveSize);
@@ -68,25 +68,25 @@ void TestNetworkWrappers::testMulticastWrapper()
     //repeat on timeout
     while(receiveSize == -2)
     {
-        receiveSize = receiver2.receiveData(recvBuffer2, sendLength + 5).status;
+        receiveSize = receiver2.receiveData(&(recvBuffer2[0]), sendLength + 5).status;
     }
     TEST_ASSERT_EQUALS(sendLength, receiveSize);
     
     //test contents for equality
-    TEST_ASSERT(strcmp(sendBuffer, recvBuffer1) == 0);
-    TEST_ASSERT(strcmp(sendBuffer, recvBuffer2) == 0);
+    TEST_ASSERT(strcmp(sendBuffer.data(), &(recvBuffer1[0])) == 0);
+    TEST_ASSERT(strcmp(sendBuffer.data(), &(recvBuffer2[0])) == 0);
     
     
     //remove recipient
     TEST_ASSERT(sender.removeDestination("127.0.0.1", DEFAULT_NETWORK_PORT + 2));
     
     //test again
-    TEST_ASSERT_EQUALS(sendLength, sender.sendData(sendBuffer, sendLength));
+    TEST_ASSERT_EQUALS(sendLength, sender.sendData(sendBuffer.data(), sendLength));
     receiveSize = -2;
     //repeat on timeout
     while(receiveSize == -2)
     {
-        receiveSize = receiver1.receiveData(recvBuffer1, sendLength + 5).status;
+        receiveSize = receiver1.receiveData(&(recvBuffer1[0]), sendLength + 5).status;
     }
     TEST_ASSERT_EQUALS(sendLength, receiveSize);
 }

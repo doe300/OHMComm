@@ -16,11 +16,11 @@ if(NOT MSVC)
 	# the following instruction causes warnings in visual studio, 
 	# therefore enable it only when MSVC-compiler is not used
 	if(BUILD_DEBUG)
-		LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -g3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC")
-		LIST(APPEND CMAKE_C_FLAGS "-g3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC")
+		LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -g3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC -Wpedantic")
+		LIST(APPEND CMAKE_C_FLAGS "-g3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC -Wpedantic")
 	else()
-		LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC")
-		LIST(APPEND CMAKE_C_FLAGS "-O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC")
+		LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC -Wpedantic")
+		LIST(APPEND CMAKE_C_FLAGS "-O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -pthread -fPIC -Wpedantic")
 	endif()
 else()
 	# visual studio specific flags

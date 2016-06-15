@@ -85,7 +85,7 @@ namespace ohmcomm
         void onRemoteRemoved(const unsigned int ssrc) override;
 
         //XXX remove this
-        std::function<void () > createStopCallback();
+        virtual std::function<void () > createStopCallback() override;
 
     private:
 

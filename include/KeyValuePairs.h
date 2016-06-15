@@ -116,7 +116,7 @@ namespace ohmcomm
                     }
                 }
             }
-            return std::move(results);
+            return results;
         }
 
         template<typename keyType = typename KeyValueType::type>

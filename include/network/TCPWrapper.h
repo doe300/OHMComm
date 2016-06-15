@@ -29,7 +29,7 @@ namespace ohmcomm
             int sendData(const void *buffer, const unsigned int bufferSize = 0) override;
             Package receiveData(void *buffer, unsigned int bufferSize = 0) override;
 
-            void closeNetwork();
+            virtual void closeNetwork() override;
         private:
 
             int Socket;

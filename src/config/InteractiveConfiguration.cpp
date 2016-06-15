@@ -33,7 +33,7 @@ bool InteractiveConfiguration::runConfiguration()
             audioHandlerName = *audioHandlers.begin();
         }
         std::cout << "Using AudioHandler: " << audioHandlerName << std::endl;
-        interactivelyConfigureAudioDevices(std::move(AudioHandlerFactory::getAudioHandler(audioHandlerName)));
+        interactivelyConfigureAudioDevices(AudioHandlerFactory::getAudioHandler(audioHandlerName));
         useDefaultAudioConfig = false;
     }
     else

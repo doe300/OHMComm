@@ -326,7 +326,7 @@ std::vector<MediaDescription> SDPMessageHandler::readMediaDescriptions(const Ses
         }
     }
     ohmcomm::info("SDP") << results.size() << " useful media descriptions found" << ohmcomm::endl;
-    return std::move(results);
+    return results;
 }
 
 ohmcomm::NetworkConfiguration SDPMessageHandler::readRTCPAttribute(const SessionDescription& sdp)
@@ -378,7 +378,7 @@ MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, con
     const std::string rtpMap = sdp.getAttribute(SessionDescription::SDP_ATTRIBUTE_RTPMAP, std::to_string(payloadType));
     if(rtpMap.empty())
     {
-        return std::move(MediaDescription{});
+        return MediaDescription{};
     }
     std::string::size_type index = rtpMap.find(' ') + 1;
     const std::string encoding = rtpMap.substr(index, rtpMap.find('/', index) - index);
@@ -391,7 +391,7 @@ MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, con
         index += 1;
         numChannels = atoi(rtpMap.substr(index).data());
     }
-    return std::move(MediaDescription(0, "", payloadType, encoding, sampleRate, numChannels));
+    return MediaDescription(0, "", payloadType, encoding, sampleRate, numChannels);
 }
 
 void SDPMessageHandler::readFormatParameters(MediaDescription& descr, const SessionDescription& sdp, const unsigned int payloadType)

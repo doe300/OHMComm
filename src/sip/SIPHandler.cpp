@@ -392,10 +392,13 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     SIPUserAgent& remoteUA = userAgents.getRemoteUA(/*XXXrequestHeader.getRemoteTag()*/);
     try
     {
-        if(currentRequest && currentRequest->handleResponse(packageInfo, responseHeader, responseBody, remoteUA))
+        if(currentRequest && currentRequest->isMatchingResponse(responseHeader) && currentRequest->handleResponse(packageInfo, responseHeader, responseBody, remoteUA))
         {
             //if previous request handles response, no need for extra handling
-            currentRequest.reset();
+            if(currentRequest->isCompleted())
+            {
+                currentRequest.reset();
+            }
         }
         else if(responseHeader.statusCode >= 100 && responseHeader.statusCode < 200)
         {

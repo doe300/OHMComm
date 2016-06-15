@@ -219,7 +219,7 @@ namespace ohmcomm
             //fires listeners for setting address for remote
             static void fireConnectedRemote(const uint32_t ssrc, const std::string& address, const uint16_t port);
             
-            friend class Participant;
+            friend struct Participant;
         };
     }
 }

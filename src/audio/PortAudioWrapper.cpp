@@ -183,20 +183,20 @@ std::vector<unsigned int> PortAudioWrapper::getSupportedSampleRates(const PaDevi
 void PortAudioWrapper::audioLoop()
 {
     PaStreamCallbackFlags statusFlag = 0;
-    char buffer[inputBufferSize > outputBufferSize ? inputBufferSize : outputBufferSize] = {0};
+    std::vector<char> buffer(inputBufferSize > outputBufferSize ? inputBufferSize : outputBufferSize, 0);
     while(Pa_IsStreamActive(stream))
     {
         //FIXME crashes on shutdown, when in blocking I/O operation when stream is closed and buffers are freed
         if((mode & PlaybackMode::INPUT) != 0)
         {
-            if(Pa_ReadStream(stream, buffer, audioConfiguration.framesPerPackage) == paInputOverflowed)
+            if(Pa_ReadStream(stream, buffer.data(), audioConfiguration.framesPerPackage) == paInputOverflowed)
                 statusFlag = paInputOverflow;
         }
-        callback(buffer, buffer, audioConfiguration.framesPerPackage, Pa_GetStreamTime(stream), statusFlag);
+        callback(buffer.data(), buffer.data(), audioConfiguration.framesPerPackage, Pa_GetStreamTime(stream), statusFlag);
         statusFlag = 0;
         if((mode & PlaybackMode::OUTPUT) != 0)
         {
-            if(Pa_WriteStream(stream, buffer, streamData->nBufferFrames) == paOutputUnderflowed)
+            if(Pa_WriteStream(stream, buffer.data(), streamData->nBufferFrames) == paOutputUnderflowed)
                 //XXX generates underflow too often (maybe whole processor-chain with blocking I/O takes too long??)
                 statusFlag = paOutputUnderflow;
         }
