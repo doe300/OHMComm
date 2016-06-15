@@ -143,6 +143,7 @@ namespace ohmcomm
         static const Parameter* SIP_LOCAL_PORT;
         static const Parameter* SIP_REMOTE_PORT;
         static const Parameter* SIP_REGISTER_USER;
+        static const Parameter* SIP_REGISTER_PASSWORD;
         static const Parameter* LOG_TO_FILE;
         static const Parameter* AUDIO_HANDLER;
         static const Parameter* INPUT_DEVICE;

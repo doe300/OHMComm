@@ -188,6 +188,16 @@ namespace ohmcomm
              * \param sdp The SessionDescription to check
              */
             static void checkSessionDescription(const SessionDescription* sdp);
+            
+            /*!
+             * This functions selects the best matching available media by selecting the available media 
+             * mappable to the locally supported format with the highest priority.
+             * 
+             * \param availableMedias A list of all available media-descriptions
+             * 
+             * \return the index of the best matching media, or -1 of no matches could be found
+             */
+            static int selectBestMedia(const std::vector<MediaDescription>& availableMedias);
 
         private:
 

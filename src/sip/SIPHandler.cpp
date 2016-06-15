@@ -19,8 +19,8 @@ const std::string SIPHandler::SIP_SUPPORTED_FIELDS = ohmcomm::Utility::joinStrin
 //XXX sip.methods (one for each supported method)
 const std::string SIPHandler::SIP_CAPABILITIES = ohmcomm::Utility::joinStrings({";sip.audio", "sip.duplex=full"}, ";");
 
-SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction, const std::string& registerUser) : 
-    SIPSession(sipConfig, remoteUser, addUserFunction), registerUser(registerUser), sipConfig(sipConfig), buffer(SIP_BUFFER_SIZE)
+SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction, const std::string& registerUser, const std::string& registerPassword) : 
+    SIPSession(sipConfig, remoteUser, addUserFunction), registerUser(registerUser), registerPassword(registerPassword), sipConfig(sipConfig), buffer(SIP_BUFFER_SIZE)
 {
     updateNetworkConfig(nullptr, nullptr, userAgents.getRemoteUA());
 }
@@ -126,7 +126,8 @@ void SIPHandler::sendInviteRequest(SIPUserAgent& remoteUA)
     rtpConfig.remotePort = DEFAULT_NETWORK_PORT;
     const std::string messageBody = SDPMessageHandler::createSessionDescription(userAgents.thisUA.userName, rtpConfig);
     
-    currentRequest.reset(new INVITERequest(userAgents.thisUA, {}, remoteUA, sipConfig.localPort, network.get()));
+    const INVITERequest::ConnectCallback callback = std::bind(&SIPHandler::startCommunication, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    currentRequest.reset(new INVITERequest(userAgents.thisUA, {}, remoteUA, sipConfig.localPort, network.get(), state, callback));
     currentRequest->sendRequest(messageBody);
     
     state = SessionState::INVITING;
@@ -168,7 +169,7 @@ void SIPHandler::sendAckRequest(SIPUserAgent& remoteUA)
 
 void SIPHandler::sendRegisterRequest(SIPUserAgent& registerUA)
 {
-    currentRequest.reset(new REGISTERRequest(userAgents.thisUA, {}, registerUA, sipConfig.localPort, network.get()));
+    currentRequest.reset(new REGISTERRequest(userAgents.thisUA, registerUA, sipConfig.localPort, network.get(), registerUser, registerPassword));
     currentRequest->sendRequest("");
 }
 
@@ -248,75 +249,9 @@ void SIPHandler::handleINVITERequest(const ohmcomm::network::NetworkWrapper::Pac
     {
         updateNetworkConfig(&requestHeader, &packageInfo, remoteUA);
     }
-    //if we get invited, the Call-ID is set by the remote UAS
-    remoteUA.callID = requestHeader[SIP_HEADER_CALL_ID];
-    //0. send ringing
-    sendResponse(SIP_RESPONSE_RINGING_CODE, SIP_RESPONSE_RINGING, &requestHeader, remoteUA);
-    //1. send dialog established
-    sendResponse(SIP_RESPONSE_DIALOG_ESTABLISHED_CODE, SIP_RESPONSE_DIALOG_ESTABLISHED, &requestHeader, remoteUA);
-    if (state == SessionState::ESTABLISHED)
-    {
-        //2.1 send busy here if communication is already running
-        sendResponse(SIP_RESPONSE_BUSY_CODE, SIP_RESPONSE_BUSY, &requestHeader, remoteUA);
-        ohmcomm::info("SIP") << "Received INVITE, but communication already active, answering: " << SIP_RESPONSE_BUSY << ohmcomm::endl;
-    }
-    else if (requestHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(requestHeader))
-    {
-        //adds support for multipart containing SDP (RFC 5621)
-        if(SIPPackageHandler::hasMultipartBody(requestHeader))
-        {
-            //we only need the SDP part of the body
-            requestBody = SIPPackageHandler::readMultipartBody(requestHeader, requestBody)[MIME_SDP];
-            if(requestBody.empty())
-            {
-                ohmcomm::warn("SIP") << "Received multi-part INVITE without SDP body!" << ohmcomm::endl;
-                shutdownInternal();
-                return;
-            }
-        }
-        SessionDescription sdp = SDPMessageHandler::readSessionDescription(requestBody);
-        const std::vector<MediaDescription> availableMedias = SDPMessageHandler::readMediaDescriptions(sdp);
-        //select best media
-        int bestMediaIndex = selectBestMedia(availableMedias);
-        if(bestMediaIndex < 0)
-        {
-            //no useful media found - send message (something about not-supported or similar)
-            sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader, remoteUA);
-            state = SessionState::DISCONNECTED;
-            shutdown();
-            return;
-        }
-        //2.2 send ok to start communication (with selected media-format)
-        SIPResponseHeader responseHeader(SIP_RESPONSE_OK_CODE, SIP_RESPONSE_OK);
-        initializeHeaderFields(SIP_REQUEST_INVITE, responseHeader, &requestHeader, remoteUA, sipConfig);
-        responseHeader[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
-        //RFC 3261: "A 2xx response to an INVITE SHOULD contain the Allow header field and the Supported header field, 
-        // and MAY contain the Accept header field"
-        responseHeader[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
-        responseHeader[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
-        responseHeader[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
-        NetworkConfiguration rtpConfig;
-        rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
-        rtpConfig.localPort = DEFAULT_NETWORK_PORT;
-        rtpConfig.remotePort = availableMedias[bestMediaIndex].port;
-        const std::string messageBody = SDPMessageHandler::createSessionDescription(userAgents.thisUA.userName, rtpConfig, {availableMedias[bestMediaIndex]});
-        const std::string message = SIPPackageHandler::createResponsePackage(responseHeader, messageBody);
-
-        ohmcomm::info("SIP") << "Accepting INVITE from " << requestHeader[SIP_HEADER_CONTACT] << ohmcomm::endl;
-        network->sendData(message.data(), message.size());
-
-        //start communication
-        startCommunication(availableMedias[bestMediaIndex], rtpConfig, SDPMessageHandler::readRTCPAttribute(sdp));
-    }
-    else
-    {
-        ohmcomm::warn("SIP") << "Received INVITE without SDP body!" << ohmcomm::endl;
-        if(requestHeader.getContentLength() > 0)
-        {
-            ohmcomm::warn("SIP") << requestHeader.getContentLength() << " " << requestHeader[SIP_HEADER_CONTENT_TYPE] << ohmcomm::endl;
-        }
-        sendResponse(SIP_RESPONSE_NOT_ACCEPTABLE_CODE, SIP_RESPONSE_NOT_ACCEPTABLE, &requestHeader, remoteUA);
-    }
+    const INVITERequest::ConnectCallback callback = std::bind(&SIPHandler::startCommunication, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    currentRequest.reset(new INVITERequest(userAgents.thisUA, requestHeader, remoteUA, sipConfig.localPort, network.get(), state, callback));
+    currentRequest->handleRequest(requestBody);
 }
 
 void SIPHandler::handleBYERequest(const ohmcomm::network::NetworkWrapper::Package& packageInfo, const SIPRequestHeader& requestHeader, const std::string& requestBody, SIPUserAgent& remoteUA)
@@ -392,11 +327,24 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     SIPUserAgent& remoteUA = userAgents.getRemoteUA(/*XXXrequestHeader.getRemoteTag()*/);
     try
     {
-        if(currentRequest && currentRequest->isMatchingResponse(responseHeader) && currentRequest->handleResponse(packageInfo, responseHeader, responseBody, remoteUA))
+        if(currentRequest && currentRequest->isMatchingResponse(responseHeader) && currentRequest->handleResponse(packageInfo.address, responseHeader, responseBody, remoteUA))
         {
             //if previous request handles response, no need for extra handling
             if(currentRequest->isCompleted())
             {
+                if(dynamic_cast<INVITERequest*>(currentRequest.get()) != nullptr)
+                {
+                    state = (dynamic_cast<INVITERequest*>(currentRequest.get()))->getState();
+                    if(state == SIPSession::SessionState::ESTABLISHED)
+                    {
+                        //update remote SIP-URI
+                        updateNetworkConfig(nullptr, nullptr, remoteUA);
+                    }
+                }
+                else if(dynamic_cast<REGISTERRequest*>(currentRequest.get()) != nullptr)
+                {
+                    //TODO save authorization
+                }
                 currentRequest.reset();
             }
         }
@@ -406,7 +354,9 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_OK_CODE)
         {
-            handleOKResponse(packageInfo, responseHeader, responseBody, remoteUA);
+            //no OK from a non-INVITE supported!
+            ohmcomm::warn("SIP") << "Currently not supported: " << responseHeader.getRequestCommand() << ohmcomm::endl;
+            ohmcomm::warn("SIP") << "Please file a bug report at: " << OHMCOMM_HOMEPAGE << ohmcomm::endl;
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_MULTIPLE_CHOICES_CODE || responseHeader.statusCode == SIP_RESPONSE_AMBIGUOUS_CODE)
         {
@@ -517,60 +467,6 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
     }
 }
 
-void SIPHandler::handleOKResponse(const ohmcomm::network::NetworkWrapper::Package& packageInfo, const SIPResponseHeader& responseHeader, std::string& responseBody, SIPUserAgent& remoteUA)
-{
-    //we have success - acknowledge reception
-    sendAckRequest(remoteUA);
-    //action depending on request
-    const std::string requestCommand = responseHeader.getRequestCommand();
-    if (SIP_REQUEST_INVITE.compare(requestCommand) == 0 && (responseHeader[SIP_HEADER_CONTENT_TYPE].compare(MIME_SDP) == 0 || SIPPackageHandler::hasMultipartBody(responseHeader)))
-    {
-        //adds support for multipart containing SDP (RFC 5621)
-        if(SIPPackageHandler::hasMultipartBody(responseHeader))
-        {
-            //we only need the SDP part of the body
-            responseBody = SIPPackageHandler::readMultipartBody(responseHeader, responseBody)[MIME_SDP];
-            if(responseBody.empty())
-            {
-                ohmcomm::warn("SIP") << "Received multi-part OK without SDP body!" << ohmcomm::endl;
-                shutdownInternal();
-                return;
-            }
-        }
-        NetworkConfiguration rtpConfig;
-
-        rtpConfig.localPort = DEFAULT_NETWORK_PORT;
-        //OK for INVITES contains SDP with selected media, as well as IP/session-data of remote
-        const SessionDescription sdp = SDPMessageHandler::readSessionDescription(responseBody);
-        rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
-        //extract MEDIA-data for selected media-type
-        const std::vector<MediaDescription> selectedMedias = SDPMessageHandler::readMediaDescriptions(sdp);
-        unsigned short mediaIndex = 0;
-        //select best media
-        if (selectedMedias.size() < 1) {
-            ohmcomm::warn("SIP") << "Could not agree on audio-configuration, aborting!" << ohmcomm::endl;
-            shutdownInternal();
-        }
-        //support for SDP offer/answer model (RFC 3264)
-        //if medias > 1, select best media-type
-        mediaIndex = selectBestMedia(selectedMedias);
-
-        rtpConfig.remotePort = selectedMedias[mediaIndex].port;
-
-        //update remote SIP-URI
-        updateNetworkConfig(nullptr, nullptr, remoteUA);
-        ohmcomm::info("SIP") << "Our INVITE was accepted, initializing communication" << ohmcomm::endl;
-
-        //start communication
-        startCommunication(selectedMedias[mediaIndex], rtpConfig, SDPMessageHandler::readRTCPAttribute(sdp));
-    }
-    else
-    {
-        ohmcomm::warn("SIP") << "Currently not supported: " << requestCommand << ohmcomm::endl;
-        ohmcomm::warn("SIP") << "Please file a bug report at: " << OHMCOMM_HOMEPAGE << ohmcomm::endl;
-    }
-}
-
 void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::network::NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA)
 {
     if(header != nullptr)
@@ -616,4 +512,24 @@ void SIPHandler::updateNetworkConfig(const SIPHeader* header, const ohmcomm::net
         //update all configuration-dependant values
         userAgents.thisUA.ipAddress = ohmcomm::Utility::getLocalIPAddress(ohmcomm::Utility::getNetworkType(sipConfig.remoteIPAddress));
     }
+}
+
+void SIPHandler::startCommunication(const MediaDescription& descr, const ohmcomm::NetworkConfiguration& rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig)
+{
+    state = SessionState::ESTABLISHED;
+    ohmcomm::info("SIP") << "Using following SDP configuration: "
+            << descr.protocol << " " << descr.payloadType << " " << descr.encoding << '/' << descr.sampleRate << '/' << descr.numChannels
+            << ohmcomm::endl;
+    if(rtcpConfig.remotePort != 0)
+    {
+        if(!rtcpConfig.remoteIPAddress.empty())
+        {
+            ohmcomm::info("SIP") << "Using custom remote RTCP address: " << rtcpConfig.remoteIPAddress << ":" << rtcpConfig.remotePort << ohmcomm::endl;
+        }
+        else
+        {
+            ohmcomm::info("SIP") << "Using custom remote RTCP port: " << rtcpConfig.remotePort << ohmcomm::endl;
+        }
+    }
+    addUserFunction(descr, rtpConfig, rtcpConfig);
 }

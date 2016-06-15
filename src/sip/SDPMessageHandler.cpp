@@ -372,6 +372,40 @@ void SDPMessageHandler::checkSessionDescription(const SessionDescription* sdp)
         throw std::invalid_argument("SDP session-name missing!");
 }
 
+int SDPMessageHandler::selectBestMedia(const std::vector<MediaDescription>& availableMedias)
+{
+    if(availableMedias.empty())
+    {
+        return -1;
+    }
+    //we only have one media, select it
+    if(availableMedias.size() == 1)
+    {
+        return 0;
+    }
+    //determine best media (best quality)
+    //we achieve this by searching for the best quality for each of the supported format in descending priority
+    for(const SupportedFormat& format : SupportedFormats::getFormats())
+    {
+        int index = -1;
+        unsigned int sampleRate = 0;
+        for(unsigned short i = 0; i < availableMedias.size(); i++)
+        {
+            if(ohmcomm::Utility::equalsIgnoreCase(format.encoding, availableMedias[i].encoding) && availableMedias[i].sampleRate > sampleRate)
+            {
+                index = i;
+                sampleRate = availableMedias[i].sampleRate;
+            }
+        }
+        if(index != -1)
+        {
+            return index;
+        }
+    }
+    //if we come to this point, we couldn't match any media-format
+    return -1;
+}
+
 MediaDescription SDPMessageHandler::getRTPMap(const SessionDescription& sdp, const unsigned int payloadType)
 {
     //a=rtpmap:<payload type> <encoding name>/<clock rate> [/<encoding parameters>]

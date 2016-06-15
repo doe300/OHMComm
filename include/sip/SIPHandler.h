@@ -39,7 +39,7 @@ namespace ohmcomm
             //The default port for SIP, as of RFC 3261
             static constexpr unsigned short SIP_DEFAULT_PORT{5060};
 
-            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const SIPSession::AddUserFunction addUserFunction, const std::string& registerUser);
+            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const SIPSession::AddUserFunction addUserFunction, const std::string& registerUser = "", const std::string& registerPassword = "");
 
             ~SIPHandler();
 
@@ -64,6 +64,7 @@ namespace ohmcomm
         private:
             static constexpr unsigned short SIP_BUFFER_SIZE{2048};
             const std::string registerUser;
+            const std::string registerPassword;
             
             NetworkConfiguration sipConfig;
             const AddUserFunction addUserFunction;
@@ -94,8 +95,6 @@ namespace ohmcomm
             
             void handleSIPResponse(const void* buffer, unsigned int packageLength, const ohmcomm::network::NetworkWrapper::Package& packageInfo);
             
-            void handleOKResponse(const ohmcomm::network::NetworkWrapper::Package& packageInfo, const SIPResponseHeader& responseHeader, std::string& responseBody, SIPUserAgent& remoteUA);
-
             void sendInviteRequest(SIPUserAgent& remoteUA);
 
             void sendCancelRequest(SIPUserAgent& remoteUA);
@@ -109,6 +108,8 @@ namespace ohmcomm
             void sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA);
 
             void updateNetworkConfig(const SIPHeader* header, const ohmcomm::network::NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA);
+            
+            void startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig);
 
             friend class SIPConfiguration;
         };

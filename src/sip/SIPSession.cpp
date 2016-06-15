@@ -35,6 +35,7 @@ SIPSession::~SIPSession()
 
 void SIPSession::onRemoteConnected(const unsigned int ssrc, const std::string& address, const unsigned short port)
 {
+    //TODO remove
     //associate SIP user-data with RTP-participant
     SIPUserAgent* agent = userAgents.findForAddress(address, port);
     if(agent != nullptr)
@@ -45,6 +46,7 @@ void SIPSession::onRemoteConnected(const unsigned int ssrc, const std::string& a
 
 void SIPSession::onRemoteRemoved(const unsigned int ssrc)
 {
+    //TODO remove
     //remove SIP user-agent for given SSRC
     SIPUserAgent* agent = userAgents.findForSSRC(ssrc);
     if(agent != nullptr)
@@ -122,61 +124,6 @@ void SIPSession::initializeHeaderFields(const std::string& requestMethod, SIPHea
     }
     header[SIP_HEADER_USER_AGENT] = std::string("OHMComm/") + OHMCOMM_VERSION;
 }
-
-int SIPSession::selectBestMedia(const std::vector<MediaDescription>& availableMedias) const
-{
-    if(availableMedias.empty())
-    {
-        return -1;
-    }
-    //we only have one media, select it
-    if(availableMedias.size() == 1)
-    {
-        return 0;
-    }
-    //determine best media (best quality)
-    //we achieve this by searching for the best quality for each of the supported format in descending priority
-    for(const SupportedFormat& format : SupportedFormats::getFormats())
-    {
-        int index = -1;
-        unsigned int sampleRate = 0;
-        for(unsigned short i = 0; i < availableMedias.size(); i++)
-        {
-            if(ohmcomm::Utility::equalsIgnoreCase(format.encoding, availableMedias[i].encoding) && availableMedias[i].sampleRate > sampleRate)
-            {
-                index = i;
-                sampleRate = availableMedias[i].sampleRate;
-            }
-        }
-        if(index != -1)
-        {
-            return index;
-        }
-    }
-    //if we come to this point, we couldn't match any media-format
-    return -1;
-}
-
-void SIPSession::startCommunication(const MediaDescription& descr, const ohmcomm::NetworkConfiguration& rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig)
-{
-    state = SessionState::ESTABLISHED;
-    ohmcomm::info("SIP") << "Using following SDP configuration: "
-            << descr.protocol << " " << descr.payloadType << " " << descr.encoding << '/' << descr.sampleRate << '/' << descr.numChannels
-            << ohmcomm::endl;
-    if(rtcpConfig.remotePort != 0)
-    {
-        if(!rtcpConfig.remoteIPAddress.empty())
-        {
-            ohmcomm::info("SIP") << "Using custom remote RTCP address: " << rtcpConfig.remoteIPAddress << ":" << rtcpConfig.remotePort << ohmcomm::endl;
-        }
-        else
-        {
-            ohmcomm::info("SIP") << "Using custom remote RTCP port: " << rtcpConfig.remotePort << ohmcomm::endl;
-        }
-    }
-    addUserFunction(descr, rtpConfig, rtcpConfig);
-}
-
 
 SIPGrammar::SIPURI SIPSession::toSIPURI(const SIPUserAgent& sipUA, const bool withParameters)
 {

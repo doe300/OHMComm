@@ -15,7 +15,7 @@
 using namespace ohmcomm::sip;
 
 SIPConfiguration::SIPConfiguration(const ohmcomm::Parameters& params, const ohmcomm::NetworkConfiguration& sipConfig) : 
-    ParameterConfiguration(params), handler(sipConfig, "remote", [this](const MediaDescription media, const ohmcomm::NetworkConfiguration rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}, params.getParameterValue(Parameters::SIP_REGISTER_USER)), rtcpConfig({0})
+    ParameterConfiguration(params), handler(sipConfig, "remote", [this](const MediaDescription media, const ohmcomm::NetworkConfiguration rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}, params.getParameterValue(Parameters::SIP_REGISTER_USER), params.getParameterValue(Parameters::SIP_REGISTER_PASSWORD)), rtcpConfig({0})
 {
     //overwrite settings from ParameterConfiguration
     useDefaultAudioConfig = false;

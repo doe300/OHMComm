@@ -27,30 +27,12 @@ namespace ohmcomm
         {
         public:
             
-            //Function-type used to add a new user to the conversation
-            using AddUserFunction = std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)>;
-            
-            SIPSession(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction);
-            virtual ~SIPSession();
-            
-            void onRemoteConnected(const unsigned int ssrc, const std::string& address, const unsigned short port) override;
-            void onRemoteRemoved(const unsigned int ssrc) override;
-            
-        protected:
             enum class SessionState
             {
                 /*!
                  * Unknown status, we haven't established contact yet
                  */
                 DISCONNECTED,
-                /*!
-                 * This UAC is currently trying to REGISTER with an UAS
-                 */
-                REGISTERING,
-                /*!
-                 * This UAC is registered with an UAC
-                 */
-                REGISTERED,
                 /*!
                  * We sent an INVITE and are waiting for a response
                  */
@@ -65,6 +47,17 @@ namespace ohmcomm
                  */
                 SHUTDOWN,
             };
+            
+            //Function-type used to add a new user to the conversation
+            using AddUserFunction = std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)>;
+            
+            SIPSession(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction);
+            virtual ~SIPSession();
+            
+            void onRemoteConnected(const unsigned int ssrc, const std::string& address, const unsigned short port) override;
+            void onRemoteRemoved(const unsigned int ssrc) override;
+            
+        protected:
             UserAgentDatabase userAgents;
             std::unique_ptr<ohmcomm::network::NetworkWrapper> network;
             SessionState state;
@@ -76,9 +69,7 @@ namespace ohmcomm
              */
             void initializeHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA, const NetworkConfiguration& sipConfig);
             
-            int selectBestMedia(const std::vector<MediaDescription>& availableMedias) const;
             
-            void startCommunication(const MediaDescription& descr, const NetworkConfiguration& rtpConfig, const NetworkConfiguration rtcpConfig);
             
         private:
             const AddUserFunction addUserFunction;
