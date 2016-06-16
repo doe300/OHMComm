@@ -124,20 +124,10 @@ REGISTERRequest::~REGISTERRequest()
 
 bool REGISTERRequest::sendRequest(const std::string& requestBody)
 {
-    //RFC 3261, Section 10.2: 
-    //"The "userinfo" and "@" components of the SIP URI MUST NOT be present"
-    SIPRequestHeader header(SIP_REQUEST_REGISTER, SIPGrammar::toSIPURI({"sip", "", "", remoteUA.hostName.empty() ? remoteUA.ipAddress : remoteUA.hostName, remoteUA.port}));
-    initializeSIPHeaderFields(SIP_REQUEST_REGISTER, header, nullptr, thisUA, remoteUA, localPort);
-    
-    header[SIP_HEADER_ALLOW] = SIPHandler::SIP_ALLOW_METHODS;
-    header[SIP_HEADER_ACCEPT] = SIPHandler::SIP_ACCEPT_TYPES;
-    header[SIP_HEADER_SUPPORTED] = SIPHandler::SIP_SUPPORTED_FIELDS;
-    header[SIP_HEADER_CONTACT] += SIPHandler::SIP_CAPABILITIES;
-    
-    requestHeader = header;
+    requestHeader = createRequest();
     
     ohmcomm::info("SIP") << "Sending REGISTER to " << remoteUA.getSIPURI() << ohmcomm::endl;
-    const std::string message = SIPPackageHandler::createRequestPackage(header, requestBody);
+    const std::string message = SIPPackageHandler::createRequestPackage(requestHeader, requestBody);
     network->sendData(message.data(), message.size());
     return true;
 }
@@ -153,15 +143,14 @@ bool REGISTERRequest::handleResponse(const ohmcomm::network::SocketAddress& sour
             //there already is an authentication-method, so previous authentication-attempts failed
             ohmcomm::warn("SIP") << "Previous authorization failed!" << ohmcomm::endl;
         }
-        authentication = Authentication::getAuthenticationMethod(responseHeader[SIP_HEADER_WWW_AUTHENTICATE]);
+        authentication = Authentication::getAuthenticationMethod(requestHeader.requestCommand, requestHeader.requestURI, responseHeader[SIP_HEADER_WWW_AUTHENTICATE]);
         if(authentication)
         {
             ohmcomm::info("SIP") << "Trying to authenticate..." << ohmcomm::endl;
+            requestHeader = createRequest();
             //re-send request with new authentication
             requestHeader[SIP_HEADER_AUTHORIZATION] = authentication->createAuthenticationHeader(userName, password);
-            //increment CSeq
-            ++remoteUA.sequenceNumber;
-            requestHeader[SIP_HEADER_CSEQ] = (std::to_string(remoteUA.sequenceNumber) + " ") + SIP_REQUEST_REGISTER;
+            //TODO Expires??
             
             ohmcomm::info("SIP") << "Re-sending REGISTER to " << remoteUA.getSIPURI() << ohmcomm::endl;
             const std::string message = SIPPackageHandler::createRequestPackage(requestHeader, "");
@@ -178,7 +167,17 @@ bool REGISTERRequest::handleResponse(const ohmcomm::network::SocketAddress& sour
     {
         if(authentication)
         {
+            //TODO update local URI with contact
             authentication->isAuthenticated = true;
+            const std::string& contactHeader = responseHeader[SIP_HEADER_CONTACT];
+            std::string::size_type i;
+            if((i = contactHeader.find(";expires=")) != std::string::npos)
+            {
+                std::string expiresValue = contactHeader.substr(i + std::string(";expires=").size());
+                expiresValue = expiresValue.substr(0, expiresValue.find_first_of("; \r\n"));
+                const int expiresSeconds = atoi(expiresValue.data());
+                authentication->expirationTime = std::chrono::system_clock::now() + std::chrono::seconds(expiresSeconds);
+            }
         }
         return true;
     }
@@ -196,8 +195,30 @@ bool REGISTERRequest::handleRequest(const std::string& requestBody)
 
 bool REGISTERRequest::isCompleted() const
 {
-    //TODO if authentication fails, infinite loop?!
+    //TODO if authentication fails, fails in SIPHandler
     return authentication && authentication->isAuthenticated;
+}
+
+std::unique_ptr<Authentication> REGISTERRequest::getAuthentication()
+{
+    std::unique_ptr<Authentication> tmp(nullptr);
+    tmp.swap(authentication);
+    return tmp;
+}
+
+SIPRequestHeader REGISTERRequest::createRequest() const
+{
+    //RFC 3261, Section 10.2: 
+    //"The "userinfo" and "@" components of the SIP URI MUST NOT be present"
+    SIPRequestHeader header(SIP_REQUEST_REGISTER, SIPGrammar::toSIPURI({"sip", "", "", remoteUA.hostName.empty() ? remoteUA.ipAddress : remoteUA.hostName, remoteUA.port}));
+    initializeSIPHeaderFields(SIP_REQUEST_REGISTER, header, nullptr, thisUA, remoteUA, localPort);
+    
+    header[SIP_HEADER_ALLOW] = SIPHandler::SIP_ALLOW_METHODS;
+    header[SIP_HEADER_ACCEPT] = SIPHandler::SIP_ACCEPT_TYPES;
+    header[SIP_HEADER_SUPPORTED] = SIPHandler::SIP_SUPPORTED_FIELDS;
+    header[SIP_HEADER_CONTACT] += SIPHandler::SIP_CAPABILITIES;
+    
+    return header;
 }
 
 //

@@ -31,6 +31,44 @@ endif()
 ####
 # Dependencies
 ####
+
+#
+# audio libraries
+#
+
+# RTAudio - http://www.music.mcgill.ca/~gary/rtaudio/
+#Try to find precompiled library
+find_library(RTAUDIO_LIBRARY NAMES rtaudio librtaudio)
+find_path(RTAUDIO_HEADER_PATH "RtAudio.h" HINTS lib/rtaudio-4.1.1)
+if(RTAUDIO_LIBRARY)
+	message(STATUS "RTAudio library found: " ${RTAUDIO_LIBRARY})
+	#Set header to default include path
+	add_definitions(-DRTAUDIO_HEADER="RtAudio.h")
+elseif(RTAUDIO_HEADER_PATH)
+	message(STATUS "Compiling provided rtaudio-library in version 4.1.1")
+	# Compile ourselves and set correct header-path
+	add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
+	add_definitions(-DRTAUDIO_HEADER="../lib/rtaudio-4.1.1/RtAudio.h")
+endif()
+
+# PortAudio - http://www.portaudio.com/
+#Try to find precompiled library
+find_library(PORTAUDIO_LIBRARY NAMES portaudio libportaudio)
+if(PORTAUDIO_LIBRARY)
+	message(STATUS "PortAudio library found: " ${PORTAUDIO_LIBRARY})
+	#Set header to default include path
+	add_definitions(-DPORTAUDIO_HEADER="portaudio.h")
+endif()
+
+# Check if any audio-library was added
+if(NOT RTAUDIO_LIBRARY AND NOT RTAUDIO_HEADER_PATH AND NOT PORTAUDIO_LIBRARY)
+	message(WARNING "No supported audio-library found!")
+endif()
+
+#
+# audio codecs
+#
+
 # Opus - http://opus-codec.org/
 #Try to find precompiled library
 find_library(OPUS_LIBRARY NAMES opus libopus)
@@ -66,30 +104,6 @@ if(AMR_LIBRARY)
 	add_definitions(-DAMR_DECODER_HEADER="opencore-amrnb/interf_dec.h")
 endif()
 
-# RTAudio - http://www.music.mcgill.ca/~gary/rtaudio/
-#Try to find precompiled library
-find_library(RTAUDIO_LIBRARY NAMES rtaudio librtaudio)
-find_path(RTAUDIO_HEADER_PATH "RtAudio.h" HINTS lib/rtaudio-4.1.1)
-if(RTAUDIO_LIBRARY)
-	message(STATUS "RTAudio library found: " ${RTAUDIO_LIBRARY})
-	#Set header to default include path
-	add_definitions(-DRTAUDIO_HEADER="RtAudio.h")
-elseif(RTAUDIO_HEADER_PATH)
-	message(STATUS "Compiling provided rtaudio-library in version 4.1.1")
-	# Compile ourselves and set correct header-path
-	add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
-	add_definitions(-DRTAUDIO_HEADER="../lib/rtaudio-4.1.1/RtAudio.h")
-endif()
-
-# PortAudio - http://www.portaudio.com/
-#Try to find precompiled library
-find_library(PORTAUDIO_LIBRARY NAMES portaudio libportaudio)
-if(PORTAUDIO_LIBRARY)
-	message(STATUS "PortAudio library found: " ${PORTAUDIO_LIBRARY})
-	#Set header to default include path
-	add_definitions(-DPORTAUDIO_HEADER="portaudio.h")
-endif()
-
 # GSM - http://www.quut.com/gsm/
 #Try to find precompiled library
 find_library(GSM_LIBRARY NAMES gsm libgsm)
@@ -100,9 +114,18 @@ if(GSM_LIBRARY)
 	#add_definitions(-DGSM_HEADER="gsm/gsm.h")
 endif()
 
-# Check if any audio-library was added
-if(NOT RTAUDIO_LIBRARY AND NOT RTAUDIO_HEADER_PATH AND NOT PORTAUDIO_LIBRARY)
-	message(WARNING "No supported audio-library found!")
+#
+# other
+#
+
+# Cryptopp - https://www.cryptopp.com/
+#Try to find precompiled library
+find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
+if(CRYPTOPP_LIBRARY)
+	message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
+	#Set header to default include path
+	add_definitions(-DCRYPTO_MD5_HEADER="cryptopp/md5.h")
+	add_definitions(-DCRYPTO_SHA_HEADER="cryptopp/sha.h")
 endif()
 
 ####

@@ -38,8 +38,11 @@ namespace ohmcomm
 
             //The default port for SIP, as of RFC 3261
             static constexpr unsigned short SIP_DEFAULT_PORT{5060};
+            
+            //Function-type used to add a new user to the conversation
+            using AddUserFunction = std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)>;
 
-            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const SIPSession::AddUserFunction addUserFunction, const std::string& registerUser = "", const std::string& registerPassword = "");
+            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction, const std::string& registerUser = "", const std::string& registerPassword = "");
 
             ~SIPHandler();
 

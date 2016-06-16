@@ -13,8 +13,8 @@
 
 using namespace ohmcomm::sip;
 
-SIPSession::SIPSession(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction) : 
-    userAgents(std::to_string(rand())), network(new ohmcomm::network::MulticastNetworkWrapper(sipConfig)), state(SessionState::DISCONNECTED), addUserFunction(addUserFunction)
+SIPSession::SIPSession(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser) : 
+    userAgents(std::to_string(rand())), network(new ohmcomm::network::MulticastNetworkWrapper(sipConfig)), state(SessionState::DISCONNECTED)
 {
     userAgents.thisUA.userName = ohmcomm::Utility::getUserName();
     userAgents.thisUA.hostName = ohmcomm::Utility::getDomainName();

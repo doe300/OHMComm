@@ -10,6 +10,7 @@
 
 #include <string>
 #include <memory>
+#include <chrono>
 
 namespace ohmcomm
 {
@@ -27,11 +28,13 @@ namespace ohmcomm
             Authentication();
             virtual ~Authentication();
             
-            static std::unique_ptr<Authentication> getAuthenticationMethod(const std::string headerField);
+            static std::unique_ptr<Authentication> getAuthenticationMethod(const std::string& requestMethod, const std::string& requestURI, const std::string& headerField);
             
             virtual std::string createAuthenticationHeader(const std::string& userName, const std::string& password) = 0;
             
             bool isAuthenticated;
+            //time of expiration, only valid, if isAuthenticated is true
+            std::chrono::system_clock::time_point expirationTime;
         };
         
         class BasicAuthentication : public Authentication
@@ -47,15 +50,19 @@ namespace ohmcomm
         class DigestAuthentication : public Authentication
         {
         public:
-            DigestAuthentication(const std::string& realm, const std::string& nonce, const std::string& algorithm);
+            DigestAuthentication(const std::string& method, const std::string& requestURI, const std::string& realm, const std::string& nonce, const std::string& algorithm);
 
             virtual ~DigestAuthentication();
 
             std::string createAuthenticationHeader(const std::string& userName, const std::string& password) override;
         private:
+            const std::string method;
+            const std::string requestURI;
             const std::string realm;
             const std::string nonce;
             const std::string algorithm;
+            
+            std::string hashMD5(const std::string& input) const;
         };
     }
 }

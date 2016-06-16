@@ -20,7 +20,7 @@ const std::string SIPHandler::SIP_SUPPORTED_FIELDS = ohmcomm::Utility::joinStrin
 const std::string SIPHandler::SIP_CAPABILITIES = ohmcomm::Utility::joinStrings({";sip.audio", "sip.duplex=full"}, ";");
 
 SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction, const std::string& registerUser, const std::string& registerPassword) : 
-    SIPSession(sipConfig, remoteUser, addUserFunction), registerUser(registerUser), registerPassword(registerPassword), sipConfig(sipConfig), buffer(SIP_BUFFER_SIZE)
+    SIPSession(sipConfig, remoteUser), registerUser(registerUser), registerPassword(registerPassword), sipConfig(sipConfig), addUserFunction(addUserFunction), buffer(SIP_BUFFER_SIZE)
 {
     updateNetworkConfig(nullptr, nullptr, userAgents.getRemoteUA());
 }
@@ -343,7 +343,16 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
                 }
                 else if(dynamic_cast<REGISTERRequest*>(currentRequest.get()) != nullptr)
                 {
-                    //TODO save authorization
+                    const std::unique_ptr<Authentication> auth = dynamic_cast<REGISTERRequest*>(currentRequest.get())->getAuthentication();
+                    if(auth && auth->isAuthenticated)
+                    {
+                        ohmcomm::info("SIP") << "Authentication successful!" << ohmcomm::endl;
+                        //TODO save authorization and unregister on shutdown (if not yet timed out)
+                    }
+                    else
+                    {
+                        ohmcomm::warn("SIP") << "Authentication failed!" << ohmcomm::endl;
+                    }
                 }
                 currentRequest.reset();
             }

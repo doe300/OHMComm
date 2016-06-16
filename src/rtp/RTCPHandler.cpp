@@ -332,7 +332,7 @@ void RTCPHandler::printReceptionReports(const std::vector<ReceptionReport>& repo
         ohmcomm::info("RTCP") << "Received Reception Reports:" << ohmcomm::endl;
         for(const ReceptionReport& report : reports)
         {
-            ohmcomm::info("RTCP") << "\tReception Report for: " << report.getSSRC() << ohmcomm::endl;
+            ohmcomm::info("RTCP") << "\tReception Report for: " << Utility::toHexString(report.getSSRC()) << ohmcomm::endl;
             ohmcomm::info("RTCP") << "\t\tExtended highest sequence number: " << report.getExtendedHighestSequenceNumber() << ohmcomm::endl;
             ohmcomm::info("RTCP") << "\t\tFraction Lost (1/256): " << (unsigned int)report.getFractionLost() << ohmcomm::endl;
             ohmcomm::info("RTCP") << "\t\tTotal package loss: " << report.getCummulativePackageLoss() << ohmcomm::endl;

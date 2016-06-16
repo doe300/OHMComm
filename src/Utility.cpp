@@ -333,7 +333,7 @@ static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm
 
 static inline bool is_base64(unsigned char c)
 {
-    return (std::isalnum(c) || (c == '+') || (c == '/'));
+    return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
 std::string Utility::encodeBase64(const std::string& plainString)

@@ -5,6 +5,7 @@
 
 #include "Logger.h"
 #include "rtp/ParticipantDatabase.h"
+#include "Utility.h"
 
 using namespace ohmcomm::rtp;
 
@@ -89,7 +90,7 @@ void ParticipantDatabase::fireRemoveRemote(const uint32_t ssrc)
 
 void ParticipantDatabase::fireConnectedRemote(const uint32_t ssrc, const std::string& address, const uint16_t port)
 {
-    ohmcomm::info("RTP") << "Remote connected: " << ssrc << ", address: " << address << ':' << port <<  ohmcomm::endl;
+    ohmcomm::info("RTP") << "Remote connected: " << Utility::toHexString(ssrc) << ", address: " << address << ':' << port <<  ohmcomm::endl;
     for(ParticipantListener& l : listeners)
     {
         l.onRemoteConnected(ssrc, address, port);

@@ -78,11 +78,15 @@ namespace ohmcomm
             bool handleResponse(const ohmcomm::network::SocketAddress& sourceAddress, const SIPResponseHeader& responseHeader, std::string& responseBody, SIPUserAgent& remoteUA) override;
             bool handleRequest(const std::string& requestBody) override;
             bool isCompleted() const override;
+            
+            std::unique_ptr<Authentication> getAuthentication();
 
         private:
             const std::string userName;
             const std::string password;
             std::unique_ptr<Authentication> authentication;
+            
+            SIPRequestHeader createRequest() const;
         };
         
         class OPTIONSRequest : public SIPRequest

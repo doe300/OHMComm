@@ -48,10 +48,7 @@ namespace ohmcomm
                 SHUTDOWN,
             };
             
-            //Function-type used to add a new user to the conversation
-            using AddUserFunction = std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)>;
-            
-            SIPSession(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction);
+            SIPSession(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser);
             virtual ~SIPSession();
             
             void onRemoteConnected(const unsigned int ssrc, const std::string& address, const unsigned short port) override;
@@ -72,7 +69,6 @@ namespace ohmcomm
             
             
         private:
-            const AddUserFunction addUserFunction;
             static SIPGrammar::SIPURI toSIPURI(const SIPUserAgent& sipUA, const bool withParameters);
         };
     }

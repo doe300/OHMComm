@@ -187,6 +187,17 @@ namespace ohmcomm
          * do not affect matching.
          */
         const std::string SIP_HEADER_FROM("From");
+        
+        /*!
+         * The Expires header field gives the relative time after which the message (or content) expires.
+         * 
+         * The precise meaning of this is method dependent.
+         * 
+         * The value of this field is an integral number of seconds (in decimal) between 0 and (2**32)-1, measured from the receipt of the request.
+         * 
+         * \since 0.9
+         */
+        const std::string SIP_HEADER_EXPIRES("Expires");
 
         /*!
          * The Max-Forwards header field must be used with any SIP method to limit the number of proxies or gateways
