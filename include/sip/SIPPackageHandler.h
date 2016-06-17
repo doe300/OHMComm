@@ -8,6 +8,7 @@
 #ifndef SIPPACKAGEHANDLER_H
 #define	SIPPACKAGEHANDLER_H
 
+#include <stdlib.h>
 #include <string>
 #include <vector>
 #include <string.h>

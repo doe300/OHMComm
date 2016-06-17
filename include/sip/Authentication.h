@@ -61,8 +61,6 @@ namespace ohmcomm
             const std::string realm;
             const std::string nonce;
             const std::string algorithm;
-            
-            std::string hashMD5(const std::string& input) const;
         };
     }
 }

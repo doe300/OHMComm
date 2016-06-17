@@ -124,8 +124,21 @@ find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
 if(CRYPTOPP_LIBRARY)
 	message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
 	#Set header to default include path
-	add_definitions(-DCRYPTO_MD5_HEADER="cryptopp/md5.h")
-	add_definitions(-DCRYPTO_SHA_HEADER="cryptopp/sha.h")
+	add_definitions(-DCRYPTOPP_LIBRARY="1")
+endif()
+
+# OpenSSL - https://www.openssl.org/
+#Try to find precompiled library
+find_library(OPENSSL_CRYPTO_LIBRARY NAMES crypto libcrypto)
+if(NOT CRYPTOPP_LIBRARY AND OPENSSL_CRYPTO_LIBRARY)
+	message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY})
+	#Set header to default include path
+	add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
+endif()
+
+# Check if any crypto-library was added
+if(NOT CRYPTOPP_LIBRARY AND NOT OPENSSL_CRYPTO_LIBRARY)
+	message(WARNING "No supported crypto-library found!")
 endif()
 
 ####
