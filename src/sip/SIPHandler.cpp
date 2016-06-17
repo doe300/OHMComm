@@ -145,7 +145,7 @@ void SIPHandler::sendCancelRequest(SIPUserAgent& remoteUA)
 void SIPHandler::sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA)
 {
     SIPResponseHeader header(responseCode, reasonPhrase);
-    initializeHeaderFields("", header, requestHeader, remoteUA, sipConfig);
+    initializeSIPHeaderFields("", header, requestHeader, userAgents.thisUA, remoteUA, sipConfig.localPort);
     const std::string message = SIPPackageHandler::createResponsePackage(header, "");
     network->sendData(message.data(), message.size());
 }
@@ -161,7 +161,7 @@ void SIPHandler::sendByeRequest(SIPUserAgent& remoteUA)
 void SIPHandler::sendAckRequest(SIPUserAgent& remoteUA)
 {
     SIPRequestHeader header(SIP_REQUEST_ACK, remoteUA.getSIPURI());
-    initializeHeaderFields(SIP_REQUEST_ACK, header, nullptr, remoteUA, sipConfig);
+    initializeSIPHeaderFields(SIP_REQUEST_ACK, header, nullptr, userAgents.thisUA, remoteUA, sipConfig.localPort);
 
     const std::string message = SIPPackageHandler::createRequestPackage(header, "");
     network->sendData(message.data(), message.size());
@@ -343,8 +343,8 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
                 }
                 else if(dynamic_cast<REGISTERRequest*>(currentRequest.get()) != nullptr)
                 {
-                    const std::unique_ptr<Authentication> auth = dynamic_cast<REGISTERRequest*>(currentRequest.get())->getAuthentication();
-                    if(auth && auth->isAuthenticated)
+                    authentication = dynamic_cast<REGISTERRequest*>(currentRequest.get())->getAuthentication();
+                    if(authentication && authentication->isAuthenticated)
                     {
                         ohmcomm::info("SIP") << "Authentication successful!" << ohmcomm::endl;
                         //TODO save authorization and unregister on shutdown (if not yet timed out)
@@ -371,12 +371,14 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         {
             //select first choice (Contact) and try again
             updateNetworkConfig(&responseHeader, &packageInfo, remoteUA);
+            //TODO resend the current request
             sendInviteRequest(remoteUA);
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_MOVED_PERMANENTLY_CODE || responseHeader.statusCode == SIP_RESPONSE_MOVED_TEMPORARILY_CODE)
         {
             //change remote-address and retry
             updateNetworkConfig(&responseHeader, &packageInfo, remoteUA);
+            //TODO resend the current request
             sendInviteRequest(remoteUA);
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_BAD_REQUEST_CODE)
@@ -388,7 +390,6 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         else if(responseHeader.statusCode == SIP_RESPONSE_UNAUTHORIZED_CODE || responseHeader.statusCode == SIP_RESPONSE_PROXY_AUTHENTICATION_REQUIRED_CODE)
         {
             ohmcomm::warn("SIP") << "Server requires authorization!" << ohmcomm::endl;
-            //TODO make info and try to authorize
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_FORBIDDEN_CODE)

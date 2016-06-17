@@ -150,7 +150,8 @@ bool REGISTERRequest::handleResponse(const ohmcomm::network::SocketAddress& sour
             requestHeader = createRequest();
             //re-send request with new authentication
             requestHeader[SIP_HEADER_AUTHORIZATION] = authentication->createAuthenticationHeader(userName, password);
-            //TODO Expires??
+            //set expires to a default of 6 minutes
+            requestHeader[SIP_HEADER_EXPIRES] = "3600";
             
             ohmcomm::info("SIP") << "Re-sending REGISTER to " << remoteUA.getSIPURI() << ohmcomm::endl;
             const std::string message = SIPPackageHandler::createRequestPackage(requestHeader, "");
@@ -195,7 +196,6 @@ bool REGISTERRequest::handleRequest(const std::string& requestBody)
 
 bool REGISTERRequest::isCompleted() const
 {
-    //TODO if authentication fails, fails in SIPHandler
     return authentication && authentication->isAuthenticated;
 }
 

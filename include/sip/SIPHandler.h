@@ -80,6 +80,7 @@ namespace ohmcomm
             bool threadRunning = false;
             
             std::unique_ptr<SIPRequest> currentRequest;
+            std::unique_ptr<Authentication> authentication;
 
             /*!
              * Method called in the parallel thread, receiving SIP-packages and handling them

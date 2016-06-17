@@ -61,15 +61,6 @@ namespace ohmcomm
             
             virtual void shutdownInternal() = 0;
             
-            /*!
-             * Sets must-have header-fields
-             */
-            void initializeHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA, const NetworkConfiguration& sipConfig);
-            
-            
-            
-        private:
-            static SIPGrammar::SIPURI toSIPURI(const SIPUserAgent& sipUA, const bool withParameters);
         };
     }
 }
