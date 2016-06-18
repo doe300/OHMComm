@@ -97,6 +97,8 @@ namespace ohmcomm
             
             void sendRegisterRequest(SIPUserAgent& registerUA);
             
+            void sendUnregisterRequest(SIPUserAgent& registerUA);
+            
             void sendResponse(const unsigned int responseCode, const std::string reasonPhrase, const SIPRequestHeader* requestHeader, SIPUserAgent& remoteUA);
 
             void updateNetworkConfig(const SIPHeader* header, const ohmcomm::network::NetworkWrapper::Package* packageInfo, SIPUserAgent& remoteUA);

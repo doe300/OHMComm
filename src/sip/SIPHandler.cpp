@@ -48,6 +48,12 @@ void SIPHandler::shutdown()
         // Send a SIP BYE-packet, to tell the other side that communication has been stopped
         sendByeRequest(userAgents.getRemoteUA());
     }
+    if(authentication && authentication->isAuthenticated())
+    {
+        //unregister from UAC
+        sendUnregisterRequest(userAgents.getRemoteUA());
+        //FIXME doesn't work, network is closed while making unregister-call
+    }
     stopCallback();
     shutdownInternal();
 }
@@ -175,6 +181,13 @@ void SIPHandler::sendAckRequest(SIPUserAgent& remoteUA)
 void SIPHandler::sendRegisterRequest(SIPUserAgent& registerUA)
 {
     currentRequest.reset(new REGISTERRequest(userAgents.thisUA, registerUA, sipConfig.localPort, network.get(), registerUser, registerPassword));
+    currentRequest->sendRequest("");
+}
+
+void SIPHandler::sendUnregisterRequest(SIPUserAgent& registerUA)
+{
+    //an Expiration header of zero specifies unregistration
+    currentRequest.reset(new REGISTERRequest(userAgents.thisUA, registerUA, sipConfig.localPort, network.get(), registerUser, registerPassword, 0));
     currentRequest->sendRequest("");
 }
 

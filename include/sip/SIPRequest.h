@@ -83,7 +83,11 @@ namespace ohmcomm
         class REGISTERRequest : public SIPRequest
         {
         public:
-            REGISTERRequest(const SIPUserAgent& thisUA, SIPUserAgent& registerUA, const unsigned short localPort, ohmcomm::network::NetworkWrapper* network, const std::string& userName, const std::string& password);
+            
+            //default timeout for registrations, in seconds
+            static constexpr unsigned short SIP_REGISTRATION_TIMEOUT{3600};
+            
+            REGISTERRequest(const SIPUserAgent& thisUA, SIPUserAgent& registerUA, const unsigned short localPort, ohmcomm::network::NetworkWrapper* network, const std::string& userName, const std::string& password, const unsigned short expiresInSeconds = SIP_REGISTRATION_TIMEOUT);
             virtual ~REGISTERRequest();
 
             bool sendRequest(const std::string& requestBody) override;
@@ -94,6 +98,7 @@ namespace ohmcomm
             std::unique_ptr<Authentication> getAuthentication();
 
         private:
+            const unsigned short expiresInSeconds;
             const std::string userName;
             const std::string password;
             std::unique_ptr<Authentication> authentication;

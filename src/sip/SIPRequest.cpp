@@ -117,8 +117,8 @@ void SIPRequest::sendSimpleResponse(const unsigned int responseCode, const std::
 // REGISTER
 //
 
-REGISTERRequest::REGISTERRequest(const SIPUserAgent& thisUA, SIPUserAgent& registerUA, const unsigned short localPort, ohmcomm::network::NetworkWrapper* network, const std::string& userName, const std::string& password) :
-    SIPRequest(thisUA, {}, registerUA, localPort, network), userName(userName), password(password)
+REGISTERRequest::REGISTERRequest(const SIPUserAgent& thisUA, SIPUserAgent& registerUA, const unsigned short localPort, ohmcomm::network::NetworkWrapper* network, const std::string& userName, const std::string& password, const unsigned short expiresInSeconds) :
+    SIPRequest(thisUA, {}, registerUA, localPort, network), expiresInSeconds(expiresInSeconds), userName(userName), password(password)
 {
 }
 
@@ -156,8 +156,8 @@ bool REGISTERRequest::handleResponse(const ohmcomm::network::SocketAddress& sour
             requestHeader = createRequest();
             //re-send request with new authentication
             requestHeader[SIP_HEADER_AUTHORIZATION] = authentication->createAuthenticationHeader(userName, password);
-            //set expires to a default of 6 minutes
-            requestHeader[SIP_HEADER_EXPIRES] = "3600";
+            //set expires header-field
+            requestHeader[SIP_HEADER_EXPIRES] = std::to_string(expiresInSeconds);
             
             ohmcomm::info("SIP") << "Re-sending REGISTER to " << remoteUA.getSIPURI() << ohmcomm::endl;
             const std::string message = SIPPackageHandler::createRequestPackage(requestHeader, "");
@@ -261,6 +261,7 @@ bool OPTIONSRequest::handleResponse(const ohmcomm::network::SocketAddress& sourc
 {
     //this UAC sent an OPTIONS request and now handle the response
     //TODO
+    return false;
 }
 
 bool OPTIONSRequest::handleRequest(const std::string& requestBody)
@@ -442,6 +443,7 @@ bool CANCELRequest::sendRequest(const std::string& requestBody)
 bool CANCELRequest::handleResponse(const ohmcomm::network::SocketAddress& sourceAddress, const SIPResponseHeader& responseHeader, std::string& responseBody, SIPUserAgent& remoteUA)
 {
     //TODO the remote canceled some previous action
+    return false;
 }
 
 bool CANCELRequest::handleRequest(const std::string& requestBody)
