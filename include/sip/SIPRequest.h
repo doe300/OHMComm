@@ -21,6 +21,18 @@ namespace ohmcomm
     namespace sip
     {
         
+        //A list of all allowed SIP-methods
+        const std::string SIP_ALLOW_METHODS;
+
+        //A list of all accepted MIME-types
+        const std::string SIP_ACCEPT_TYPES;
+
+        //A list of all supported SIP extension headers
+        const std::string SIP_SUPPORTED_FIELDS;
+
+        //A list of all supported capabilities, as of RFC 3840 section 10
+        const std::string SIP_CAPABILITIES;
+        
         /*!
          * Sets must-have header-fields
          */

@@ -24,18 +24,6 @@ namespace ohmcomm
         {
         public:
             
-            //A list of all allowed SIP-methods
-            static const std::string SIP_ALLOW_METHODS;
-
-            //A list of all accepted MIME-types
-            static const std::string SIP_ACCEPT_TYPES;
-            
-            //A list of all supported SIP extension headers
-            static const std::string SIP_SUPPORTED_FIELDS;
-            
-            //A list of all supported capabilities, as of RFC 3840 section 10
-            static const std::string SIP_CAPABILITIES;
-
             //The default port for SIP, as of RFC 3261
             static constexpr unsigned short SIP_DEFAULT_PORT{5060};
             

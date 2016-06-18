@@ -56,6 +56,6 @@ namespace ohmcomm
 
         }
     };
-};
+}
 #endif	/* OHMCOMM_ERRORTYPES_H */
 

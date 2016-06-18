@@ -48,7 +48,11 @@ bool SIPConfiguration::runConfiguration()
     while(!isConfigurationDone && handler.isRunning())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        timeLeft -= 100;
+        if(!handler.authentication || !handler.authentication->isAuthenticated())
+        {
+            //only time out if this UAC is not registered with an UAS
+            timeLeft -= 100;
+        }
         //abort configuration on timeout or user input
         if(timeLeft <= 0 || Utility::waitForUserInput(10) > 0)
         {

@@ -32,7 +32,16 @@ namespace ohmcomm
             
             virtual std::string createAuthenticationHeader(const std::string& userName, const std::string& password) = 0;
             
-            bool isAuthenticated;
+            bool isAuthenticated() const;
+            
+            void setAuthenticated(const std::chrono::system_clock::time_point expirationTime);
+            
+            bool isExpired() const;
+            
+            std::chrono::system_clock::time_point getExpirationTime() const;
+            
+        private:
+            bool authenticated;
             //time of expiration, only valid, if isAuthenticated is true
             std::chrono::system_clock::time_point expirationTime;
         };

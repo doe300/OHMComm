@@ -13,12 +13,6 @@
 
 using namespace ohmcomm::sip;
 
-const std::string SIPHandler::SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL, SIP_REQUEST_OPTIONS, SIP_REQUEST_INFO}, " ");
-const std::string SIPHandler::SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
-const std::string SIPHandler::SIP_SUPPORTED_FIELDS = ohmcomm::Utility::joinStrings({});
-//XXX sip.methods (one for each supported method)
-const std::string SIPHandler::SIP_CAPABILITIES = ohmcomm::Utility::joinStrings({";sip.audio", "sip.duplex=full"}, ";");
-
 SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction, const std::string& registerUser, const std::string& registerPassword) : 
     SIPSession(sipConfig, remoteUser), registerUser(registerUser), registerPassword(registerPassword), sipConfig(sipConfig), addUserFunction(addUserFunction), buffer(SIP_BUFFER_SIZE)
 {
@@ -112,6 +106,17 @@ void SIPHandler::runThread()
         else if (SIPPackageHandler::isResponsePackage(buffer.data(), result.getReceivedSize()))
         {
             handleSIPResponse(buffer.data(), result.getReceivedSize(), result);
+        }
+        if(authentication && authentication->getExpirationTime() - std::chrono::system_clock::now() < std::chrono::seconds(15))
+        {
+            //refresh authentication 15 seconds before it expires (should be enough time)
+            if(!currentRequest || dynamic_cast<REGISTERRequest*>(currentRequest.get()) == nullptr)
+            {
+                //only if we are not currently trying to authenticate
+                //otherwise, the refreshing could be initiated several times
+                ohmcomm::info("SIP") << "Refreshing registration ..." << ohmcomm::endl;
+                sendRegisterRequest(userAgents.getRemoteUA());
+            }
         }
     }
     state = SessionState::SHUTDOWN;
@@ -344,7 +349,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
                 else if(dynamic_cast<REGISTERRequest*>(currentRequest.get()) != nullptr)
                 {
                     authentication = dynamic_cast<REGISTERRequest*>(currentRequest.get())->getAuthentication();
-                    if(authentication && authentication->isAuthenticated)
+                    if(authentication && authentication->isAuthenticated())
                     {
                         ohmcomm::info("SIP") << "Authentication successful!" << ohmcomm::endl;
                         //TODO save authorization and unregister on shutdown (if not yet timed out)
@@ -357,6 +362,7 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
                 currentRequest.reset();
             }
         }
+        //TODO move default response handling to SIPRequest
         else if(responseHeader.statusCode >= 100 && responseHeader.statusCode < 200)
         {
             //for all provisional status-codes - do nothing

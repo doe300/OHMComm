@@ -12,6 +12,9 @@
 #include <string>
 #include <iostream>
 
+//To fix an error with MSVC and the LogLevel::ERROR constant
+#undef ERROR
+
 namespace ohmcomm
 {
 
@@ -60,8 +63,8 @@ namespace ohmcomm
      */
     class ConsoleLogger : public Logger
     {
-        virtual std::wostream& write(const LogLevel level);
-        virtual std::wostream& end(std::wostream& stream);
+        virtual std::wostream& write(const LogLevel level) override;
+        virtual std::wostream& end(std::wostream& stream) override;
     };
     
     

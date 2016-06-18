@@ -12,7 +12,7 @@
 
 using namespace ohmcomm::sip;
 
-Authentication::Authentication() : isAuthenticated(false), expirationTime(std::chrono::system_clock::now())
+Authentication::Authentication() : authenticated(false), expirationTime(std::chrono::system_clock::now())
 {
 }
 
@@ -53,6 +53,27 @@ std::unique_ptr<Authentication> Authentication::getAuthenticationMethod(const st
     
     ohmcomm::warn("Authentication") << "Unknown authentication method for header: " << headerField << ohmcomm::endl;
     return std::unique_ptr<Authentication>(nullptr);
+}
+
+bool Authentication::isAuthenticated() const
+{
+    return authenticated && expirationTime >= std::chrono::system_clock::now();
+}
+
+void Authentication::setAuthenticated(const std::chrono::system_clock::time_point expirationTime)
+{
+    authenticated = true;
+    this->expirationTime = expirationTime;
+}
+
+bool Authentication::isExpired() const
+{
+    return expirationTime < std::chrono::system_clock::now();
+}
+
+std::chrono::system_clock::time_point Authentication::getExpirationTime() const
+{
+    return expirationTime;
 }
 
 BasicAuthentication::BasicAuthentication() : Authentication()

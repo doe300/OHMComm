@@ -16,6 +16,12 @@
 
 using namespace ohmcomm::sip;
 
+const std::string SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL, SIP_REQUEST_OPTIONS, SIP_REQUEST_INFO}, " ");
+const std::string SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
+const std::string SIP_SUPPORTED_FIELDS = ohmcomm::Utility::joinStrings({});
+//XXX sip.methods (one for each supported method)
+const std::string SIP_CAPABILITIES = ohmcomm::Utility::joinStrings({";sip.audio", "sip.duplex=full"}, ";");
+
 void ohmcomm::sip::initializeSIPHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader, const SIPUserAgent& localUA, SIPUserAgent& remoteUA, const unsigned short localPort)
 {
     //mandatory header-fields:
@@ -169,16 +175,20 @@ bool REGISTERRequest::handleResponse(const ohmcomm::network::SocketAddress& sour
         if(authentication)
         {
             //TODO update local URI with contact
-            authentication->isAuthenticated = true;
             const std::string& contactHeader = responseHeader[SIP_HEADER_CONTACT];
             std::string::size_type i;
+            int expiresSeconds = 0;
             if((i = contactHeader.find(";expires=")) != std::string::npos)
             {
                 std::string expiresValue = contactHeader.substr(i + std::string(";expires=").size());
                 expiresValue = expiresValue.substr(0, expiresValue.find_first_of("; \r\n"));
-                const int expiresSeconds = atoi(expiresValue.data());
-                authentication->expirationTime = std::chrono::system_clock::now() + std::chrono::seconds(expiresSeconds);
+                expiresSeconds = atoi(expiresValue.data());
             }
+            else
+            {
+                expiresSeconds = atoi(responseHeader[SIP_HEADER_EXPIRES].data());
+            }
+            authentication->setAuthenticated(std::chrono::system_clock::now() + std::chrono::seconds(expiresSeconds));
         }
         return true;
     }
@@ -196,7 +206,7 @@ bool REGISTERRequest::handleRequest(const std::string& requestBody)
 
 bool REGISTERRequest::isCompleted() const
 {
-    return authentication && authentication->isAuthenticated;
+    return authentication && authentication->isAuthenticated();
 }
 
 std::unique_ptr<Authentication> REGISTERRequest::getAuthentication()
@@ -213,10 +223,10 @@ SIPRequestHeader REGISTERRequest::createRequest() const
     SIPRequestHeader header(SIP_REQUEST_REGISTER, SIPGrammar::toSIPURI({"sip", "", "", remoteUA.hostName.empty() ? remoteUA.ipAddress : remoteUA.hostName, remoteUA.port}));
     initializeSIPHeaderFields(SIP_REQUEST_REGISTER, header, nullptr, thisUA, remoteUA, localPort);
     
-    header[SIP_HEADER_ALLOW] = SIPHandler::SIP_ALLOW_METHODS;
-    header[SIP_HEADER_ACCEPT] = SIPHandler::SIP_ACCEPT_TYPES;
-    header[SIP_HEADER_SUPPORTED] = SIPHandler::SIP_SUPPORTED_FIELDS;
-    header[SIP_HEADER_CONTACT] += SIPHandler::SIP_CAPABILITIES;
+    header[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
+    header[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
+    header[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
+    header[SIP_HEADER_CONTACT] += SIP_CAPABILITIES;
     
     return header;
 }
@@ -259,14 +269,14 @@ bool OPTIONSRequest::handleRequest(const std::string& requestBody)
     initializeSIPHeaderFields("", responseHeader, &requestHeader, thisUA, remoteUA, localPort);
     
     //RFC 3261, Section 11.2: "Allow, Accept, Accept-Encoding, Accept-Language, and Supported header fields SHOULD be present[...]"
-    responseHeader[SIP_HEADER_ALLOW] = SIPHandler::SIP_ALLOW_METHODS;
-    responseHeader[SIP_HEADER_ACCEPT] = SIPHandler::SIP_ACCEPT_TYPES;
-    responseHeader[SIP_HEADER_SUPPORTED] = SIPHandler::SIP_SUPPORTED_FIELDS;
+    responseHeader[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
+    responseHeader[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
+    responseHeader[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
     //RFC 3261, Section 20.2: "If no Accept-Encoding header field is present, the server SHOULD assume a default value of identity."
     //RFC 3261, Section 20.3: "If no Accept-Language header field is present, the server SHOULD assume all languages are acceptable to the client."
     
     //RFC 3840, Section 8: "[...] add feature parameters to the Contact header field in the OPTIONS [...]"
-    responseHeader[SIP_HEADER_CONTACT] += SIPHandler::SIP_CAPABILITIES;
+    responseHeader[SIP_HEADER_CONTACT] += SIP_CAPABILITIES;
     
     //RFC 3261, Section 11.2: "A message body MAY be sent, the type of which is determined by the Accept header field 
     // in the OPTIONS request (application/sdp is the default if the Accept header field is not present). If the types
@@ -467,8 +477,8 @@ bool INVITERequest::sendRequest(const std::string& requestBody)
     header.requestURI = remoteUA.getSIPURI();
     initializeSIPHeaderFields(SIP_REQUEST_INVITE, header, nullptr, thisUA, remoteUA, localPort);
     //header-fields
-    header[SIP_HEADER_ALLOW] = SIPHandler::SIP_ALLOW_METHODS;
-    header[SIP_HEADER_ACCEPT] = SIPHandler::SIP_ACCEPT_TYPES;
+    header[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
+    header[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
     header[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
     
     requestHeader = header;
@@ -589,9 +599,9 @@ bool INVITERequest::handleRequest(const std::string& request_body)
     responseHeader[SIP_HEADER_CONTENT_TYPE] = MIME_SDP;
     //RFC 3261: "A 2xx response to an INVITE SHOULD contain the Allow header field and the Supported header field, 
     // and MAY contain the Accept header field"
-    responseHeader[SIP_HEADER_ALLOW] = SIPHandler::SIP_ALLOW_METHODS;
-    responseHeader[SIP_HEADER_ACCEPT] = SIPHandler::SIP_ACCEPT_TYPES;
-    responseHeader[SIP_HEADER_SUPPORTED] = SIPHandler::SIP_SUPPORTED_FIELDS;
+    responseHeader[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
+    responseHeader[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
+    responseHeader[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
     NetworkConfiguration rtpConfig;
     rtpConfig.remoteIPAddress = sdp.getConnectionAddress();
     rtpConfig.localPort = DEFAULT_NETWORK_PORT;

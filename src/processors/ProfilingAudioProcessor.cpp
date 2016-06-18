@@ -16,7 +16,7 @@ void ProfilingAudioProcessor::addTimeInputProcessing(long ms)
 {
 	count++;
 	inputProcessingTime += ms;
-};
+}
 
 void ProfilingAudioProcessor::addTimeOutputProcessing(long ms)
 {
