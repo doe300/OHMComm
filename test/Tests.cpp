@@ -50,6 +50,9 @@ int main(int argc, char** argv)
     TestNetworkGrammars testNetGrammars;
     testNetGrammars.run(output);
     
+    TestSocketAddress testSocketAddress;
+    testSocketAddress.run(output);
+    
     TestSIPGrammar testSIPGrammar;
     testSIPGrammar.run(output);
     
@@ -58,4 +61,7 @@ int main(int argc, char** argv)
     
     TestUtility testUtility;
     testUtility.run(output);
+    
+    TestKeyValuePair testKeys;
+    testKeys.run(output);
 }

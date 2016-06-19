@@ -35,16 +35,10 @@ namespace ohmcomm
 
         const std::vector<std::string> getValues() const
         {
-            std::vector<std::string> values;
-            std::string::size_type prevPos = 0;
-            std::string::size_type pos = 0;
-            while ((pos = value.find(',', pos)) != std::string::npos) {
-                values.push_back(Utility::trim(value.substr(prevPos, pos - prevPos)));
-                prevPos = pos;
-            }
-            if (values.size() == 0) {
-                //vector with single element
-                values.push_back(Utility::trim(value));
+            std::vector<std::string> values = Utility::splitString(value, ',');
+            for(std::string& val : values)
+            {
+                val = Utility::trim(val);
             }
             return values;
         }
@@ -110,7 +104,7 @@ namespace ohmcomm
             std::vector<std::string> results;
             for (const KeyValueType& pair : fields) {
                 if (isSame(pair.key, fieldKey)) {
-                    std::vector<std::string> tmp = pair.getValues();
+                    const std::vector<std::string> tmp = pair.getValues();
                     for (const std::string& value : tmp) {
                         results.push_back(value);
                     }

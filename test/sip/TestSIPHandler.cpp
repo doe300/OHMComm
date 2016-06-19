@@ -10,7 +10,7 @@
 
 using namespace ohmcomm::sip;
 
-TestSIPHandler::TestSIPHandler() : Suite(), handler(nullptr)
+TestSIPHandler::TestSIPHandler() : Suite("TestSIPHandler"), handler(nullptr)
 {
 //    TEST_ADD(TestSIPHandler::testSIPThread);
 #ifdef EXTENDED_SIP_TEST
