@@ -266,17 +266,7 @@ namespace ohmcomm
          */
         const std::string SIP_HEADER_WWW_AUTHENTICATE("WWW-Authenticate");
 
-        struct HeaderField : public KeyValuePair<std::string>
-        {
-
-            HeaderField() : KeyValuePair()
-            {
-            }
-
-            HeaderField(std::string key, std::string value) : KeyValuePair(key, value)
-            {
-            }
-        };
+        using HeaderField = KeyValuePair<std::string>;
 
         struct SIPHeader : KeyValuePairs<HeaderField>
         {

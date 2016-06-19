@@ -20,30 +20,8 @@ namespace ohmcomm
 {
     namespace sip
     {
-
-        struct SessionKey : public KeyValuePair<char>
-        {
-
-            SessionKey() : KeyValuePair<char>()
-            {
-            }
-
-            SessionKey(char key, std::string value) : KeyValuePair<char>(key, value)
-            {
-            }
-        };
-
-        struct FormatParameter : public KeyValuePair<std::string>
-        {
-
-            FormatParameter() : KeyValuePair<std::string>()
-            {
-            }
-
-            FormatParameter(std::string key, std::string value) : KeyValuePair<std::string>(key, value)
-            {
-            }
-        };
+        using SessionKey = KeyValuePair<char>;
+        using FormatParameter = KeyValuePair<std::string>;
 
         struct MediaDescription
         {

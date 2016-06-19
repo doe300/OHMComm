@@ -25,41 +25,9 @@ namespace ohmcomm
         {
         public:
 
-            struct SIPURIParameter : public KeyValuePair<std::string>
-            {
-
-                SIPURIParameter() : KeyValuePair()
-                {
-                }
-
-                SIPURIParameter(std::string key, std::string value) : KeyValuePair(key, value)
-                {
-                }
-            };
-
-            struct SIPURIHeader : public KeyValuePair<std::string>
-            {
-
-                SIPURIHeader() : KeyValuePair()
-                {
-                }
-
-                SIPURIHeader(std::string key, std::string value) : KeyValuePair(key, value)
-                {
-                }
-            };
-
-            struct SIPAddressParameter : public KeyValuePair<std::string>
-            {
-
-                SIPAddressParameter() : KeyValuePair()
-                {
-                }
-
-                SIPAddressParameter(std::string key, std::string value) : KeyValuePair(key, value)
-                {
-                }
-            };
+            using SIPURIParameter = KeyValuePair<std::string>;
+            using SIPURIHeader = KeyValuePair<std::string>;
+            using SIPAddressParameter = KeyValuePair<std::string>;
 
             static const std::string PROTOCOL_SIP;
             static const std::string PROTOCOL_SIPS;
