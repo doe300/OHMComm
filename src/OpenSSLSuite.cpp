@@ -7,6 +7,8 @@
 
 using namespace ohmcomm;
 
+const bool CryptoSuite::CRYPTO_SUITE_AVAILABLE = true;
+
 CryptoSuite::CryptoSuite()
 {
     

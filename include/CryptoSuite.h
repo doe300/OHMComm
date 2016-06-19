@@ -16,6 +16,9 @@ namespace ohmcomm
     class CryptoSuite
     {
     public:
+        
+        static const bool CRYPTO_SUITE_AVAILABLE;
+        
         CryptoSuite();
         ~CryptoSuite();
         
