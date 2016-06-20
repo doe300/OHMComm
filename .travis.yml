@@ -8,8 +8,10 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
+            - kalakris-cmake
           packages:
             - g++-5
+            - cmake
             - libasound2-dev
             - libpthread-stubs0-dev
       env: COMPILER=g++-5
@@ -17,11 +19,15 @@ matrix:
       compiler: clang
       addons:
         apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - kalakris-cmake
           packages:
-            - clang-3.8
+            - clang
+            - cmake
             - libasound2-dev
             - libpthread-stubs0-dev
-      env: COMPILER=clang++-3.8
+      env: COMPILER=clang++
     - os: osx
       compiler: clang
       env: COMPILER=clang++
