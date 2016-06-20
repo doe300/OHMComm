@@ -8,10 +8,8 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - kalakris-cmake
           packages:
             - g++-5
-            - cmake
             - libasound2-dev
             - libpthread-stubs0-dev
       env: COMPILER=g++-5
@@ -19,22 +17,38 @@ matrix:
       compiler: clang
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - kalakris-cmake
           packages:
-            - clang
-            - cmake
             - libasound2-dev
             - libpthread-stubs0-dev
-      env: COMPILER=clang++
+      env: 
+      - LLVM_VERSION=3.8.0
+      - LLVM_ARCHIVE_PATH=$HOME/clang+llvm.tar.xz
+      - CXX=$HOME/clang-$LLVM_VERSION/bin/clang++
+      - COMPILER=HOME/clang-$LLVM_VERSION/bin/clang++
+      - CPPFLAGS="-I $HOME/clang-$LLVM_VERSION/include/c++/v1"
+      - CXXFLAGS=-lc++
+      - LD_LIBRARY_PATH=$HOME/clang-$LLVM_VERSION/lib:$LD_LIBRARY_PATH
     - os: osx
       compiler: clang
       env: COMPILER=clang++
       # GCC is linked to clang, so we don't need to compile twice for same compiler/platform
+      
+before_install:
+  - if [[ "${TRAVIS_OS_NAME}" == "linux" && "$CC" = "clang" ]]; then
+    wget http://llvm.org/releases/$LLVM_VERSION/clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O $LLVM_ARCHIVE_PATH
+    mkdir $HOME/clang-$LLVM_VERSION
+    tar xf $LLVM_ARCHIVE_PATH -C $HOME/clang-$LLVM_VERSION --strip-components 1
+  - fi
 
 before_script:
   - echo $TRAVIS_OS_NAME
+  - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="http://www.cmake.org/files/v3.3/cmake-3.3.1-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    else
+      brew install cmake
+    fi
   - cmake --version
   - mkdir build
   - cd build
