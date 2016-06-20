@@ -11,14 +11,20 @@ matrix:
           packages:
             - g++-5
             - libasound2-dev
+            - libpthread-stubs0-dev
       env: COMPILER=g++-5
     - os: linux
       compiler: clang
       addons:
         apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
           packages:
+            - clang-3.8
             - libasound2-dev
-      env: COMPILER=clang++
+            - libpthread-stubs0-dev
+      env: COMPILER=clang++-3.8
     - os: osx
       compiler: clang
       env: COMPILER=clang++
@@ -26,6 +32,7 @@ matrix:
 
 before_script:
   - echo $TRAVIS_OS_NAME
+  - cmake --version
   - mkdir build
   - cd build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DTEST_OUTPUT_CONSOLE=ON ../
