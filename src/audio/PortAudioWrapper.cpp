@@ -13,7 +13,7 @@
 
 using namespace ohmcomm;
 
-PortAudioWrapper::PortAudioWrapper() : streamData(new StreamData())
+PortAudioWrapper::PortAudioWrapper() : streamData(new StreamData()), outputParams{}, inputParams{}, stream(nullptr)
 {
     throwOnError(Pa_Initialize());
 }

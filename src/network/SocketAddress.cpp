@@ -31,6 +31,7 @@ SocketAddress SocketAddress::fromAddressAndPort(const std::string& address, cons
     }
     else if(NetworkGrammars::isIPv4Address(address))
     {
+        addr.isIPv6 = false;
         ipAddress = address;
     }
     else if(NetworkGrammars::isValidDomainName(address))
@@ -80,5 +81,6 @@ SocketAddress SocketAddress::createLocalAddress(const bool isIPv6, const uint16_
         localAddress.ipv4.sin_addr.s_addr = INADDR_ANY;
         localAddress.ipv4.sin_port = htons(localPort);
     }
+    localAddress.isIPv6 = isIPv6;
     return localAddress;
 }

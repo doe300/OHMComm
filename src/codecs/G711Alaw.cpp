@@ -12,13 +12,12 @@ using namespace ohmcomm::codecs;
 
 static constexpr ohmcomm::ProcessorCapabilities g711Capabilities = {true, false, false, false, false, 0, 0};
 
-G711Alaw::G711Alaw(const std::string& name) : AudioProcessor(name, g711Capabilities)
+G711Alaw::G711Alaw(const std::string& name) : AudioProcessor(name, g711Capabilities), writeBuffer()
 {
 }
 
 G711Alaw::~G711Alaw()
 {
-    delete[] writeBuffer;
 }
 
 unsigned int G711Alaw::getSupportedAudioFormats() const
@@ -48,14 +47,12 @@ ohmcomm::PayloadType G711Alaw::getSupportedPlayloadType() const
 void G711Alaw::configure(const ohmcomm::AudioConfiguration& audioConfig, const std::shared_ptr<ohmcomm::ConfigurationMode> configMode, const uint16_t bufferSize, const ohmcomm::ProcessorCapabilities& chainCapabilities)
 {
     maxBufferSize = audioConfig.framesPerPackage * audioConfig.outputDeviceChannels;
-    writeBuffer = new int16_t[maxBufferSize];
+    writeBuffer.resize(maxBufferSize);
 }
 
 bool G711Alaw::cleanUp()
 {
-    delete[] writeBuffer;
-    //set buffer to nullptr to prevent duplicate free on calling destructor
-    writeBuffer = nullptr;
+    writeBuffer.clear();
     return true;
 }
 
@@ -86,9 +83,9 @@ unsigned int G711Alaw::processOutputData(void* outputBuffer, const unsigned int 
     for(unsigned int i = 0; i < bufferSize;i++)
     {
         //decompress samples in local buffer
-        *(writeBuffer + i) = alaw_to_s16(*(readBuffer + i));
+        writeBuffer[i] = alaw_to_s16(*(readBuffer + i));
     }
     //we have now 2 Bytes per sample
-    memcpy(outputBuffer, writeBuffer, bufferSize << 1);
+    memcpy(outputBuffer, writeBuffer.data(), bufferSize << 1);
     return bufferSize << 1;
 }

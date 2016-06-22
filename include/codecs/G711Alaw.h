@@ -51,7 +51,7 @@ namespace ohmcomm
             unsigned int processOutputData(void *outputBuffer, const unsigned int outputBufferByteSize, StreamData *userData) override;
 
         private:
-            int16_t* writeBuffer;
+            std::vector<int16_t> writeBuffer;
             uint16_t maxBufferSize;
         };
     }
