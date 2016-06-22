@@ -97,6 +97,9 @@ SIPGrammar::SIPURI SIPGrammar::readSIPURI(const std::string& sipURI, const unsig
 std::string SIPGrammar::toSIPURI(const SIPURI& sipURI)
 {
     std::stringstream ss;
+    //'<' and '>' are only required, if display-name is set
+    //out of simplicity (to be able to attach tags after the '>'), they are always added
+    ss << '<';
     ss << sipURI.protocol << ":";
     if(!sipURI.user.empty())
     {
@@ -112,6 +115,7 @@ std::string SIPGrammar::toSIPURI(const SIPURI& sipURI)
     {
         ss << ':' << sipURI.port;
     }
+    ss << '>';
     for(const SIPURIParameter& param : sipURI.parameters.fields)
     {
         ss << ';' << param.key;
@@ -203,7 +207,7 @@ std::string SIPGrammar::toNamedAddress(const SIPURI& sipURI, const std::string& 
         else
             ss << name << ' ';
     }
-    ss << '<' << toSIPURI(sipURI) << '>';
+    ss << toSIPURI(sipURI);
     return ss.str();
 }
 
