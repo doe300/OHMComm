@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
+#include <chrono>
+#include <random>
 
 #include "Utility.h"
 #include "sip/STUNClient.h"
@@ -255,15 +257,14 @@ std::string Utility::generateRandomUUID()
 {
     //[...]form 8-4-4-4-12 for a total of 36 characters
     char strUuid[37] = {};
-    //taken from https://stackoverflow.com/questions/2174768/generating-random-uuids-in-linux
-    srand(time(nullptr));
+    //adapted from https://stackoverflow.com/questions/2174768/generating-random-uuids-in-linux
 
     sprintf(strUuid, "%hx%hx-%hx-%hx-%hx-%hx%hx%hx",
-            rand(), rand(), // Generates a 32-bit Hex number
-            rand(), // Generates a 16-bit Hex number
-            ((rand() & 0x0fff) | 0x4000), // Generates a 16-bit Hex number of the form 4xxx (4 indicates the UUID version)
-            rand() % 0x3fff + 0x8000, // Generates a 16-bit Hex number in the range [0x8000, 0xbfff]
-            rand(), rand(), rand()); // Generates a 48-bit Hex number
+            randomNumber(), randomNumber(), // Generates a 32-bit Hex number
+            randomNumber(), // Generates a 16-bit Hex number
+            ((randomNumber() & 0x0fff) | 0x4000), // Generates a 16-bit Hex number of the form 4xxx (4 indicates the UUID version)
+            randomNumber() % 0x3fff + 0x8000, // Generates a 16-bit Hex number in the range [0x8000, 0xbfff]
+            randomNumber(), randomNumber(), randomNumber()); // Generates a 48-bit Hex number
 
     return std::string(strUuid);
 }
@@ -423,6 +424,12 @@ std::string Utility::decodeBase64(const std::string& base64String)
     }
 
     return ret;
+}
+
+unsigned int Utility::randomNumber()
+{
+    static std::mt19937 engine(std::chrono::system_clock::now().time_since_epoch().count());
+    return engine();
 }
 
 std::string Utility::getExternalLocalIPAddress()

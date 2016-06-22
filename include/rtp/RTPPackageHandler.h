@@ -8,10 +8,10 @@
 #ifndef RTPPACKAGEHANDLER_H
 #define	RTPPACKAGEHANDLER_H
 
-#include <random> // random generator objects
 #include <chrono> // clock, tick
 #include <string.h> //memcpy
 
+#include "Utility.h"
 #include "rtp/RTPHeader.h"
 #include "rtp/ParticipantDatabase.h"
 
@@ -129,11 +129,6 @@ namespace ohmcomm
             Participant& ourselves;
             // A buffer that can store a whole RTP-Package
             void *workBuffer;
-
-            unsigned int getRandomNumber();
-            unsigned int createStartingTimestamp();
-
-            std::mt19937 randomGenerator;
 
             unsigned int sequenceNr;
             unsigned int initialTimestamp;

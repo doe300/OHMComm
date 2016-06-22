@@ -1,5 +1,4 @@
 
-#include <random>
 #include <stdlib.h> //abs for clang
 #include <iostream>
 
@@ -37,10 +36,7 @@ std::vector<std::reference_wrapper<ParticipantListener>> ParticipantDatabase::li
 
 Participant ParticipantDatabase::initLocalParticipant()
 {
-    unsigned int seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-    std::mt19937 tmp(seed1);
-    uint32_t ssrc = tmp();
-    return Participant{ssrc, true};
+    return Participant{Utility::randomNumber(), true};
 }
 
 bool ParticipantDatabase::removeParticipant(const uint32_t ssrc)

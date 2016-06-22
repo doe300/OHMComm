@@ -203,6 +203,13 @@ namespace ohmcomm
          * \since 0.9
          */
         static std::string decodeBase64(const std::string& base64String);
+        
+        /*!
+         * Generates a 32 bit random number
+         * 
+         * \since 0.9
+         */
+        static unsigned int randomNumber();
 
     private:
 

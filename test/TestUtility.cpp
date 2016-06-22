@@ -110,7 +110,6 @@ void TestUtility::testSplitString()
 void TestUtility::testGenerateRandomUUID()
 {
     TEST_ASSERT_EQUALS(36, Utility::generateRandomUUID().size());
-    //TODO fails if UUIDs are retrieved in the same second
     TEST_ASSERT(Utility::generateRandomUUID().compare(Utility::generateRandomUUID()) != 0);
 }
 

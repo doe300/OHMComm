@@ -16,12 +16,8 @@ RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, Participan
 
     workBuffer = new char[maximumBufferSize];
 
-    unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-    std::mt19937 tmp(seed1);
-    this->randomGenerator = tmp;
-
-    sequenceNr = getRandomNumber();
-    initialTimestamp = createStartingTimestamp();
+    sequenceNr = Utility::randomNumber();
+    initialTimestamp = Utility::randomNumber();
 }
 
 RTPPackageHandler::~RTPPackageHandler()
@@ -38,7 +34,7 @@ const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsign
     newRTPHeader.setTimestamp(getCurrentRTPTimestamp());
     newRTPHeader.setSSRC(ourselves.ssrc);
 
-    // Copy RTPHeader and Audiodata in the buffer
+    // Copy RTPHeader and audio-data in the buffer
     memcpy((char*)workBuffer, &newRTPHeader, RTPHeader::MIN_HEADER_SIZE);
     memcpy((char*)(workBuffer)+ RTPHeader::MIN_HEADER_SIZE, audioData, payloadSize);
     actualPayloadSize = payloadSize;
@@ -70,17 +66,6 @@ const RTPHeaderExtension RTPPackageHandler::getRTPHeaderExtension() const
     ex.setProfile(readEx->getProfile());
     memcpy(ex.getExtension(), ((char*)(workBuffer) + getRTPHeaderSize() + RTPHeaderExtension::MIN_EXTENSION_SIZE), readEx->getLength());
     return ex;
-}
-
-unsigned int RTPPackageHandler::getRandomNumber()
-{
-	return this->randomGenerator();
-}
-
-unsigned int RTPPackageHandler::createStartingTimestamp()
-{
-    //start timestamp should be a random number
-    return this->randomGenerator(); 
 }
 
 unsigned int RTPPackageHandler::getRTPHeaderSize() const

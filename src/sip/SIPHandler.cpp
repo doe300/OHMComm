@@ -219,6 +219,13 @@ void SIPHandler::handleSIPRequest(const void* buffer, unsigned int packageLength
     }
     try
     {
+        if(currentRequest && !currentRequest->isCompleted())
+        {
+            //there was a new request, while a request is currently being processed
+            //TODO what to do, respond BUSY HERE or queue??
+            //if queue, push requests originating from this program to the top of the queue
+            //if queue, on CANCEL remove corresponding request from queue
+        }
         if (SIP_REQUEST_INVITE.compare(requestHeader.requestCommand) == 0)
         {
             handleINVITERequest(packageInfo, requestHeader, requestBody, remoteUA);
@@ -286,6 +293,7 @@ void SIPHandler::handleBYERequest(const ohmcomm::network::NetworkWrapper::Packag
 
 void SIPHandler::handleCANCELRequest(const ohmcomm::network::NetworkWrapper::Package& packageInfo, const SIPRequestHeader& requestHeader, const std::string& requestBody, SIPUserAgent& remoteUA)
 {
+    //TODO not quite correct according to RFC 3261, section 9.1
     //remote has canceled their INVITE
     //if we have already established communication - do nothing
     if(state != SessionState::ESTABLISHED)
@@ -375,7 +383,6 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
                 currentRequest.reset();
             }
         }
-        //TODO move default response handling to SIPRequest
         else if(responseHeader.statusCode >= 100 && responseHeader.statusCode < 200)
         {
             //for all provisional status-codes - do nothing
