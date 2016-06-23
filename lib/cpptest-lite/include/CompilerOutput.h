@@ -47,7 +47,7 @@ namespace Test
         static const std::string ARG_TEXT;
     };
 
-};
+}
 
 #endif	/* COMPILEROUTPUT_H */
 

@@ -31,7 +31,7 @@ namespace Test
                 fileName = fileName.substr(pos + 1);
             return fileName;
         }
-    };
+    }
 
     struct Assertion
     {
@@ -193,7 +193,7 @@ namespace Test
         }
     };
 
-};
+}
 
 #endif	/* OUTPUT_H */
 

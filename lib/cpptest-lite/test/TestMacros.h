@@ -18,10 +18,13 @@ class TestMacros : public Test::Suite
 public:
     TestMacros();
     
+    void testMethodNoArgs();
     void testMethodWithCStringArg(char* arg);
     void testMethodWithIntArg(const int arg);
     void testMethodWithPointerArg(void* arg);
     void testMethodWithStringArg(std::string string);
+    void testMethodWithVarargs1(const double d, const int i);
+    void testMethodWithVarargs2(std::string s, int i, double d);
     
     void testFailureMessages();
 private:

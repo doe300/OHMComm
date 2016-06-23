@@ -47,7 +47,7 @@ namespace std
     {
         return "(nullptr)";
     }
-};
+}
 
 namespace Test
 {
@@ -309,11 +309,26 @@ namespace Test
             if(!continueAfterFailure()) return; \
         } else testSucceeded(Test::Assertion(__FILE__,__LINE__)); \
     }
-    
 #define TEST_ABORT(msg) \
     { \
         testFailed(Test::Assertion(__FILE__, __LINE__, "Test-method aborted!", ((msg) != 0 ? #msg : ""))); \
         return; \
+    }
+#define TEST_STRING_EQUALS(expected, value) \
+    { \
+        if(std::string(expected).compare(value) != 0) { \
+            testFailed(Test::Assertion(__FILE__, __LINE__, std::string("Got \"") + std::string(value) + std::string("\", expected \"") + std::string(expected) + std::string("\""), "")); \
+            if(!continueAfterFailure()) return; \
+        } \
+        else testSucceeded(Test::Assertion(__FILE__,__LINE__)); \
+    }
+#define TEST_STRING_EQUALS_MSG(expected, value, msg) \
+    { \
+        if(std::string(expected).compare(value) != 0) { \
+            testFailed(Test::Assertion(__FILE__, __LINE__, std::string("Got \"") + std::string(value) + std::string("\", expected \"") + std::string(expected) + std::string("\""), ((msg) != 0 ? #msg : ""))); \
+            if(!continueAfterFailure()) return; \
+        } \
+        else testSucceeded(Test::Assertion(__FILE__,__LINE__)); \
     }
 }   // end of namespace Test
 #endif	/* ASSERTS_H */

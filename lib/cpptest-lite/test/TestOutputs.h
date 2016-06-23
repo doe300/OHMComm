@@ -23,6 +23,7 @@ private:
     Output* textOutput;
     Output* compilerOutput;
     Output* htmlOutput;
+    Output* consoleOutput;
 };
 
 class TestWithOutput : public Test::Suite

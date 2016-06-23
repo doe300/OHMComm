@@ -66,7 +66,7 @@ std::pair<bool, std::chrono::microseconds> Suite::runTestMethod(const TestMethod
     //run before() before every test
     if(before(currentTestMethodName))
     {
-        std::chrono::microseconds startTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch());
+        std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
         try {
             method((Suite*)this);
         }
@@ -82,7 +82,7 @@ std::pair<bool, std::chrono::microseconds> Suite::runTestMethod(const TestMethod
             currentTestSucceeded = false;
             output->printException(suiteName, method.name, std::runtime_error("non-exception type thrown"));
         }
-        std::chrono::microseconds endTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch());
+        std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
         //run after() after every test
         after(currentTestMethodName, currentTestSucceeded);
         if(!exceptionThrown)
@@ -90,7 +90,7 @@ std::pair<bool, std::chrono::microseconds> Suite::runTestMethod(const TestMethod
             //we don't need to print twice, that the method has failed
             output->finishTestMethod(suiteName, method.name, currentTestSucceeded);
         }
-        return std::make_pair(currentTestSucceeded, endTime - startTime);
+        return std::make_pair(currentTestSucceeded, std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime));
     }
     return std::make_pair(false, std::chrono::microseconds::zero());
 }

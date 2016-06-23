@@ -36,12 +36,12 @@ namespace Test
         virtual void printFailure(const Assertion& assertion);
         virtual void printException(const std::string& suiteName, const std::string& methodName, const std::exception& ex);
 
-    private:
+    protected:
         const unsigned int mode;
         std::ostream& stream;
     };
 
-};
+}
 
 #endif	/* TEXTOUTPUT_H */
 

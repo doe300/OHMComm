@@ -72,7 +72,7 @@ namespace Test
         TestMethodInfo* currentMethod = nullptr;
     };
     
-};
+}
 
 #endif	/* COLLECTOROUTPUT_H */
 

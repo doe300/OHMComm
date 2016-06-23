@@ -1,6 +1,7 @@
 # CppTest-lite
 
 [![Build Status](https://travis-ci.org/doe300/cpptest-lite.svg)](https://travis-ci.org/doe300/cpptest-lite)
+[![Build Status](https://ci.appveyor.com/api/projects/status/xoa5e8eiwhilifvq?svg=true)](https://ci.appveyor.com/project/doe300/cpptest-lite)
 [![GitHub license](https://img.shields.io/github/license/doe300/cpptest-lite.svg)](https://github.com/doe300/cpptest-lite/blob/master/LICENSE)
 [![Release](https://img.shields.io/github/tag/doe300/cpptest-lite.svg)](https://github.com/doe300/cpptest-lite/releases/latest)
 
@@ -30,9 +31,11 @@ because - seriously - that is bad coding style
 - new macros **TEST_PREDICATE(_MSG)** and **TEST_BIPREDICATE(_MSG)** for testing a single (or two) values with a predicate.
 Additionally, two new types were created: **Test::Predicate** and **Test::BiPredicate**, but basically any method accepting a single (or two) arguments and 
 returning a *bool* or any other type which can be coerced into a *bool* can be used.
-- supports parameterized test-methods and multiple registrations for same test-method. Currently **TEST_ADD_WITH_STRING(_LITERAL)** allows for a string (c-style string-literal) to be passed,
-while **TEST_ADD_WITH_INTEGER** accepts an integer and **TEST_ADD_WITH_POINTER** an arbitrary pointer. These values are automatically passed to the test-method
+- supports parameterized test-methods and multiple registrations for same test-method. The parameters are automatically passed to the test-method
 - added macro **TEST_ABORT** to fail and abort a test-method
 - added methods to be executed **before** and **after** every test-method. **setup** and **before** can be used to skip the suite/a single test-method.
-- More detailed failure-message, e.g. prints the failed assertion
+- More detailed failure-message, e.g. prints the failed assertion and the method-parameters, if there are any
 - **ParallelSuite** allows to run TestSuites in a multithreaded-environment and automatically synchronizes access to the Output.
+- new macros to add tests, **TEST_ADD_SINGLE_ARGUMENT**, **TEST_ADD_TWO_ARGUMENTS** and **TEST_ADD_TWO_ARGUMENTS** 
+to add test with one, two or three arguments of arbitrary types.
+- new macros to compare string-equality **TEST_STRING_EQUALS** and **TEST_STRING_EQUALS_MSG**.

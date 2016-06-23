@@ -57,9 +57,9 @@ namespace Test
 
         //! Test-method without any parameter
         using SimpleTestMethod = void (Suite::*)();
-        //! Test-method with a single parameter of arbitrary type
-        template<typename T>
-        using SingleArgTestMethod = void (Suite::*)(const T arg);
+        //! Test-method with an arbitrary number of arguments of arbitrary types
+        template<typename... T>
+        using ParameterizedTestMethod = void (Suite::*)(T... args);
 
         inline void setSuiteName(const std::string& filePath)
         {
@@ -75,13 +75,35 @@ namespace Test
             totalTestMethods++;
         }
         
-        template<typename T, typename U>
-        inline void addTest(SingleArgTestMethod<T> method, const std::string& funcName, const U& arg)
+#ifdef __clang__ //Need extra handling for clang++, see https://llvm.org/bugs/show_bug.cgi?id=25695 and https://llvm.org/bugs/show_bug.cgi?id=25250
+        template<typename T>
+        inline void addTest(ParameterizedTestMethod<T> method, const std::string& funcName, const T arg0)
         {
-            static_assert(std::is_constructible<T, U>::value, "Can't construct method-parameter out of given type!");
-            testMethods.push_back(TestMethod(funcName, method, {arg}));
+            testMethods.push_back(TestMethod(funcName, method, arg0));
             totalTestMethods++;
         }
+        
+        template<typename T, typename U>
+        inline void addTest(ParameterizedTestMethod<T, U> method, const std::string& funcName, const T arg0, const U arg1)
+        {
+            testMethods.push_back(TestMethod(funcName, method, arg0, arg1));
+            totalTestMethods++;
+        }
+        
+        template<typename T, typename U, typename V>
+        inline void addTest(ParameterizedTestMethod<T, U, V> method, const std::string& funcName, const T arg0, const U arg1, const V arg2)
+        {
+            testMethods.push_back(TestMethod(funcName, method, arg0, arg1, arg2));
+            totalTestMethods++;
+        }
+#else 
+        template<typename... T>
+        inline void addTest(ParameterizedTestMethod<T...> method, const std::string& funcName, const T... args)
+        {
+            testMethods.push_back(TestMethod(funcName, method, args...));
+            totalTestMethods++;
+        }
+#endif
         
         inline void testSucceeded(Assertion&& assertion)
         {
@@ -161,17 +183,36 @@ namespace Test
             {
             }
             
+#ifdef __clang__
             template<typename T>
-            TestMethod(const std::string& name, SingleArgTestMethod<T> method, const T& arg) : 
-                name(name), functor(std::bind(method, std::placeholders::_1, arg)), argString(joinStrings(arg))
+            TestMethod(const std::string& name, ParameterizedTestMethod<T> method, const T arg0) : name(name),
+                functor([arg0, method](Suite* suite) {(suite->*method)(arg0);}), argString(joinStrings(arg0))
             {
-            }
-            
-            TestMethod(const std::string& name, SingleArgTestMethod<std::string> method, const std::string& arg) : 
-                name(name), functor(std::bind(method, std::placeholders::_1, arg)), argString(std::string("\"")+arg+"\"")
-            {
+                    
             }
                 
+            template<typename T, typename U>
+            TestMethod(const std::string& name, ParameterizedTestMethod<T, U> method, const T arg0, const U arg1) : name(name),
+                functor([arg0, arg1, method](Suite* suite) {(suite->*method)(arg0, arg1);}), argString(joinStrings(arg0, arg1))
+            {
+                    
+            }
+                
+            template<typename T, typename U, typename V>
+            TestMethod(const std::string& name, ParameterizedTestMethod<T, U, V> method, const T arg0, const U arg1, const V arg2) : name(name),
+                functor([arg0, arg1, arg2, method](Suite* suite) {(suite->*method)(arg0, arg1, arg2);}), argString(joinStrings(arg0, arg1, arg2))
+            {
+                    
+            }
+#else
+            template<typename... T>
+            TestMethod(const std::string& name, ParameterizedTestMethod<T...> method, const T... args) : name(name),
+                functor([args..., method](Suite* suite) {(suite->*method)(args...);}), argString(joinStrings(args...))
+            {
+                    
+            }
+#endif
+            
             inline void operator()(Suite* suite) const
             {
                 functor(suite);
@@ -226,21 +267,32 @@ namespace Test
     /*!
      * Registers a test-method taking a single argument of type std::string or a c-style string-literal
      */
-#define TEST_ADD_WITH_STRING(func, string) setSuiteName(__FILE__); addTest(static_cast<SingleArgTestMethod<std::basic_string<char>>>(&func), #func, string)
+#define TEST_ADD_WITH_STRING(func, string) setSuiteName(__FILE__); addTest<std::basic_string<char>>(static_cast<ParameterizedTestMethod<std::basic_string<char>>>(&func), #func, string)
     /*!
      * Registers a test-method taking a single argument of type c-string
      */
-#define TEST_ADD_WITH_STRING_LITERAL(func, stringLiteral) setSuiteName(__FILE__); addTest(static_cast<SingleArgTestMethod<char*>>(&func), #func, stringLiteral)
+#define TEST_ADD_WITH_STRING_LITERAL(func, stringLiteral) setSuiteName(__FILE__); addTest<char*>(static_cast<ParameterizedTestMethod<char*>>(&func), #func, stringLiteral)
     /*!
      * Registers a test-method accepting a single argument of type int (or any type which can be coerced from int)
      */
-#define TEST_ADD_WITH_INTEGER(func, number) setSuiteName(__FILE__); addTest(static_cast<SingleArgTestMethod<int>>(&func), #func, number)
+#define TEST_ADD_WITH_INTEGER(func, number) setSuiteName(__FILE__); addTest<int>(static_cast<ParameterizedTestMethod<int>>(&func), #func, number)
     /*!
      * Registers a test-method which takes an argument to a pointer of arbitrary data
      */
-#define TEST_ADD_WITH_POINTER(func, pointer) setSuiteName(__FILE__); addTest(static_cast<SingleArgTestMethod<void*>>(&func), #func, pointer)
-    
-};
+#define TEST_ADD_WITH_POINTER(func, pointer) setSuiteName(__FILE__); addTest<void*>(static_cast<ParameterizedTestMethod<void*>>(&func), #func, pointer)
+    /*!
+     * Registers a test-method with a single argument of arbitrary type
+     */
+#define TEST_ADD_SINGLE_ARGUMENT(func, arg) setSuiteName(__FILE__); addTest<decltype(arg)>(static_cast<ParameterizedTestMethod<decltype(arg)>>(&func), #func, arg)
+    /*!
+     * Registers a test-method with two arguments of arbitrary types
+     */
+#define TEST_ADD_TWO_ARGUMENTS(func, arg0, arg1) setSuiteName(__FILE__); addTest<decltype(arg0), decltype(arg1)>(static_cast<ParameterizedTestMethod<decltype(arg0), decltype(arg1)>>(&func), #func, arg0, arg1)
+    /*!
+     * Registers a test-method with three arguments of arbitrary types
+     */
+#define TEST_ADD_THREE_ARGUMENTS(func, arg0, arg1, arg2) setSuiteName(__FILE__); addTest<decltype(arg0), decltype(arg1), decltype(arg2)>(static_cast<ParameterizedTestMethod<decltype(arg0), decltype(arg1), decltype(arg2)>>(&func), #func, arg0, arg1, arg2)
+}
 
 #endif	/* TESTSUITE_H */
 

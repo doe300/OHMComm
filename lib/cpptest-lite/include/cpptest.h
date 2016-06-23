@@ -17,6 +17,7 @@
 #include "TextOutput.h"
 #include "CompilerOutput.h"
 #include "HTMLOutput.h"
+#include "ConsoleOutput.h"
 
 #endif	/* CPPTEST_H */
 

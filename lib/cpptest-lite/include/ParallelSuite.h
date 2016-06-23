@@ -34,7 +34,7 @@ namespace Test
     private:
         bool runSuite(unsigned int suiteIndex);
     };
-};
+}
 
 #endif	/* PARALLELSUITE_H */
 

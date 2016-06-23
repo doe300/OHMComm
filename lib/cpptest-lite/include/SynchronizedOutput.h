@@ -51,7 +51,7 @@ namespace Test
         void unlockMutex();
     };
 
-};
+}
 
 #endif	/* SYNCHRONIZEDOUTPUT_H */
 

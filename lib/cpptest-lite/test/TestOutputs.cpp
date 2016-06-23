@@ -12,11 +12,12 @@
 using namespace Test;
 
 TestOutputs::TestOutputs() : Test::Suite("TestOutputs"), textOutput(new TextOutput(TextOutput::Verbose)),
-        compilerOutput(new CompilerOutput(CompilerOutput::FORMAT_GENERIC)), htmlOutput(new HTMLOutput())
+        compilerOutput(new CompilerOutput(CompilerOutput::FORMAT_GENERIC)), htmlOutput(new HTMLOutput()), consoleOutput(new ConsoleOutput(TextOutput::Verbose))
 {
     TEST_ADD_WITH_POINTER(TestOutputs::testOutput, (void*)textOutput);
     TEST_ADD_WITH_POINTER(TestOutputs::testOutput, (void*)compilerOutput);
     TEST_ADD_WITH_POINTER(TestOutputs::testOutput, (void*)htmlOutput);
+    TEST_ADD_WITH_POINTER(TestOutputs::testOutput, (void*)consoleOutput);
 }
 
 TestOutputs::~TestOutputs()
@@ -24,6 +25,7 @@ TestOutputs::~TestOutputs()
     delete textOutput;
     delete compilerOutput;
     delete htmlOutput;
+    delete consoleOutput;
 }
 
 
