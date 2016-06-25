@@ -82,7 +82,6 @@ void SIPHandler::runThread()
         }
         userAgents.getRemoteUA().userName = registerUser;
         userAgents.thisUA.userName = registerUser;
-        userAgents.thisUA.hostName = userAgents.getRemoteUA().hostName;
         sendRegisterRequest(userAgents.getRemoteUA());
     }
     else

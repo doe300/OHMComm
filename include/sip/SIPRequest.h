@@ -22,16 +22,17 @@ namespace ohmcomm
     {
         
         //A list of all allowed SIP-methods
-        const std::string SIP_ALLOW_METHODS;
+        const std::string SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL, SIP_REQUEST_OPTIONS, SIP_REQUEST_INFO}, " ");
 
         //A list of all accepted MIME-types
-        const std::string SIP_ACCEPT_TYPES;
+        const std::string SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
 
         //A list of all supported SIP extension headers
-        const std::string SIP_SUPPORTED_FIELDS;
+        const std::string SIP_SUPPORTED_FIELDS = ohmcomm::Utility::joinStrings({});
 
         //A list of all supported capabilities, as of RFC 3840 section 10
-        const std::string SIP_CAPABILITIES;
+        //XXX sip.methods (one for each supported method)
+        const std::string SIP_CAPABILITIES = ohmcomm::Utility::joinStrings({";sip.audio", "sip.duplex=full"}, ";");
         
         /*!
          * Sets must-have header-fields

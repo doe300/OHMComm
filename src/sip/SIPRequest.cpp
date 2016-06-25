@@ -16,12 +16,6 @@
 
 using namespace ohmcomm::sip;
 
-const std::string SIP_ALLOW_METHODS = ohmcomm::Utility::joinStrings({SIP_REQUEST_INVITE, SIP_REQUEST_ACK, SIP_REQUEST_BYE, SIP_REQUEST_CANCEL, SIP_REQUEST_OPTIONS, SIP_REQUEST_INFO}, " ");
-const std::string SIP_ACCEPT_TYPES = ohmcomm::Utility::joinStrings({MIME_SDP, MIME_MULTIPART_MIXED, MIME_MULTIPART_ALTERNATIVE}, ", ");
-const std::string SIP_SUPPORTED_FIELDS = ohmcomm::Utility::joinStrings({});
-//XXX sip.methods (one for each supported method)
-const std::string SIP_CAPABILITIES = ohmcomm::Utility::joinStrings({";sip.audio", "sip.duplex=full"}, ";");
-
 void ohmcomm::sip::initializeSIPHeaderFields(const std::string& requestMethod, SIPHeader& header, const SIPRequestHeader* requestHeader, const SIPUserAgent& localUA, SIPUserAgent& remoteUA, const unsigned short localPort)
 {
     //mandatory header-fields:
@@ -49,7 +43,17 @@ void ohmcomm::sip::initializeSIPHeaderFields(const std::string& requestMethod, S
         //if we INVITE, remote-tag is empty
         //if we got invited, remote-tag is correctly the tag sent by remote
         reqHeader[SIP_HEADER_TO] = SIPGrammar::toNamedAddress(toSIPURI(remoteUA, true), remoteUA.userName);
-        reqHeader[SIP_HEADER_FROM] = SIPGrammar::toNamedAddress(toSIPURI(localUA, true), localUA.userName);
+        if(SIP_REQUEST_REGISTER.compare(requestMethod) == 0)
+        {
+            //for REGISTER the FROM header-field uses the address of the remote UAS
+            SIPUserAgent dummy = remoteUA;
+            dummy.tag = localUA.tag;
+            reqHeader[SIP_HEADER_FROM] = SIPGrammar::toNamedAddress(toSIPURI(dummy, true), dummy.userName);
+        }
+        else
+        {
+            reqHeader[SIP_HEADER_FROM] = SIPGrammar::toNamedAddress(toSIPURI(localUA, true), localUA.userName);
+        }
     }
     
     catch(const std::bad_cast& e)
@@ -225,7 +229,7 @@ SIPRequestHeader REGISTERRequest::createRequest() const
     
     header[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
     header[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
-    header[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
+    //header[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
     header[SIP_HEADER_CONTACT] += SIP_CAPABILITIES;
     
     return header;
