@@ -8,7 +8,7 @@
 #include "sip/Authentication.h"
 #include "Utility.h"
 #include "Logger.h"
-#include "CryptoSuite.h"
+#include "crypto/CryptoSuite.h"
 
 using namespace ohmcomm::sip;
 
@@ -111,7 +111,7 @@ std::string DigestAuthentication::createAuthenticationHeader(const std::string& 
     
     //TODO value for qop present
     //request-digest = " KD(H(A1), unq(nonce):H(A2))
-    const std::string response = CryptoSuite::hashMD5(Utility::joinStrings({CryptoSuite::hashMD5(a1), nonce, CryptoSuite::hashMD5(a2)}, ":"));
+    const std::string response = ohmcomm::crypto::CryptoSuite::hashMD5(Utility::joinStrings({ohmcomm::crypto::CryptoSuite::hashMD5(a1), nonce, ohmcomm::crypto::CryptoSuite::hashMD5(a2)}, ":"));
     return Utility::joinStrings({"Digest ", "username=\"", userName, "\", realm=\"", realm, "\", nonce=\"", nonce, 
             "\", uri=\"", requestURI, "\", response=\"", response, "\", algorithm=", algorithm}, "");
 }
