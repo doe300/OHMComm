@@ -20,6 +20,7 @@
 #include "sip/TestSDP.h"
 #include "sip/TestSTUNClient.h"
 #include "sip/TestSIPGrammar.h"
+#include "sip/TestSIPRequest.h"
 
 #include <iostream>
 #include <fstream>

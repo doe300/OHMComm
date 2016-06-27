@@ -264,8 +264,8 @@ bool OPTIONSRequest::sendRequest(const std::string& requestBody)
 bool OPTIONSRequest::handleResponse(const ohmcomm::network::SocketAddress& sourceAddress, const SIPResponseHeader& responseHeader, std::string& responseBody, SIPUserAgent& remoteUA)
 {
     //this UAC sent an OPTIONS request and now handle the response
-    //TODO
-    return false;
+    //TODO what to do? print?, use to determine capabilities?
+    return true;
 }
 
 bool OPTIONSRequest::handleRequest(const std::string& requestBody)
@@ -446,8 +446,9 @@ bool CANCELRequest::sendRequest(const std::string& requestBody)
 
 bool CANCELRequest::handleResponse(const ohmcomm::network::SocketAddress& sourceAddress, const SIPResponseHeader& responseHeader, std::string& responseBody, SIPUserAgent& remoteUA)
 {
-    //TODO the remote canceled some previous action
-    return false;
+    //any response to our BYE request confirms the remote has received it correctly
+    //XXX could add some special handling for "Call/Leg doesn't exists" so user is notified, that we canceled a non-existing INVITE
+    return responseHeader.statusCode == SIP_RESPONSE_OK_CODE;
 }
 
 bool CANCELRequest::handleRequest(const std::string& requestBody)
