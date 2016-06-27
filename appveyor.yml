@@ -11,11 +11,12 @@ os:
 build_script:
   - md build
   - cd build
+  - cmake --version
   - cmake -DBUILD_TESTING=ON -DTEST_OUTPUT_CONSOLE=ON -G"Visual Studio 14 2015" ..
   - cmake --build .
   
 after_build:
-  - ps: Push-AppveyorArtifact build\Debug\OHMComm.exe -FileName "OHMComm-win-$env:platform.exe"
+  - ps: Push-AppveyorArtifact build\Debug\OHMCommStandalone.exe -FileName "OHMCommStandalone-win-$env:platform.exe"
 
 #test_script:
 #  - .\build\test\Debug\Tests.exe
@@ -29,7 +30,7 @@ deploy:
   description: 'Windows builds'
   draft: false
   prerelease: false
-  artifact: OHMComm-win-$(platform).exe
+  artifact: OHMCommStandalone-win-$(platform).exe
   auth_token:
     secure: fIObA1SGSxF/oK69Deh0D7eTmdJirubBGCjbHDn7EA7M4mP2AdkHDEheW77PTPge
   on:
