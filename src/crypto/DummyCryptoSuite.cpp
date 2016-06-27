@@ -4,7 +4,7 @@
 
 #include <stdexcept>
 
-using namespace ohmcomm;
+using namespace ohmcomm::crypto;
 
 const bool CryptoSuite::CRYPTO_SUITE_AVAILABLE = false;
 

@@ -49,12 +49,14 @@ This will build the library/executable into `<project-directory>/build/` by defa
 - [G.711](https://www.itu.int/rec/T-REC-G.711): The two audio-codecs (A-law and mu-law) used for digital telephony
 - [iLBC](https://tools.ietf.org/html/rfc3951): Another low-bandwidth VoIP codec, defined in RFC 3951, now a part of [WebRTC](https://webrtc.org/)
 - GSM: GSM 06.10 Mobile communication standard
+- AMR-NB: Adaptive Multi Rate Narrowband via the [OpenCORE-AMR](https://sourceforge.net/projects/opencore-amr/) library
 
 ## Features
 - Fully standard-conform communication based on [RTP](https://tools.ietf.org/html/rfc3550) including full [RTCP](https://tools.ietf.org/html/rfc3550#section-6) support
 - Support for direct calls to and from any VoIP application featuring [SIP](https://tools.ietf.org/html/rfc3261)
-- Support for SIP-based registration with a VoIP-server is currently being developed
+- Support for SIP-based registration with a VoIP-server
 - Support for DTX to further decrease required bandwidth
+- Automatic audio-device detection, resampling, etc.
 
 ## Addons
 - A work-in-process graphical interface based on Qt5 is available [here](https://github.com/doe300/OHMComm-GUI)
