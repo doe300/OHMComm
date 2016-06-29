@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.2)
 
 project (OHMComm)
 
@@ -10,6 +10,7 @@ SET(BUILD_SHARED_LIBS ON)
 # Option to enable/disable test-program
 option(BUILD_TESTING "Build testing program" ON)
 option(BUILD_DEBUG "Build with debugging symbols. Otherwise build for performance" OFF)
+option(FORCE_CUSTOM_LIBRARIES "Force the use of custom libraries instead of the system-provided. Use this if your system ships with outdated versions of the libraries" OFF)
 
 # append usage of C++ to compiler flags, also optimize for speed and enable all warnings
 if(NOT MSVC)
@@ -31,24 +32,23 @@ endif()
 ####
 # Dependencies
 ####
+set(AUDIO_LIBRARY_FOUND OFF)
+set(CRYPTO_LIBRARY_FOUND OFF)
 
 #
 # audio libraries
 #
 
 # RTAudio - http://www.music.mcgill.ca/~gary/rtaudio/
-#Try to find precompiled library
-find_library(RTAUDIO_LIBRARY NAMES rtaudio librtaudio)
-find_path(RTAUDIO_HEADER_PATH "RtAudio.h" HINTS lib/rtaudio-4.1.1)
-if(RTAUDIO_LIBRARY)
-	message(STATUS "RTAudio library found: " ${RTAUDIO_LIBRARY})
-	#Set header to default include path
-	add_definitions(-DRTAUDIO_HEADER="RtAudio.h")
-elseif(RTAUDIO_HEADER_PATH)
-	message(STATUS "Compiling provided rtaudio-library in version 4.1.1")
-	# Compile ourselves and set correct header-path
-	add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
-	add_definitions(-DRTAUDIO_HEADER="../lib/rtaudio-4.1.1/RtAudio.h")
+if(NOT FORCE_CUSTOM_LIBRARIES)
+	#Try to find precompiled library
+	find_library(RTAUDIO_LIBRARY NAMES rtaudio librtaudio)
+	if(RTAUDIO_LIBRARY)
+		message(STATUS "RTAudio library found: " ${RTAUDIO_LIBRARY})
+		#Set header to default include path
+		add_definitions(-DRTAUDIO_HEADER="RtAudio.h")
+		set(AUDIO_LIBRARY_FOUND ON)
+	endif()
 endif()
 
 # PortAudio - http://www.portaudio.com/
@@ -58,11 +58,24 @@ if(PORTAUDIO_LIBRARY)
 	message(STATUS "PortAudio library found: " ${PORTAUDIO_LIBRARY})
 	#Set header to default include path
 	add_definitions(-DPORTAUDIO_HEADER="portaudio.h")
+	set(AUDIO_LIBRARY_FOUND ON)
+endif()
+
+#Force custom library or library not found
+if(NOT AUDIO_LIBRARY_FOUND)
+	find_path(RTAUDIO_HEADER_PATH "RtAudio.h" HINTS lib/rtaudio-4.1.1)
+	if(RTAUDIO_HEADER_PATH)
+		message(STATUS "Compiling provided rtaudio-library in version 4.1.1")
+		# Compile ourselves and set correct header-path
+		add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
+		add_definitions(-DRTAUDIO_HEADER="../lib/rtaudio-4.1.1/RtAudio.h")
+		set(AUDIO_LIBRARY_FOUND ON)
+	endif()
 endif()
 
 # Check if any audio-library was added
-if(NOT RTAUDIO_LIBRARY AND NOT RTAUDIO_HEADER_PATH AND NOT PORTAUDIO_LIBRARY)
-	message(WARNING "No supported audio-library found!")
+if(NOT AUDIO_LIBRARY_FOUND)
+	message(SEND_ERROR "No supported audio-library found!")
 endif()
 
 #
@@ -70,19 +83,26 @@ endif()
 #
 
 # Opus - http://opus-codec.org/
-#Try to find precompiled library
-find_library(OPUS_LIBRARY NAMES opus libopus)
-find_path(OPUS_HEADER_PATH "opus.h" HINTS lib/opus-1.1/include)
-if(OPUS_LIBRARY)
-	message(STATUS "Opus library found: " ${OPUS_LIBRARY})
-	#Set header to default include path
-	add_definitions(-DOPUS_HEADER="opus/opus.h")
-elseif(OPUS_HEADER_PATH)
-	message(STATUS "Compiling provided opus-library in version 1.1")
-	# Compile ourselves and set correct header-path
-	add_subdirectory(lib/opus-1.1 build/opus)
-	add_definitions(-DOPUS_HEADER="../lib/opus-1.1/include/opus.h")
-else()
+if(NOT FORCE_CUSTOM_LIBRARIES)
+	#Try to find precompiled library
+	find_library(OPUS_LIBRARY NAMES opus libopus)
+	if(OPUS_LIBRARY)
+		message(STATUS "Opus library found: " ${OPUS_LIBRARY})
+		#Set header to default include path
+		add_definitions(-DOPUS_HEADER="opus/opus.h")
+	endif()
+endif()
+#Force custom library or library not found
+if(FORCE_CUSTOM_LIBRARIES OR NOT OPUS_LIBRARY)
+	find_path(OPUS_HEADER_PATH "opus.h" HINTS lib/opus-1.1/include)
+	if(OPUS_HEADER_PATH)
+		message(STATUS "Compiling provided opus-library in version 1.1")
+		# Compile ourselves and set correct header-path
+		add_subdirectory(lib/opus-1.1 build/opus)
+		add_definitions(-DOPUS_HEADER="../lib/opus-1.1/include/opus.h")
+	endif()
+endif()
+if(NOT OPUS_LIBRARY AND NOT OPUS_HEADER_PATH)
 	message(WARNING "No opus library found")
 endif()
 
@@ -110,8 +130,7 @@ find_library(GSM_LIBRARY NAMES gsm libgsm)
 if(GSM_LIBRARY)
 	message(STATUS "GSM library found: " ${GSM_LIBRARY})
 	#Set header to default include path
-	#TODO somehow all libraries are found except libgsm. No idea why
-	#add_definitions(-DGSM_HEADER="gsm/gsm.h")
+	add_definitions(-DGSM_HEADER="gsm/gsm.h")
 endif()
 
 #
@@ -125,19 +144,21 @@ if(CRYPTOPP_LIBRARY)
 	message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
 	#Set header to default include path
 	add_definitions(-DCRYPTOPP_LIBRARY="1")
+	set(CRYPTO_LIBRARY_FOUND ON)
 endif()
 
 # OpenSSL - https://www.openssl.org/
-#Try to find precompiled library
-find_library(OPENSSL_CRYPTO_LIBRARY NAMES crypto libcrypto)
-if(NOT CRYPTOPP_LIBRARY AND OPENSSL_CRYPTO_LIBRARY)
-	message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY})
+#Use CMake predefined finder-module
+include(FindOpenSSL)
+if(NOT CRYPTOPP_LIBRARY AND OPENSSL_FOUND)
+	message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
 	#Set header to default include path
 	add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
+	set(CRYPTO_LIBRARY_FOUND ON)
 endif()
 
 # Check if any crypto-library was added
-if(NOT CRYPTOPP_LIBRARY AND NOT OPENSSL_CRYPTO_LIBRARY)
+if(NOT CRYPTO_LIBRARY_FOUND)
 	message(WARNING "No supported crypto-library found!")
 endif()
 

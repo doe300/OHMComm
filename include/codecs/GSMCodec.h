@@ -9,7 +9,10 @@
 #ifndef GSMCODEC_H
 #define	GSMCODEC_H
 
+extern "C" {
 #include GSM_HEADER
+}
+
 #include "processors/AudioProcessor.h"
 
 namespace ohmcomm
