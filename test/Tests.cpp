@@ -123,5 +123,8 @@ int main(int argc, char** argv)
 
         TestKeyValuePair testKeys;
         testKeys.run(output);
+        
+        TestCryptoSuite testCrypto;
+        testCrypto.run(output);
     }
 }

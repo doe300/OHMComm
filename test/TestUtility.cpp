@@ -109,7 +109,7 @@ void TestUtility::testSplitString()
 
 void TestUtility::testGenerateRandomUUID()
 {
-    TEST_ASSERT_EQUALS(36, Utility::generateRandomUUID().size());
+    TEST_ASSERT_EQUALS((std::string::size_type)36, Utility::generateRandomUUID().size());
     TEST_ASSERT(Utility::generateRandomUUID().compare(Utility::generateRandomUUID()) != 0);
 }
 

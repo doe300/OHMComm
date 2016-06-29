@@ -12,6 +12,7 @@
 #include "TestSocketAddress.h"
 #include "TestUtility.h"
 #include "TestKeyValuePair.h"
+#include "TestCryptoSuite.h"
 #include "rtp/TestRTP.h"
 #include "rtp/TestRTCP.h"
 #include "rtp/TestRTPBuffer.h"

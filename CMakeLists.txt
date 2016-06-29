@@ -137,24 +137,26 @@ endif()
 # other
 #
 
-# Cryptopp - https://www.cryptopp.com/
-#Try to find precompiled library
-find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
-if(CRYPTOPP_LIBRARY)
-	message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
-	#Set header to default include path
-	add_definitions(-DCRYPTOPP_LIBRARY="1")
-	set(CRYPTO_LIBRARY_FOUND ON)
-endif()
-
 # OpenSSL - https://www.openssl.org/
 #Use CMake predefined finder-module
 include(FindOpenSSL)
-if(NOT CRYPTOPP_LIBRARY AND OPENSSL_FOUND)
+if(OPENSSL_FOUND)
 	message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
 	#Set header to default include path
 	add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
 	set(CRYPTO_LIBRARY_FOUND ON)
+endif()
+
+# Cryptopp - https://www.cryptopp.com/
+if(NOT OPENSSL_FOUND)
+	#Try to find precompiled library
+	find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
+	if(CRYPTOPP_LIBRARY)
+		message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
+		#Set header to default include path
+		add_definitions(-DCRYPTOPP_LIBRARY="1")
+		set(CRYPTO_LIBRARY_FOUND ON)
+	endif()
 endif()
 
 # Check if any crypto-library was added
