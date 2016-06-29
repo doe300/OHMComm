@@ -15,7 +15,6 @@
 
 using namespace ohmcomm::sip;
 
-//clang seems to need the static char-fields to be declared for linker to find them
 constexpr char SessionDescription::SDP_VERSION;
 constexpr char SessionDescription::SDP_ORIGIN;
 constexpr char SessionDescription::SDP_SESSION_NAME;
@@ -27,6 +26,7 @@ constexpr char SessionDescription::SDP_ATTRIBUTE;
 const std::string SessionDescription::SDP_ATTRIBUTE_RTPMAP("rtpmap");
 const std::string SessionDescription::SDP_ATTRIBUTE_FMTP("fmtp");
 const std::string SessionDescription::SDP_ATTRIBUTE_RTCP("rtcp");
+const std::string SessionDescription::SDP_ATTRIBUTE_CRYPTO("crypto");
 const std::string SessionDescription::SDP_MEDIA_RTP("RTP/AVP");
 const std::string SessionDescription::SDP_MEDIA_SRTP("RTP/SAVP");
 
@@ -34,7 +34,7 @@ SDPMessageHandler::SDPMessageHandler()
 {
 }
 
-std::string SDPMessageHandler::createSessionDescription(const std::string& localUserName, const ohmcomm::NetworkConfiguration& config, const std::vector<MediaDescription>& media)
+std::string SDPMessageHandler::createSessionDescription(const std::string& localUserName, const ohmcomm::NetworkConfiguration& config, const std::vector<MediaDescription>& media, const std::shared_ptr<ohmcomm::crypto::CryptographicContext> cryptoContext)
 {
     ohmcomm::rtp::NTPTimestamp now = ohmcomm::rtp::NTPTimestamp::now();
     std::string localIP = Utility::getLocalIPAddress(Utility::getNetworkType(config.remoteIPAddress));
@@ -121,25 +121,7 @@ std::string SDPMessageHandler::createSessionDescription(const std::string& local
     //  (SRTP over UDP)
     //<fmt> is a media format description [...] If the <proto> sub-field is "RTP/AVP" or "RTP/SAVP" the <fmt> sub-fields contain RTP payload type numbers
     //  we support Opus and PCM, so we send these payload-types
-    std::string mediaLine = std::string("m=audio ").append(std::to_string(config.localPort)).append(" RTP/AVP ");
-    if(media.empty())
-    {
-        //suggest all supported media-types
-        for(const SupportedFormat& format : SupportedFormats::getFormats())
-        {
-            mediaLine.append(std::to_string(format.payloadType)).append(" ");
-        }
-    }
-    else
-    {
-        //set only selected media
-        for(const MediaDescription& format : media)
-        {
-            mediaLine.append(std::to_string(format.payloadType)).append(" ");
-        }
-    }
-    lines.push_back(mediaLine);
-    //XXX media for SRTP
+    lines.push_back(generateMediaLine(config, SessionDescription::SDP_MEDIA_RTP, media));
     
     //Attributes
     //a=<attribute> or a=<attribute>:<value>
@@ -221,10 +203,17 @@ std::string SDPMessageHandler::createSessionDescription(const std::string& local
     //  - FEC_KEY:     Master Key for FEC when the FEC stream is sent to a separate address and/or port.
     //  - WSH:         Window Size Hint.
     //  - Extensions:  Extension parameters can be defined.
-    if(false)   //XXX if SRTP is enabled
+    if(cryptoContext)
     {
-        lines.push_back(std::string("a=crypto:0 ").append(""/* XXX Algorithm*/).append(" inline:").append(""/*XXX Key*/)
-                .append(" "/*XXX session-params*/));
+        //media for SRTP
+        lines.push_back(generateMediaLine(config, SessionDescription::SDP_MEDIA_SRTP, media));
+        //XXX are additional rtpmap-attributes required??
+        
+        const std::string inlineKey = ohmcomm::Utility::encodeBase64(std::string(cryptoContext->masterKey.data(), cryptoContext->masterKey.size()) + std::string(cryptoContext->masterSalt.data(), cryptoContext->masterSalt.size()));
+        
+        lines.push_back(std::string("a=crypto:1 ").append(cryptoContext->cryptoMode.name).append(" inline:").append(inlineKey)
+                .append(" "/*session-params*/));
+        
     }
     
     std::string result("");
@@ -464,4 +453,35 @@ bool SDPMessageHandler::isEncodingSupported(const std::string& encoding)
         }
     }
     return false;
+}
+
+std::string SDPMessageHandler::generateMediaLine(const NetworkConfiguration& config, const std::string protocol, const std::vector<MediaDescription>& media)
+{
+    //Media Descriptions
+    //m=<media> <port> <proto> <fmt> ...
+    //<media> is the media type.  Currently defined media are "audio", "video", "text", "application", and "message"
+    //<port> is the transport port to which the media stream is sent [...] such as the RTP Control Protocol (RTCP) 
+    //  port MAY be derived algorithmically
+    //<proto> is the transport protocol "udp", "RTP/AVP" (RTP with Audio/Video Profile forMinimal Control over UDP), "RTP/SAVP"
+    //  (SRTP over UDP)
+    //<fmt> is a media format description [...] If the <proto> sub-field is "RTP/AVP" or "RTP/SAVP" the <fmt> sub-fields contain RTP payload type numbers
+    //  we support Opus and PCM, so we send these payload-types
+    std::string mediaLine = std::string("m=audio ").append(std::to_string(config.localPort)).append(" ").append(protocol).append(" ");
+    if(media.empty())
+    {
+        //suggest all supported media-types
+        for(const SupportedFormat& format : SupportedFormats::getFormats())
+        {
+            mediaLine.append(std::to_string(format.payloadType)).append(" ");
+        }
+    }
+    else
+    {
+        //set only selected media
+        for(const MediaDescription& format : media)
+        {
+            mediaLine.append(std::to_string(format.payloadType)).append(" ");
+        }
+    }
+    return mediaLine;
 }

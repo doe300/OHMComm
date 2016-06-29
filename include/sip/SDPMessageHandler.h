@@ -8,12 +8,14 @@
 #ifndef SDPMESSAGEHANDLER_H
 #define	SDPMESSAGEHANDLER_H
 
+#include <memory>
 #include <stdlib.h>
 #include <exception>
 
 #include "configuration.h"
 #include "KeyValuePairs.h"
 #include "PayloadType.h"
+#include "crypto/CryptographicContext.h"
 #include "sip/SupportedFormats.h"
 
 namespace ohmcomm
@@ -74,6 +76,8 @@ namespace ohmcomm
             static const std::string SDP_ATTRIBUTE_FMTP;
             //specifies RTCP-port, if not consecutive to RTP-port, see RFC 3605
             static const std::string SDP_ATTRIBUTE_RTCP;
+            //SDES cryptographic extension, RFC 4568
+            static const std::string SDP_ATTRIBUTE_CRYPTO;
 
             static const std::string SDP_MEDIA_RTP;
             static const std::string SDP_MEDIA_SRTP;
@@ -131,9 +135,11 @@ namespace ohmcomm
              * 
              * \param media An optional list of media-descriptions to use, defaults to the list of supported formats
              * 
+             * \param cryptoContext An optional cryptographic context to use. When set, SRTP is supported in the media-description
+             * 
              * \return the generated SDP session-description
              */
-            static std::string createSessionDescription(const std::string& localUserName, const NetworkConfiguration& config, const std::vector<MediaDescription>& media = {});
+            static std::string createSessionDescription(const std::string& localUserName, const NetworkConfiguration& config, const std::vector<MediaDescription>& media = {}, const std::shared_ptr<ohmcomm::crypto::CryptographicContext> cryptoContext = nullptr);
 
             /*!
              * Ready the session description from the given message and returns it
@@ -193,6 +199,14 @@ namespace ohmcomm
              * \return whether the given encoding is supported
              */
             static bool isEncodingSupported(const std::string& encoding);
+            
+            /*!
+             * Generates the media-line for the given protocol (RTP/SRTP) and available media-descriptions.
+             * If no media-descriptions are given, the SupportedFormats are used instead.
+             * 
+             * \since 1.0
+             */
+            static std::string generateMediaLine(const NetworkConfiguration& config, const std::string protocol, const std::vector<MediaDescription>& media = {});
         };
     }
 }
