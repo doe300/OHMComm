@@ -140,7 +140,7 @@ endif()
 # OpenSSL - https://www.openssl.org/
 #Use CMake predefined finder-module
 include(FindOpenSSL)
-if(OPENSSL_FOUND)
+if(OPENSSL_FOUND AND OPENSSL_INCLUDE_DIR)
 	message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
 	#Set header to default include path
 	add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
@@ -148,7 +148,7 @@ if(OPENSSL_FOUND)
 endif()
 
 # Cryptopp - https://www.cryptopp.com/
-if(NOT OPENSSL_FOUND)
+if(NOT CRYPTO_LIBRARY_FOUND)
 	#Try to find precompiled library
 	find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
 	if(CRYPTOPP_LIBRARY)

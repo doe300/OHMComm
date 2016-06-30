@@ -209,7 +209,7 @@ std::string SDPMessageHandler::createSessionDescription(const std::string& local
         lines.push_back(generateMediaLine(config, SessionDescription::SDP_MEDIA_SRTP, media));
         //XXX are additional rtpmap-attributes required??
         
-        const std::string inlineKey = ohmcomm::Utility::encodeBase64(std::string(cryptoContext->masterKey.data(), cryptoContext->masterKey.size()) + std::string(cryptoContext->masterSalt.data(), cryptoContext->masterSalt.size()));
+        const std::string inlineKey = ohmcomm::Utility::encodeBase64(std::string((const char*)cryptoContext->masterKey.data(), cryptoContext->masterKey.size()) + std::string((const char*)cryptoContext->masterSalt.data(), cryptoContext->masterSalt.size()));
         
         lines.push_back(std::string("a=crypto:1 ").append(cryptoContext->cryptoMode.name).append(" inline:").append(inlineKey)
                 .append(" "/*session-params*/));

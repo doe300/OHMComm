@@ -19,19 +19,9 @@ using namespace ohmcomm::crypto;
 
 const bool CryptoSuite::CRYPTO_SUITE_AVAILABLE = true;
 
-CryptoSuite::CryptoSuite()
-{
-    
-}
-
-CryptoSuite::~CryptoSuite()
-{
-
-}
-
 std::string CryptoSuite::hashMD5(const std::string& input)
 {
-    unsigned char digest[ CryptoPP::Weak::MD5::DIGESTSIZE ];
+    byte digest[ CryptoPP::Weak::MD5::DIGESTSIZE ];
     CryptoPP::Weak::MD5 hash;
     hash.CalculateDigest( digest, (const byte*)input.data(), input.size() );
     std::stringstream stream;
@@ -42,12 +32,12 @@ std::string CryptoSuite::hashMD5(const std::string& input)
     return stream.str();
 }
 
-std::vector<unsigned char> CryptoSuite::createHMAC_SHA1(const void* buffer, const unsigned int bufferSize, const std::shared_ptr<CryptographicContext> cryptoContext)
+std::vector<byte> CryptoSuite::createHMAC_SHA1(const void* buffer, const unsigned int bufferSize, const std::shared_ptr<CryptographicContext> cryptoContext)
 {
-    unsigned char digest[CryptoPP::HMAC<CryptoPP::SHA1>::DIGESTSIZE];
+    byte digest[CryptoPP::HMAC<CryptoPP::SHA1>::DIGESTSIZE];
     CryptoPP::HMAC<CryptoPP::SHA1> hmac((const byte*)cryptoContext->masterKey.data(), cryptoContext->masterKey.size());
     hmac.CalculateDigest(digest, (const byte*)buffer, bufferSize);
-    std::vector<unsigned char> result(CryptoPP::HMAC<CryptoPP::SHA1>::DIGESTSIZE);
+    std::vector<byte> result(CryptoPP::HMAC<CryptoPP::SHA1>::DIGESTSIZE);
     std::copy(digest, digest + CryptoPP::HMAC<CryptoPP::SHA1>::DIGESTSIZE, result.data());
     return result;
 }
@@ -58,24 +48,33 @@ bool CryptoSuite::verifyHMAC_SHA1(const void* hmacBuffer, const unsigned int hma
     return hmac.VerifyDigest((const byte*)hmacBuffer, (const byte*)buffer, bufferSize);
 }
 
-std::vector<unsigned char> CryptoSuite::encryptAES(const ohmcomm::crypto::CipherMode mode, const void* inputBuffer, const unsigned int bufferSize, const std::vector<unsigned char> key)
+std::vector<unsigned char> CryptoSuite::encryptAES(const ohmcomm::crypto::CipherMode mode, const void* inputBuffer, const unsigned int bufferSize, const std::vector<byte>& key)
 {
-    std::vector<unsigned char> result(bufferSize, '\0');
+    std::vector<byte> result(bufferSize, '\0');
+    if(mode == ohmcomm::crypto::CipherMode::COUNTER_MODE)
+    {
+        CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption algorithm((const byte*)key.data(), key.size());
+        //FIXME fails with "AES/CTR: this object requires an IV"
+        algorithm.ProcessData(result.data(), (const byte*)inputBuffer, bufferSize);
+    }
+    else
+    {
+        throw std::invalid_argument("Unknown cipher-mode!");
+    }
+    return result;
+}
+
+std::vector<byte> CryptoSuite::decryptAES(const ohmcomm::crypto::CipherMode mode, const void* inputBuffer, const unsigned int bufferSize, const std::vector<byte>& key)
+{
+    std::vector<byte> result(bufferSize, '\0');
     if(mode == ohmcomm::crypto::CipherMode::COUNTER_MODE)
     {
         CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption algorithm((const byte*)key.data(), key.size());
         algorithm.ProcessData(result.data(), (const byte*)inputBuffer, bufferSize);
     }
-    return result;
-}
-
-std::vector<unsigned char> CryptoSuite::decryptAES(const ohmcomm::crypto::CipherMode mode, const void* inputBuffer, const unsigned int bufferSize, const std::vector<unsigned char> key)
-{
-    std::vector<unsigned char> result(bufferSize, '\0');
-    if(mode == ohmcomm::crypto::CipherMode::COUNTER_MODE)
+    else
     {
-        CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption algorithm((const byte*)key.data(), key.size());
-        algorithm.ProcessData(result.data(), (const byte*)inputBuffer, bufferSize);
+        throw std::invalid_argument("Unknown cipher-mode!");
     }
     return result;
 }

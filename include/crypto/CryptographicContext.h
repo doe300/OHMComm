@@ -16,6 +16,9 @@ namespace ohmcomm
     namespace crypto
     {
         
+        //data type for arbitrary byte-based operations
+        using byte = unsigned char;
+        
         enum class CipherMode : unsigned char
         {
             COUNTER_MODE,
@@ -74,8 +77,8 @@ namespace ohmcomm
         struct CryptographicContext
         {
             CryptoMode cryptoMode;
-            std::vector<char> masterKey;
-            std::vector<char> masterSalt;
+            std::vector<byte> masterKey;
+            std::vector<byte> masterSalt;
         };
     }
 }

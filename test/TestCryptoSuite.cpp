@@ -5,6 +5,8 @@
  * Created on June 29, 2016, 4:41 PM
  */
 
+#include <string.h>
+
 #include "TestCryptoSuite.h"
 #include "Utility.h"
 
@@ -37,5 +39,16 @@ void TestCryptoSuite::testHMAC_SHA1()
 
 void TestCryptoSuite::testAES()
 {
-
+    //AES key is 128 bit
+    std::vector<byte> key(16);
+    memcpy(key.data(), "0123456789ABCDEF", 16);
+    
+    const std::string test("Hello World!");
+    
+    const auto crypt = CryptoSuite::encryptAES(CipherMode::COUNTER_MODE, test.data(), test.size(), key);
+    TEST_ASSERT(crypt.size() >= test.size());
+    
+    const auto decrypt = CryptoSuite::decryptAES(CipherMode::COUNTER_MODE, crypt.data(), crypt.size(), key);
+    const std::string result((const char*)decrypt.data(), decrypt.size());
+    TEST_STRING_EQUALS(test, result);
 }
