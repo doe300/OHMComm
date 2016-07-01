@@ -1,0 +1,10 @@
+[submodule "lib/cpptest-lite"]
+	path = lib/cpptest-lite
+	url = https://github.com/doe300/cpptest-lite
+	branch = stable
+[submodule "lib/rtaudio"]
+	path = lib/rtaudio
+	url = https://github.com/thestk/rtaudio
+[submodule "lib/opus"]
+	path = lib/opus
+	url = https://github.com/xiph/opus

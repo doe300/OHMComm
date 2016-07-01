@@ -34,6 +34,7 @@ endif()
 ####
 set(AUDIO_LIBRARY_FOUND OFF)
 set(CRYPTO_LIBRARY_FOUND OFF)
+set(SUBMODULES_UPDATED OFF)
 
 #
 # audio libraries
@@ -63,12 +64,18 @@ endif()
 
 #Force custom library or library not found
 if(NOT AUDIO_LIBRARY_FOUND)
-	find_path(RTAUDIO_HEADER_PATH "RtAudio.h" HINTS lib/rtaudio-4.1.1)
+	#Update custom library
+	if(NOT SUBMODULES_UPDATED)
+		include(cmake/submodules.cmake)
+		set(SUBMODULES_UPDATED ON)
+	endif()
+
+	find_path(RTAUDIO_HEADER_PATH "RtAudio.h" HINTS lib/rtaudio)
 	if(RTAUDIO_HEADER_PATH)
-		message(STATUS "Compiling provided rtaudio-library in version 4.1.1")
+		message(STATUS "Compiling provided rtaudio-library!")
 		# Compile ourselves and set correct header-path
-		add_subdirectory(lib/rtaudio-4.1.1 build/rtaudio)
-		add_definitions(-DRTAUDIO_HEADER="../lib/rtaudio-4.1.1/RtAudio.h")
+		add_subdirectory(lib/rtaudio build/rtaudio)
+		add_definitions(-DRTAUDIO_HEADER="../lib/rtaudio/RtAudio.h")
 		set(AUDIO_LIBRARY_FOUND ON)
 	endif()
 endif()
@@ -94,12 +101,18 @@ if(NOT FORCE_CUSTOM_LIBRARIES)
 endif()
 #Force custom library or library not found
 if(FORCE_CUSTOM_LIBRARIES OR NOT OPUS_LIBRARY)
-	find_path(OPUS_HEADER_PATH "opus.h" HINTS lib/opus-1.1/include)
+	#Update custom library
+	if(NOT SUBMODULES_UPDATED)
+		include(cmake/submodules.cmake)
+		set(SUBMODULES_UPDATED ON)
+	endif()
+
+	find_path(OPUS_HEADER_PATH "opus.h" HINTS lib/opus/include)
 	if(OPUS_HEADER_PATH)
-		message(STATUS "Compiling provided opus-library in version 1.1")
+		message(STATUS "Compiling provided opus-library!")
 		# Compile ourselves and set correct header-path
-		add_subdirectory(lib/opus-1.1 build/opus)
-		add_definitions(-DOPUS_HEADER="../lib/opus-1.1/include/opus.h")
+		add_subdirectory(lib/opus build/opus)
+		add_definitions(-DOPUS_HEADER="../lib/opus/include/opus.h")
 	endif()
 endif()
 if(NOT OPUS_LIBRARY AND NOT OPUS_HEADER_PATH)
@@ -171,6 +184,9 @@ endif()
 add_subdirectory(src build)
 
 if (BUILD_TESTING)
+	if(NOT SUBMODULES_UPDATED)
+		include(cmake/submodules.cmake)
+	endif()
 	add_subdirectory(lib/cpptest-lite build/cpptest-lite)
     add_subdirectory(test build/test)
 endif (BUILD_TESTING)
