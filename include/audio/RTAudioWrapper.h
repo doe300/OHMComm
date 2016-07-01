@@ -1,5 +1,6 @@
-#ifndef RTAUDIOWRAPPER_H
 
+#ifdef RTAUDIO_HEADER //Only compile, if RtAudio is linked
+#ifndef RTAUDIOWRAPPER_H
 #define	RTAUDIOWRAPPER_H
 
 #include RTAUDIO_HEADER
@@ -76,4 +77,5 @@ namespace ohmcomm
         void startHandler(const PlaybackMode mode) override;
     };
 }
-#endif
+#endif	/* RTAUDIOWRAPPER_H */
+#endif /* RTAUDIO_HEADER */

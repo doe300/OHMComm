@@ -1,3 +1,6 @@
+
+#ifdef RTAUDIO_HEADER //Only compile, if RtAudio is linked
+
 #include "Logger.h"
 #include "audio/RTAudioWrapper.h"
 #include "Statistics.h"
@@ -243,3 +246,4 @@ const std::vector<AudioDevice>& RtAudioWrapper::getAudioDevices()
     return devices;
 }
 
+#endif /* RTAUDIO_HEADER */
