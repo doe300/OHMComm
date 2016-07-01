@@ -107,6 +107,12 @@ if(FORCE_CUSTOM_LIBRARIES OR NOT OPUS_LIBRARY)
 		set(SUBMODULES_UPDATED ON)
 	endif()
 
+	#Opus doesn't provide a CMakeLists.txt (anymore??), so copy it manually
+	execute_process(
+        COMMAND             cmake -E copy cmake/CMakeLists-opus.txt lib/opus/CMakeLists.txt
+        WORKING_DIRECTORY   ${PROJECT_SOURCE_DIR}
+    )
+
 	find_path(OPUS_HEADER_PATH "opus.h" HINTS lib/opus/include)
 	if(OPUS_HEADER_PATH)
 		message(STATUS "Compiling provided opus-library!")

@@ -1,0 +1,120 @@
+cmake_minimum_required(VERSION 2.6)
+
+PROJECT(opus)
+
+SET(EXECUTABLE_OUTPUT_PATH ${opus_BINARY_DIR})
+SET(LIBRARY_OUTPUT_PATH ${opus_BINARY_DIR})
+SET(RUNTIME_OUTPUT_DIRECTORY ${opus_BINARY_DIR})
+
+SET(opus_BIN ${opus_BINARY_DIR})
+
+add_definitions(/DHAVE_CONFIG_H)
+
+IF(MSVC)
+	add_definitions(-DUNICODE -D_UNICODE)
+ENDIF(MSVC)
+
+IF(WIN32)
+	SET(opusIncludes
+		${opus_SOURCE_DIR}
+		${opus_SOURCE_DIR}/include
+		${opus_SOURCE_DIR}/win32
+	)
+ELSEIF(UNIX)
+	#Run ./configure
+	execute_process(COMMAND ./autogen.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+	execute_process(COMMAND sh ./configure WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+	# Include directories
+	SET(opusIncludes
+		${opus_SOURCE_DIR}
+		${opus_SOURCE_DIR}/include
+		/usr/local/include
+	)
+ENDIF(WIN32)
+
+# lib directories
+IF(WIN32)
+	SET(opusLink
+		${opus_SOURCE_DIR}/lib
+	)
+ELSEIF(UNIX)
+	SET(opusLink
+		${opus_SOURCE_DIR}/lib
+		/usr/local/lib
+		/usr/lib
+	)
+ENDIF(WIN32)
+
+####
+# celt
+####
+file(GLOB CELT_SRCS celt/*.c)
+file(GLOB CELT_HEADERS celt/*.h)
+INCLUDE_DIRECTORIES(
+	${opusIncludes}
+	celt/
+	include/
+)
+ADD_LIBRARY( celt STATIC ${CELT_HEADERS} ${CELT_SRCS})
+
+####
+# silk
+####
+file(GLOB SILK_SRCS silk/*.c)
+file(GLOB SILK_HEADERS silk/*.h)
+INCLUDE_DIRECTORIES(
+	${opusIncludes}
+	silk/
+	celt/
+	silk/float/
+	silk/fixed/
+)
+ADD_LIBRARY( silk_common STATIC ${SILK_HEADERS} ${SILK_SRCS})
+
+####
+# silk/fixed
+####
+file(GLOB SILK_FIXED_SRCS silk/fixed/*.c)
+file(GLOB SILK_FIXED_HEADERS silk/fixed/*.h)
+INCLUDE_DIRECTORIES(
+	${opusIncludes}
+	silk/fixed/
+	celt
+)
+ADD_LIBRARY( silk_fixed STATIC ${SILK_FIXED_HEADERS} ${SILK_FIXED_SRCS})
+target_link_libraries(silk_fixed silk_common)
+
+####
+# silk/float
+####
+file(GLOB SILK_FLOAT_SRCS silk/float/*.c)
+file(GLOB SILK_FLOAT_HEADERS silk/float/*.h)
+INCLUDE_DIRECTORIES(
+	${opusIncludes}
+	silk/float/
+	celt
+)
+ADD_LIBRARY( silk_float STATIC ${SILK_FLOAT_HEADERS} ${SILK_FLOAT_SRCS})
+target_link_libraries(silk_float silk_common)
+
+####
+# src
+####
+file(GLOB OPUS_SRCS src/*.c)
+SET(OPUS_HEADERS
+	include/opus.h
+	include/opus_multistream.h
+	src/analysis.h
+	src/mlp.h
+	src/opus_private.h
+	src/tansig_table.h
+)
+INCLUDE_DIRECTORIES(
+	${opusIncludes}
+	src/
+	celt/
+	silk/
+	silk/fixed/
+	silk/float/
+)
+ADD_LIBRARY(opus STATIC ${OPUS_HEADERS} ${OPUS_SRCS})
