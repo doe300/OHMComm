@@ -455,7 +455,7 @@ bool SDPMessageHandler::isEncodingSupported(const std::string& encoding)
     return false;
 }
 
-std::string SDPMessageHandler::generateMediaLine(const NetworkConfiguration& config, const std::string protocol, const std::vector<MediaDescription>& media)
+std::string SDPMessageHandler::generateMediaLine(const ohmcomm::NetworkConfiguration& config, const std::string protocol, const std::vector<MediaDescription>& media)
 {
     //Media Descriptions
     //m=<media> <port> <proto> <fmt> ...
