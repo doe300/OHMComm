@@ -9,6 +9,10 @@ os:
   - Visual Studio 2015 RC
   
 build_script:
+  # generate version-file
+  - cd lib/opus/win32
+  - genversion.bat
+  - cd ..\..\..\
   - md build
   - cd build
   - cmake --version
