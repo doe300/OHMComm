@@ -32,5 +32,5 @@ void TestRTP::testRTPPackage()
     pack.setActualPayloadSize(payload.length());
     TEST_ASSERT(pack.getMaximumPackageSize() >= pack.getRTPHeaderSize() + pack.getMaximumPayloadSize());
     TEST_ASSERT(pack.getActualPayloadSize() <= pack.getMaximumPayloadSize());
-    TEST_ASSERT(RTPPackageHandler::isRTPPackage(pack.getWorkBuffer(), pack.getActualPayloadSize()));
+    TEST_ASSERT(RTPPackageHandler::isRTPPackage(pack.getReadBuffer(), pack.getActualPayloadSize()));
 }

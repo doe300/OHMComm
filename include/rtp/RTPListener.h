@@ -23,7 +23,9 @@ namespace ohmcomm
         /*!
          * Listening-thread for incoming RTP-packages
          *
-         * This class starts a new thread which writes all received RTP-packages to the RTPBuffer
+         * This class starts a new thread which writes all received RTP-packages to the RTPBuffer.
+         * 
+         * The RTP-listener instance is managed by the ProcessorRTP
          */
         class RTPListener
         {
@@ -42,6 +44,18 @@ namespace ohmcomm
             RTPListener(const RTPListener& orig);
             ~RTPListener();
 
+        private:
+            const std::shared_ptr<ohmcomm::network::NetworkWrapper> wrapper;
+            JitterBuffers& buffers;
+            RTPPackageHandler rtpHandler;
+            std::thread receiveThread;
+            bool threadRunning = false;
+
+            /*!
+             * Method called in the parallel thread, receiving packages and writing them into RTPBuffer
+             */
+            void runThread();
+            
             /*!
              * Shuts down the receive-thread
              */
@@ -52,22 +66,13 @@ namespace ohmcomm
              */
             void startUp();
 
-        private:
-            std::shared_ptr<ohmcomm::network::NetworkWrapper> wrapper;
-            JitterBuffers& buffers;
-            RTPPackageHandler rtpHandler;
-            std::thread receiveThread;
-            bool threadRunning = false;
-
-            /*!
-             * Method called in the parallel thread, receiving packages and writing them into RTPBuffer
-             */
-            void runThread();
-
             /*!
              * Calculates the new extended highest sequence number for the received package
              */
             static uint32_t calculateExtendedHighestSequenceNumber(const Participant& participant, const uint16_t receivedSequenceNumber);
+            
+            //enables access to private methods for RTP-processor
+            friend class ProcessorRTP;
         };
     }
 }

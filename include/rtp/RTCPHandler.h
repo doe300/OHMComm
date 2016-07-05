@@ -23,23 +23,15 @@ namespace ohmcomm
         /*!
          * The RTCPHandler manages a thread for RTCP-communication.
          * 
-         * The port occupied by RTCP is per standard the RTP-port +1
+         * The port occupied by RTCP is per standard the RTP-port +1.
+         * 
+         * The RTCP handler is managed by the RTP-processor
          */
         class RTCPHandler : private ParticipantListener
         {
         public:
             RTCPHandler(const NetworkConfiguration& rtcpConfig, const std::shared_ptr<ConfigurationMode> configMode, const bool isActiveSender = true);
             ~RTCPHandler();
-
-            /*!
-             * Shuts down the RTCP-thread
-             */
-            void shutdown();
-
-            /*!
-             * Starts the RTCP-thread
-             */
-            void startUp();
 
             virtual void onRemoteAdded(const unsigned int ssrc) override;
 
@@ -64,6 +56,16 @@ namespace ohmcomm
              * Method called in the parallel thread, receiving RTCP-packages and handling them
              */
             void runThread();
+            
+             /*!
+             * Shuts down the RTCP-thread
+             */
+            void shutdown();
+
+            /*!
+             * Starts the RTCP-thread
+             */
+            void startUp();
 
             /*!
              * This method handles received RTCP packages and is called only from #runThread()
@@ -105,6 +107,9 @@ namespace ohmcomm
             const void* createSourceDescription(unsigned int offset = 0);
 
             static void printReceptionReports(const std::vector<ReceptionReport>& reports);
+            
+            //enables access to private methods for RTP-processor
+            friend class ProcessorRTP;
         };
     }
 }

@@ -48,18 +48,18 @@ namespace ohmcomm
             /*!
              * Returns a pointer to the payload of the internal RTP-package
              */
-            virtual const void* getRTPPackageData() const;
+            const void* getRTPPackageData() const;
 
             /*!
              * Returns a RTPHeader pointer of the currently stored RTP-package.
              */
-            virtual const RTPHeader* getRTPPackageHeader() const;
+            const RTPHeader* getRTPPackageHeader() const;
 
             /*!
              * Returns a RTPHeaderExtension pointer to the extension in the stored RTP-package. 
              * If no such extension exists, nullptr is returned.
              */
-            virtual const RTPHeaderExtension getRTPHeaderExtension() const;
+            const RTPHeaderExtension getRTPHeaderExtension() const;
 
             /*!
              * Gets the maximum size for the RTP package (header + body)
@@ -96,9 +96,20 @@ namespace ohmcomm
             void setActualPayloadSize(unsigned int payloadSize);
 
             /*!
-             * Returns the internal buffer, which could be used as receive buffer
+             * Returns the internal buffer, which could be used as receive buffer. The buffer is guaranteed to be able to hold at least minSize bytes.
+             * 
+             * \param minSize The minimum size (in bytes) the buffer must be able to hold
+             * 
+             * \return The buffer for read/write access
              */
-            void* getWorkBuffer();
+            char* getWriteBuffer(const unsigned int minSize);
+            
+            /*!
+             * \return read-only access to the internal buffer
+             * 
+             * \since 1.0
+             */
+            virtual const char* getReadBuffer() const;
 
             /*!
              * Creates a silence-package in the internal work-buffer.
@@ -124,11 +135,21 @@ namespace ohmcomm
              * \return Whether this buffer COULD be holding hold an RTP package
              */
             static bool isRTPPackage(const void* packageBuffer, unsigned int packageLength);
+            
+            /*!
+             * \return the initial timestamp set
+             * \since 1.0
+             */
+            unsigned int getInitialTimestamp() const;
+            
+            /*!
+             * \return the current local sequence number
+             * \since 1.0
+             */
+            unsigned int getCurrentSequenceNumber() const;
 
         protected:
             Participant& ourselves;
-            // A buffer that can store a whole RTP-Package
-            void *workBuffer;
 
             unsigned int sequenceNr;
             unsigned int initialTimestamp;
@@ -137,8 +158,9 @@ namespace ohmcomm
             unsigned int maximumPayloadSize;
             unsigned int maximumBufferSize;
             unsigned int actualPayloadSize;
-
-            friend class ProcessorRTP;
+            
+            // A buffer that can store a whole RTP-Package
+            std::vector<char> workBuffer;
         };
     }
 }

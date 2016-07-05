@@ -130,7 +130,7 @@ RTPBufferStatus RTPBuffer::readPackage(RTPPackageHandler &package)
         return RTPBufferStatus::RTP_BUFFER_OUTPUT_UNDERFLOW;
     }
 
-    char *packageBuffer = (char *)package.getWorkBuffer();
+    char *packageBuffer = (char *)package.getWriteBuffer(bufferPack->contentSize + sizeof(bufferPack->header));
     memcpy(packageBuffer, &(bufferPack->header), sizeof(bufferPack->header));
     memcpy(packageBuffer + sizeof(bufferPack->header), bufferPack->packageContent, bufferPack->contentSize);
     package.setActualPayloadSize(bufferPack->contentSize);
@@ -166,7 +166,7 @@ bool RTPBuffer::repeatLastPackage(RTPPackageHandler& package, const uint16_t pac
         if(ringBuffer[index].header.getSequenceNumber() == packageSequenceNumber)
         {
             RTPBufferPackage *bufferPack = &(ringBuffer[index]);
-            char *packageBuffer = (char *)package.getWorkBuffer();
+            char *packageBuffer = (char *)package.getWriteBuffer(bufferPack->contentSize + sizeof(bufferPack->header));
             memcpy(packageBuffer, &(bufferPack->header), sizeof(bufferPack->header));
             memcpy(packageBuffer + sizeof(bufferPack->header), bufferPack->packageContent, bufferPack->contentSize);
             package.setActualPayloadSize(bufferPack->contentSize);

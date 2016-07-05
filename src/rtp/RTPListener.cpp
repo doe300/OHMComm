@@ -41,7 +41,7 @@ void RTPListener::runThread()
     while(threadRunning)
     {
         //1. wait for package and store into RTPPackage
-        const ohmcomm::network::NetworkWrapper::Package receivedPackage = this->wrapper->receiveData(rtpHandler.getWorkBuffer(), rtpHandler.getMaximumPackageSize());
+        const ohmcomm::network::NetworkWrapper::Package receivedPackage = this->wrapper->receiveData(rtpHandler.getWriteBuffer(rtpHandler.getMaximumPackageSize()), rtpHandler.getMaximumPackageSize());
         if(receivedPackage.isInvalidSocket())
         {
             //socket was already closed
@@ -51,7 +51,7 @@ void RTPListener::runThread()
         {
             //just continue to next loop iteration, checking if thread should continue running
         }
-        else if(threadRunning && RTPPackageHandler::isRTPPackage(rtpHandler.getWorkBuffer(), receivedPackage.getReceivedSize()))
+        else if(threadRunning && RTPPackageHandler::isRTPPackage(rtpHandler.getReadBuffer(), receivedPackage.getReceivedSize()))
         {
             //2. write package to buffer
             const uint8_t headerSize = rtpHandler.getRTPHeaderSize();

@@ -121,7 +121,7 @@ unsigned int RTPBufferAlternative::getSize() const
 
 void RTPBufferAlternative::copySilencePackageIntoPackage(RTPPackageHandler &package)
 {
-	char* packageBuffer = (char*)package.getWorkBuffer();
+	char* packageBuffer = (char*)package.getReadBuffer();
 	RTPHeader *currentHeaderData = (RTPHeader*)package.getRTPPackageHeader();
 	currentHeaderData->setSequenceNumber(lastReadSeqNr);
 	unsigned int rtpHeaderSize = package.getRTPHeaderSize();
@@ -149,9 +149,9 @@ bool RTPBufferAlternative::copyNextPackageIntoPackage(RTPPackageHandler &package
 		return underflow;
 
 	// Copy data from buffer into package
-	void* packageBuffer = package.getWorkBuffer();
-	int rtpHeaderSize = package.getRTPHeaderSize();
+        int rtpHeaderSize = package.getRTPHeaderSize();
 	int payloadSize = package.getMaximumPayloadSize();
+	void* packageBuffer = package.getWriteBuffer(rtpHeaderSize + payloadSize);
 	memcpy((char*)packageBuffer, currentHeaderData, rtpHeaderSize);
 	memcpy((char*)packageBuffer + rtpHeaderSize, currentDataInBuffer, payloadSize);
 

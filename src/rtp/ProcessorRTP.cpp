@@ -137,6 +137,6 @@ void ProcessorRTP::initPackageHandler(unsigned int maxBufferSize)
     {
         rtpPackage.reset(new RTPPackageHandler(maxBufferSize));
     }
-    ourselves.initialRTPTimestamp = rtpPackage->initialTimestamp;
-    ourselves.extendedHighestSequenceNumber = rtpPackage->sequenceNr;
+    ourselves.initialRTPTimestamp = rtpPackage->getInitialTimestamp();
+    ourselves.extendedHighestSequenceNumber = rtpPackage->getCurrentSequenceNumber();
 }

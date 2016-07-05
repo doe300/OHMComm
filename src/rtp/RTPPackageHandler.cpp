@@ -9,20 +9,16 @@
 
 using namespace ohmcomm::rtp;
 
-RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, Participant& ourselves) : ourselves(ourselves)
+RTPPackageHandler::RTPPackageHandler(unsigned int maximumPayloadSize, Participant& ourselves) : ourselves(ourselves),
+        maximumPayloadSize(maximumPayloadSize), maximumBufferSize(maximumPayloadSize + RTPHeader::MAX_HEADER_SIZE), workBuffer(maximumBufferSize)
 {
-    this->maximumPayloadSize = maximumPayloadSize;
-    this->maximumBufferSize = maximumPayloadSize + RTPHeader::MAX_HEADER_SIZE;
-
-    workBuffer = new char[maximumBufferSize];
-
     sequenceNr = Utility::randomNumber();
     initialTimestamp = Utility::randomNumber();
 }
 
 RTPPackageHandler::~RTPPackageHandler()
 {
-    delete[] (char*)workBuffer;
+    
 }
 
 const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsigned int payloadSize)
@@ -35,21 +31,21 @@ const void* RTPPackageHandler::createNewRTPPackage(const void* audioData, unsign
     newRTPHeader.setSSRC(ourselves.ssrc);
 
     // Copy RTPHeader and audio-data in the buffer
-    memcpy((char*)workBuffer, &newRTPHeader, RTPHeader::MIN_HEADER_SIZE);
-    memcpy((char*)(workBuffer)+ RTPHeader::MIN_HEADER_SIZE, audioData, payloadSize);
+    memcpy(workBuffer.data(), &newRTPHeader, RTPHeader::MIN_HEADER_SIZE);
+    memcpy(workBuffer.data() + RTPHeader::MIN_HEADER_SIZE, audioData, payloadSize);
     actualPayloadSize = payloadSize;
 
-    return workBuffer;
+    return workBuffer.data();
 }
 
 const void* RTPPackageHandler::getRTPPackageData() const
 {
-    return (char*)(workBuffer) + getRTPHeaderSize() + getRTPHeaderExtensionSize();
+    return getReadBuffer() + getRTPHeaderSize() + getRTPHeaderExtensionSize();
 }
 
 const RTPHeader* RTPPackageHandler::getRTPPackageHeader() const
 {
-    return (RTPHeader*)workBuffer;
+    return (RTPHeader*)getReadBuffer();
 }
 
 //TODO needs testing
@@ -61,10 +57,10 @@ const RTPHeaderExtension RTPPackageHandler::getRTPHeaderExtension() const
         return RTPHeaderExtension(0);
     }
     //we must copy the contents of the header-extension, because we don't have any dynamic-sized array
-    const RTPHeaderExtension* readEx = (RTPHeaderExtension*)((char*)(workBuffer) + getRTPHeaderSize());
+    const RTPHeaderExtension* readEx = (RTPHeaderExtension*)(getReadBuffer() + getRTPHeaderSize());
     RTPHeaderExtension ex(readEx->getLength());
     ex.setProfile(readEx->getProfile());
-    memcpy(ex.getExtension(), ((char*)(workBuffer) + getRTPHeaderSize() + RTPHeaderExtension::MIN_EXTENSION_SIZE), readEx->getLength());
+    memcpy(ex.getExtension(), (getReadBuffer() + getRTPHeaderSize() + RTPHeaderExtension::MIN_EXTENSION_SIZE), readEx->getLength());
     return ex;
 }
 
@@ -75,9 +71,9 @@ unsigned int RTPPackageHandler::getRTPHeaderSize() const
 
 unsigned int RTPPackageHandler::getRTPHeaderExtensionSize() const
 {
-    if(((RTPHeader*)workBuffer)->hasExtension())
+    if(((RTPHeader*)workBuffer.data())->hasExtension())
     {
-        const RTPHeaderExtension* readEx = (RTPHeaderExtension*)((char*)(workBuffer) + getRTPHeaderSize());
+        const RTPHeaderExtension* readEx = (RTPHeaderExtension*)(workBuffer.data() + getRTPHeaderSize());
         return RTPHeaderExtension::MIN_EXTENSION_SIZE + readEx->getLength() * sizeof(uint32_t);
     }
     else
@@ -107,16 +103,23 @@ void RTPPackageHandler::setActualPayloadSize(unsigned int payloadSize)
     this->actualPayloadSize = payloadSize;
 }
 
-void* RTPPackageHandler::getWorkBuffer()
+char* RTPPackageHandler::getWriteBuffer(const unsigned int minSize)
 {
-    return this->workBuffer;
+    //make sure, buffer is large enough
+    workBuffer.reserve(minSize);
+    return workBuffer.data();
+}
+
+const char* RTPPackageHandler::getReadBuffer() const
+{
+    return workBuffer.data();
 }
 
 void RTPPackageHandler::createSilencePackage()
 {
     RTPHeader silenceHeader;
-    memcpy(workBuffer, &silenceHeader, RTPHeader::MIN_HEADER_SIZE);
-    memset((char *)(workBuffer) + RTPHeader::MIN_HEADER_SIZE, 0, maximumPayloadSize);
+    memcpy(workBuffer.data(), &silenceHeader, RTPHeader::MIN_HEADER_SIZE);
+    memset(workBuffer.data() + RTPHeader::MIN_HEADER_SIZE, 0, maximumPayloadSize);
     actualPayloadSize = maximumPayloadSize;
 }
 
@@ -148,4 +151,13 @@ bool RTPPackageHandler::isRTPPackage(const void* packageBuffer, unsigned int pac
     return true;
 }
 
+unsigned int RTPPackageHandler::getInitialTimestamp() const
+{
+    return initialTimestamp;
+}
+
+unsigned int RTPPackageHandler::getCurrentSequenceNumber() const
+{
+    return sequenceNr;
+}
 
