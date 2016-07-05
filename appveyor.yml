@@ -13,10 +13,6 @@ build_script:
   - cd build
   - cmake --version
   - cmake -DBUILD_TESTING=ON -DTEST_OUTPUT_CONSOLE=ON -G"Visual Studio 14 2015" ..
-  # generate version-file for Opus
-  - cd ..\lib\opus\win32
-  - genversion.bat
-  - cd ..\..\..\build
   - cmake --build .
   
 after_build:
