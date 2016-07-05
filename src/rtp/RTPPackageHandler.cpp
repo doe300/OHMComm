@@ -71,9 +71,9 @@ unsigned int RTPPackageHandler::getRTPHeaderSize() const
 
 unsigned int RTPPackageHandler::getRTPHeaderExtensionSize() const
 {
-    if(((RTPHeader*)workBuffer.data())->hasExtension())
+    if(((RTPHeader*)getReadBuffer())->hasExtension())
     {
-        const RTPHeaderExtension* readEx = (RTPHeaderExtension*)(workBuffer.data() + getRTPHeaderSize());
+        const RTPHeaderExtension* readEx = (RTPHeaderExtension*)(getReadBuffer() + getRTPHeaderSize());
         return RTPHeaderExtension::MIN_EXTENSION_SIZE + readEx->getLength() * sizeof(uint32_t);
     }
     else

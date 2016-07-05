@@ -18,12 +18,18 @@
 
 namespace ohmcomm
 {
+    namespace crypto
+    {
+        //Forward declaration for pointer to cryptographic context
+        struct CryptographicContext;
+    }
+    
     namespace rtp
     {
 
         //Forward declaration for pointer to statistical and informational RTCP data
         struct RTCPData;
-
+        
         /*!
          * Global data store for a single participant in an RTP session
          */
@@ -58,10 +64,13 @@ namespace ohmcomm
             //the RTCP participant-data
             //we can't use reference/unique_ptr here, because RTCPData is incomplete at this point
             std::shared_ptr<RTCPData> rtcpData;
+            //the cryptographic context
+            //we can't use reference/unique_ptr here, because CryptographicContext is incomplete at this point
+            std::shared_ptr<crypto::CryptographicContext> cryptoContext;
 
             Participant(const uint32_t ssrc, const bool localParticipant) : lastDelay(0), isLocalParticipant(localParticipant), ssrc(ssrc), payloadType(-1),
             initialRTPTimestamp(0), extendedHighestSequenceNumber(0), interarrivalJitter(0), lastPackageReceived(std::chrono::steady_clock::time_point::min()),
-            firstPackageReceived(std::chrono::steady_clock::now()), packagesLost(0), totalPackages(0), totalBytes(0), rtcpData(nullptr)
+            firstPackageReceived(std::chrono::steady_clock::now()), packagesLost(0), totalPackages(0), totalBytes(0), rtcpData(nullptr), cryptoContext(nullptr)
             {
 
             }
