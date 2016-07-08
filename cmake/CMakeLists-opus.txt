@@ -48,19 +48,7 @@ ENDIF(WIN32)
 ####
 # celt
 ####
-SET(OPUS_SRCS
-	analysis.c
-	mlp.c
-	mlp_data.c
-	opus.c
-	opus_compare.c
-	opus_decoder.c
-	opus_encoder.c
-	opus_multistream.c
-	opus_multistream_encoder.c
-	opus_multistream_decoder.c
-	repacketizer.c
-)
+file(GLOB CELT_SRCS celt/*.c)
 file(GLOB CELT_HEADERS celt/*.h)
 INCLUDE_DIRECTORIES(
 	${opusIncludes}
@@ -112,7 +100,19 @@ target_link_libraries(silk_float silk_common)
 ####
 # src
 ####
-file(GLOB OPUS_SRCS src/*.c)
+SET(OPUS_SRCS
+	analysis.c
+	mlp.c
+	mlp_data.c
+	opus.c
+	opus_compare.c
+	opus_decoder.c
+	opus_encoder.c
+	opus_multistream.c
+	opus_multistream_encoder.c
+	opus_multistream_decoder.c
+	repacketizer.c
+)
 SET(OPUS_HEADERS
 	include/opus.h
 	include/opus_multistream.h
