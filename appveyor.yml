@@ -12,7 +12,6 @@ build_script:
   - md build
   - cd build
   - cmake --version
-  - ps: dir /b /s "C:\OpenSSL-$env:ssl_arch"
   - cmake -DBUILD_TESTING=ON -DTEST_OUTPUT_CONSOLE=ON -G"Visual Studio 14 2015" ..
   - cmake --build .
   
