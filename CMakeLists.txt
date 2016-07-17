@@ -168,6 +168,7 @@ if(OPENSSL_FOUND AND OPENSSL_INCLUDE_DIR)
 	message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
 	#Set header to default include path
 	add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
+	include_directories(${OPENSSL_INCLUDE_DIR})
 	set(CRYPTO_LIBRARY_FOUND ON)
 endif()
 
