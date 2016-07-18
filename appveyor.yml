@@ -9,6 +9,7 @@ os:
   - Visual Studio 2015 RC
   
 build_script:
+  - setx CMAKE_LIBRARY_PATH  "C:\OpenSSL-Win32\lib\VC;%CMAKE_LIBRARY_PATH%"
   - md build
   - cd build
   - cmake --version

@@ -9,17 +9,18 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/.gitmodules")
 message(STATUS "Updating submodules to their latest/fixed versions")
 message(STATUS "(this can take a while, please be patient)")
 
-### set the direcory where the submodules live
+### set the directory where the submodules live
 set(GIT_SUBMODULES_DIRECTORY lib)
 
 ### set the directory names of the submodules
-set(GIT_SUBMODULES cpptest-lite rtaudio opus)
+set(GIT_SUBMODULES cpptest-lite rtaudio opus cryptopp)
 
 ### set each submodules's commit or tag that is to be checked out
 ### (leave empty if you want master)
 set(GIT_SUBMODULE_VERSION_cpptest-lite stable)
 set(GIT_SUBMODULE_VERSION_rtaudio 4.1.2)
 set(GIT_SUBMODULE_VERSION_opus v1.1.2)
+set(GIT_SUBMODULE_VERSION_cryptopp CRYPTOPP_5_6_3)
 
 ### First, get all submodules in
 if(${GIT_SUBMODULES_CHECKOUT_QUIET})

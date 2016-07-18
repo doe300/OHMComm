@@ -8,3 +8,6 @@
 [submodule "lib/opus"]
 	path = lib/opus
 	url = https://github.com/xiph/opus
+[submodule "lib/cryptopp"]
+	path = lib/cryptopp
+	url = https://github.com/weidai11/cryptopp.git

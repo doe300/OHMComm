@@ -40,8 +40,8 @@ set(SUBMODULES_UPDATED OFF)
 # audio libraries
 #
 
-# RTAudio - http://www.music.mcgill.ca/~gary/rtaudio/
 if(NOT FORCE_CUSTOM_LIBRARIES)
+	# RTAudio - http://www.music.mcgill.ca/~gary/rtaudio/
 	#Try to find precompiled library
 	find_library(RTAUDIO_LIBRARY NAMES rtaudio librtaudio)
 	if(RTAUDIO_LIBRARY)
@@ -50,16 +50,16 @@ if(NOT FORCE_CUSTOM_LIBRARIES)
 		add_definitions(-DRTAUDIO_HEADER="RtAudio.h")
 		set(AUDIO_LIBRARY_FOUND ON)
 	endif()
-endif()
 
-# PortAudio - http://www.portaudio.com/
-#Try to find precompiled library
-find_library(PORTAUDIO_LIBRARY NAMES portaudio libportaudio)
-if(PORTAUDIO_LIBRARY)
-	message(STATUS "PortAudio library found: " ${PORTAUDIO_LIBRARY})
-	#Set header to default include path
-	add_definitions(-DPORTAUDIO_HEADER="portaudio.h")
-	set(AUDIO_LIBRARY_FOUND ON)
+	# PortAudio - http://www.portaudio.com/
+	#Try to find precompiled library
+	find_library(PORTAUDIO_LIBRARY NAMES portaudio libportaudio)
+	if(PORTAUDIO_LIBRARY)
+		message(STATUS "PortAudio library found: " ${PORTAUDIO_LIBRARY})
+		#Set header to default include path
+		add_definitions(-DPORTAUDIO_HEADER="portaudio.h")
+		set(AUDIO_LIBRARY_FOUND ON)
+	endif()
 endif()
 
 #Force custom library or library not found
@@ -70,6 +70,8 @@ if(NOT AUDIO_LIBRARY_FOUND)
 		set(SUBMODULES_UPDATED ON)
 	endif()
 
+	# RTAudio - http://www.music.mcgill.ca/~gary/rtaudio/
+	#use manually downloaded library
 	find_path(RTAUDIO_HEADER_PATH "RtAudio.h" HINTS lib/rtaudio)
 	if(RTAUDIO_HEADER_PATH)
 		message(STATUS "Compiling provided rtaudio-library!")
@@ -161,24 +163,46 @@ endif()
 # other
 #
 
-# OpenSSL - https://www.openssl.org/
-#Use CMake predefined finder-module
-include(FindOpenSSL)
-if(OPENSSL_FOUND AND OPENSSL_INCLUDE_DIR)
-	message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
-	#Set header to default include path
-	add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
-	include_directories(${OPENSSL_INCLUDE_DIR})
-	set(CRYPTO_LIBRARY_FOUND ON)
+if(NOT FORCE_CUSTOM_LIBRARIES)
+	# OpenSSL - https://www.openssl.org/
+	#Use CMake predefined finder-module
+	include(FindOpenSSL)
+	if(OPENSSL_FOUND AND OPENSSL_INCLUDE_DIR)
+		message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
+		#Set header to default include path
+		add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
+		include_directories(${OPENSSL_INCLUDE_DIR})
+		set(CRYPTO_LIBRARY_FOUND ON)
+	endif()
+
+	# Cryptopp - https://www.cryptopp.com/
+	if(NOT CRYPTO_LIBRARY_FOUND)
+		#Try to find precompiled library
+		find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
+		if(CRYPTOPP_LIBRARY)
+			message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
+			#Set header to default include path
+			add_definitions(-DCRYPTOPP_LIBRARY="1")
+			set(CRYPTO_LIBRARY_FOUND ON)
+		endif()
+	endif()
 endif()
 
-# Cryptopp - https://www.cryptopp.com/
+#Force custom library or library not found
 if(NOT CRYPTO_LIBRARY_FOUND)
-	#Try to find precompiled library
-	find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
-	if(CRYPTOPP_LIBRARY)
-		message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
-		#Set header to default include path
+	#Update custom library
+	if(NOT SUBMODULES_UPDATED)
+		include(cmake/submodules.cmake)
+		set(SUBMODULES_UPDATED ON)
+	endif()
+
+	# Cryptopp - https://www.cryptopp.com/
+	#use manually downloaded library
+	find_path(CRYPTOPP_HEADER_PATH "aes.h" HINTS lib/cryptopp)
+	if(CRYPTOPP_HEADER_PATH)
+		message(STATUS "Compiling provided Crypto++-library!")
+		# Compile ourselves and set correct header-path
+		add_subdirectory(lib/cryptopp build/cryptopp)
 		add_definitions(-DCRYPTOPP_LIBRARY="1")
 		set(CRYPTO_LIBRARY_FOUND ON)
 	endif()
