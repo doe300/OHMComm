@@ -28,6 +28,12 @@ namespace ohmcomm
         public:
 
             static const bool CRYPTO_SUITE_AVAILABLE;
+            /*!
+             * The name of the crypto-library
+             * \since 1.0
+             */
+            //TODO print used crypto-library
+            static const std::string CRYPTO_SUITE_NAME;
 
             ~CryptoSuite() = default;
 

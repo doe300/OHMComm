@@ -18,6 +18,7 @@
 using namespace ohmcomm::crypto;
 
 const bool CryptoSuite::CRYPTO_SUITE_AVAILABLE = true;
+const std::string CryptoSuite::CRYPTO_SUITE_NAME = "Cryptopp";
 
 std::string CryptoSuite::hashMD5(const std::string& input)
 {

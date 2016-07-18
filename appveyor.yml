@@ -9,11 +9,13 @@ os:
   - Visual Studio 2015 RC
   
 build_script:
-  - setx CMAKE_LIBRARY_PATH  "C:\OpenSSL-Win32\lib\VC;%CMAKE_LIBRARY_PATH%"
+    # TODO Is set but never used anywhere. Wrong environment variable? use PATH instead??
+  - setx CMAKE_LIBRARY_PATH "C:\OpenSSL-Win32\lib\VC;%CMAKE_LIBRARY_PATH%"
+  - setx PATH "C:\OpenSSL-Win32\lib\VC;%PATH%"
   - md build
   - cd build
   - cmake --version
-  - cmake -DBUILD_TESTING=ON -DTEST_OUTPUT_CONSOLE=ON -G"Visual Studio 14 2015" ..
+  - cmake -DBUILD_TESTING=ON -DTEST_OUTPUT_CONSOLE=ON -G"Visual Studio 14 2015" -DCMAKE_LIBRARY_PATH="C:\OpenSSL-Win32\lib\VC" ..
   - cmake --build .
   
 after_build:

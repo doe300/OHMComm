@@ -7,6 +7,7 @@
 using namespace ohmcomm::crypto;
 
 const bool CryptoSuite::CRYPTO_SUITE_AVAILABLE = false;
+const std::string CryptoSuite::CRYPTO_SUITE_NAME = "none";
 
 std::string CryptoSuite::hashMD5(const std::string& input)
 {
