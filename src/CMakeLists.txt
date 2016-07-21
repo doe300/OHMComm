@@ -39,7 +39,7 @@ endif()
 
 #Common libraries
 target_link_libraries(OHMComm opus)
-if(NOT OPUS_LIBRARY) #Only manually link opus, if it not provided via a library
+if(NOT OPUS_LIBRARY AND OPUS_HEADER_PATH) #Only manually link opus sub-projects, if we compiled them manually
 	target_link_libraries(OHMComm celt)
 	target_link_libraries(OHMComm silk_common)
 	target_link_libraries(OHMComm silk_fixed)
@@ -59,7 +59,7 @@ endif()
 if(AMR_LIBRARY)
 	target_link_libraries(OHMComm opencore-amrnb)
 endif()
-if(CRYPTOPP_LIBRARY)
+if(CRYPTOPP_LIBRARY OR CRYPTOPP_HEADER_PATH)
 	target_link_libraries(OHMComm cryptopp)
 endif()
 if(OPENSSL_CRYPTO_LIBRARY)

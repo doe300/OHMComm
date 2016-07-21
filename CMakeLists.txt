@@ -196,6 +196,12 @@ if(NOT CRYPTO_LIBRARY_FOUND)
 		set(SUBMODULES_UPDATED ON)
 	endif()
 
+	#Cryptopp doesn't provide a CMakeLists.txt (at least not yet for version 5.6.3), so copy it manually
+	execute_process(
+        COMMAND             cmake -E copy cmake/CMakeLists-cryptopp.txt lib/cryptopp/CMakeLists.txt
+        WORKING_DIRECTORY   ${PROJECT_SOURCE_DIR}
+    )
+
 	# Cryptopp - https://www.cryptopp.com/
 	#use manually downloaded library
 	find_path(CRYPTOPP_HEADER_PATH "aes.h" HINTS lib/cryptopp)
