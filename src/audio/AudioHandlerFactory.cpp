@@ -24,7 +24,7 @@ auto AudioHandlerFactory::getAudioHandler(const std::string name, const AudioCon
         return std::move(wrapper);
     }
     #endif
-    throw std::invalid_argument("No AudioHandler for this name!");
+    throw std::invalid_argument(std::string("No AudioHandler for this name: ") + name);
 }
 
 auto AudioHandlerFactory::getAudioHandler(const std::string name) ->std::unique_ptr<AudioHandler>
@@ -43,12 +43,13 @@ auto AudioHandlerFactory::getAudioHandler(const std::string name) ->std::unique_
         return std::move(wrapper);
     }
     #endif
-    throw std::invalid_argument("No AudioHandler for this name!");
+    throw std::invalid_argument(std::string("No AudioHandler for this name: ") + name);
 }
 
 std::vector<std::string> generateAudioHandlerNames()
 {
-    std::vector<std::string> names(2);
+    std::vector<std::string> names;
+    names.reserve(2);
     #ifdef RTAUDIOWRAPPER_H
     names.push_back(AudioHandlerFactory::RTAUDIO_WRAPPER);
     #endif

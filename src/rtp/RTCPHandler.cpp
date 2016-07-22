@@ -298,25 +298,25 @@ const void* RTCPHandler::createSourceDescription(unsigned int offset)
         if(std::dynamic_pointer_cast<InteractiveConfiguration>(configMode) == nullptr && configMode->isConfigured())
         {
             //add user configured values
-            if(configMode->isCustomConfigurationSet(Parameters::SDES_EMAIL->longName, "SDES EMAIL?"))
+            if(configMode->isCustomConfigurationSet(Parameters::USER_EMAIL->longName, "SDES EMAIL?"))
             {
-                (*rtcpData)[RTCP_SOURCE_EMAIL] = configMode->getCustomConfiguration(Parameters::SDES_EMAIL->longName, "Enter SDES EMAIL", "anon@noreply.com");
+                (*rtcpData)[RTCP_SOURCE_EMAIL] = configMode->getCustomConfiguration(Parameters::USER_EMAIL->longName, "Enter SDES EMAIL", "anon@noreply.com");
             }
-            if(configMode->isCustomConfigurationSet(Parameters::SDES_LOC->longName, "SDES LOCATION?"))
+            if(configMode->isCustomConfigurationSet(Parameters::USER_LOCATION->longName, "SDES LOCATION?"))
             {
-                (*rtcpData)[RTCP_SOURCE_LOC] = configMode->getCustomConfiguration(Parameters::SDES_LOC->longName, "Enter SDES LOCATION", "earth");
+                (*rtcpData)[RTCP_SOURCE_LOC] = configMode->getCustomConfiguration(Parameters::USER_LOCATION->longName, "Enter SDES LOCATION", "earth");
             }
-            if(configMode->isCustomConfigurationSet(Parameters::SDES_NAME->longName, "SDES NAME?"))
+            if(configMode->isCustomConfigurationSet(Parameters::USER_NAME->longName, "SDES NAME?"))
             {
-                (*rtcpData)[RTCP_SOURCE_NAME] = configMode->getCustomConfiguration(Parameters::SDES_NAME->longName, "Enter SDES NAME", "anon");
+                (*rtcpData)[RTCP_SOURCE_NAME] = configMode->getCustomConfiguration(Parameters::USER_NAME->longName, "Enter SDES NAME", "anon");
             }
-            if(configMode->isCustomConfigurationSet(Parameters::SDES_NOTE->longName, "SDES NOTE?"))
+            if(configMode->isCustomConfigurationSet(Parameters::USER_NOTE->longName, "SDES NOTE?"))
             {
-                (*rtcpData)[RTCP_SOURCE_NOTE] = configMode->getCustomConfiguration(Parameters::SDES_NOTE->longName, "Enter SDES NOTE", "");
+                (*rtcpData)[RTCP_SOURCE_NOTE] = configMode->getCustomConfiguration(Parameters::USER_NOTE->longName, "Enter SDES NOTE", "");
             }
-            if(configMode->isCustomConfigurationSet(Parameters::SDES_PHONE->longName, "SDES PHONE?"))
+            if(configMode->isCustomConfigurationSet(Parameters::USER_PHONE->longName, "SDES PHONE?"))
             {
-                (*rtcpData)[RTCP_SOURCE_PHONE] = configMode->getCustomConfiguration(Parameters::SDES_PHONE->longName, "Enter SDES PHONE", "");
+                (*rtcpData)[RTCP_SOURCE_PHONE] = configMode->getCustomConfiguration(Parameters::USER_PHONE->longName, "Enter SDES PHONE", "");
             }
         }
         (*rtcpData)[RTCP_SOURCE_TOOL] = std::string("OHMComm v") + OHMCOMM_VERSION;

@@ -10,17 +10,18 @@
 #include "network/MulticastNetworkWrapper.h"
 #include "Utility.h"
 #include "Logger.h"
+#include "Parameters.h"
 
 using namespace ohmcomm::sip;
 
 SIPSession::SIPSession(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser) : 
-    userAgents(std::to_string(rand())), network(new ohmcomm::network::MulticastNetworkWrapper(sipConfig)), state(SessionState::DISCONNECTED)
+    userAgents(std::to_string(Utility::randomNumber())), network(new ohmcomm::network::MulticastNetworkWrapper(sipConfig)), state(SessionState::DISCONNECTED)
 {
     userAgents.thisUA.userName = ohmcomm::Utility::getUserName();
     userAgents.thisUA.hostName = ohmcomm::Utility::getDomainName();
     //we need an initial value for the local IP-address for the ";received="-tag
     userAgents.thisUA.ipAddress = ohmcomm::Utility::getLocalIPAddress(ohmcomm::Utility::getNetworkType(sipConfig.remoteIPAddress));
-    userAgents.thisUA.tag = std::to_string(rand());
+    userAgents.thisUA.tag = std::to_string(Utility::randomNumber());
     userAgents.thisUA.port = sipConfig.localPort;
     userAgents.thisUA.callID = SIPGrammar::generateCallID(ohmcomm::Utility::getDomainName());
     SIPUserAgent& initialRemoteUA = userAgents.getRemoteUA();
@@ -31,6 +32,14 @@ SIPSession::SIPSession(const ohmcomm::NetworkConfiguration& sipConfig, const std
 
 SIPSession::~SIPSession()
 {
+}
+
+void SIPSession::setUserInfo(const Parameters& params)
+{
+    if(params.isParameterSet(Parameters::USER_NAME))
+        userAgents.thisUA.userName = params.getParameterValue(Parameters::USER_NAME);
+    if(params.isParameterSet(Parameters::USER_LOCAL_DEVICE))
+        userAgents.thisUA.hostName = params.getParameterValue(Parameters::USER_LOCAL_DEVICE);
 }
 
 void SIPSession::onRemoteConnected(const unsigned int ssrc, const std::string& address, const unsigned short port)

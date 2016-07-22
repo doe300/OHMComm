@@ -30,9 +30,18 @@ namespace ohmcomm
             //Function-type used to add a new user to the conversation
             using AddUserFunction = std::function<void(const MediaDescription, const NetworkConfiguration, const NetworkConfiguration)>;
 
-            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction, const std::string& registerUser = "", const std::string& registerPassword = "");
+            SIPHandler(const NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction);
 
             ~SIPHandler();
+            
+            /*!
+             * Sets the user-data to register with at the remote server
+             * 
+             * NOTE: this method MUST be called before the SIP-thread is started to have any effect!
+             * 
+             * \since 1.0
+             */
+            void setRegisterWithServer(const std::string& registerUser = "", const std::string& registerPassword = "");
 
             /*!
              * Shuts down the receive-thread
@@ -54,8 +63,8 @@ namespace ohmcomm
             
         private:
             static constexpr unsigned short SIP_BUFFER_SIZE{2048};
-            const std::string registerUser;
-            const std::string registerPassword;
+            std::string registerUser;
+            std::string registerPassword;
             
             NetworkConfiguration sipConfig;
             const AddUserFunction addUserFunction;

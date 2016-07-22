@@ -13,8 +13,8 @@
 
 using namespace ohmcomm::sip;
 
-SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction, const std::string& registerUser, const std::string& registerPassword) : 
-    SIPSession(sipConfig, remoteUser), registerUser(registerUser), registerPassword(registerPassword), sipConfig(sipConfig), addUserFunction(addUserFunction), buffer(SIP_BUFFER_SIZE)
+SIPHandler::SIPHandler(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser, const AddUserFunction addUserFunction) : 
+    SIPSession(sipConfig, remoteUser), sipConfig(sipConfig), addUserFunction(addUserFunction), buffer(SIP_BUFFER_SIZE)
 {
     updateNetworkConfig(nullptr, nullptr, userAgents.getRemoteUA());
 }
@@ -23,6 +23,13 @@ SIPHandler::~SIPHandler()
 {
     // Wait until thread has really stopped
     sipThread.join();
+}
+
+void SIPHandler::setRegisterWithServer(const std::string& registerUser, const std::string& registerPassword)
+{
+    ohmcomm::info("SIP") << "Registration enabled for remote-server '" << userAgents.getRemoteUA().hostName << "' with user-name: " << registerUser << ohmcomm::endl;
+    this->registerUser = registerUser;
+    this->registerPassword = registerPassword;
 }
 
 void SIPHandler::startUp()

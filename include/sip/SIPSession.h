@@ -17,6 +17,7 @@
 #include "sip/SDPMessageHandler.h"
 #include "sip/SIPUserAgent.h"
 #include "network/NetworkWrapper.h"
+#include "Parameters.h"
 
 namespace ohmcomm
 {
@@ -50,6 +51,13 @@ namespace ohmcomm
             
             SIPSession(const ohmcomm::NetworkConfiguration& sipConfig, const std::string& remoteUser);
             virtual ~SIPSession();
+            
+            /*!
+             * Sets additional user-info for the local user
+             * 
+             * \since 1.0
+             */
+            void setUserInfo(const Parameters& params);
             
             void onRemoteConnected(const unsigned int ssrc, const std::string& address, const unsigned short port) override;
             void onRemoteRemoved(const unsigned int ssrc) override;

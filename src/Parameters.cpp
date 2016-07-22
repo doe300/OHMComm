@@ -38,12 +38,12 @@ const Parameter* Parameters::PROFILE_PROCESSORS = Parameters::registerParameter(
 const Parameter* Parameters::ENABLE_DTX = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, 'd', "enable-dtx", "Enables DTX to not send any packages, if silence is detected."));
 const Parameter* Parameters::ENABLE_FEC = Parameters::registerParameter(Parameter(ParameterCategory::NETWORK, 'e', "enable-fec", "Enables FEC to include forward-error-correction data into supported formats."));
 
-const Parameter* Parameters::SDES_CNAME = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'C', "sdes-cname", "The SDES CNAME (device name)", ""));
-const Parameter* Parameters::SDES_EMAIL = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'E', "sdes-email", "The SDES EMAIL (email-address)", ""));
-const Parameter* Parameters::SDES_LOC = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'L', "sdes-location", "The SDES LOC (geographic location)", ""));
-const Parameter* Parameters::SDES_NAME = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'N', "sdes-name", "The SDES NAME (participant name)", ""));
-const Parameter* Parameters::SDES_NOTE = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'M', "sdes-note", "The SDES NOTE (some arbitrary note)", ""));
-const Parameter* Parameters::SDES_PHONE = Parameters::registerParameter(Parameter(ParameterCategory::SOURCE_DESCRIPTION, 'T', "sdes-phone", "The SDES PHONE (participant phone number)", ""));
+const Parameter* Parameters::USER_LOCAL_DEVICE = Parameters::registerParameter(Parameter(ParameterCategory::USER_INFO, 'C', "host-name", "The device name of the local host (SDES CNAME)", ""));
+const Parameter* Parameters::USER_EMAIL = Parameters::registerParameter(Parameter(ParameterCategory::USER_INFO, 'E', "user-email", "The email-address of this user (SDES EMAIL)", ""));
+const Parameter* Parameters::USER_LOCATION = Parameters::registerParameter(Parameter(ParameterCategory::USER_INFO, 'L', "location", "An arbitrary location of this device (e.g. 'office' or an postal address) (SDES LOC)", ""));
+const Parameter* Parameters::USER_NAME = Parameters::registerParameter(Parameter(ParameterCategory::USER_INFO, 'N', "user-name", "The local user-name of this participant (SDES NAME)", ""));
+const Parameter* Parameters::USER_NOTE = Parameters::registerParameter(Parameter(ParameterCategory::USER_INFO, 'M', "user-note", "An arbitrary additional note (SDES NOTE)", ""));
+const Parameter* Parameters::USER_PHONE = Parameters::registerParameter(Parameter(ParameterCategory::USER_INFO, 'T', "user-phone", "An additional phone-number this participant is reachable by (SDES PHONE)", ""));
 
 const Parameter* Parameters::registerParameter(Parameter&& param)
 {
@@ -126,6 +126,8 @@ bool Parameters::parseParameters(int argc, char* argv[])
         std::cout << std::setw(tabSize) << ' ' << "Loopback: " << Utility::getLocalIPAddress(Utility::AddressType::ADDRESS_LOOPBACK) << std::endl;
         std::cout << std::setw(tabSize) << ' ' << "Local: " << Utility::getLocalIPAddress(Utility::AddressType::ADDRESS_LOCAL_NETWORK) << std::endl;
         std::cout << std::setw(tabSize) << ' ' << "External: " << externalAddress << std::endl;
+        //TODO is not printed, something to do with logger using std::cout??
+        //but it works for listing addresses
         exit(0);
     }
     if(isParameterSet(LIST_AUDIO_DEVICES))
@@ -214,10 +216,10 @@ void Parameters::printHelpPage() const
             printParameterHelp(param);
         }
     }
-    std::cout << "Source Description values:" << std::endl;
+    std::cout << "User information:" << std::endl;
     for(const Parameter& param : availableParameters)
     {
-        if(param.category == ParameterCategory::SOURCE_DESCRIPTION)
+        if(param.category == ParameterCategory::USER_INFO)
         {
             printParameterHelp(param);
         }

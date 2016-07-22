@@ -58,7 +58,7 @@ void TestSIPHandler::testSIPProtocol(const int index)
 bool TestSIPHandler::before(const std::string& methodName)
 {
     handler.reset(new SIPHandler({2060, "192.168.178.123", SIPHandler::SIP_DEFAULT_PORT}, "dummy", 
-        [this](const MediaDescription, const ohmcomm::NetworkConfiguration, const ohmcomm::NetworkConfiguration){dummyHandler();}, ""));
+        [this](const MediaDescription, const ohmcomm::NetworkConfiguration, const ohmcomm::NetworkConfiguration){dummyHandler();}));
     handler->startUp();
     return true;
 }

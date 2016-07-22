@@ -15,13 +15,18 @@
 using namespace ohmcomm::sip;
 
 SIPConfiguration::SIPConfiguration(const ohmcomm::Parameters& params, const ohmcomm::NetworkConfiguration& sipConfig) : 
-    ParameterConfiguration(params), handler(sipConfig, params.getParameterValue(Parameters::SIP_REMOTE_USER), [this](const MediaDescription media, const ohmcomm::NetworkConfiguration rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}, params.getParameterValue(Parameters::SIP_REGISTER_USER), params.getParameterValue(Parameters::SIP_REGISTER_PASSWORD)), rtcpConfig({0})
+    ParameterConfiguration(params), handler(sipConfig, params.getParameterValue(Parameters::SIP_REMOTE_USER), [this](const MediaDescription media, const ohmcomm::NetworkConfiguration rtpConfig, const ohmcomm::NetworkConfiguration rtcpConfig){this->setConfig(media, rtpConfig, rtcpConfig);}), rtcpConfig({0})
 {
     //overwrite settings from ParameterConfiguration
     useDefaultAudioConfig = false;
     networkConfig.localPort = DEFAULT_NETWORK_PORT;
     networkConfig.remoteIPAddress = sipConfig.remoteIPAddress;
     isConfigurationDone = false;
+    handler.setUserInfo(params);
+    if(params.isParameterSet(Parameters::SIP_REGISTER_USER))
+    {
+        handler.setRegisterWithServer(params.getParameterValue(Parameters::SIP_REGISTER_USER), params.getParameterValue(Parameters::SIP_REGISTER_PASSWORD));
+    }
 }
 
 SIPConfiguration::~SIPConfiguration()

@@ -28,8 +28,8 @@ namespace ohmcomm
         NETWORK,
         //Parameters which set the active processors or processor-specific values
         PROCESSORS,
-        //Parameter to fill the SDES-values for this instance
-        SOURCE_DESCRIPTION
+        //Parameter to fill the SIP user-info and SDES-values for this instance
+        USER_INFO
     };
 
     struct Parameter
@@ -159,12 +159,12 @@ namespace ohmcomm
         static const Parameter* ENABLE_DTX;
         static const Parameter* ENABLE_FEC;
 
-        static const Parameter* SDES_CNAME;
-        static const Parameter* SDES_EMAIL;
-        static const Parameter* SDES_LOC;
-        static const Parameter* SDES_NAME;
-        static const Parameter* SDES_PHONE;
-        static const Parameter* SDES_NOTE;
+        static const Parameter* USER_LOCAL_DEVICE;
+        static const Parameter* USER_EMAIL;
+        static const Parameter* USER_LOCATION;
+        static const Parameter* USER_NAME;
+        static const Parameter* USER_PHONE;
+        static const Parameter* USER_NOTE;
 
         /*!
          * This method can be used to add processor-specific parameters to the list of available (and parsed parameters).
