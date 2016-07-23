@@ -49,7 +49,7 @@ namespace ohmcomm
             key = toKey(input.substr(0, delimPos));
             value = Utility::trim(input.substr(delimPos + 1));
         }
-    private:
+    protected:
 
         template<typename T = type, typename = typename std::enable_if<std::is_same<T, char>::value>::type>
         inline char toKey(const std::string&& key) const

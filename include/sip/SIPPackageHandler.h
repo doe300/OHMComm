@@ -266,7 +266,61 @@ namespace ohmcomm
          */
         const std::string SIP_HEADER_WWW_AUTHENTICATE("WWW-Authenticate");
 
-        using HeaderField = KeyValuePair<std::string>;
+        struct HeaderField : public KeyValuePair<std::string>
+        {
+            HeaderField() : KeyValuePair()
+            {
+            }
+
+            HeaderField(std::string key, std::string value) : KeyValuePair(key, Utility::trim(value))
+            {
+            }
+            
+            inline void fromCompactString(const std::string& input, const char delimiter)
+            {
+                std::string::size_type delimPos = input.find(delimiter);
+                //a single character as key - compact form
+                if(delimPos == 1)
+                {
+                    //compact header - http://www.cs.columbia.edu/sip/compact.html
+                    const char compact = toKey<char>(input.substr(0, delimPos));
+                    switch(compact)
+                    {
+                        case 'c' : 
+                            key = SIP_HEADER_CONTENT_TYPE;
+                            break;
+                        case 'f':
+                            key = SIP_HEADER_FROM;
+                            break;
+                        case 'i':
+                            key = SIP_HEADER_CALL_ID;
+                            break;
+                        case 'k':
+                            key = SIP_HEADER_SUPPORTED;
+                            break;
+                        case 'l':
+                            key = SIP_HEADER_CONTENT_LENGTH;
+                            break;
+                        case 'm':
+                            key = SIP_HEADER_CONTACT;
+                            break;
+                        case 't':
+                            key = SIP_HEADER_TO;
+                            break;
+                        case 'v':
+                            key = SIP_HEADER_VIA;
+                            break;
+                        default:
+                            throw std::invalid_argument(std::string("Unknown compact header-field: ") + compact);
+                    }
+                    value = Utility::trim(input.substr(delimPos + 1));
+                }
+                else
+                {
+                    fromString(input, delimiter);
+                }
+            }
+        };
 
         struct SIPHeader : KeyValuePairs<HeaderField>
         {

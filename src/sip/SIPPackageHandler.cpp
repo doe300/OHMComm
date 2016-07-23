@@ -262,8 +262,7 @@ std::vector<std::string> SIPPackageHandler::readPackage(const void* sipPackage, 
             break;
         }
         HeaderField field;
-        //TODO handling of compact headers
-        field.fromString(package.substr(prevIndex, index - prevIndex), ':');
+        field.fromCompactString(package.substr(prevIndex, index - prevIndex), ':');
         header.push_back(field);
         //move index to beginning of next line
         index += 2;
