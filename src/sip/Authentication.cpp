@@ -22,6 +22,11 @@ Authentication::~Authentication()
 
 std::unique_ptr<Authentication> Authentication::getAuthenticationMethod(const std::string& requestMethod, const std::string& requestURI, const std::string& headerField)
 {
+    if(headerField.empty())
+    {
+        ohmcomm::info("Authentication") << "Using no authentication" << ohmcomm::endl;
+        return std::unique_ptr<Authentication>(new DummyAuthentication());
+    }
     if(Utility::trim(headerField).find("Basic") == 0)
     {
         ohmcomm::info("Authentication") << "Using basic authentication" << ohmcomm::endl;
@@ -74,6 +79,22 @@ bool Authentication::isExpired() const
 std::chrono::system_clock::time_point Authentication::getExpirationTime() const
 {
     return expirationTime;
+}
+
+DummyAuthentication::DummyAuthentication() : Authentication()
+{
+
+}
+
+DummyAuthentication::~DummyAuthentication()
+{
+
+}
+
+std::string DummyAuthentication::createAuthenticationHeader(const std::string& userName, const std::string& password)
+{
+    //is never called
+    return "";
 }
 
 BasicAuthentication::BasicAuthentication() : Authentication()

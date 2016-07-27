@@ -68,7 +68,7 @@ void ParticipantDatabase::unregisterListener(ParticipantListener& listener)
 
 void ParticipantDatabase::fireNewRemote(const uint32_t ssrc)
 {
-    ohmcomm::info("RTP") << "New remote joined conversation: " << ssrc << ohmcomm::endl;
+    ohmcomm::info("RTP") << "New remote joined conversation: " << Utility::toHexString(ssrc) << ohmcomm::endl;
     for(ParticipantListener& l : listeners)
     {
         l.onRemoteAdded(ssrc);
@@ -77,7 +77,7 @@ void ParticipantDatabase::fireNewRemote(const uint32_t ssrc)
 
 void ParticipantDatabase::fireRemoveRemote(const uint32_t ssrc)
 {
-    ohmcomm::info("RTP") << "Remote left conversation: " << ssrc << ohmcomm::endl;
+    ohmcomm::info("RTP") << "Remote left conversation: " << Utility::toHexString(ssrc) << ohmcomm::endl;
     for(ParticipantListener& l : listeners)
     {
         l.onRemoteRemoved(ssrc);

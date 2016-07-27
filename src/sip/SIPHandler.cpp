@@ -431,7 +431,15 @@ void SIPHandler::handleSIPResponse(const void* buffer, unsigned int packageLengt
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_NOT_FOUND_CODE)
         {
-            ohmcomm::warn("SIP") << "Request-URI not found!" << ohmcomm::endl;
+            if(SIP_REQUEST_INVITE.compare(responseHeader.getRequestCommand()) == 0)
+            {
+                ohmcomm::warn("SIP") << "User not found!" << ohmcomm::endl;
+            }
+            else
+            {
+                ohmcomm::warn("SIP") << "Request-URI not found!" << ohmcomm::endl;
+            }
+            //TODO send ACK before shutting down (for all error-cases)??
             shutdown();
         }
         else if(responseHeader.statusCode == SIP_RESPONSE_METHOD_NOT_ALLOWED_CODE)

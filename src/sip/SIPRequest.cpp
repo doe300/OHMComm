@@ -176,24 +176,27 @@ bool REGISTERRequest::handleResponse(const ohmcomm::network::SocketAddress& sour
     }
     else if(responseHeader.statusCode == SIP_RESPONSE_OK_CODE)
     {
-        if(authentication)
+        if(!authentication)
         {
-            //TODO update local URI with contact
-            const std::string& contactHeader = responseHeader[SIP_HEADER_CONTACT];
-            std::string::size_type i;
-            int expiresSeconds = 0;
-            if((i = contactHeader.find(";expires=")) != std::string::npos)
-            {
-                std::string expiresValue = contactHeader.substr(i + std::string(";expires=").size());
-                expiresValue = expiresValue.substr(0, expiresValue.find_first_of("; \r\n"));
-                expiresSeconds = atoi(expiresValue.data());
-            }
-            else
-            {
-                expiresSeconds = atoi(responseHeader[SIP_HEADER_EXPIRES].data());
-            }
-            authentication->setAuthenticated(std::chrono::system_clock::now() + std::chrono::seconds(expiresSeconds));
+            //no authentication was required
+            ohmcomm::warn("SIP") << "No authentication required, the server is possible insecure!" << ohmcomm::endl;
+            authentication = Authentication::getAuthenticationMethod(requestHeader.requestCommand, requestHeader.requestURI, "");
         }
+        //TODO update local URI with contact
+        const std::string& contactHeader = responseHeader[SIP_HEADER_CONTACT];
+        std::string::size_type i;
+        int expiresSeconds = 0;
+        if((i = contactHeader.find(";expires=")) != std::string::npos)
+        {
+            std::string expiresValue = contactHeader.substr(i + std::string(";expires=").size());
+            expiresValue = expiresValue.substr(0, expiresValue.find_first_of("; \r\n"));
+            expiresSeconds = atoi(expiresValue.data());
+        }
+        else
+        {
+            expiresSeconds = atoi(responseHeader[SIP_HEADER_EXPIRES].data());
+        }
+        authentication->setAuthenticated(std::chrono::system_clock::now() + std::chrono::seconds(expiresSeconds));
         return true;
     }
     //any other response is currently not handled
@@ -230,7 +233,8 @@ SIPRequestHeader REGISTERRequest::createRequest() const
     header[SIP_HEADER_ALLOW] = SIP_ALLOW_METHODS;
     header[SIP_HEADER_ACCEPT] = SIP_ACCEPT_TYPES;
     //header[SIP_HEADER_SUPPORTED] = SIP_SUPPORTED_FIELDS;
-    header[SIP_HEADER_CONTACT] += SIP_CAPABILITIES;
+    //for unregister, add expiration Contact-Field (RFC 3261 section 10.2.2)
+    header[SIP_HEADER_CONTACT] += SIP_CAPABILITIES + std::string(";expires=") + std::to_string(expiresInSeconds);
     
     return header;
 }

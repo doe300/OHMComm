@@ -81,6 +81,23 @@ namespace ohmcomm
         };
         
         /*!
+         * dummy authentication for UASs which require no authentication at all.
+         * 
+         * NOTE: An UAS which allows registration without any authentication is completely unsafe!
+         * 
+         * \since 1.0
+         */
+        class DummyAuthentication : public Authentication
+        {
+        public:
+            DummyAuthentication();
+            
+            virtual ~DummyAuthentication();
+
+            std::string createAuthenticationHeader(const std::string& userName, const std::string& password) override;
+        };
+        
+        /*!
          * Basic HTTP/SIP authentication
          * 
          * Sends a Base64 encoded concatenation of user-name and password
