@@ -35,6 +35,8 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update         ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade cmake  ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade openssl; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install opus; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cryptopp; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link openssl --force; fi # Force to use homebrew version
 
 before_script:

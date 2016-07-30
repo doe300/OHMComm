@@ -8,12 +8,21 @@
 #include <algorithm>
 
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
-#include "cryptopp/md5.h"
-#include "cryptopp/hmac.h"
-#include "cryptopp/sha.h"
-#include "cryptopp/aes.h"
-#include "cryptopp/ccm.h"
-#include "cryptopp/modes.h"
+#if CRYPTOPP_LIBRARY == 2 //use headers from custom library
+#include "../lib/cryptopp/md5.h"
+#include "../lib/cryptopp/hmac.h"
+#include "../lib/cryptopp/sha.h"
+#include "../lib/cryptopp/aes.h"
+#include "../lib/cryptopp/ccm.h"
+#include "../lib/cryptopp/modes.h"
+#else       //use system headers
+#include <cryptopp/md5.h>
+#include <cryptopp/hmac.h>
+#include <cryptopp/sha.h>
+#include <cryptopp/aes.h>
+#include <cryptopp/ccm.h>
+#include <cryptopp/modes.h>
+#endif
 
 using namespace ohmcomm::crypto;
 
