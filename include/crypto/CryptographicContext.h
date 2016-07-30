@@ -65,7 +65,7 @@ namespace ohmcomm
          */
         const CryptoMode AES_CM_128_HMAC_SHA1_80{"AES_CM_128_HMAC_SHA1_80", 16, 14, CipherMode::COUNTER_MODE, HashAlgorithm::HMAC_SHA1, 10};
         const CryptoMode AES_CM_128_HMAC_SHA1_32{"AES_CM_128_HMAC_SHA1_32", 16, 14, CipherMode::COUNTER_MODE, HashAlgorithm::HMAC_SHA1, 4};
-        const CryptoMode F8_128_HMAC_SHA1_80{"F8_128_HMAC_SHA1_80", 16, 14, CipherMode::F8, HashAlgorithm::HMAC_SHA1, 10};
+        const CryptoMode AES_F8_128_HMAC_SHA1_80{"F8_128_HMAC_SHA1_80", 16, 14, CipherMode::F8, HashAlgorithm::HMAC_SHA1, 10};
 
         /*!
          * Stores all cryptographic-related data

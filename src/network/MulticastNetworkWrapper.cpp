@@ -32,7 +32,7 @@ int MulticastNetworkWrapper::sendData(const void* buffer, const unsigned int buf
         }
         totalBytesSent += status;
     }
-    return totalBytesSent/destinations.size();
+    return totalBytesSent <= 0 ? 0 : totalBytesSent / destinations.size();
 }
 
 bool MulticastNetworkWrapper::addDestination(const std::string& destinationAddress, const unsigned short destinationPort)
