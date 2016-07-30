@@ -58,7 +58,7 @@ bool CryptoSuite::verifyHMAC_SHA1(const void* hmacBuffer, const unsigned int hma
     return hmac.VerifyDigest((const byte*)hmacBuffer, (const byte*)buffer, bufferSize);
 }
 
-std::vector<unsigned char> CryptoSuite::encryptAES(const ohmcomm::crypto::CipherMode mode, const void* inputBuffer, const unsigned int bufferSize, const std::vector<byte>& key)
+std::vector<byte> CryptoSuite::encryptAES(const ohmcomm::crypto::CipherMode mode, const void* inputBuffer, const unsigned int bufferSize, const std::vector<byte>& key)
 {
     std::vector<byte> result(bufferSize, '\0');
     if(mode == ohmcomm::crypto::CipherMode::COUNTER_MODE)

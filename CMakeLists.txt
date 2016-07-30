@@ -164,25 +164,26 @@ endif()
 #
 
 if(NOT FORCE_CUSTOM_LIBRARIES)
-	# OpenSSL - https://www.openssl.org/
-	#Use CMake predefined finder-module
-	include(FindOpenSSL)
-	if(OPENSSL_FOUND AND OPENSSL_INCLUDE_DIR)
-		message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
+	# Cryptopp - https://www.cryptopp.com/
+	#Try to find precompiled library
+	#Prefer Cryptopp over OpenSSL since OpenSSL causes problems with Mac OS
+	find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
+	if(CRYPTOPP_LIBRARY)
+		message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
 		#Set header to default include path
-		add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
-		include_directories(${OPENSSL_INCLUDE_DIR})
+		add_definitions(-DCRYPTOPP_LIBRARY=1)
 		set(CRYPTO_LIBRARY_FOUND ON)
 	endif()
 
-	# Cryptopp - https://www.cryptopp.com/
+	# OpenSSL - https://www.openssl.org/
+	#Use CMake predefined finder-module
 	if(NOT CRYPTO_LIBRARY_FOUND)
-		#Try to find precompiled library
-		find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
-		if(CRYPTOPP_LIBRARY)
-			message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
+		include(FindOpenSSL)
+		if(OPENSSL_FOUND AND OPENSSL_INCLUDE_DIR)
+			message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
 			#Set header to default include path
-			add_definitions(-DCRYPTOPP_LIBRARY=1)
+			add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
+			include_directories(${OPENSSL_INCLUDE_DIR})
 			set(CRYPTO_LIBRARY_FOUND ON)
 		endif()
 	endif()
