@@ -319,7 +319,7 @@ const void* RTCPHandler::createSourceDescription(unsigned int offset)
                 (*rtcpData)[RTCP_SOURCE_PHONE] = configMode->getCustomConfiguration(Parameters::USER_PHONE->longName, "Enter SDES PHONE", "");
             }
         }
-        (*rtcpData)[RTCP_SOURCE_TOOL] = std::string("OHMComm v") + OHMCOMM_VERSION;
+        (*rtcpData)[RTCP_SOURCE_TOOL] = std::string("OHMComm ") + OHMCOMM_VERSION;
     }
     RTCPHeader sdesHeader(ourselves.ssrc);
     return rtcpHandler.createSourceDescriptionPackage(sdesHeader, rtcpData->fields, offset);

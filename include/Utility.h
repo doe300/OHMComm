@@ -210,7 +210,7 @@ namespace ohmcomm
          * \since 0.9
          */
         static unsigned int randomNumber();
-
+        
     private:
 
         static std::string getExternalLocalIPAddress();
