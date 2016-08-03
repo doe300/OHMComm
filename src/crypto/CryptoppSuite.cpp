@@ -1,7 +1,7 @@
 
 #include "crypto/CryptoSuite.h"
 
-#ifdef CRYPTOPP_LIBRARY //Only compile of Crypto++ is available
+#if defined(ENABLE_CRYPTOGRAPHICS) && defined(CRYPTOPP_LIBRARY) //Only compile of Crypto++ is available
 
 #include <sstream>
 #include <iomanip>

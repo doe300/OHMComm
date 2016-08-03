@@ -1,6 +1,6 @@
 #include "crypto/CryptoSuite.h"
 
-#if !defined CRYPTOPP_LIBRARY && !defined OPENSSL_CRYPTO_LIBRARY
+#if !defined(ENABLE_CRYPTOGRAPHICS) || !(defined(CRYPTOPP_LIBRARY) || defined(OPENSSL_CRYPTO_LIBRARY))
 
 #include <stdexcept>
 

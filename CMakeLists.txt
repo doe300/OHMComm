@@ -11,6 +11,7 @@ SET(BUILD_SHARED_LIBS ON)
 option(BUILD_TESTING "Build testing program" ON)
 option(BUILD_DEBUG "Build with debugging symbols. Otherwise build for performance" OFF)
 option(FORCE_CUSTOM_LIBRARIES "Force the use of custom libraries instead of the system-provided. Use this if your system ships with outdated versions of the libraries" OFF)
+option(ENABLE_CRYPTOGRAPHICS "Enable cryptographic the library to support SRTP" ON)
 
 # append usage of C++ to compiler flags, also optimize for speed and enable all warnings
 if(NOT MSVC)
@@ -163,61 +164,64 @@ endif()
 # other
 #
 
-if(NOT FORCE_CUSTOM_LIBRARIES)
-	# Cryptopp - https://www.cryptopp.com/
-	#Try to find precompiled library
-	#Prefer Cryptopp over OpenSSL since OpenSSL causes problems with Mac OS
-	find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
-	if(CRYPTOPP_LIBRARY)
-		message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
-		#Set header to default include path
-		add_definitions(-DCRYPTOPP_LIBRARY=1)
-		set(CRYPTO_LIBRARY_FOUND ON)
+if(ENABLE_CRYPTOGRAPHICS)
+	add_definitions(-DENABLE_CRYPTOGRAPHICS=1)
+	if(NOT FORCE_CUSTOM_LIBRARIES)
+		# Cryptopp - https://www.cryptopp.com/
+		#Try to find precompiled library
+		#Prefer Cryptopp over OpenSSL since OpenSSL causes problems with Mac OS
+		find_library(CRYPTOPP_LIBRARY NAMES cryptopp libcryptopp)
+		if(CRYPTOPP_LIBRARY)
+			message(STATUS "Crypto++ library found: " ${CRYPTOPP_LIBRARY})
+			#Set header to default include path
+			add_definitions(-DCRYPTOPP_LIBRARY=1)
+			set(CRYPTO_LIBRARY_FOUND ON)
+		endif()
+
+		# OpenSSL - https://www.openssl.org/
+		#Use CMake predefined finder-module
+		if(NOT CRYPTO_LIBRARY_FOUND)
+			include(FindOpenSSL)
+			if(OPENSSL_FOUND AND OPENSSL_INCLUDE_DIR)
+				message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
+				#Set header to default include path
+				add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
+				include_directories(${OPENSSL_INCLUDE_DIR})
+				set(CRYPTO_LIBRARY_FOUND ON)
+			endif()
+		endif()
 	endif()
 
-	# OpenSSL - https://www.openssl.org/
-	#Use CMake predefined finder-module
+	#Force custom library or library not found
 	if(NOT CRYPTO_LIBRARY_FOUND)
-		include(FindOpenSSL)
-		if(OPENSSL_FOUND AND OPENSSL_INCLUDE_DIR)
-			message(STATUS "OpenSSL crypto library found: " ${OPENSSL_CRYPTO_LIBRARY} " in version " ${OPENSSL_VERSION})
-			#Set header to default include path
-			add_definitions(-DOPENSSL_CRYPTO_LIBRARY="1")
-			include_directories(${OPENSSL_INCLUDE_DIR})
+		#Update custom library
+		if(NOT SUBMODULES_UPDATED)
+			include(cmake/submodules.cmake)
+			set(SUBMODULES_UPDATED ON)
+		endif()
+
+		#Cryptopp doesn't provide a CMakeLists.txt (at least not yet for version 5.6.3), so copy it manually
+		execute_process(
+			COMMAND             cmake -E copy cmake/CMakeLists-cryptopp.txt lib/cryptopp/CMakeLists.txt
+			WORKING_DIRECTORY   ${PROJECT_SOURCE_DIR}
+		)
+
+		# Cryptopp - https://www.cryptopp.com/
+		#use manually downloaded library
+		find_path(CRYPTOPP_HEADER_PATH "aes.h" HINTS lib/cryptopp)
+		if(CRYPTOPP_HEADER_PATH)
+			message(STATUS "Compiling provided Crypto++-library!")
+			# Compile ourselves and set correct header-path
+			add_subdirectory(lib/cryptopp build/cryptopp)
+			add_definitions(-DCRYPTOPP_LIBRARY=2)
 			set(CRYPTO_LIBRARY_FOUND ON)
 		endif()
 	endif()
-endif()
 
-#Force custom library or library not found
-if(NOT CRYPTO_LIBRARY_FOUND)
-	#Update custom library
-	if(NOT SUBMODULES_UPDATED)
-		include(cmake/submodules.cmake)
-		set(SUBMODULES_UPDATED ON)
+	# Check if any crypto-library was added
+	if(NOT CRYPTO_LIBRARY_FOUND)
+		message(WARNING "No supported crypto-library found!")
 	endif()
-
-	#Cryptopp doesn't provide a CMakeLists.txt (at least not yet for version 5.6.3), so copy it manually
-	execute_process(
-        COMMAND             cmake -E copy cmake/CMakeLists-cryptopp.txt lib/cryptopp/CMakeLists.txt
-        WORKING_DIRECTORY   ${PROJECT_SOURCE_DIR}
-    )
-
-	# Cryptopp - https://www.cryptopp.com/
-	#use manually downloaded library
-	find_path(CRYPTOPP_HEADER_PATH "aes.h" HINTS lib/cryptopp)
-	if(CRYPTOPP_HEADER_PATH)
-		message(STATUS "Compiling provided Crypto++-library!")
-		# Compile ourselves and set correct header-path
-		add_subdirectory(lib/cryptopp build/cryptopp)
-		add_definitions(-DCRYPTOPP_LIBRARY=2)
-		set(CRYPTO_LIBRARY_FOUND ON)
-	endif()
-endif()
-
-# Check if any crypto-library was added
-if(NOT CRYPTO_LIBRARY_FOUND)
-	message(WARNING "No supported crypto-library found!")
 endif()
 
 ####

@@ -1,7 +1,7 @@
 
 #include "crypto/CryptoSuite.h"
 
-#ifdef OPENSSL_CRYPTO_LIBRARY //Only compile of OpenSSL crypto is available
+#if defined(ENABLE_CRYPTOGRAPHICS) && defined(OPENSSL_CRYPTO_LIBRARY) //Only compile of OpenSSL crypto is available
 
 #include <sstream>
 #include <iomanip>
