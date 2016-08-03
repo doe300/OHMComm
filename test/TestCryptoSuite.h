@@ -20,6 +20,8 @@ public:
     void testHMAC_SHA1();
     void testAES();
 
+protected:
+    bool setup() override;
 };
 
 #endif /* TESTCRYPTOSUITE_H */

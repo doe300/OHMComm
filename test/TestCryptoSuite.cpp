@@ -19,6 +19,15 @@ TestCryptoSuite::TestCryptoSuite() : Test::Suite()
     TEST_ADD(TestCryptoSuite::testAES);
 }
 
+bool TestCryptoSuite::setup()
+{
+#ifdef ENABLE_CRYPTOGRAPHICS
+    return true;
+#else
+    return false;
+#endif
+}
+
 void TestCryptoSuite::testMD5()
 {
     const std::string test("Hello World!");
